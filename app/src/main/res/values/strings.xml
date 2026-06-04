@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">阅痕 ReadTrace</string>
+    <string name="home_title">阅痕 ReadTrace</string>
+    <string name="home_subtitle">安静记录每一本书留下的痕迹</string>
+    <string name="home_add">添加</string>
+    <string name="home_search_hint">搜索书名、作者或某段心情</string>
+    <string name="status_all">全部</string>
+    <string name="status_wishlist">想读</string>
+    <string name="status_reading">在读</string>
+    <string name="status_finished">已读</string>
+    <string name="empty_shelf_title">书架还是空的</string>
+    <string name="empty_shelf_body">先添加一本书，把这一刻的阅读心情留下来。</string>
+    <string name="empty_shelf_action">添加第一本书</string>
+    <string name="today_reflection_title">今日书架</string>
+    <string name="today_reflection_body">慢一点也没关系。读过的每一页，都会在某个阶段留下痕迹。</string>
+    <string name="decorative_book">书籍封面占位</string>
+</resources>

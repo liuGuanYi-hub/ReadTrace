@@ -1,0 +1,552 @@
+:root {
+  color: #1f2933;
+  background: #f5f6f7;
+  font-family: Inter, "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(245, 246, 247, 0.94)),
+    #f5f6f7;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.page {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.narrow-page {
+  width: min(920px, calc(100% - 32px));
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 72px;
+  padding: 12px 0 20px;
+}
+
+.brand-button,
+.book-title-button,
+.book-card-cover-button,
+.text-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.brand-button {
+  display: grid;
+  justify-items: start;
+}
+
+.brand-title {
+  font-size: 28px;
+  font-weight: 750;
+}
+
+.brand-subtitle {
+  color: #667085;
+  font-size: 13px;
+}
+
+.search-box input,
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2933;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-box input {
+  height: 44px;
+  padding: 0 14px;
+}
+
+.field input,
+.field select {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 160px;
+  padding: 10px 12px;
+}
+
+.search-box input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #2f7d73;
+  box-shadow: 0 0 0 3px rgba(47, 125, 115, 0.14);
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0 14px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.primary-button {
+  background: #2f7d73;
+  color: #ffffff;
+}
+
+.secondary-button {
+  background: #ffffff;
+  border-color: #d7dde4;
+  color: #344054;
+}
+
+.danger-button {
+  background: #ffffff;
+  border-color: #e3aaa5;
+  color: #a33b35;
+}
+
+.text-button {
+  color: #2f7d73;
+  font-weight: 650;
+}
+
+.bookshelf-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar h2 {
+  margin: 0 0 12px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.status-filter {
+  display: grid;
+  gap: 8px;
+}
+
+.status-item {
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #475467;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.status-item-active {
+  background: #ffffff;
+  border-color: #ccd6d4;
+  color: #1f2933;
+  font-weight: 700;
+}
+
+.content-area {
+  display: grid;
+  gap: 16px;
+}
+
+.content-header,
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.content-header h1,
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.content-header p {
+  margin: 4px 0 0;
+  color: #667085;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.tag-list-compact {
+  min-height: 0;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid #d5dedb;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #43534f;
+  padding: 0 10px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+button.tag {
+  cursor: pointer;
+}
+
+.tag-active {
+  border-color: #2f7d73;
+  color: #1f625a;
+  font-weight: 700;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 156px;
+  padding: 12px;
+  border: 1px solid #e0e5ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.book-card-cover-button {
+  width: 86px;
+  height: 128px;
+}
+
+.book-card-cover,
+.detail-cover {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #dfe7e4;
+}
+
+.book-card-cover-empty,
+.detail-cover-empty {
+  display: grid;
+  place-items: center;
+  color: #2f5f59;
+  font-weight: 800;
+  text-align: center;
+}
+
+.book-card-body {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.book-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.status-pill,
+.rating-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pill {
+  background: #e9f4f1;
+  color: #1f625a;
+}
+
+.rating-pill {
+  background: #f5eadc;
+  color: #7c4f18;
+}
+
+.book-title-button {
+  overflow: hidden;
+  color: #101828;
+  font-size: 17px;
+  font-weight: 750;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-author,
+.book-comment {
+  margin: 0;
+  color: #667085;
+}
+
+.book-comment {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 14px;
+}
+
+.empty-state,
+.loading-state,
+.error-banner {
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.empty-state,
+.loading-state {
+  border: 1px dashed #cbd5df;
+  background: #ffffff;
+  color: #667085;
+}
+
+.empty-state h2 {
+  margin: 0 0 6px;
+  color: #344054;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.error-banner {
+  border: 1px solid #e6b7b2;
+  background: #fff4f2;
+  color: #9f3029;
+}
+
+.book-form {
+  display: grid;
+  gap: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field span {
+  color: #475467;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.detail-cover-panel {
+  width: 220px;
+}
+
+.detail-cover {
+  aspect-ratio: 2 / 3;
+  height: auto;
+}
+
+.detail-main {
+  display: grid;
+  gap: 16px;
+}
+
+.detail-main h1 {
+  margin: 0;
+  color: #101828;
+  font-size: 34px;
+}
+
+.detail-author {
+  margin: -10px 0 0;
+  color: #667085;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metadata-row {
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+  border: 1px solid #e0e5ea;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.metadata-row span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.metadata-row strong {
+  color: #1f2933;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.prose-section {
+  border-top: 1px solid #e0e5ea;
+  padding-top: 18px;
+}
+
+.prose-section h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.prose-section p {
+  margin: 0;
+  color: #344054;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .page,
+  .narrow-page {
+    width: min(100% - 24px, 1180px);
+    padding-top: 16px;
+  }
+
+  .topbar,
+  .bookshelf-layout,
+  .detail-layout,
+  .form-grid,
+  .metadata-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .status-filter {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-item {
+    text-align: center;
+  }
+
+  .content-header,
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .page-actions,
+  .form-actions {
+    width: 100%;
+  }
+
+  .page-actions button,
+  .form-actions button {
+    flex: 1;
+  }
+
+  .detail-cover-panel {
+    width: min(220px, 70vw);
+  }
+}
+
