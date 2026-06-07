@@ -87,26 +87,11 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/searchGlass"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_search_glass"
-                android:elevation="5dp"
-                android:fontFamily="sans"
-                android:gravity="center_vertical"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                android:text="@string/home_search_hint"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="14sp" />
-
             <HorizontalScrollView
                 android:id="@+id/statusScroller"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="20dp"
                 android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:scrollbars="none">
@@ -151,6 +136,15 @@
                         android:text="@string/status_finished" />
                 </LinearLayout>
             </HorizontalScrollView>
+
+            <LinearLayout
+                android:id="@+id/booksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <LinearLayout
                 android:id="@+id/emptyPanel"
