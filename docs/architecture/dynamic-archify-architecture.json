@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "阅痕 ReadTrace",
+    "subtitle": "Offline Android reading tracker",
+    "output": "dynamic-archify-architecture.html"
+  },
+  "components": [
+    {
+      "id": "reader",
+      "type": "external",
+      "label": "Reader",
+      "sublabel": "Android user",
+      "pos": [
+        20,
+        250
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "Android UI",
+      "sublabel": "XML + AppCompat",
+      "pos": [
+        250,
+        250
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "vm",
+      "type": "backend",
+      "label": "ViewModel",
+      "sublabel": "Screen state",
+      "pos": [
+        500,
+        120
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "repo",
+      "type": "backend",
+      "label": "Repository",
+      "sublabel": "Book operations",
+      "pos": [
+        500,
+        380
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "sqlite",
+      "type": "database",
+      "label": "SQLite",
+      "sublabel": "Local books",
+      "pos": [
+        760,
+        250
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "ReadTrace Android app",
+      "wraps": [
+        "ui",
+        "vm",
+        "repo",
+        "sqlite"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "reader",
+      "to": "ui",
+      "label": "read",
+      "variant": "emphasis"
+    },
+    {
+      "from": "ui",
+      "to": "vm",
+      "label": "events",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "route": "orthogonal-v"
+    },
+    {
+      "from": "ui",
+      "to": "repo",
+      "label": "edit",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "orthogonal-v"
+    },
+    {
+      "from": "vm",
+      "to": "sqlite",
+      "label": "query",
+      "fromSide": "right",
+      "toSide": "top",
+      "route": "orthogonal-h"
+    },
+    {
+      "from": "repo",
+      "to": "sqlite",
+      "label": "persist",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "route": "orthogonal-h"
+    }
+  ],
+  "cards": []
+}

@@ -67,3 +67,10 @@ archive/fastapi-backend/
 - v1.0 不做登录、云同步、AI、摘录和笔记。
 
 任何可能减少 C 盘容量的操作，都必须先说明预计增加量，并等待确认。
+
+## 动态系统架构图
+
+![阅痕 ReadTrace 动态系统架构图](docs/architecture/dynamic-archify-architecture.svg)
+
+- [打开交互式动态架构图](docs/architecture/dynamic-archify-architecture.html)
+- [查看架构源数据](docs/architecture/dynamic-archify-architecture.json)
