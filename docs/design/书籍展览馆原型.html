@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阅痕 ReadTrace · 书籍展览馆原型</title>
+<style>
+  :root {
+    --bg: #F5F1E9;
+    --ink: #20241F;
+    --muted: #71776D;
+    --accent: #4E7A5A;
+    --accent-deep: #41684B;
+    --gold: #C9A86A;
+    --paper: #FBF7EE;
+    --serif: Georgia, "Songti SC", "STSong", SimSun, serif;
+    --sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); overflow-x: hidden; }
+  .page { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 48px 28px 90px; }
+  .page-head { text-align: center; margin-bottom: 40px; }
+  .page-head .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 4px; color: var(--muted); }
+  .page-head .brand .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .page-head h1 { font-family: var(--serif); font-size: 32px; font-weight: 600; margin: 13px 0 9px; }
+  .page-head p { color: var(--muted); font-size: 13.5px; line-height: 1.8; max-width: 700px; margin: 0 auto; }
+
+  .section-desc { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 22px; max-width: 800px; }
+
+  /* ============ 展览馆舞台 ============ */
+  .hall-stage {
+    position: relative; height: 620px; border-radius: 26px; overflow: hidden;
+    perspective: 1050px; perspective-origin: 50% 46%;
+    background: radial-gradient(120% 90% at 50% 30%, #3B3E36, #24261F 75%);
+    border: 1px solid rgba(255,255,255,.25);
+    box-shadow: 0 24px 60px rgba(32,36,31,.35);
+    cursor: grab;
+  }
+  .hall-stage:active { cursor: grabbing; }
+  .hall-stage::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 40;
+    background: radial-gradient(75% 65% at 50% 46%, transparent 55%, rgba(15,17,13,.5) 100%);
+  }
+  .viewpoint {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    transition: transform .45s cubic-bezier(.2,.7,.3,1);
+  }
+  .camera {
+    position: absolute; inset: 0; transform-style: preserve-3d;
+    transition: transform .4s cubic-bezier(.25,.7,.3,1);
+  }
+  .room { position: absolute; left: 50%; top: 50%; transform-style: preserve-3d; }
+
+  .wall { position: absolute; left: 0; top: 0; }
+  .wall.back {
+    background:
+      radial-gradient(60% 50% at 50% 32%, rgba(255,246,214,.35), transparent 70%),
+      linear-gradient(180deg, #EFE7D2 0%, #E6DCC2 100%);
+  }
+  .wall.side {
+    background:
+      repeating-linear-gradient(90deg, rgba(120,105,70,.045) 0 1px, transparent 1px 90px),
+      linear-gradient(180deg, #F1EAD8 0%, #E7DEC6 82%, #D9CEB0 100%);
+  }
+  .floor {
+    background:
+      repeating-linear-gradient(0deg, rgba(110,95,60,.06) 0 2px, transparent 2px 64px),
+      linear-gradient(180deg, #D8CCAE, #C9BB97);
+  }
+  .floor::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(0deg, rgba(60,52,34,.16), transparent 40%);
+  }
+
+  /* 展品画框（挂在墙上的子元素） */
+  .frame {
+    position: absolute; padding: 10px;
+    background: linear-gradient(160deg, #E8D9B4, #C9A86A 55%, #A98A4F);
+    border-radius: 6px;
+    box-shadow: 0 14px 30px rgba(20,18,10,.35);
+    transition: transform .35s, box-shadow .35s, filter .35s;
+  }
+  .frame .mat {
+    background: var(--paper); border-radius: 3px; padding: 18px 16px;
+    box-shadow: inset 0 0 0 1px rgba(120,100,60,.25);
+    height: 100%; display: flex; flex-direction: column;
+  }
+  .frame:hover, .frame.near { transform: translateZ(18px) scale(1.04); box-shadow: 0 22px 44px rgba(15,13,6,.5); }
+  .frame.near { filter: brightness(1.06); }
+  .frame .kind { font-size: 10px; letter-spacing: 3px; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+  .frame .qtext { font-family: var(--serif); font-size: 15.5px; line-height: 1.95; flex: 1; }
+  .frame .qtext::before { content: "「"; color: rgba(78,122,90,.5); }
+  .frame .qtext::after { content: "」"; color: rgba(78,122,90,.5); }
+  .frame .plaque {
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(120,100,60,.22);
+    display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted);
+  }
+  .frame .plaque b { color: var(--accent-deep); font-family: var(--serif); }
+  .frame.cover-frame .mat { align-items: center; justify-content: center; }
+  .frame .coverart {
+    width: 108px; height: 156px; border-radius: 6px;
+    background: linear-gradient(150deg, #EFE3CB, #DDCBA4);
+    border: 1px solid rgba(160,140,110,.4);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 4px 8px 18px rgba(32,36,31,.18);
+  }
+  .frame .coverart .vt { writing-mode: vertical-rl; font-family: var(--serif); font-size: 17px; letter-spacing: 6px; color: #6B5F4B; font-weight: 700; }
+  .frame .covertitle { font-family: var(--serif); font-size: 14px; font-weight: 700; margin-top: 14px; }
+  .frame .coversub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .frame.plaque-frame .mat { justify-content: center; }
+  .frame .bigscore { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--accent-deep); }
+  .frame .tagline { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+  .frame .tagline i { font-style: normal; font-size: 11.5px; padding: 4px 11px; border-radius: 999px; background: rgba(78,122,90,.1); color: var(--accent-deep); }
+  .frame.endwall .mat { padding: 26px 30px; }
+
+  /* 空展位 */
+  .frame.empty { background: rgba(255,255,255,.16); border: 2px dashed rgba(255,246,214,.55); box-shadow: none; }
+  .frame.empty .mat { background: transparent; box-shadow: none; align-items: center; justify-content: center; gap: 10px; }
+  .frame.empty .plus { font-size: 34px; color: rgba(255,246,214,.85); font-weight: 300; }
+  .frame.empty .lbl { font-size: 12px; color: rgba(255,246,214,.8); letter-spacing: 2px; }
+  .frame.empty:hover { background: rgba(255,246,214,.14); }
+
+  /* 射灯光晕 */
+  .spot {
+    position: absolute; width: 260px; height: 150px; pointer-events: none;
+    background: radial-gradient(50% 60% at 50% 30%, rgba(255,246,214,.4), transparent 72%);
+  }
+
+  /* 中央展台与书 */
+  .pedestal { position: absolute; transform-style: preserve-3d; }
+  .pedestal .pface { position: absolute; left: 50%; top: 50%; background: rgba(255,255,255,.32); border: 1px solid rgba(255,255,255,.45); box-shadow: 0 18px 40px rgba(15,17,12,.4); }
+  .pedestal .ptop { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(233,225,206,.4)); }
+  .pedestal .plabel {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%) translateZ(52px);
+    background: rgba(32,36,31,.55); color: #F2ECDC; font-size: 11px; letter-spacing: 2px;
+    padding: 6px 12px; border-radius: 999px; white-space: nowrap; backdrop-filter: blur(4px);
+  }
+  .display-book { position: absolute; transform-style: preserve-3d; animation: bookspin 26s linear infinite; }
+  @keyframes bookspin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+  .display-book .bface { position: absolute; left: 50%; top: 50%; border-radius: 2px; }
+
+  /* HUD */
+  .hud {
+    position: absolute; top: 18px; left: 18px; right: 18px; z-index: 50;
+    display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;
+  }
+  .hud .card {
+    pointer-events: auto; background: rgba(32,36,31,.55); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 14px; padding: 12px 16px; color: #F2ECDC; backdrop-filter: blur(10px);
+    box-shadow: 0 10px 26px rgba(15,17,12,.35);
+  }
+  .hud .t { font-family: var(--serif); font-size: 16px; font-weight: 700; }
+  .hud .s { font-size: 11.5px; opacity: .75; margin-top: 4px; letter-spacing: 1px; }
+  .hud .ops { display: flex; gap: 10px; }
+  .hbtn {
+    pointer-events: auto; height: 38px; padding: 0 16px; border-radius: 12px;
+    display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer; user-select: none;
+    background: rgba(32,36,31,.55); border: 1px solid rgba(255,255,255,.18); color: #F2ECDC;
+    backdrop-filter: blur(10px);
+  }
+  .hbtn.gold { background: rgba(201,168,106,.9); border-color: transparent; color: #2E2717; font-weight: 700; }
+  .hud-tip {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 50;
+    font-size: 11.5px; color: rgba(242,236,220,.72); letter-spacing: 2px; pointer-events: none;
+    background: rgba(32,36,31,.4); padding: 7px 16px; border-radius: 999px; backdrop-filter: blur(8px);
+  }
+
+  footer { text-align: center; margin-top: 48px; color: var(--muted); font-size: 12px; line-height: 2.1; }
+  footer b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-head">
+    <span class="brand"><span class="dot"></span>READTRACE · BOOK MUSEUM<span class="dot"></span></span>
+    <h1>每本书，都是一座私人展览馆</h1>
+    <p>书架是这座纪念馆的外墙。点击任何一本书，走进属于它的展厅：摘录是墙上的画，读后感是尽头的主题墙，书本身立在中央展台缓缓旋转。展品由你自定义添加——这是一座会生长的纪念馆。滚轮向前走，点击画框靠近看。</p>
+  </div>
+
+  <div class="section-desc">原型以《活着》为例。落地路径：展品数据来自 v1.1 的 notes 表与 books 字段；v2.0 用 SceneView（Filament）渲染真实 3D 展厅，展品作为数据驱动的贴图平面，随添加自动布展；中低端机降级为 2D 展品墙。</div>
+
+  <div class="hall-stage" id="stage">
+    <div class="viewpoint" id="viewpoint">
+      <div class="camera" id="camera">
+        <div class="room" id="room"></div>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="card">
+        <div class="t">《活着》 · 私人展览馆</div>
+        <div class="s" id="hudCount">展品 6 件 · 展厅 36 米</div>
+      </div>
+      <div class="ops">
+        <div class="hbtn" id="resetBtn">↩ 回到入口</div>
+        <div class="hbtn gold" id="addBtn">＋ 添加展品</div>
+      </div>
+    </div>
+    <div class="hud-tip">滚轮前行 · 点击画框走近细看 · 点击空展位随时布展</div>
+  </div>
+
+  <footer>
+    阅痕 ReadTrace · 书籍展览馆原型（静态交互示意稿，非最终实现）<br>
+    <b>愿景：</b>书架（外观）→ 展览馆（内景）→ 展品可自定义生长 · 生成于 2026-08-22
+  </footer>
+</div>
+
+<script>
+/* ============ 展厅几何 ============ */
+var RW = 920, RH = 520, RD = 3600;      // 展厅宽/高/深（px 近似厘米×10）
+var HALF_W = RW / 2, HALF_H = RH / 2, MID_Z = -RD / 2;
+var stage = document.getElementById('stage');
+var viewpoint = document.getElementById('viewpoint');
+var camera = document.getElementById('camera');
+var room = document.getElementById('room');
+
+/* 墙面：世界坐标放置（子元素直接用墙上局部坐标摆画框） */
+function addWall(cls, w, h, transform, id) {
+  var el = document.createElement('div');
+  el.className = 'wall ' + cls;
+  el.id = id || '';
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+  el.style.marginLeft = (-w / 2) + 'px';
+  el.style.marginTop = (-h / 2) + 'px';
+  el.style.transform = transform;
+  room.appendChild(el);
+  return el;
+}
+/* 后墙（主题墙） */
+var wallBack = addWall('back', RW, RH,
+  'translateZ(' + (-RD + 1) + 'px)', 'wallBack');
+/* 左墙：法线朝右 */
+var wallL = addWall('side left', RD, RH,
+  'translate3d(' + (-HALF_W + 1) + 'px,0,' + MID_Z + 'px) rotateY(90deg)', 'wallL');
+/* 右墙：法线朝左 */
+var wallR = addWall('side right', RD, RH,
+  'translate3d(' + (HALF_W - 1) + 'px,0,' + MID_Z + 'px) rotateY(-90deg)', 'wallR');
+/* 地面 */
+var floorEl = document.createElement('div');
+floorEl.className = 'floor';
+floorEl.style.cssText += ';position:absolute;left:50%;top:50%;width:' + RW + 'px;height:' + RD + 'px;' +
+  'margin-left:' + (-HALF_W) + 'px;margin-top:' + (-RD / 2) + 'px;' +
+  'transform:translate3d(0,' + HALF_H + 'px,' + MID_Z + 'px) rotateX(90deg);';
+room.appendChild(floorEl);
+
+/* 世界 z → 墙面局部 x */
+function localX(z, side) { return side === 'L' ? (-z - RD / 2) : (z + RD / 2); }
+
+/* ============ 展品 ============ */
+var FW = 300, FH = 220; // 画框尺寸
+function makeFrame(kind, inner) {
+  var f = document.createElement('div');
+  f.className = 'frame ' + kind;
+  f.style.width = FW + 'px';
+  f.style.height = FH + 'px';
+  var mat = document.createElement('div');
+  mat.className = 'mat';
+  mat.innerHTML = inner;
+  f.appendChild(mat);
+  return f;
+}
+function hangFrame(frame, wall, z, side) {
+  var x = localX(z, side);
+  frame.style.left = (x - FW / 2) + 'px';
+  frame.style.top = (HALF_H - FH / 2 - 14) + 'px';
+  wall.appendChild(frame);
+  /* 射灯 */
+  var sp = document.createElement('div');
+  sp.className = 'spot';
+  sp.style.left = (x - 130) + 'px';
+  sp.style.top = (HALF_H - FH / 2 - 14 - 120) + 'px';
+  wall.appendChild(sp);
+  frame.addEventListener('click', function (ev) {
+    if (frame.classList.contains('empty')) { addExhibit(); return; }
+    ev.stopPropagation();
+    walkTo(z + 300);
+    document.querySelectorAll('.frame.near').forEach(function (o) { o.classList.remove('near'); });
+    frame.classList.add('near');
+  });
+}
+function quoteExhibit(e) {
+  return '<div class="kind">摘 录 · ' + e.ch + '</div>' +
+    '<div class="qtext">' + e.q + '</div>' +
+    '<div class="plaque"><span>余华《活着》</span><b>P.' + e.p + '</b></div>';
+}
+
+var EXHIBITS = [
+  { side: 'L', z: -700,  kind: '',         html: quoteExhibit({ q: '人是为活着本身而活着的，而不是为了活着之外的任何事物所活着。', ch: '中文版自序', p: 3 }) },
+  { side: 'R', z: -700,  kind: 'cover-frame', html:
+      '<div class="coverart"><span class="vt">活着</span></div>' +
+      '<div class="covertitle">活着</div><div class="coversub">余华 · 小说 · 1993</div>' },
+  { side: 'L', z: -1500, kind: '',         html: quoteExhibit({ q: '生活是属于每个人自己的感受，不属于任何别人的看法。', ch: '韩文版自序', p: 7 }) },
+  { side: 'R', z: -1500, kind: 'plaque-frame', html:
+      '<div class="kind">纪 念 牌</div><div class="bigscore">9.4</div>' +
+      '<div class="tagline"><i># 生命</i><i># 苦难</i><i># 土地</i></div>' +
+      '<div class="plaque" style="justify-content:center"><span>你的评分 · 2026 重读</span></div>' },
+  { side: 'L', z: -2300, kind: '',         html: quoteExhibit({ q: '少年去游荡，中年想掘藏，老年做和尚。', ch: '尾声', p: 191 }) },
+];
+EXHIBITS.forEach(function (ex) {
+  hangFrame(makeFrame(ex.kind, ex.html), ex.side === 'L' ? wallL : wallR, ex.z, ex.side);
+});
+
+/* 主题墙（后墙整幅）：读后感 */
+var endwall = makeFrame('endwall', '');
+endwall.style.left = (RW / 2 - 380) + 'px';
+endwall.style.top = (HALF_H - 150) + 'px';
+endwall.style.width = '760px';
+endwall.style.height = '300px';
+endwall.querySelector('.mat').innerHTML =
+  '<div class="kind">主 题 墙 · 读 后 感</div>' +
+  '<div class="qtext" style="font-size:17px">福贵牵着老牛走远的背影，是文学里最安静的力量之一。</div>' +
+  '<div class="plaque"><span>写于读完那晚 · 2026</span><b>展览馆到此为止</b></div>';
+endwall.addEventListener('click', function () { walkTo(-RD + 420); });
+wallBack.appendChild(endwall);
+var endSpot = document.createElement('div');
+endSpot.className = 'spot';
+endSpot.style.cssText += ';left:' + (RW / 2 - 130) + 'px;top:-90px;width:340px;height:220px;';
+wallBack.appendChild(endSpot);
+
+/* 空展位（可自定义添加） */
+var SLOTS = [
+  { side: 'R', z: -2300 },
+  { side: 'L', z: -3000 },
+  { side: 'R', z: -3000 },
+];
+var slotIndex = 0;
+function renderSlot(slot) {
+  var f = document.createElement('div');
+  f.className = 'frame empty';
+  f.style.width = FW + 'px';
+  f.style.height = FH + 'px';
+  f.innerHTML = '<div class="mat"><span class="plus">＋</span><span class="lbl">空 展 位 · 点 击 布 展</span></div>';
+  f.addEventListener('click', function (ev) { ev.stopPropagation(); addExhibit(); });
+  hangSlot(f, slot);
+  slot.el = f;
+}
+function hangSlot(f, slot) {
+  var x = localX(slot.z, slot.side);
+  f.style.left = (x - FW / 2) + 'px';
+  f.style.top = (HALF_H - FH / 2 - 14) + 'px';
+  (slot.side === 'L' ? wallL : wallR).appendChild(f);
+}
+SLOTS.slice(0, 2).forEach(renderSlot);
+
+/* 添加展品：自定义内容循环占位 */
+var NEW_KINDS = [
+  { kind: '', label: '随 想', body: '今天又想起有庆拉着羊跑过田埂的样子。', plaque: '新展品 · 随想' },
+  { kind: 'plaque-frame', label: '标 签 牌', body: '<div class="bigscore">✦</div><div class="tagline"><i># 亲情</i><i># 命运</i></div>', plaque: '新展品 · 标签' },
+  { kind: '', label: '摘 录', body: '这里将挂上你新抄下的一句活。', plaque: '新展品 · 摘录' },
+];
+var addCount = 0, totalExhibits = 6;
+function addExhibit() {
+  var slot;
+  if (slotIndex < SLOTS.length) {
+    slot = SLOTS[slotIndex];
+    if (slot.el && slot.el.parentNode) slot.el.parentNode.removeChild(slot.el);
+  } else {
+    /* 预设展位用完，向更深处延展展厅 */
+    var k2 = slotIndex - SLOTS.length;
+    slot = { side: (k2 % 2 === 0 ? 'L' : 'R'), z: -3000 - (Math.floor(k2 / 2) + 1) * 760 };
+  }
+  var k = NEW_KINDS[addCount % NEW_KINDS.length];
+  var inner = '<div class="kind">' + k.label + '</div>' +
+    (k.kind === '' ? '<div class="qtext">' + k.body + '</div><div class="plaque"><span>' + k.plaque + '</span><b>NEW</b></div>'
+                   : k.body + '<div class="plaque" style="justify-content:center"><span>' + k.plaque + '</span></div>');
+  var f = makeFrame(k.kind, inner);
+  hangSlot(f, slot);
+  walkTo(slot.z + 320);
+  f.classList.add('near');
+  addCount++; slotIndex++; totalExhibits++;
+  document.getElementById('hudCount').textContent = '展品 ' + totalExhibits + ' 件 · 展厅在生长';
+}
+document.getElementById('addBtn').addEventListener('click', addExhibit);
+
+/* ============ 中央展台 + 旋转的书 ============ */
+var PED_Y = HALF_H - 55, PED_Z = -1100;
+var ped = document.createElement('div');
+ped.className = 'pedestal';
+room.appendChild(ped);
+function pface(w, h, transform, cls) {
+  var d = document.createElement('div');
+  d.className = 'pface ' + (cls || '');
+  d.style.width = w + 'px'; d.style.height = h + 'px';
+  d.style.transform = 'translate(-50%,-50%) ' + transform;
+  ped.appendChild(d);
+}
+pface(190, 190, 'translate3d(0,' + PED_Y + 'px,' + PED_Z + 'px) rotateX(90deg)', 'ptop');
+pface(190, 110, 'translate3d(0,' + (PED_Y - 55) + 'px,' + (PED_Z + 95) + 'px)', '');
+pface(190, 110, 'translate3d(0,' + (PED_Y - 55) + 'px,' + (PED_Z - 95) + 'px) rotateY(180deg)', '');
+pface(190, 110, 'translate3d(-95px,' + (PED_Y - 55) + 'px,' + PED_Z + 'px) rotateY(-90deg)', '');
+pface(190, 110, 'translate3d(95px,' + (PED_Y - 55) + 'px,' + PED_Z + 'px) rotateY(90deg)', '');
+var plabel = document.createElement('div');
+plabel.className = 'plabel';
+plabel.textContent = '展 品 №1 · 这 本 书 本 身';
+plabel.style.transform = 'translate(-50%,-50%) translate3d(0,' + (PED_Y - 55) + 'px,' + (PED_Z + 96) + 'px)';
+ped.appendChild(plabel);
+
+/* 展台上的书（六面体，缓慢旋转） */
+var BW = 56, BH = 82, BD = 78, BOOK_TOP = PED_Y - 55 - BH / 2 - 2;
+var dbook = document.createElement('div');
+dbook.className = 'display-book';
+room.appendChild(dbook);
+function bface(w, h, transform, bg, extra) {
+  var d = document.createElement('div');
+  d.className = 'bface';
+  d.style.width = w + 'px'; d.style.height = h + 'px';
+  d.style.transform = 'translate(-50%,-50%) translate3d(0,' + BOOK_TOP + 'px,' + PED_Z + 'px) ' + transform;
+  d.style.background = bg;
+  if (extra) d.innerHTML = extra;
+  dbook.appendChild(d);
+}
+var spineHTML = '<span style="writing-mode:vertical-rl;font-family:var(--serif);font-size:13px;letter-spacing:4px;color:#F5F1E9;font-weight:700;display:flex;align-items:center;justify-content:center;height:100%">活着</span>';
+bface(BW, BH, 'translateZ(' + (BD / 2) + 'px)', 'linear-gradient(180deg,#8A5A4A,#6E4638)', spineHTML);
+bface(BW, BH, 'rotateY(180deg) translateZ(' + (BD / 2) + 'px)', '#5E3A2E');
+bface(BD, BH, 'rotateY(90deg) translateZ(' + (BW / 2) + 'px)', 'linear-gradient(90deg,#C9A86A,#B08F55)',
+  '<span style="font-family:var(--serif);font-size:20px;color:#3E3524;display:flex;align-items:center;justify-content:center;height:100%;letter-spacing:4px">活着</span>');
+bface(BD, BH, 'rotateY(-90deg) translateZ(' + (BW / 2) + 'px)', '#A98A4F');
+bface(BW, BD, 'rotateX(90deg) translateZ(' + (BH / 2) + 'px)', 'repeating-linear-gradient(90deg,#E8DFC9 0 2px,#F3ECDA 2px 4px)');
+bface(BW, BD, 'rotateX(-90deg) translateZ(' + (BH / 2) + 'px)', '#D8CCAE');
+
+/* ============ 行走与视角 ============ */
+var camZ = 320, lookY = 0, lookX = 0;
+var Z_MIN = -RD + 360, Z_MAX = 380;
+function applyCamera() {
+  camera.style.transform = 'translateZ(' + camZ + 'px)';
+  viewpoint.style.transform = 'rotateY(' + lookY + 'deg) rotateX(' + lookX + 'deg)';
+}
+function walkTo(z) { camZ = Math.max(Z_MIN, Math.min(Z_MAX, z)); applyCamera(); }
+stage.addEventListener('wheel', function (e) {
+  e.preventDefault();
+  walkTo(camZ - e.deltaY * 0.9);
+}, { passive: false });
+stage.addEventListener('mousemove', function (e) {
+  var r = stage.getBoundingClientRect();
+  var x = (e.clientX - r.left) / r.width - 0.5;
+  var y = (e.clientY - r.top) / r.height - 0.5;
+  lookY = x * 10; lookX = -y * 5;
+  applyCamera();
+});
+stage.addEventListener('mouseleave', function () { lookY = 0; lookX = 0; applyCamera(); });
+document.getElementById('resetBtn').addEventListener('click', function () {
+  camZ = 320; lookY = 0; lookX = 0; applyCamera();
+  document.querySelectorAll('.frame.near').forEach(function (o) { o.classList.remove('near'); });
+});
+applyCamera();
+</script>
+</body>
+</html>
