@@ -23,6 +23,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var emptyPanel: View
     private lateinit var emptyTitle: TextView
     private lateinit var emptyBody: TextView
+    private lateinit var shelfCountText: TextView
+    private lateinit var statTotalValue: TextView
+    private lateinit var statReadingValue: TextView
+    private lateinit var statFinishedValue: TextView
+    private lateinit var statAverageValue: TextView
     private var selectedStatus: BookStatus? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +45,11 @@ class MainActivity : AppCompatActivity() {
         emptyPanel = findViewById(R.id.emptyPanel)
         emptyTitle = findViewById(R.id.emptyTitle)
         emptyBody = findViewById(R.id.emptyBody)
+        shelfCountText = findViewById(R.id.shelfCountText)
+        statTotalValue = findViewById(R.id.statTotalValue)
+        statReadingValue = findViewById(R.id.statReadingValue)
+        statFinishedValue = findViewById(R.id.statFinishedValue)
+        statAverageValue = findViewById(R.id.statAverageValue)
 
         configureActions()
         configureStatusFilters()
@@ -110,7 +120,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshBooks() {
-        val books = databaseHelper.getBooks(selectedStatus)
+        val allBooks = databaseHelper.getBooks()
+        val books = selectedStatus?.let { status ->
+            allBooks.filter { it.status == status }
+        } ?: allBooks
+        updateShelfInsight(allBooks, books.size)
         booksContainer.removeAllViews()
 
         if (books.isEmpty()) {
@@ -148,8 +162,19 @@ class MainActivity : AppCompatActivity() {
         val ratingLabel = book.rating?.let {
             getString(R.string.rating_format, RATING_FORMAT.format(it))
         } ?: getString(R.string.unrated)
-        card.findViewById<TextView>(R.id.bookCardMeta).text =
-            getString(R.string.book_meta_format, book.status.displayName, ratingLabel)
+        card.findViewById<TextView>(R.id.bookCardMeta).visibility = View.GONE
+        card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
+        card.findViewById<TextView>(R.id.bookCardStatusPill).text = book.status.displayName
+        card.findViewById<TextView>(R.id.bookCardRating).text = ratingLabel
+        card.findViewById<TextView>(R.id.bookCardCategory).apply {
+            val category = book.category?.trim()
+            if (category.isNullOrEmpty()) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                text = category
+            }
+        }
 
         card.findViewById<TextView>(R.id.bookCardTags).apply {
             if (book.tags.isEmpty()) {
@@ -159,8 +184,51 @@ class MainActivity : AppCompatActivity() {
                 text = book.tags.joinToString(" · ")
             }
         }
+        card.findViewById<TextView>(R.id.bookCardComment).apply {
+            val comment = book.shortComment?.trim()
+            if (comment.isNullOrEmpty()) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                text = comment
+            }
+        }
+        card.setOnClickListener {
+            openBookDetail(card, book.id)
+        }
 
         return card
+    }
+
+    private fun updateShelfInsight(allBooks: List<Book>, visibleCount: Int) {
+        statTotalValue.text = allBooks.size.toString()
+        statReadingValue.text = allBooks.count { it.status == BookStatus.READING }.toString()
+        statFinishedValue.text = allBooks.count { it.status == BookStatus.FINISHED }.toString()
+        val ratedBooks = allBooks.mapNotNull { it.rating }
+        statAverageValue.text =
+            if (ratedBooks.isEmpty()) {
+                getString(R.string.home_average_empty)
+            } else {
+                RATING_FORMAT.format(ratedBooks.average())
+            }
+        shelfCountText.text = selectedStatus?.let {
+            getString(R.string.home_shelf_filtered_count_format, it.displayName, visibleCount)
+        } ?: getString(R.string.home_shelf_count_format, visibleCount)
+    }
+
+    private fun openBookDetail(card: View, bookId: Long) {
+        card.isEnabled = false
+        card.animate()
+            .scaleX(0.985f)
+            .scaleY(0.985f)
+            .setDuration(90L)
+            .withEndAction {
+                card.scaleX = 1f
+                card.scaleY = 1f
+                card.isEnabled = true
+                startActivity(BookDetailActivity.createIntent(this, bookId))
+            }
+            .start()
     }
 
     private fun animateBookCard(card: View, index: Int) {

@@ -1,6 +1,8 @@
 package com.example.readtrace
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -22,6 +24,8 @@ import java.time.format.DateTimeFormatter
 
 class AddBookActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
+    private lateinit var formTitle: TextView
+    private lateinit var formSubtitle: TextView
     private lateinit var titleInput: EditText
     private lateinit var authorInput: EditText
     private lateinit var coverUrlInput: EditText
@@ -37,6 +41,7 @@ class AddBookActivity : AppCompatActivity() {
 
     private var startDate: LocalDate? = null
     private var finishDate: LocalDate? = null
+    private var editingBookId: Long = NO_BOOK_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +55,16 @@ class AddBookActivity : AppCompatActivity() {
         }
 
         databaseHelper = BookDatabaseHelper(this)
+        editingBookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         bindViews()
-        restoreDates(savedInstanceState)
         configureStatusInput()
+        configureFormMode()
+        if (savedInstanceState == null) {
+            loadBookForEditing()
+            if (isFinishing) return
+        } else {
+            restoreDates(savedInstanceState)
+        }
         configureActions()
 
         findViewById<View>(R.id.addBookContent)
@@ -60,6 +72,8 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
+        formTitle = findViewById(R.id.formTitle)
+        formSubtitle = findViewById(R.id.formSubtitle)
         titleInput = findViewById(R.id.titleInput)
         authorInput = findViewById(R.id.authorInput)
         coverUrlInput = findViewById(R.id.coverUrlInput)
@@ -72,6 +86,36 @@ class AddBookActivity : AppCompatActivity() {
         startDateInput = findViewById(R.id.startDateInput)
         finishDateInput = findViewById(R.id.finishDateInput)
         saveButton = findViewById(R.id.saveButton)
+    }
+
+    private fun configureFormMode() {
+        if (editingBookId == NO_BOOK_ID) return
+        formTitle.setText(R.string.edit_book_title)
+        formSubtitle.setText(R.string.edit_book_subtitle)
+    }
+
+    private fun loadBookForEditing() {
+        if (editingBookId == NO_BOOK_ID) return
+        val book = databaseHelper.getBook(editingBookId)
+        if (book == null) {
+            Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        titleInput.setText(book.title)
+        authorInput.setText(book.author.orEmpty())
+        coverUrlInput.setText(book.coverUrl.orEmpty())
+        categoryInput.setText(book.category.orEmpty())
+        statusInput.setSelection(BookStatus.values().indexOf(book.status))
+        ratingInput.setText(book.rating?.let { RATING_FORMAT.format(it) }.orEmpty())
+        tagsInput.setText(book.tags.joinToString("，"))
+        shortCommentInput.setText(book.shortComment.orEmpty())
+        reviewInput.setText(book.review.orEmpty())
+        startDate = book.startDate?.let { parseDate(it) }
+        finishDate = book.finishDate?.let { parseDate(it) }
+        startDate?.let { showSelectedDate(startDateInput, it) }
+        finishDate?.let { showSelectedDate(finishDateInput, it) }
     }
 
     private fun restoreDates(savedInstanceState: Bundle?) {
@@ -109,6 +153,14 @@ class AddBookActivity : AppCompatActivity() {
                 showSelectedDate(finishDateInput, selected)
             }
         }
+        findViewById<View>(R.id.clearStartDateButton).setOnClickListener {
+            startDate = null
+            showEmptyDate(startDateInput)
+        }
+        findViewById<View>(R.id.clearFinishDateButton).setOnClickListener {
+            finishDate = null
+            showEmptyDate(finishDateInput)
+        }
         saveButton.setOnClickListener { saveBook() }
     }
 
@@ -128,6 +180,12 @@ class AddBookActivity : AppCompatActivity() {
     private fun showSelectedDate(view: TextView, date: LocalDate) {
         view.text = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
         view.setTextColor(ContextCompat.getColor(this, R.color.readtrace_ink))
+        view.error = null
+    }
+
+    private fun showEmptyDate(view: TextView) {
+        view.setText(R.string.select_date)
+        view.setTextColor(ContextCompat.getColor(this, R.color.readtrace_muted))
         view.error = null
     }
 
@@ -161,6 +219,7 @@ class AddBookActivity : AppCompatActivity() {
         }
 
         val book = Book(
+            id = editingBookId.takeIf { it != NO_BOOK_ID } ?: 0,
             title = title,
             author = authorInput.normalizedText(),
             coverUrl = coverUrlInput.normalizedText(),
@@ -176,17 +235,43 @@ class AddBookActivity : AppCompatActivity() {
 
         saveButton.isEnabled = false
         saveButton.alpha = 0.65f
-        runCatching { databaseHelper.insertBook(book) }
-            .onSuccess {
+        val isEditing = editingBookId != NO_BOOK_ID
+        runCatching {
+            if (isEditing) {
+                databaseHelper.updateBook(book)
+            } else {
+                databaseHelper.insertBook(book) > 0
+            }
+        }.onSuccess { saved ->
+            if (saved) {
                 setResult(RESULT_OK)
-                Toast.makeText(this, R.string.book_saved, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    if (isEditing) R.string.book_updated else R.string.book_saved,
+                    Toast.LENGTH_SHORT,
+                ).show()
                 finish()
+            } else {
+                restoreSaveButton()
+                Toast.makeText(
+                    this,
+                    if (isEditing) R.string.book_update_failed else R.string.book_save_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
             }
-            .onFailure {
-                saveButton.isEnabled = true
-                saveButton.alpha = 1f
-                Toast.makeText(this, R.string.book_save_failed, Toast.LENGTH_SHORT).show()
-            }
+        }.onFailure {
+            restoreSaveButton()
+            Toast.makeText(
+                this,
+                if (isEditing) R.string.book_update_failed else R.string.book_save_failed,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun restoreSaveButton() {
+        saveButton.isEnabled = true
+        saveButton.alpha = 1f
     }
 
     private fun parseRating(): Double? {
@@ -212,6 +297,9 @@ class AddBookActivity : AppCompatActivity() {
         finishDateInput.error = null
     }
 
+    private fun parseDate(value: String): LocalDate? =
+        runCatching { LocalDate.parse(value) }.getOrNull()
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString(STATE_START_DATE, startDate?.toString())
         outState.putString(STATE_FINISH_DATE, finishDate?.toString())
@@ -224,9 +312,16 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"
         private val RATING_PATTERN = Regex("""^(10(?:\.0)?|[1-9](?:\.\d)?)$""")
         private val TAG_SEPARATOR = Regex("[,，]")
+        private val RATING_FORMAT = java.text.DecimalFormat("0.#")
+        private const val NO_BOOK_ID = -1L
         private const val STATE_START_DATE = "state_start_date"
         private const val STATE_FINISH_DATE = "state_finish_date"
+
+        fun createEditIntent(context: Context, bookId: Long): Intent =
+            Intent(context, AddBookActivity::class.java)
+                .putExtra(EXTRA_BOOK_ID, bookId)
     }
 }

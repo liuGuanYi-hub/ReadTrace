@@ -57,6 +57,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/formTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans"
@@ -66,6 +67,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/formSubtitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
@@ -209,6 +211,22 @@
                             style="@style/ReadTraceDateInput"
                             android:text="@string/select_date"
                             android:textColor="@color/readtrace_muted" />
+
+                        <TextView
+                            android:id="@+id/clearStartDateButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_marginTop="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="sans"
+                            android:gravity="center"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:text="@string/action_clear_date"
+                            android:textColor="@color/readtrace_accent"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -227,6 +245,22 @@
                             style="@style/ReadTraceDateInput"
                             android:text="@string/select_date"
                             android:textColor="@color/readtrace_muted" />
+
+                        <TextView
+                            android:id="@+id/clearFinishDateButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_marginTop="5dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="sans"
+                            android:gravity="center"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:text="@string/action_clear_date"
+                            android:textColor="@color/readtrace_accent"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

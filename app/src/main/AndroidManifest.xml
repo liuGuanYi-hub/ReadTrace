@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Readtrace">
         <activity
+            android:name=".BookDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddBookActivity"
             android:exported="false" />
         <activity

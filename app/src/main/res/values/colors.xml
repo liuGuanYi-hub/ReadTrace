@@ -10,6 +10,8 @@
     <color name="readtrace_muted">#71776D</color>
     <color name="readtrace_accent">#4E7A5A</color>
     <color name="readtrace_accent_pressed">#41684B</color>
+    <color name="readtrace_danger">#A85252</color>
+    <color name="readtrace_danger_pressed">#8F4444</color>
     <color name="readtrace_chip">#8CFFFFFF</color>
     <color name="readtrace_chip_selected">#E34E7A5A</color>
     <color name="readtrace_chip_selected_stroke">#664E7A5A</color>

@@ -49,18 +49,7 @@ class BookDatabaseHelper(context: Context) :
 
     fun insertBook(book: Book): Long {
         val now = currentTimestamp()
-        val values = ContentValues().apply {
-            put(COLUMN_TITLE, book.title.trim())
-            putNullable(COLUMN_AUTHOR, book.author)
-            putNullable(COLUMN_COVER_URL, book.coverUrl)
-            putNullable(COLUMN_CATEGORY, book.category)
-            put(COLUMN_STATUS, book.status.databaseValue)
-            if (book.rating == null) putNull(COLUMN_RATING) else put(COLUMN_RATING, book.rating)
-            put(COLUMN_TAGS, JSONArray(book.tags).toString())
-            putNullable(COLUMN_SHORT_COMMENT, book.shortComment)
-            putNullable(COLUMN_REVIEW, book.review)
-            putNullable(COLUMN_START_DATE, book.startDate)
-            putNullable(COLUMN_FINISH_DATE, book.finishDate)
+        val values = book.toContentValues().apply {
             put(COLUMN_CREATED_AT, book.createdAt.ifBlank { now })
             put(COLUMN_UPDATED_AT, book.updatedAt.ifBlank { now })
             put(COLUMN_IS_DELETED, 0)
@@ -92,6 +81,49 @@ class BookDatabaseHelper(context: Context) :
                 }
             }
         }
+    }
+
+    fun getBook(bookId: Long): Book? =
+        readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(bookId.toString(), "0"),
+            null,
+            null,
+            null,
+            "1",
+        ).use { cursor ->
+            if (cursor.moveToFirst()) cursor.toBook() else null
+        }
+
+    fun updateBook(book: Book): Boolean {
+        if (book.id <= 0) return false
+        val values = book.toContentValues().apply {
+            put(COLUMN_UPDATED_AT, currentTimestamp())
+        }
+        return writableDatabase.update(
+            TABLE_BOOKS,
+            values,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(book.id.toString(), "0"),
+        ) > 0
+    }
+
+    fun archiveBook(bookId: Long): Boolean {
+        if (bookId <= 0) return false
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, now)
+            put(COLUMN_UPDATED_AT, now)
+        }
+        return writableDatabase.update(
+            TABLE_BOOKS,
+            values,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(bookId.toString(), "0"),
+        ) > 0
     }
 
     private fun Cursor.toBook(): Book =
@@ -145,6 +177,21 @@ class BookDatabaseHelper(context: Context) :
         val normalized = value?.trim()?.takeIf { it.isNotEmpty() }
         if (normalized == null) putNull(key) else put(key, normalized)
     }
+
+    private fun Book.toContentValues(): ContentValues =
+        ContentValues().apply {
+            put(COLUMN_TITLE, title.trim())
+            putNullable(COLUMN_AUTHOR, author)
+            putNullable(COLUMN_COVER_URL, coverUrl)
+            putNullable(COLUMN_CATEGORY, category)
+            put(COLUMN_STATUS, status.databaseValue)
+            if (rating == null) putNull(COLUMN_RATING) else put(COLUMN_RATING, rating)
+            put(COLUMN_TAGS, JSONArray(tags).toString())
+            putNullable(COLUMN_SHORT_COMMENT, shortComment)
+            putNullable(COLUMN_REVIEW, review)
+            putNullable(COLUMN_START_DATE, startDate)
+            putNullable(COLUMN_FINISH_DATE, finishDate)
+        }
 
     private fun currentTimestamp(): String =
         OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)

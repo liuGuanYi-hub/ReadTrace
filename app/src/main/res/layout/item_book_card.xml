@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bookCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="12dp"
     android:background="@drawable/bg_glass_panel_soft"
+    android:clickable="true"
     android:elevation="7dp"
+    android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -58,6 +61,53 @@
             android:textStyle="bold"
             tools:text="在读 · 8.5 / 10" />
 
+        <LinearLayout
+            android:id="@+id/bookCardSummaryRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="13dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/bookCardStatusPill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="在读" />
+
+            <TextView
+                android:id="@+id/bookCardRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="8.5 / 10" />
+
+            <TextView
+                android:id="@+id/bookCardCategory"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans"
+                android:gravity="end"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp"
+                tools:text="小说" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/bookCardTags"
             android:layout_width="match_parent"
@@ -69,6 +119,29 @@
             android:textColor="@color/readtrace_muted"
             android:textSize="12sp"
             tools:text="成长 · 日本文学 · 小说" />
+
+        <TextView
+            android:id="@+id/bookCardComment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="2"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp"
+            tools:text="像潮水一样缓慢地留下来。" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans"
+            android:gravity="end"
+            android:text="@string/book_detail_hint"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="12sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </LinearLayout>
