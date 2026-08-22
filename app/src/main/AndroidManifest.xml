@@ -15,6 +15,9 @@
             android:name=".BookDetailActivity"
             android:exported="false" />
         <activity
+            android:name=".AddNoteActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddBookActivity"
             android:exported="false" />
         <activity

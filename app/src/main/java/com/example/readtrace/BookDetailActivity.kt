@@ -52,6 +52,9 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailArchiveButton).setOnClickListener {
             confirmArchive()
         }
+        findViewById<View>(R.id.detailNotesAddButton).setOnClickListener {
+            startActivity(AddNoteActivity.createAddIntent(this, bookId))
+        }
 
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
@@ -140,8 +143,36 @@ class BookDetailActivity : AppCompatActivity() {
             val params = item.layoutParams as LinearLayout.LayoutParams
             params.topMargin = dpToPx(if (index == 0) 14 else 10)
             item.layoutParams = params
+            item.setOnClickListener { openNoteEditor(note.id) }
+            item.setOnLongClickListener {
+                confirmArchiveNote(note)
+                true
+            }
             container.addView(item)
         }
+    }
+
+    private fun openNoteEditor(noteId: Long) {
+        startActivity(AddNoteActivity.createEditIntent(this, noteId))
+    }
+
+    private fun confirmArchiveNote(note: Note) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.note_archive_confirm_title)
+            .setMessage(R.string.note_archive_confirm_message)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton(R.string.action_archive) { _, _ ->
+                val archived = runCatching {
+                    databaseHelper.archiveNote(note.id)
+                }.getOrDefault(false)
+                if (archived) {
+                    Toast.makeText(this, R.string.note_archive_success, Toast.LENGTH_SHORT).show()
+                    renderNotes(databaseHelper.getNotes(bookId))
+                } else {
+                    Toast.makeText(this, R.string.note_archive_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .show()
     }
 
     private fun dpToPx(value: Int): Int =

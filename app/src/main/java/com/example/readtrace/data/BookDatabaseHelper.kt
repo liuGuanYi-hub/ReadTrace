@@ -211,6 +211,22 @@ class BookDatabaseHelper(context: Context) :
         ) > 0
     }
 
+    fun archiveNote(noteId: Long): Boolean {
+        if (noteId <= 0) return false
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, now)
+            put(COLUMN_UPDATED_AT, now)
+        }
+        return writableDatabase.update(
+            TABLE_NOTES,
+            values,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(noteId.toString(), "0"),
+        ) > 0
+    }
+
     private fun Cursor.toBook(): Book =
         Book(
             id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
