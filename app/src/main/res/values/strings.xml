@@ -76,7 +76,11 @@
     <string name="detail_section_identity">关于这本书</string>
     <string name="detail_section_reading">阅读轨迹</string>
     <string name="detail_section_thoughts">留下的感受</string>
+    <string name="detail_section_notes">摘录与随想</string>
     <string name="detail_section_time">记录时间</string>
+    <string name="notes_count_format">共 %1$d 条</string>
+    <string name="notes_empty_body">还没有摘录或随想。想留住的句子和当时的心绪，之后都可以放进来。</string>
+    <string name="note_page_format">第 %1$s 页</string>
     <string name="detail_cover_url">封面地址</string>
     <string name="detail_category">分类</string>
     <string name="detail_status">阅读状态</string>

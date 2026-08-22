@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -14,9 +15,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
+import com.example.readtrace.model.Note
+import com.example.readtrace.model.NoteType
 import java.text.DecimalFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 class BookDetailActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -63,6 +67,7 @@ class BookDetailActivity : AppCompatActivity() {
         }
         currentBook = book
         renderBook(book)
+        renderNotes(databaseHelper.getNotes(bookId))
     }
 
     private fun renderBook(book: Book) {
@@ -89,6 +94,58 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailCreatedAt).text = formatTimestamp(book.createdAt)
         findViewById<TextView>(R.id.detailUpdatedAt).text = formatTimestamp(book.updatedAt)
     }
+
+    private fun renderNotes(notes: List<Note>) {
+        val container = findViewById<LinearLayout>(R.id.detailNotesContainer)
+        val emptyView = findViewById<TextView>(R.id.detailNotesEmpty)
+        val countView = findViewById<TextView>(R.id.detailNotesCount)
+        container.removeAllViews()
+        if (notes.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            countView.visibility = View.GONE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        countView.visibility = View.VISIBLE
+        countView.text = getString(R.string.notes_count_format, notes.size)
+        container.visibility = View.VISIBLE
+        notes.forEachIndexed { index, note ->
+            val item = layoutInflater.inflate(R.layout.item_detail_note, container, false)
+            item.findViewById<TextView>(R.id.noteTypeBadge).apply {
+                text = note.noteType.displayName
+                setTextColor(
+                    getColor(
+                        if (note.noteType == NoteType.QUOTE) {
+                            R.color.readtrace_accent
+                        } else {
+                            R.color.readtrace_muted
+                        },
+                    ),
+                )
+            }
+            item.findViewById<TextView>(R.id.noteCreatedAt).text = formatTimestamp(note.createdAt)
+            item.findViewById<TextView>(R.id.noteContent).text = note.content
+            val positionMeta = buildList {
+                note.page?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                    add(getString(R.string.note_page_format, it))
+                }
+                note.chapter?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            item.findViewById<TextView>(R.id.notePositionMeta).apply {
+                text = positionMeta
+                visibility = if (positionMeta.isEmpty()) View.GONE else View.VISIBLE
+            }
+            val params = item.layoutParams as LinearLayout.LayoutParams
+            params.topMargin = dpToPx(if (index == 0) 14 else 10)
+            item.layoutParams = params
+            container.addView(item)
+        }
+    }
+
+    private fun dpToPx(value: Int): Int =
+        (value * resources.displayMetrics.density).roundToInt()
 
     private fun confirmArchive() {
         val book = currentBook ?: return
