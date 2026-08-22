@@ -29,77 +29,70 @@
   .ambient::before { width: 560px; height: 560px; background: rgba(78,122,90,.15); top: -160px; right: -140px; }
   .ambient::after  { width: 500px; height: 500px; background: rgba(201,168,106,.14); bottom: -180px; left: -160px; }
 
-  .page { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 48px 28px 90px; }
+  .page { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 48px 28px 90px; }
   .page-head { text-align: center; margin-bottom: 14px; }
   .page-head .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 4px; color: var(--muted); }
   .page-head .brand .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .page-head h1 { font-family: var(--serif); font-size: 32px; font-weight: 600; margin: 13px 0 9px; }
-  .page-head p { color: var(--muted); font-size: 13.5px; line-height: 1.8; max-width: 620px; margin: 0 auto; }
+  .page-head p { color: var(--muted); font-size: 13.5px; line-height: 1.8; max-width: 680px; margin: 0 auto; }
 
   .section { margin-top: 58px; }
   .section-title { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
   .section-title .no { font-family: var(--serif); font-size: 15px; color: var(--gold); font-weight: 700; letter-spacing: 2px; }
   .section-title h2 { font-family: var(--serif); font-size: 21px; font-weight: 700; }
-  .section-desc { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 24px; max-width: 720px; }
+  .section-desc { font-size: 13px; color: var(--muted); line-height: 1.8; margin-bottom: 24px; max-width: 760px; }
 
   /* ========== 场景一：3D 书架 ========== */
   .stage {
-    perspective: 1500px; perspective-origin: 50% 30%;
+    perspective: 1700px; perspective-origin: 50% 20%;
     background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.18));
     border: 1px solid var(--glass-stroke); border-radius: 28px;
-    padding: 60px 40px 42px; box-shadow: 0 18px 50px rgba(32,36,31,.10);
-    backdrop-filter: blur(18px);
+    padding: 56px 36px 40px; box-shadow: 0 18px 50px rgba(32,36,31,.10);
+    backdrop-filter: blur(18px); overflow-x: auto;
   }
-  .scene { transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.7,.3,1); position: relative; height: 320px; }
-  .shelf-row { position: absolute; left: 50%; transform: translateX(-50%); transform-style: preserve-3d; display: flex; align-items: flex-end; gap: 13px; }
+  .scene { transform-style: preserve-3d; transition: transform .45s cubic-bezier(.2,.7,.3,1); display: flex; flex-direction: column; align-items: center; min-width: 900px; }
+  .shelf-unit { transform-style: preserve-3d; margin-bottom: 104px; }
+  .shelf-unit:last-child { margin-bottom: 0; }
+  .shelf-row { display: flex; align-items: flex-end; gap: 7px; transform-style: preserve-3d; position: relative; z-index: 2; }
 
   .book3d { position: relative; transform-style: preserve-3d; cursor: pointer; transition: transform .4s cubic-bezier(.2,.8,.3,1); }
-  .book3d .face {
-    position: absolute; left: 50%; top: 50%;
-    background: var(--cover); border-radius: 2px;
-    backface-visibility: hidden;
-  }
-  .book3d .spine {
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.06);
-  }
-  .book3d .spine .vt {
-    writing-mode: vertical-rl; font-family: var(--serif); font-weight: 700;
-    letter-spacing: 3px; white-space: nowrap; font-size: 13px;
-  }
+  .book3d .face { position: absolute; left: 50%; top: 50%; background: var(--cover); border-radius: 2px; backface-visibility: hidden; }
+  .book3d .spine { display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .book3d .spine .vt { writing-mode: vertical-rl; font-family: var(--serif); font-weight: 700; letter-spacing: 2px; white-space: nowrap; }
   .book3d .pages { background: repeating-linear-gradient(90deg, var(--paper-edge) 0 2px, #F3ECDA 2px 4px); }
-  .book3d:hover { transform: translateZ(34px) rotateY(-14deg) translateY(-8px); }
-  .book3d.pulled { transform: translateZ(64px) translateY(-16px) rotateY(-22deg); }
+  .book3d:hover { transform: translateZ(34px) rotateY(-14deg) translateY(-8px); z-index: 5; }
+  .book3d.pulled { transform: translateZ(64px) translateY(-16px) rotateY(-22deg); z-index: 6; }
 
-  .shelf-slab { position: relative; transform-style: preserve-3d; height: 0; }
   .slab-top {
-    position: absolute; width: 100%; height: 150px; left: 0; top: 0;
+    width: 100%; height: 140px;
     transform: rotateX(78deg); transform-origin: top center;
     background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(233,225,206,.55));
     border: 1px solid rgba(255,255,255,.8); border-radius: 10px;
     box-shadow: 0 26px 42px rgba(32,36,31,.18);
   }
   .slab-front {
-    position: absolute; width: 100%; height: 16px; left: 0; top: 0;
-    transform: rotateX(-12deg) translateZ(-2px); transform-origin: top center;
+    width: 100%; height: 16px;
+    transform: rotateX(-12deg); transform-origin: top center;
     background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(214,203,178,.7));
     border-radius: 4px;
   }
   .shelf-shadow {
-    position: absolute; width: 92%; height: 40px; left: 4%; top: 12px;
-    background: radial-gradient(50% 50% at 50% 50%, rgba(32,36,31,.22), transparent 70%);
+    width: 96%; height: 40px; margin: 0 2%;
+    background: radial-gradient(50% 50% at 50% 50%, rgba(32,36,31,.24), transparent 70%);
     transform: rotateX(78deg) translateZ(-1px); transform-origin: top center; filter: blur(6px);
   }
   .book-bubble {
-    position: absolute; left: 50%; top: -64px; transform: translateX(-50%) translateY(8px);
+    position: absolute; left: 50%; top: -70px; transform: translateX(-50%) translateY(8px);
     background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 14px;
     padding: 9px 14px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none;
     transition: opacity .3s, transform .3s; box-shadow: 0 10px 24px rgba(32,36,31,.14); backdrop-filter: blur(10px);
+    z-index: 10;
   }
   .book-bubble b { font-family: var(--serif); font-size: 13px; display: block; margin-bottom: 2px; }
+  .book-bubble i { font-style: normal; color: var(--muted); display: block; margin-bottom: 3px; }
   .book-bubble span { color: var(--accent-deep); font-weight: 600; }
   .book3d.pulled .book-bubble { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .stage-hint { text-align: center; margin-top: 40px; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .stage-hint { text-align: center; margin-top: 34px; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
 
   /* ========== 场景二：翻书摘录 ========== */
   .reader-stage {
@@ -124,8 +117,8 @@
     padding: 44px 46px;
   }
   .page-half.left  { border-radius: 14px 2px 2px 14px; box-shadow: inset -14px 0 22px -14px rgba(90,75,45,.30); }
-  .page-half.right { border-radius: 2px 14px 14px 2px; box-shadow: inset 14px 0 22px -14px rgba(90,75,45,.30); cursor: pointer; }
-  .page-half.left { cursor: pointer; }
+  .page-half.right { border-radius: 2px 14px 14px 2px; box-shadow: inset 14px 0 22px -14px rgba(90,75,45,.30); }
+  .page-half { cursor: pointer; }
   .pg-no { position: absolute; bottom: 16px; font-size: 11px; color: #A79B7C; font-family: var(--serif); }
   .page-half.left  .pg-no { left: 24px; }
   .page-half.right .pg-no { right: 24px; }
@@ -133,6 +126,7 @@
   .sheet {
     position: absolute; left: 50%; top: 0; width: 50%; height: 100%;
     transform-origin: left center; transform-style: preserve-3d; z-index: 5; display: none;
+    transition: transform .72s cubic-bezier(.3,.1,.25,1);
   }
   .sheet.anim { display: block; }
   .sheet .s-face {
@@ -147,7 +141,6 @@
   .sheet .s-back  { transform: rotateY(180deg); border-radius: 14px 2px 2px 14px; box-shadow: inset -14px 0 22px -14px rgba(90,75,45,.30); }
   .sheet.flipped { transform: rotateY(-180deg); }
   .sheet.instant { transition: none !important; }
-  .sheet { transition: transform .72s cubic-bezier(.3,.1,.25,1); }
 
   /* 书页内容排版 */
   .pv-chapter { font-size: 11px; letter-spacing: 3px; color: var(--gold); font-weight: 700; margin-bottom: 14px; }
@@ -190,10 +183,7 @@
     transform: rotateY(var(--r, 0deg)) rotateX(4deg);
   }
   .tilt-card:hover { transform: rotateY(0deg) rotateX(0deg) translateY(-8px) scale(1.03); box-shadow: 0 26px 50px rgba(32,36,31,.2); }
-  .tilt-card .tc-cover {
-    height: 200px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.05), 4px 8px 18px rgba(32,36,31,.14);
-  }
+  .tilt-card .tc-cover { height: 200px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05), 4px 8px 18px rgba(32,36,31,.14); }
   .tilt-card .tc-cover .vt { writing-mode: vertical-rl; font-family: var(--serif); font-size: 17px; letter-spacing: 5px; font-weight: 700; }
   .tilt-card .tc-title { font-family: var(--serif); font-weight: 700; font-size: 15px; margin-top: 12px; }
   .tilt-card .tc-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
@@ -209,18 +199,15 @@
   <div class="page-head">
     <span class="brand"><span class="dot"></span>READTRACE · 3D CONCEPT<span class="dot"></span></span>
     <h1>阅痕 · 3D 沉浸式阅读原型</h1>
-    <p>让摘录不止是被存储，而是被「翻开」。移动鼠标环视书架，点击书籍抽出；在下方翻书页中阅读你摘录的章节与文段。纯 CSS 3D 实现，无外部依赖。</p>
+    <p>你的书单，共 <b>54</b> 本，已全部按真实厚薄摆上书架。移动鼠标环视，点击书脊抽出任意一本；在下方翻书页中体验「翻开摘录」的感觉。纯 CSS 3D 实现，无外部依赖。</p>
   </div>
 
   <!-- ============ 场景一：3D 书架 ============ -->
   <div class="section">
     <div class="section-title"><span class="no">壹</span><h2>3D 书架 · 藏书即风景</h2></div>
-    <p class="section-desc">书脊朝外的立体书架，鼠标移动时整个场景轻微转动（视差）。点击任意一本书，它会从架上抽出并前倾——这是「打开这本书的摘录」的入口。落地路径：v2.0 用 Compose Canvas / SceneView 实现真实光影，v1.x 可先用 2.5D 封面墙过渡。</p>
+    <p class="section-desc">书脊朝外的立体书架，三行陈列你的 54 本书：大部头（《悲惨世界》《战争与和平》《罪与罚》）更厚更高，小册子（《小王子》《边城》《罗生门》）更薄更矮。鼠标移动时场景轻微转动（视差），点击书脊抽出——这是「打开这本书摘录」的入口。落地路径：v2.0 用 Compose Canvas / SceneView 实现真实光影，v1.x 可先用 2.5D 封面墙过渡。</p>
     <div class="stage" id="stage">
-      <div class="scene" id="scene">
-        <div class="shelf-row" id="row1"></div>
-        <div class="shelf-slab"><div class="shelf-shadow"></div><div class="slab-top"></div><div class="slab-front"></div></div>
-      </div>
+      <div class="scene" id="scene"></div>
       <div class="stage-hint">↖ 移动鼠标环视 · 点击书脊抽出 ↗</div>
     </div>
   </div>
@@ -228,7 +215,7 @@
   <!-- ============ 场景二：翻书摘录 ============ -->
   <div class="section">
     <div class="section-title"><span class="no">贰</span><h2>翻书摘录 · 把文段翻出来</h2></div>
-    <p class="section-desc">一本在透视中微微倾斜摊开的书。左页是摘录原文（衬线大字），右页是页码、章节、当日随想。点击右页或「下一页」翻页——就像回到抄下它的那个晚上。落地路径：v1.1 用 ViewPager2 + PageTransformer（rotateY 翻页动画）原生实现，成本低。</p>
+    <p class="section-desc">一本在透视中微微倾斜摊开的书。左页是摘录原文（衬线大字），右页是页码、章节、当日随想。点击右页或「翻页 ›」翻页——就像回到抄下它的那个晚上。示例取自你书单里的《活着》。落地路径：v1.1 用 ViewPager2 + PageTransformer（rotateY 翻页动画）原生实现，成本低。</p>
     <div class="reader-stage">
       <div class="book-wrap">
         <div class="book-under"></div>
@@ -252,15 +239,15 @@
     <p class="section-desc">把 3D 触感带进现有首页的轻量方案：书籍卡片带默认侧旋角度，悬停 / 触摸时回正浮起。不需要引入 3D 引擎，XML 一行 rotationY + elevation 即可实现，适合 v1.1 先行落地。</p>
     <div class="cards">
       <div class="tilt-card" style="--r:-10deg">
-        <div class="tc-cover" style="background:linear-gradient(150deg,#EFE3CB,#DFCFA9)"><span class="vt" style="color:#6B5F4B">悉达多</span></div>
-        <div class="tc-title">悉达多</div><div class="tc-sub">黑塞 · 已读 · 9.1 · 摘录 6 则</div>
+        <div class="tc-cover" style="background:linear-gradient(150deg,#C9A86A,#B08F55)"><span class="vt" style="color:#FFFBF0">百年孤独</span></div>
+        <div class="tc-title">百年孤独</div><div class="tc-sub">马尔克斯 · 已读 · 摘录 8 则</div>
       </div>
       <div class="tilt-card" style="--r:0deg">
-        <div class="tc-cover" style="background:linear-gradient(150deg,#9DB8A2,#7FA089)"><span class="vt" style="color:#F5F1E9">克拉拉与太阳</span></div>
-        <div class="tc-title">克拉拉与太阳</div><div class="tc-sub">石黑一雄 · 已读 · 9.2 · 摘录 3 则</div>
+        <div class="tc-cover" style="background:linear-gradient(150deg,#9DB8A2,#7FA089)"><span class="vt" style="color:#F5F1E9">白夜行</span></div>
+        <div class="tc-title">白夜行</div><div class="tc-sub">东野圭吾 · 已读 · 摘录 5 则</div>
       </div>
       <div class="tilt-card" style="--r:10deg">
-        <div class="tc-cover" style="background:linear-gradient(150deg,#C9A86A,#B08F55)"><span class="vt" style="color:#FFFBF0">月亮与六便士</span></div>
+        <div class="tc-cover" style="background:linear-gradient(150deg,#E9DDC9,#DFCFA9)"><span class="vt" style="color:#6B5F4B">月亮与六便士</span></div>
         <div class="tc-title">月亮与六便士</div><div class="tc-sub">毛姆 · 在读 · 摘录 2 则</div>
       </div>
     </div>
@@ -273,41 +260,116 @@
 </div>
 
 <script>
-/* ============ 场景一：书架 ============ */
-const BOOKS = [
-  { t: "克拉拉与太阳", c: "#7FA089", ct: "#F5F1E9", w: 40, h: 226, ex: 3 },
-  { t: "百年孤独",     c: "#41684B", ct: "#F5F1E9", w: 52, h: 238, ex: 8 },
-  { t: "挪威的森林",   c: "#A85252", ct: "#FFF6EC", w: 34, h: 214, ex: 5 },
-  { t: "小王子",       c: "#C9A86A", ct: "#3E3524", w: 30, h: 186, ex: 4 },
-  { t: "悉达多",       c: "#E9DDC9", ct: "#6B5F4B", w: 32, h: 204, ex: 6 },
-  { t: "活着",         c: "#20241F", ct: "#F5F1E9", w: 36, h: 218, ex: 7 },
-  { t: "月亮与六便士", c: "#71776D", ct: "#FFFBF0", w: 38, h: 222, ex: 2 },
+/* ============ 场景一：书架（54 本书） ============ */
+/* L=大部头 M=常规 S=小册子，决定书脊厚度与高度 */
+const LIST = [
+  { t: "1984", a: "乔治·奥威尔", s: "M" },
+  { t: "鼠疫", a: "加缪", s: "M" },
+  { t: "动物农场", a: "乔治·奥威尔", s: "S" },
+  { t: "小王子", a: "圣埃克苏佩里", s: "S" },
+  { t: "诡计博物馆", a: "大山诚一郎", s: "S" },
+  { t: "霍乱时期的爱情", a: "马尔克斯", s: "L" },
+  { t: "悲惨世界", a: "雨果", s: "L" },
+  { t: "四世同堂", a: "老舍", s: "L" },
+  { t: "西西弗神话", a: "加缪", s: "S" },
+  { t: "挪威的森林", a: "村上春树", s: "M" },
+  { t: "老人与海", a: "海明威", s: "S" },
+  { t: "上帝掷骰子吗", a: "曹天元", s: "M" },
+  { t: "全员嫌疑人", a: "大山诚一郎", s: "S" },
+  { t: "绝叫", a: "叶真中显", s: "M" },
+  { t: "人类简史", a: "尤瓦尔·赫拉利", s: "L" },
+  { t: "时间简史", a: "霍金", s: "M" },
+  { t: "经济学原理", a: "曼昆", s: "L" },
+  { t: "廊桥遗梦", a: "沃勒", s: "S" },
+  { t: "社会心理学", a: "迈尔斯", s: "L" },
+  { t: "在细雨中呼喊", a: "余华", s: "M" },
+  { t: "白夜行", a: "东野圭吾", s: "L" },
+  { t: "局外人", a: "加缪", s: "S" },
+  { t: "许三观卖血记", a: "余华", s: "M" },
+  { t: "解忧杂货店", a: "东野圭吾", s: "M" },
+  { t: "无人生还", a: "阿加莎·克里斯蒂", s: "S" },
+  { t: "蛇结", a: "莫里亚克", s: "S" },
+  { t: "我是猫", a: "夏目漱石", s: "M" },
+  { t: "罗生门", a: "芥川龙之介", s: "S" },
+  { t: "活着", a: "余华", s: "M" },
+  { t: "月亮与六便士", a: "毛姆", s: "M" },
+  { t: "罪与罚", a: "陀思妥耶夫斯基", s: "L" },
+  { t: "消失的十三级台阶", a: "高野和明", s: "M" },
+  { t: "同名同姓受害者协会", a: "下村敦史", s: "M" },
+  { t: "呼啸山庄", a: "艾米莉·勃朗特", s: "M" },
+  { t: "蛤蟆先生去看心理医生", a: "罗伯特·戴博德", s: "M" },
+  { t: "帷幕", a: "阿加莎·克里斯蒂", s: "M" },
+  { t: "一个叫欧维的男人决定去死", a: "巴克曼", s: "M" },
+  { t: "傲慢与偏见", a: "简·奥斯汀", s: "M" },
+  { t: "恶意", a: "东野圭吾", s: "M" },
+  { t: "边城", a: "沈从文", s: "S" },
+  { t: "百年孤独", a: "马尔克斯", s: "L" },
+  { t: "斜阳", a: "太宰治", s: "S" },
+  { t: "基督山伯爵", a: "大仲马", s: "L" },
+  { t: "人间失格", a: "太宰治", s: "S" },
+  { t: "ABC谋杀案", a: "阿加莎·克里斯蒂", s: "S" },
+  { t: "春雪", a: "三岛由纪夫", s: "M" },
+  { t: "追风筝的人", a: "胡赛尼", s: "M" },
+  { t: "战争与和平", a: "列夫·托尔斯泰", s: "L" },
+  { t: "生死疲劳", a: "莫言", s: "L" },
+  { t: "谋杀启事", a: "阿加莎·克里斯蒂", s: "S" },
+  { t: "雾都孤儿", a: "狄更斯", s: "L" },
+  { t: "人间椅子", a: "江户川乱步", s: "S" },
+  { t: "雪国", a: "川端康成", s: "S" },
+  { t: "伊豆的舞女", a: "川端康成", s: "S" },
 ];
-const D = 148; // 书宽（进深）
-const row1 = document.getElementById("row1");
-BOOKS.forEach((b, i) => {
-  const el = document.createElement("div");
-  el.className = "book3d";
-  el.style.width = b.w + "px";
-  el.style.height = b.h + "px";
-  const jitter = ((i * 37) % 7 - 3) * 0.9;
-  el.style.transform = "translateZ(6px) rotateY(" + jitter + "deg)";
-  const H = b.h, W = b.w;
-  el.innerHTML =
-    '<div class="face spine" style="width:' + W + "px;height:" + H + "px;transform:translate(-50%,-50%) translateZ(" + D / 2 + 'px);background:' + b.c + '">' +
-      '<span class="vt" style="color:' + b.ct + '">' + b.t + "</span></div>" +
-    '<div class="face" style="width:' + W + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(180deg) translateZ(" + D / 2 + 'px);background:' + shade(b.c, -18) + '"></div>' +
-    '<div class="face" style="width:' + D + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(90deg) translateZ(" + W / 2 + 'px);background:' + shade(b.c, 26) + '"></div>' +
-    '<div class="face" style="width:' + D + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(-90deg) translateZ(" + W / 2 + 'px);background:' + shade(b.c, -30) + '"></div>' +
-    '<div class="face pages" style="width:' + W + "px;height:" + D + "px;transform:translate(-50%,-50%) rotateX(90deg) translateZ(" + H / 2 + 'px)"></div>' +
-    '<div class="face" style="width:' + W + "px;height:" + D + "px;transform:translate(-50%,-50%) rotateX(-90deg) translateZ(" + H / 2 + 'px);background:#D8CCAE"></div>' +
-    '<div class="book-bubble"><b>' + b.t + "</b><span>翻开摘录 " + b.ex + " 则 →</span></div>";
-  el.addEventListener("click", () => {
-    document.querySelectorAll(".book3d.pulled").forEach((x) => x.classList.remove("pulled"));
-    el.classList.add("pulled");
+/* 封面色板 [底色, 书脊字色] */
+const PALETTE = [
+  ["#7FA089", "#F5F1E9"], ["#41684B", "#F5F1E9"], ["#A85252", "#FFF6EC"],
+  ["#C9A86A", "#3E3524"], ["#E9DDC9", "#6B5F4B"], ["#20241F", "#F5F1E9"],
+  ["#71776D", "#FFFBF0"], ["#B08F55", "#3E3524"], ["#5E6B57", "#F5F1E9"],
+  ["#8C6F4E", "#FFF6EC"], ["#93A6B0", "#20241F"], ["#C77E5A", "#FFF6EC"],
+];
+const SIZE = { L: [46, 238], M: [33, 216], S: [26, 192] };
+const D = 142; // 书宽（进深）
+const scene = document.getElementById("scene");
+const PER_ROW = 18;
+
+for (let r = 0; r * PER_ROW < LIST.length; r++) {
+  const unit = document.createElement("div");
+  unit.className = "shelf-unit";
+  const row = document.createElement("div");
+  row.className = "shelf-row";
+  const slab = document.createElement("div");
+  slab.innerHTML = '<div class="shelf-shadow"></div><div class="slab-top"></div><div class="slab-front"></div>';
+  unit.appendChild(row);
+  unit.appendChild(slab);
+  scene.appendChild(unit);
+
+  LIST.slice(r * PER_ROW, (r + 1) * PER_ROW).forEach((b, j) => {
+    const i = r * PER_ROW + j;
+    const [bg, ct] = PALETTE[(i * 5) % PALETTE.length];
+    const [W0, H0] = SIZE[b.s];
+    const W = W0 + ((i * 13) % 3) * 2;
+    const H = H0 + ((i * 7) % 4) * 3;
+    const el = document.createElement("div");
+    el.className = "book3d";
+    el.style.width = W + "px";
+    el.style.height = H + "px";
+    const jitter = ((i * 37) % 7 - 3) * 0.9;
+    el.style.transform = "translateZ(6px) rotateY(" + jitter + "deg)";
+    const fs = b.t.length > 8 ? 10.5 : 12;
+    el.innerHTML =
+      '<div class="face spine" style="width:' + W + "px;height:" + H + "px;transform:translate(-50%,-50%) translateZ(" + D / 2 + 'px);background:' + bg + '">' +
+        '<span class="vt" style="color:' + ct + ";font-size:" + fs + 'px">' + b.t + "</span></div>" +
+      '<div class="face" style="width:' + W + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(180deg) translateZ(" + D / 2 + 'px);background:' + shade(bg, -18) + '"></div>' +
+      '<div class="face" style="width:' + D + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(90deg) translateZ(" + W / 2 + 'px);background:' + shade(bg, 26) + '"></div>' +
+      '<div class="face" style="width:' + D + "px;height:" + H + "px;transform:translate(-50%,-50%) rotateY(-90deg) translateZ(" + W / 2 + 'px);background:' + shade(bg, -30) + '"></div>' +
+      '<div class="face pages" style="width:' + W + "px;height:" + D + "px;transform:translate(-50%,-50%) rotateX(90deg) translateZ(" + H / 2 + 'px)"></div>' +
+      '<div class="face" style="width:' + W + "px;height:" + D + "px;transform:translate(-50%,-50%) rotateX(-90deg) translateZ(" + H / 2 + 'px);background:#D8CCAE"></div>' +
+      '<div class="book-bubble"><b>' + b.t + "</b><i>" + b.a + "</i><span>翻开摘录 →</span></div>";
+    el.addEventListener("click", () => {
+      document.querySelectorAll(".book3d.pulled").forEach((x) => x.classList.remove("pulled"));
+      el.classList.add("pulled");
+    });
+    row.appendChild(el);
   });
-  row1.appendChild(el);
-});
+}
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16);
   const f = (v) => Math.max(0, Math.min(255, v + amt));
@@ -315,20 +377,19 @@ function shade(hex, amt) {
 }
 /* 视差环视 */
 const stage = document.getElementById("stage");
-const scene = document.getElementById("scene");
 stage.addEventListener("mousemove", (e) => {
   const r = stage.getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width - 0.5;
   const y = (e.clientY - r.top) / r.height - 0.5;
-  scene.style.transform = "rotateY(" + x * 10 + "deg) rotateX(" + -y * 6 + "deg)";
+  scene.style.transform = "rotateY(" + x * 8 + "deg) rotateX(" + -y * 4 + "deg)";
 });
 stage.addEventListener("mouseleave", () => { scene.style.transform = "rotateY(0deg) rotateX(0deg)"; });
 
-/* ============ 场景二：翻书 ============ */
+/* ============ 场景二：翻书（示例：活着） ============ */
 const EXCERPTS = [
-  { q: "太阳总有办法照到我们，不管我们在哪里。", ch: "第六章 · 谷仓", p: 192, d: "2026.03.28", n: "第一次读到这句就停下来了，抬头看了一眼窗外。" },
-  { q: "不要相信人类的诺言，但要相信人类许诺时的心。", ch: "终章", p: 241, d: "2026.04.01", n: "克拉拉比人更懂人心。" },
-  { q: "那里有一个人人都向往的太阳，它从不落下。", ch: "第三章", p: 88, d: "2026.03.15", n: "谷仓里的场景，像一幅宗教画。" },
+  { q: "人是为活着本身而活着的，而不是为了活着之外的任何事物所活着。", ch: "中文版自序", p: 3, d: "示例 · 一", n: "整本书的题眼，福贵的一生都在注解这一句。" },
+  { q: "生活是属于每个人自己的感受，不属于任何别人的看法。", ch: "韩文版自序", p: 7, d: "示例 · 二", n: "余华在自序里写的，和小说互为表里。" },
+  { q: "少年去游荡，中年想掘藏，老年做和尚。", ch: "尾声", p: 191, d: "示例 · 三", n: "有庆、凤霞、家珍都走了，只剩这句歌谣。" },
 ];
 const SPREADS = [
   { l: COVER_LEFT(), r: COVER_RIGHT() },
@@ -336,13 +397,13 @@ const SPREADS = [
   { l: END_LEFT(), r: END_RIGHT() },
 ];
 function COVER_LEFT() {
-  return '<div class="pv-cover-mini"><span class="vt">克拉拉与太阳</span></div>' +
-    '<div class="pv-booktitle">克拉拉与太阳</div>' +
-    '<div class="pv-booksub">石黑一雄 · 小说<br>2026.03.12 — 04.02 · 评分 9.2</div>';
+  return '<div class="pv-cover-mini"><span class="vt">活着</span></div>' +
+    '<div class="pv-booktitle">活着</div>' +
+    '<div class="pv-booksub">余华 · 小说<br>示例数据 · 评分 9.4</div>';
 }
 function COVER_RIGHT() {
   return '<div class="pv-chapter">摘 录 与 随 想</div>' +
-    '<div class="pv-quote" style="font-size:16px">这里收集了你在这本书里留下的 ' + EXCERPTS.length + ' 则摘录。</div>' +
+    '<div class="pv-quote" style="font-size:16px">这里收集了你在这本书里留下的 ' + EXCERPTS.length + " 则摘录。</div>" +
     '<div class="pv-hint">点击<b>右页</b>或<b>「翻页 ›」</b>向前翻阅<br>点击<b>左页</b>或<b>「‹ 上一页」</b>往回翻</div>';
 }
 function EXCERPT_PAGE(e) {
@@ -358,8 +419,8 @@ function META_PAGE(e) {
 }
 function END_LEFT() {
   return '<div class="pv-chapter">读 完 之 后</div>' +
-    '<div class="pv-quote" style="font-size:16px">用一个机器人的视角，写尽了人类的孤独与温柔。</div>' +
-    '<div class="pv-note"><span class="lab">读 后 感</span>结尾在谷仓里等太阳的那一幕，会记很久。</div>';
+    '<div class="pv-quote" style="font-size:16px">福贵牵着老牛走远的背影，是文学里最安静的力量之一。</div>' +
+    '<div class="pv-note"><span class="lab">读 后 感</span>写读后感的地方，读完那晚的心情都留在这里。</div>';
 }
 function END_RIGHT() {
   return '<div class="pv-chapter">合 上 这 本 书</div>' +
