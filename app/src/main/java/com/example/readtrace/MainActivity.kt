@@ -138,6 +138,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.trashButton).setOnClickListener {
             startActivity(TrashActivity.createIntent(this))
         }
+        findViewById<View>(R.id.backupButton).setOnClickListener {
+            startActivity(Intent(this, BackupActivity::class.java))
+        }
         homeBadgePanel.setOnClickListener {
             startActivity(BadgesActivity.createIntent(this))
         }

@@ -188,4 +188,23 @@
     <string name="media_type_podcast">播客 🎙️</string>
     <string name="field_media_type">作品载体类型</string>
     <string name="field_creator">作者 / 创作者</string>
+    <string name="action_backup">数据备份</string>
+    <string name="backup_activity_title">数据备份与导出</string>
+    <string name="backup_activity_subtitle">数据安全至上，让个人精神财富随身带走</string>
+    <string name="backup_section_export">全量导出与跨平台文集</string>
+    <string name="backup_json_title">📦 全量 JSON 备份包 (.json)</string>
+    <string name="backup_json_desc">完整打包所有作品、评分、标签、评论及全部关联笔记，支持跨设备一键迁移无损复原</string>
+    <string name="backup_md_title">📝 Markdown 个人文集 (.md)</string>
+    <string name="backup_md_desc">导出排版极其精美的 Markdown 笔记，可直接导入 Obsidian / Notion / Logseq</string>
+    <string name="backup_csv_title">📊 CSV 表格清单 (.csv)</string>
+    <string name="backup_csv_desc">导出通用表格数据，兼容 Excel、Numbers 与数据透视分析</string>
+    <string name="backup_section_import">数据恢复与迁移导入</string>
+    <string name="backup_import_btn">📥 选择 JSON 备份文件恢复</string>
+    <string name="backup_import_hint">支持导入由本应用导出的标准 JSON 备份包，自动查重并安全合入</string>
+    <string name="backup_export_success">导出成功！</string>
+    <string name="backup_export_failed">导出失败，请重试</string>
+    <string name="backup_import_success_format">恢复完成！成功合入 %1$d 部作品，%2$d 条摘录随想</string>
+    <string name="backup_import_empty">备份文件中没有可导入的数据</string>
+    <string name="backup_import_failed">导入解析失败，请确认文件格式是否正确</string>
+    <string name="backup_stat_summary_format">当前本地共存储 %1$d 部作品 · %2$d 条随想痕迹</string>
 </resources>

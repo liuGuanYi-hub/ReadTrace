@@ -551,6 +551,90 @@ class BookDatabaseHelper(context: Context) :
     }
 
     /**
+     * 获取全部作品及各自关联的笔记（用于全量备份与多格式导出）
+     */
+    fun getAllWorksWithNotes(): List<Pair<Book, List<Note>>> {
+        val books = getBooks()
+        return books.map { book ->
+            val notes = getNotes(book.id)
+            Pair(book, notes)
+        }
+    }
+
+    /**
+     * 导入全量备份数据（含作品与笔记）
+     * @return Pair(成功导入的新增作品数, 成功导入的笔记数)
+     */
+    fun importFullBackup(items: List<Pair<Book, List<Note>>>): Pair<Int, Int> {
+        if (items.isEmpty()) return Pair(0, 0)
+        val db = writableDatabase
+        db.beginTransaction()
+        var importedWorks = 0
+        var importedNotes = 0
+        try {
+            items.forEach { (book, notes) ->
+                // 1. 查找是否存在同名且同作者/创作者的作品
+                val existingBookId = findBookId(db, book.title, book.author)
+                val targetBookId = if (existingBookId != null) {
+                    existingBookId
+                } else {
+                    val values = book.toContentValues().apply {
+                        put(COLUMN_CREATED_AT, if (book.createdAt.isNotBlank()) book.createdAt else currentTimestamp())
+                        put(COLUMN_UPDATED_AT, if (book.updatedAt.isNotBlank()) book.updatedAt else currentTimestamp())
+                        put(COLUMN_IS_DELETED, if (book.isDeleted) 1 else 0)
+                        putNullable(COLUMN_DELETED_AT, book.deletedAt)
+                    }
+                    val newId = db.insert(TABLE_BOOKS, null, values)
+                    if (newId > 0) {
+                        importedWorks++
+                        newId
+                    } else null
+                }
+
+                if (targetBookId != null) {
+                    // 2. 导入关联的笔记（避免重复内容）
+                    val existingNotes = getNotes(targetBookId)
+                    notes.forEach { note ->
+                        val isDuplicate = existingNotes.any { it.content.trim() == note.content.trim() }
+                        if (!isDuplicate && note.content.isNotBlank()) {
+                            val noteValues = note.copy(bookId = targetBookId).toContentValues().apply {
+                                put(COLUMN_CREATED_AT, if (note.createdAt.isNotBlank()) note.createdAt else currentTimestamp())
+                                put(COLUMN_UPDATED_AT, if (note.updatedAt.isNotBlank()) note.updatedAt else currentTimestamp())
+                                put(COLUMN_IS_DELETED, if (note.isDeleted) 1 else 0)
+                                putNullable(COLUMN_DELETED_AT, note.deletedAt)
+                            }
+                            if (db.insert(TABLE_NOTES, null, noteValues) > 0) {
+                                importedNotes++
+                            }
+                        }
+                    }
+                }
+            }
+            db.setTransactionSuccessful()
+            return Pair(importedWorks, importedNotes)
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    private fun findBookId(db: SQLiteDatabase, title: String, author: String?): Long? {
+        val trimmedTitle = title.trim()
+        val trimmedAuthor = author?.trim()
+        val selection: String
+        val args: Array<String>
+        if (trimmedAuthor.isNullOrEmpty()) {
+            selection = "$COLUMN_TITLE = ? AND ($COLUMN_AUTHOR IS NULL OR $COLUMN_AUTHOR = '') AND $COLUMN_IS_DELETED = 0"
+            args = arrayOf(trimmedTitle)
+        } else {
+            selection = "$COLUMN_TITLE = ? AND $COLUMN_AUTHOR = ? AND $COLUMN_IS_DELETED = 0"
+            args = arrayOf(trimmedTitle, trimmedAuthor)
+        }
+        return db.query(TABLE_BOOKS, arrayOf(COLUMN_ID), selection, args, null, null, null, "1").use { cursor ->
+            if (cursor.moveToFirst()) cursor.getLong(0) else null
+        }
+    }
+
+    /**
      * 获取所有书籍的不重复标签列表及频次统计，按出现频次降序排列
      */
     fun getAllUniqueTags(): List<Pair<String, Int>> {
