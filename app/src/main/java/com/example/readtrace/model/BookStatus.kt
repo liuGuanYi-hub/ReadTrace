@@ -10,6 +10,9 @@ enum class BookStatus(
     PAUSED("paused", "暂停"),
     DROPPED("dropped", "弃读");
 
+    fun getDisplayName(mediaType: MediaType? = null): String =
+        mediaType?.getStatusLabel(this) ?: displayName
+
     companion object {
         fun fromDatabaseValue(value: String): BookStatus =
             values().firstOrNull { it.databaseValue == value } ?: WISHLIST

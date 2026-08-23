@@ -24,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
@@ -52,12 +53,18 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var homeBadgePanel: View
     private lateinit var homeBadgeSummary: TextView
+    private lateinit var mediaTabAll: TextView
+    private lateinit var mediaTabBook: TextView
+    private lateinit var mediaTabMovie: TextView
+    private lateinit var mediaTabGame: TextView
+    private lateinit var mediaTabPodcast: TextView
     private lateinit var searchInput: EditText
     private lateinit var searchClearButton: View
     private lateinit var tagScroller: HorizontalScrollView
     private lateinit var tagGroup: LinearLayout
     private lateinit var tagAll: TextView
 
+    private var selectedMediaType: MediaType? = null
     private var selectedStatus: BookStatus? = null
     private var searchKeyword: String = ""
     private var selectedTag: String? = null
@@ -94,6 +101,11 @@ class MainActivity : AppCompatActivity() {
 
         homeBadgePanel = findViewById(R.id.homeBadgePanel)
         homeBadgeSummary = findViewById(R.id.homeBadgeSummary)
+        mediaTabAll = findViewById(R.id.mediaTabAll)
+        mediaTabBook = findViewById(R.id.mediaTabBook)
+        mediaTabMovie = findViewById(R.id.mediaTabMovie)
+        mediaTabGame = findViewById(R.id.mediaTabGame)
+        mediaTabPodcast = findViewById(R.id.mediaTabPodcast)
         searchInput = findViewById(R.id.searchInput)
         searchClearButton = findViewById(R.id.searchClearButton)
         tagScroller = findViewById(R.id.tagScroller)
@@ -101,6 +113,7 @@ class MainActivity : AppCompatActivity() {
         tagAll = findViewById(R.id.tagAll)
 
         configureActions()
+        configureMediaTypeFilters()
         configureStatusFilters()
         configureSearchAndTags()
 
@@ -185,6 +198,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun configureMediaTypeFilters() {
+        mediaTabAll.setOnClickListener { selectMediaType(null) }
+        mediaTabBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
+        mediaTabMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
+        mediaTabGame.setOnClickListener { selectMediaType(MediaType.GAME) }
+        mediaTabPodcast.setOnClickListener { selectMediaType(MediaType.PODCAST) }
+        updateMediaTypeTabs()
+    }
+
+    private fun selectMediaType(mediaType: MediaType?) {
+        if (selectedMediaType == mediaType) return
+        selectedMediaType = mediaType
+        updateMediaTypeTabs()
+        updateStatusChips()
+        refreshShelfOnly()
+    }
+
+    private fun updateMediaTypeTabs() {
+        val tabs = listOf(
+            mediaTabAll to null,
+            mediaTabBook to MediaType.BOOK,
+            mediaTabMovie to MediaType.MOVIE,
+            mediaTabGame to MediaType.GAME,
+            mediaTabPodcast to MediaType.PODCAST,
+        )
+        tabs.forEach { (tab, type) ->
+            val isSelected = selectedMediaType == type
+            tab.setBackgroundResource(
+                if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+            )
+            tab.setTextColor(
+                ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink),
+            )
+        }
+    }
+
     private fun configureStatusFilters() {
         findViewById<View>(R.id.statusAll).setOnClickListener {
             selectStatus(null)
@@ -216,11 +265,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateStatusChips() {
+        val statusWishlist = findViewById<TextView>(R.id.statusWishlist)
+        val statusReading = findViewById<TextView>(R.id.statusReading)
+        val statusFinished = findViewById<TextView>(R.id.statusFinished)
+
+        // 动态根据当前选中的媒介类型自适应状态筛选文案
+        statusWishlist.text = selectedMediaType?.wishlistLabel ?: getString(R.string.status_wishlist)
+        statusReading.text = selectedMediaType?.ongoingLabel ?: getString(R.string.status_reading)
+        statusFinished.text = selectedMediaType?.finishedLabel ?: getString(R.string.status_finished)
+
         val chips = listOf(
             findViewById<TextView>(R.id.statusAll) to null,
-            findViewById<TextView>(R.id.statusWishlist) to BookStatus.WISHLIST,
-            findViewById<TextView>(R.id.statusReading) to BookStatus.READING,
-            findViewById<TextView>(R.id.statusFinished) to BookStatus.FINISHED,
+            statusWishlist to BookStatus.WISHLIST,
+            statusReading to BookStatus.READING,
+            statusFinished to BookStatus.FINISHED,
         )
         chips.forEach { (chip, status) ->
             val isSelected = selectedStatus == status
@@ -322,13 +380,14 @@ class MainActivity : AppCompatActivity() {
     private fun refreshShelfOnly() {
         val allBooks = databaseHelper.getBooks()
         val books = allBooks.filter { book ->
+            val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
             val matchesStatus = selectedStatus == null || book.status == selectedStatus
             val matchesKeyword = searchKeyword.isEmpty() ||
                 book.title.contains(searchKeyword, ignoreCase = true) ||
                 (book.author?.contains(searchKeyword, ignoreCase = true) == true)
             val matchesTag = selectedTag == null || book.tags.contains(selectedTag)
 
-            matchesStatus && matchesKeyword && matchesTag
+            matchesMedia && matchesStatus && matchesKeyword && matchesTag
         }
 
         shelfCountText.text = getString(R.string.home_shelf_count_format, books.size)
@@ -337,7 +396,7 @@ class MainActivity : AppCompatActivity() {
         if (books.isEmpty()) {
             booksContainer.visibility = View.GONE
             emptyPanel.visibility = View.VISIBLE
-            val isFiltered = selectedStatus != null || searchKeyword.isNotEmpty() || selectedTag != null
+            val isFiltered = selectedMediaType != null || selectedStatus != null || searchKeyword.isNotEmpty() || selectedTag != null
             emptyTitle.setText(
                 if (searchKeyword.isNotEmpty()) {
                     R.string.search_no_results
@@ -466,7 +525,8 @@ class MainActivity : AppCompatActivity() {
         } ?: getString(R.string.unrated)
         card.findViewById<TextView>(R.id.bookCardMeta).visibility = View.GONE
         card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
-        card.findViewById<TextView>(R.id.bookCardStatusPill).text = book.status.displayName
+        card.findViewById<TextView>(R.id.bookCardMediaBadge).text = book.mediaType.emoji
+        card.findViewById<TextView>(R.id.bookCardStatusPill).text = book.status.getDisplayName(book.mediaType)
         card.findViewById<TextView>(R.id.bookCardRating).text = ratingLabel
         card.findViewById<TextView>(R.id.bookCardCategory).apply {
             val category = book.category?.trim()

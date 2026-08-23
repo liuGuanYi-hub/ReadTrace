@@ -79,12 +79,13 @@ class BookDetailActivity : AppCompatActivity() {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
 
+        findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
         findViewById<TextView>(R.id.detailBookTitle).text = book.title
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         findViewById<TextView>(R.id.detailCoverUrl).text = valueOrFallback(book.coverUrl)
-        findViewById<TextView>(R.id.detailStatus).text = book.status.displayName
+        findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
         findViewById<TextView>(R.id.detailRating).text = book.rating?.let {
             getString(R.string.rating_format, RATING_FORMAT.format(it))
         } ?: getString(R.string.not_recorded)
@@ -219,7 +220,7 @@ class BookDetailActivity : AppCompatActivity() {
             getString(R.string.rating_format, RATING_FORMAT.format(it))
         } ?: getString(R.string.not_recorded)
         return listOfNotNull(
-            book.status.displayName,
+            book.status.getDisplayName(book.mediaType),
             ratingLabel,
             book.category?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")

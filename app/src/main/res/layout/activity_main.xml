@@ -430,11 +430,70 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- 媒介载体切换栏 (全部/书籍/影视/游戏/播客) -->
+            <HorizontalScrollView
+                android:id="@+id/mediaScroller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/mediaGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/mediaTabAll"
+                        style="@style/ReadTraceStatusChip"
+                        android:background="@drawable/bg_status_chip_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_all"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:id="@+id/mediaTabBook"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_book" />
+
+                    <TextView
+                        android:id="@+id/mediaTabMovie"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_movie" />
+
+                    <TextView
+                        android:id="@+id/mediaTabGame"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_game" />
+
+                    <TextView
+                        android:id="@+id/mediaTabPodcast"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_podcast" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
             <!-- 即时搜索栏 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_glass_panel_soft"
                 android:elevation="4dp"
                 android:gravity="center_vertical"

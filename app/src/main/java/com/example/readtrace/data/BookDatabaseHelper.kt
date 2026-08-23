@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
@@ -31,6 +32,7 @@ class BookDatabaseHelper(context: Context) :
                 $COLUMN_COVER_URL TEXT,
                 $COLUMN_CATEGORY TEXT,
                 $COLUMN_STATUS TEXT NOT NULL DEFAULT 'wishlist',
+                $COLUMN_MEDIA_TYPE TEXT NOT NULL DEFAULT 'book',
                 $COLUMN_RATING REAL,
                 $COLUMN_TAGS TEXT NOT NULL DEFAULT '[]',
                 $COLUMN_SHORT_COMMENT TEXT,
@@ -55,6 +57,12 @@ class BookDatabaseHelper(context: Context) :
         if (oldVersion < 2) {
             // v1.1：新增 notes 表，已有 books 数据保持不变。
             createNotesTable(database)
+        }
+        if (oldVersion < 3) {
+            // v1.5：新增 media_type 字段，已有书籍平滑迁移为默认 'book' 类型。
+            database.execSQL(
+                "ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_MEDIA_TYPE TEXT NOT NULL DEFAULT 'book'",
+            )
         }
     }
 
@@ -624,6 +632,9 @@ class BookDatabaseHelper(context: Context) :
             status = BookStatus.fromDatabaseValue(
                 getString(getColumnIndexOrThrow(COLUMN_STATUS)),
             ),
+            mediaType = MediaType.fromDatabaseValue(
+                getNullableString(COLUMN_MEDIA_TYPE),
+            ),
             rating = getNullableDouble(COLUMN_RATING),
             tags = parseTags(getNullableString(COLUMN_TAGS)),
             shortComment = getNullableString(COLUMN_SHORT_COMMENT),
@@ -689,6 +700,7 @@ class BookDatabaseHelper(context: Context) :
             putNullable(COLUMN_COVER_URL, coverUrl)
             putNullable(COLUMN_CATEGORY, category)
             put(COLUMN_STATUS, status.databaseValue)
+            put(COLUMN_MEDIA_TYPE, mediaType.databaseValue)
             if (rating == null) putNull(COLUMN_RATING) else put(COLUMN_RATING, rating)
             put(COLUMN_TAGS, JSONArray(tags).toString())
             putNullable(COLUMN_SHORT_COMMENT, shortComment)
@@ -711,7 +723,7 @@ class BookDatabaseHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
 
         private const val TABLE_BOOKS = "books"
         private const val TABLE_NOTES = "notes"
@@ -721,6 +733,7 @@ class BookDatabaseHelper(context: Context) :
         private const val COLUMN_COVER_URL = "cover_url"
         private const val COLUMN_CATEGORY = "category"
         private const val COLUMN_STATUS = "status"
+        private const val COLUMN_MEDIA_TYPE = "media_type"
         private const val COLUMN_RATING = "rating"
         private const val COLUMN_TAGS = "tags"
         private const val COLUMN_SHORT_COMMENT = "short_comment"

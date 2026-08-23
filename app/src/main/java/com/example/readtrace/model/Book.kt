@@ -7,6 +7,7 @@ data class Book(
     val coverUrl: String? = null,
     val category: String? = null,
     val status: BookStatus = BookStatus.WISHLIST,
+    val mediaType: MediaType = MediaType.BOOK,
     val rating: Double? = null,
     val tags: List<String> = emptyList(),
     val shortComment: String? = null,
