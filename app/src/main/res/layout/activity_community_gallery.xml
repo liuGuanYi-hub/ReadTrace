@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/communityGalleryRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0E1A">
+
+    <!-- OpenGL ES 3D 渲染视图 -->
+    <android.opengl.GLSurfaceView
+        android:id="@+id/communityGallerySurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 顶部操作与展主信息浮层 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#66000000"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/communityGalleryBackBtn"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/communityGalleryTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="荒谬与微光：存在主义思想展台" />
+
+            <TextView
+                android:id="@+id/communityGalleryAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="#A0B0D0"
+                android:textSize="12sp"
+                tools:text="策展人：林栖阁主 🌌" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/communityGalleryThemeBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="🌌 换氛围"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 底部悬浮当前聚焦展品卡片 -->
+    <LinearLayout
+        android:id="@+id/communityFocusCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_glass_panel"
+        android:clickable="true"
+        android:elevation="12dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/communityFocusMediaBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_pill"
+                android:fontFamily="sans"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:textSize="13sp"
+                tools:text="📖" />
+
+            <TextView
+                android:id="@+id/communityFocusTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="sans"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="局外人" />
+
+            <TextView
+                android:id="@+id/communityFocusRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="★ 9.5" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/communityFocusAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp"
+            tools:text="阿尔贝·加缪 · 哲学" />
+
+        <TextView
+            android:id="@+id/communityFocusComment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="2"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            tools:text="“今天，妈妈死了。也许是昨天，我不知道。直面存在的荒谬，并在阳光与虚无中保持纯粹诚实。”" />
+
+        <!-- 底部转存与 3D 阅览操作条 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/communitySaveLocalBtn"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_primary_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans"
+                android:gravity="center"
+                android:text="✦ 收入我的书架"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/communityRead3DBtn"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_secondary_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans"
+                android:gravity="center"
+                android:text="📖 3D 试读"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

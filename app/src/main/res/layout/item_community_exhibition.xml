@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_glass_panel_soft"
+    android:elevation="4dp"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 顶部作者信息与发布时间 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/exhibitionAuthorAvatar"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_status_pill"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:textSize="18sp"
+            tools:text="🌌" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/exhibitionAuthorName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="林栖阁主" />
+
+            <TextView
+                android:id="@+id/exhibitionDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11sp"
+                tools:text="2026-08-20 18:30" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/exhibition3DBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_primary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="🏛️ 3D 漫游"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 展厅主题标题 -->
+    <TextView
+        android:id="@+id/exhibitionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="sans"
+        android:textColor="@color/readtrace_ink"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        tools:text="荒谬与微光：存在主义思想展台" />
+
+    <!-- 展厅主题描述 / 寄语 -->
+    <TextView
+        android:id="@+id/exhibitionDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:fontFamily="sans"
+        android:lineSpacingMultiplier="1.2"
+        android:textColor="@color/readtrace_muted"
+        android:textSize="13sp"
+        tools:text="精选加缪、圣埃克苏佩里与毛姆的代表作。在荒谬的世界中寻得内心的平静与热爱。" />
+
+    <!-- 展品微缩胶囊条 -->
+    <LinearLayout
+        android:id="@+id/exhibitionBooksContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal" />
+
+    <!-- 底部标签与互动条 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/exhibitionTags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="12sp"
+            tools:text="#哲学 #存在主义" />
+
+        <TextView
+            android:id="@+id/exhibitionLikeBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            tools:text="❤️ 382" />
+
+        <TextView
+            android:id="@+id/exhibitionCommentBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            tools:text="💬 28" />
+    </LinearLayout>
+</LinearLayout>

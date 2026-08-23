@@ -151,6 +151,9 @@ class MainActivity : AppCompatActivity() {
         homeGalleryPanel.setOnClickListener {
             startActivity(Gallery3DActivity.createIntent(this))
         }
+        findViewById<View>(R.id.homeCommunityPanel)?.setOnClickListener {
+            startActivity(com.example.readtrace.community.ui.CommunityActivity.createIntent(this))
+        }
     }
 
     private fun confirmImportPresetBooks() {

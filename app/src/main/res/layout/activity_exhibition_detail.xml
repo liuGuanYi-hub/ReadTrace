@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/exhibitionDetailRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_readtrace_home"
+    android:orientation="vertical">
+
+    <!-- 顶栏导航 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/detailBackBtn"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:fontFamily="sans"
+            android:text="展览详情与随想"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/detail3DExploreBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_primary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="🏛️ 3D 漫游"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 策展人与主题卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_glass_panel"
+                android:elevation="6dp"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/detailAvatar"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_status_pill"
+                        android:gravity="center"
+                        android:textSize="22sp"
+                        tools:text="🌌" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/detailAuthor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            tools:text="林栖阁主" />
+
+                        <TextView
+                            android:id="@+id/detailDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans"
+                            android:textColor="@color/readtrace_muted"
+                            android:textSize="12sp"
+                            tools:text="策展于 2026-08-20 18:30" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/detailLikeBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="❤️ 382 共鸣" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/detailTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    tools:text="荒谬与微光：存在主义思想展台" />
+
+                <TextView
+                    android:id="@+id/detailDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans"
+                    android:lineSpacingMultiplier="1.25"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="14sp"
+                    tools:text="精选加缪、圣埃克苏佩里与毛姆的代表作。在荒谬的世界中寻得内心的平静与热爱。" />
+            </LinearLayout>
+
+            <!-- 展品清单标题 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="sans"
+                android:text="📚 展台精选展品及随想"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- 展品容器 -->
+            <LinearLayout
+                android:id="@+id/detailBooksListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- 评论区标题 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="sans"
+                android:text="💬 漫游者共鸣与留言"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- 评论容器 -->
+            <LinearLayout
+                android:id="@+id/detailCommentsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- 发表评论输入条 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <EditText
+                    android:id="@+id/commentInput"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:fontFamily="sans"
+                    android:hint="写下你的共鸣与感悟..."
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:textColor="@color/readtrace_ink"
+                    android:textColorHint="@color/readtrace_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/commentSendBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="发送"
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>
