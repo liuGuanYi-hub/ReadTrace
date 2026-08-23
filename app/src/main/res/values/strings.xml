@@ -207,4 +207,15 @@
     <string name="backup_import_empty">备份文件中没有可导入的数据</string>
     <string name="backup_import_failed">导入解析失败，请确认文件格式是否正确</string>
     <string name="backup_stat_summary_format">当前本地共存储 %1$d 部作品 · %2$d 条随想痕迹</string>
+    <string name="home_gallery_title">🏛️ 3D 私人展厅</string>
+    <string name="home_gallery_desc">全景 3D 空间漫游 · 沉浸检阅高分典藏</string>
+    <string name="home_gallery_badge_format">已陈列 %1$d 部精选作品 ›</string>
+    <string name="gallery_activity_title">3D 私人展厅</string>
+    <string name="gallery_activity_subtitle">360° 环视滑动 · 精神殿堂</string>
+    <string name="gallery_theme_midnight">🌌 星空</string>
+    <string name="gallery_theme_warm">🕯️ 暖木</string>
+    <string name="gallery_theme_zen">🌿 禅意</string>
+    <string name="gallery_focus_view_detail">轻点卡片查看完整详情 ›</string>
+    <string name="gallery_empty_title">展厅尚在虚席以待</string>
+    <string name="gallery_empty_desc">去记录或读完更多高分心动作品，它们将在这里化作立体殿堂</string>
 </resources>

@@ -635,6 +635,32 @@ class BookDatabaseHelper(context: Context) :
     }
 
     /**
+     * 获取 3D 私人展厅陈列精选作品（优先高分 rating >= 8.0 或 已完成 finished，若不足则补充最新收录，上限 24 部）
+     */
+    fun getGalleryFeaturedWorks(limit: Int = 24): List<Book> {
+        val allBooks = getBooks()
+        if (allBooks.isEmpty()) return emptyList()
+
+        // 优先筛选高分 (>= 8.0) 或已读完作品
+        val featured = allBooks.filter {
+            (it.rating != null && it.rating >= 8.0) || it.status == BookStatus.FINISHED
+        }.sortedWith(
+            compareByDescending<Book> { it.rating ?: 0.0 }
+                .thenByDescending { it.updatedAt },
+        )
+
+        if (featured.size >= limit) {
+            return featured.take(limit)
+        }
+
+        // 如果不足 limit 部，则从其余作品中按最新更新时间补充
+        val remaining = allBooks.filterNot { featured.contains(it) }
+            .sortedByDescending { it.updatedAt }
+
+        return (featured + remaining).take(limit)
+    }
+
+    /**
      * 获取所有书籍的不重复标签列表及频次统计，按出现频次降序排列
      */
     fun getAllUniqueTags(): List<Pair<String, Int>> {

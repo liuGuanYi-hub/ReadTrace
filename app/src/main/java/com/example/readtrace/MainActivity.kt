@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var homeBadgePanel: View
     private lateinit var homeBadgeSummary: TextView
+    private lateinit var homeGalleryPanel: View
+    private lateinit var homeGallerySummary: TextView
     private lateinit var mediaTabAll: TextView
     private lateinit var mediaTabBook: TextView
     private lateinit var mediaTabMovie: TextView
@@ -101,6 +103,8 @@ class MainActivity : AppCompatActivity() {
 
         homeBadgePanel = findViewById(R.id.homeBadgePanel)
         homeBadgeSummary = findViewById(R.id.homeBadgeSummary)
+        homeGalleryPanel = findViewById(R.id.homeGalleryPanel)
+        homeGallerySummary = findViewById(R.id.homeGallerySummary)
         mediaTabAll = findViewById(R.id.mediaTabAll)
         mediaTabBook = findViewById(R.id.mediaTabBook)
         mediaTabMovie = findViewById(R.id.mediaTabMovie)
@@ -143,6 +147,9 @@ class MainActivity : AppCompatActivity() {
         }
         homeBadgePanel.setOnClickListener {
             startActivity(BadgesActivity.createIntent(this))
+        }
+        homeGalleryPanel.setOnClickListener {
+            startActivity(Gallery3DActivity.createIntent(this))
         }
     }
 
@@ -374,10 +381,20 @@ class MainActivity : AppCompatActivity() {
         val allBooks = databaseHelper.getBooks()
         updateShelfInsight(allBooks, allBooks.size)
         renderBadgesSummary()
+        renderGallerySummary()
         renderMemoryCard()
         renderMonthlyStats()
         renderDynamicTags()
         refreshShelfOnly()
+    }
+
+    private fun renderGallerySummary() {
+        val featuredCount = databaseHelper.getGalleryFeaturedWorks(24).size
+        homeGallerySummary.text = if (featuredCount > 0) {
+            getString(R.string.home_gallery_badge_format, featuredCount)
+        } else {
+            getString(R.string.home_gallery_desc)
+        }
     }
 
     private fun refreshShelfOnly() {
