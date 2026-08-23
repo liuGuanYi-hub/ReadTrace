@@ -2,12 +2,16 @@ package com.example.readtrace
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -15,7 +19,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.model.MonthlyReadingStat
+import com.example.readtrace.util.BookCsvParser
 import java.text.DecimalFormat
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -28,6 +35,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statReadingValue: TextView
     private lateinit var statFinishedValue: TextView
     private lateinit var statAverageValue: TextView
+    private lateinit var memoryPanel: View
+    private lateinit var memorySubPrompt: TextView
+    private lateinit var memoryBookTitle: TextView
+    private lateinit var memoryBookQuote: TextView
+    private lateinit var monthlyStatPanel: View
+    private lateinit var monthlyChartBarsContainer: LinearLayout
+    private lateinit var monthlyStatEmptyText: TextView
     private var selectedStatus: BookStatus? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +65,15 @@ class MainActivity : AppCompatActivity() {
         statFinishedValue = findViewById(R.id.statFinishedValue)
         statAverageValue = findViewById(R.id.statAverageValue)
 
+        memoryPanel = findViewById(R.id.memoryPanel)
+        memorySubPrompt = findViewById(R.id.memorySubPrompt)
+        memoryBookTitle = findViewById(R.id.memoryBookTitle)
+        memoryBookQuote = findViewById(R.id.memoryBookQuote)
+
+        monthlyStatPanel = findViewById(R.id.monthlyStatPanel)
+        monthlyChartBarsContainer = findViewById(R.id.monthlyChartBarsContainer)
+        monthlyStatEmptyText = findViewById(R.id.monthlyStatEmptyText)
+
         configureActions()
         configureStatusFilters()
 
@@ -69,6 +92,41 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.addButton).setOnClickListener(openAddBook)
         findViewById<View>(R.id.emptyAction).setOnClickListener(openAddBook)
+        findViewById<View>(R.id.importPresetButton).setOnClickListener {
+            confirmImportPresetBooks()
+        }
+    }
+
+    private fun confirmImportPresetBooks() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.import_preset_confirm_title)
+            .setMessage(R.string.import_preset_confirm_message)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton(R.string.home_import_preset) { _, _ ->
+                importPresetBooks()
+            }
+            .show()
+    }
+
+    private fun importPresetBooks() {
+        runCatching {
+            assets.open("preset_books.csv").use { inputStream ->
+                val books = BookCsvParser.parse(inputStream)
+                val count = databaseHelper.importBooks(books)
+                if (count > 0) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.import_success_format, count),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    refreshBooks()
+                } else {
+                    Toast.makeText(this, R.string.import_no_new_books, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.onFailure {
+            Toast.makeText(this, R.string.import_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun configureStatusFilters() {
@@ -125,6 +183,8 @@ class MainActivity : AppCompatActivity() {
             allBooks.filter { it.status == status }
         } ?: allBooks
         updateShelfInsight(allBooks, books.size)
+        renderMemoryCard()
+        renderMonthlyStats()
         booksContainer.removeAllViews()
 
         if (books.isEmpty()) {
@@ -151,6 +211,92 @@ class MainActivity : AppCompatActivity() {
             animateBookCard(card, index)
         }
     }
+
+    private fun renderMemoryCard() {
+        val memoryResult = databaseHelper.getMemoryBook()
+        if (memoryResult == null) {
+            memoryPanel.visibility = View.GONE
+            return
+        }
+        val (book, prompt) = memoryResult
+        memoryPanel.visibility = View.VISIBLE
+        memorySubPrompt.text = prompt
+        val authorText = book.author?.let { " · $it" } ?: ""
+        memoryBookTitle.text = "《${book.title}》$authorText"
+
+        val quoteText = book.shortComment?.trim()?.takeIf { it.isNotEmpty() }
+            ?: book.review?.trim()?.takeIf { it.isNotEmpty() }
+            ?: getString(R.string.today_reflection_body)
+        memoryBookQuote.text = quoteText
+        memoryPanel.setOnClickListener {
+            openBookDetail(memoryPanel, book.id)
+        }
+    }
+
+    private fun renderMonthlyStats() {
+        val stats = databaseHelper.getMonthlyFinishedStats(6)
+        monthlyChartBarsContainer.removeAllViews()
+        if (stats.isEmpty()) {
+            monthlyChartBarsContainer.visibility = View.GONE
+            monthlyStatEmptyText.visibility = View.VISIBLE
+            return
+        }
+
+        monthlyStatEmptyText.visibility = View.GONE
+        monthlyChartBarsContainer.visibility = View.VISIBLE
+
+        val chronologicStats = stats.reversed()
+        val maxCount = chronologicStats.maxOf { it.count }.coerceAtLeast(1)
+
+        chronologicStats.forEach { stat ->
+            val col = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
+            }
+
+            val countText = TextView(this).apply {
+                text = stat.count.toString()
+                textSize = 11f
+                gravity = Gravity.CENTER
+                setTextColor(ContextCompat.getColor(context, R.color.readtrace_accent))
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+            }
+            col.addView(countText)
+
+            val barHeightDp = (stat.count.toFloat() / maxCount * 55f + 8f).roundToInt()
+            val bar = View(this).apply {
+                setBackgroundResource(R.drawable.bg_stat_bar)
+                val params = LinearLayout.LayoutParams(
+                    dpToPx(18),
+                    dpToPx(barHeightDp),
+                ).apply {
+                    topMargin = dpToPx(4)
+                    bottomMargin = dpToPx(6)
+                }
+                layoutParams = params
+            }
+            col.addView(bar)
+
+            val monthLabel = if (stat.month.length >= 7) {
+                stat.month.substring(5, 7) + "月"
+            } else {
+                stat.month
+            }
+            val monthText = TextView(this).apply {
+                text = monthLabel
+                textSize = 10f
+                gravity = Gravity.CENTER
+                setTextColor(ContextCompat.getColor(context, R.color.readtrace_muted))
+            }
+            col.addView(monthText)
+
+            monthlyChartBarsContainer.addView(col)
+        }
+    }
+
+    private fun dpToPx(value: Int): Int =
+        (value * resources.displayMetrics.density).roundToInt()
 
     private fun createBookCard(book: Book): View {
         val card = LayoutInflater.from(this)

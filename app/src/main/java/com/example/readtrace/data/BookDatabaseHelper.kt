@@ -7,11 +7,14 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import org.json.JSONArray
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class BookDatabaseHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -154,6 +157,151 @@ class BookDatabaseHelper(context: Context) :
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(bookId.toString(), "0"),
         ) > 0
+    }
+
+    /**
+     * 批量导入书籍，利用事务提升性能，并检查标题和作者去重
+     * @return 实际成功插入的新书籍数量
+     */
+    fun importBooks(books: List<Book>): Int {
+        if (books.isEmpty()) return 0
+        val db = writableDatabase
+        var insertedCount = 0
+        db.beginTransaction()
+        try {
+            val now = currentTimestamp()
+            for (book in books) {
+                val cleanTitle = book.title.trim()
+                if (cleanTitle.isEmpty()) continue
+
+                // 查重：同名且同作者（未归档）则跳过
+                val exists = isBookExists(db, cleanTitle, book.author?.trim())
+                if (!exists) {
+                    val values = book.toContentValues().apply {
+                        put(COLUMN_TITLE, cleanTitle)
+                        put(COLUMN_CREATED_AT, book.createdAt.ifBlank { now })
+                        put(COLUMN_UPDATED_AT, book.updatedAt.ifBlank { now })
+                        put(COLUMN_IS_DELETED, 0)
+                        putNull(COLUMN_DELETED_AT)
+                    }
+                    val rowId = db.insert(TABLE_BOOKS, null, values)
+                    if (rowId > 0) {
+                        insertedCount++
+                    }
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return insertedCount
+    }
+
+    private fun isBookExists(db: SQLiteDatabase, title: String, author: String?): Boolean {
+        val selection: String
+        val args: Array<String>
+        if (author.isNullOrEmpty()) {
+            selection = "$COLUMN_TITLE = ? AND ($COLUMN_AUTHOR IS NULL OR $COLUMN_AUTHOR = '') AND $COLUMN_IS_DELETED = 0"
+            args = arrayOf(title)
+        } else {
+            selection = "$COLUMN_TITLE = ? AND $COLUMN_AUTHOR = ? AND $COLUMN_IS_DELETED = 0"
+            args = arrayOf(title, author)
+        }
+        return db.query(TABLE_BOOKS, arrayOf(COLUMN_ID), selection, args, null, null, null, "1").use { cursor ->
+            cursor.moveToFirst()
+        }
+    }
+
+    /**
+     * 获取「那年今日」回忆书籍与描述信息。
+     * 优先匹配历史年份今日读完的书籍，次之随机精选一本已读书籍作为时光漫忆。
+     */
+    fun getMemoryBook(): Pair<Book, String>? {
+        val today = LocalDate.now()
+        val monthDayPattern = String.format("%%-%02d-%02d", today.monthValue, today.dayOfMonth)
+
+        // 1. 查询历史同月同日读完的书籍（非当年今天）
+        val todayBooks = readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_FINISH_DATE LIKE ? AND $COLUMN_IS_DELETED = 0 AND $COLUMN_STATUS = ?",
+            arrayOf(monthDayPattern, BookStatus.FINISHED.databaseValue),
+            null,
+            null,
+            "$COLUMN_FINISH_DATE DESC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBook())
+                }
+            }
+        }
+
+        // 寻找非今天（往年）读完的书
+        for (book in todayBooks) {
+            val finishDateStr = book.finishDate ?: continue
+            val finishDate = runCatching { LocalDate.parse(finishDateStr) }.getOrNull() ?: continue
+            val years = ChronoUnit.YEARS.between(finishDate, today)
+            if (years > 0) {
+                return Pair(book, "${years} 年前的今天，你读完了这本书")
+            } else if (finishDate == today) {
+                return Pair(book, "今天读完的书籍，愿余味长存")
+            }
+        }
+
+        // 2. 如果无今日匹配，则优选一本最近或评分较高的已读书籍作为时光漫忆
+        val finishedBooks = readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_STATUS = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(BookStatus.FINISHED.databaseValue, "0"),
+            null,
+            null,
+            "$COLUMN_RATING DESC, $COLUMN_UPDATED_AT DESC",
+            "10",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBook())
+                }
+            }
+        }
+
+        if (finishedBooks.isNotEmpty()) {
+            val randomBook = finishedBooks.random()
+            return Pair(randomBook, "时光漫忆 · 曾留在心里的作品")
+        }
+
+        return null
+    }
+
+    /**
+     * 获取月度读完统计（按完成日期月份统计）
+     */
+    fun getMonthlyFinishedStats(limit: Int = 6): List<MonthlyReadingStat> {
+        val sql = """
+            SELECT SUBSTR($COLUMN_FINISH_DATE, 1, 7) AS month_str, COUNT(*) AS count_num
+            FROM $TABLE_BOOKS
+            WHERE $COLUMN_IS_DELETED = 0 
+              AND $COLUMN_STATUS = '${BookStatus.FINISHED.databaseValue}'
+              AND $COLUMN_FINISH_DATE IS NOT NULL 
+              AND length($COLUMN_FINISH_DATE) >= 7
+            GROUP BY month_str
+            ORDER BY month_str DESC
+            LIMIT ?
+        """.trimIndent()
+
+        return readableDatabase.rawQuery(sql, arrayOf(limit.toString())).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    val month = cursor.getString(0) ?: ""
+                    val count = cursor.getInt(1)
+                    if (month.isNotEmpty()) {
+                        add(MonthlyReadingStat(month, count))
+                    }
+                }
+            }
+        }
     }
 
     fun insertNote(note: Note): Long {

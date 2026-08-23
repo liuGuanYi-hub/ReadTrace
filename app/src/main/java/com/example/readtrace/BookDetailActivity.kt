@@ -102,17 +102,23 @@ class BookDetailActivity : AppCompatActivity() {
         val container = findViewById<LinearLayout>(R.id.detailNotesContainer)
         val emptyView = findViewById<TextView>(R.id.detailNotesEmpty)
         val countView = findViewById<TextView>(R.id.detailNotesCount)
+        val flipButton = findViewById<TextView>(R.id.detailNotesFlipButton)
         container.removeAllViews()
         if (notes.isEmpty()) {
             emptyView.visibility = View.VISIBLE
             countView.visibility = View.GONE
             container.visibility = View.GONE
+            flipButton.visibility = View.GONE
             return
         }
 
         emptyView.visibility = View.GONE
         countView.visibility = View.VISIBLE
         countView.text = getString(R.string.notes_count_format, notes.size)
+        flipButton.visibility = View.VISIBLE
+        flipButton.setOnClickListener {
+            startActivity(FlipNotesActivity.createIntent(this, bookId, 0))
+        }
         container.visibility = View.VISIBLE
         notes.forEachIndexed { index, note ->
             val item = layoutInflater.inflate(R.layout.item_detail_note, container, false)

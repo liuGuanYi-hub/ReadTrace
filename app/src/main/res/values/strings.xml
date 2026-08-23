@@ -123,4 +123,18 @@
     <string name="note_archive_confirm_message">归档后会从列表隐藏，内容仍会安全保留。</string>
     <string name="note_archive_success">已归档</string>
     <string name="note_archive_failed">归档失败，请稍后再试</string>
+    <string name="home_import_preset">导入书单</string>
+    <string name="import_preset_confirm_title">导入经典书单？</string>
+    <string name="import_preset_confirm_message">将从精选书单（docs/书单.csv）中导入 54 本书籍到「想读」中。已在书架的书籍会自动跳过。</string>
+    <string name="import_success_format">成功导入 %1$d 本新书籍</string>
+    <string name="import_no_new_books">书单中的书籍均已在书架中</string>
+    <string name="import_failed">导入书单失败，请稍后再试</string>
+    <string name="home_memory_title">时光留痕</string>
+    <string name="home_monthly_stat_title">月度阅读趋势</string>
+    <string name="home_monthly_stat_empty">暂无读完记录，读完一本书后将在此呈现阅读轨迹。</string>
+    <string name="action_flip_notes">📖 翻书</string>
+    <string name="flip_notes_title">翻书漫忆</string>
+    <string name="flip_notes_page_format">%1$d / %2$d</string>
+    <string name="flip_notes_empty">暂无摘录与随想</string>
+    <string name="flip_hint">左右滑动翻页 · 沉浸回味</string>
 </resources>
