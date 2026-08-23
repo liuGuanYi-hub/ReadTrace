@@ -19,7 +19,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-class BookDatabaseHelper(context: Context) :
+class BookDatabaseHelper(val context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onCreate(database: SQLiteDatabase) {
@@ -675,6 +675,22 @@ class BookDatabaseHelper(context: Context) :
             }
         }
         return tagCountMap.toList().sortedByDescending { it.second }
+    }
+
+    /**
+     * 获取书籍上次阅读的页码
+     */
+    fun getReadingPage(bookId: Long): Int {
+        val sp = context.getSharedPreferences("readtrace_reader_prefs", Context.MODE_PRIVATE)
+        return sp.getInt("book_page_$bookId", 0)
+    }
+
+    /**
+     * 保存书籍当前阅读页码
+     */
+    fun saveReadingPage(bookId: Long, pageIndex: Int) {
+        val sp = context.getSharedPreferences("readtrace_reader_prefs", Context.MODE_PRIVATE)
+        sp.edit().putInt("book_page_$bookId", pageIndex).apply()
     }
 
     /**

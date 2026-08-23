@@ -156,33 +156,66 @@
                     android:textStyle="bold"
                     tools:text="在读 · 8.5 / 10 · 小说" />
 
+                <TextView
+                    android:id="@+id/detailRead3DButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:elevation="4dp"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:text="@string/action_3d_read"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginTop="10dp"
                     android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/detailImportTxtButton"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="📂 导入TXT"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/detailEditButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="6dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_primary_button"
+                        android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
                         android:text="@string/action_edit"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/detailArchiveButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_marginStart="6dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="4dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_danger_button"
                         android:clickable="true"
@@ -191,7 +224,7 @@
                         android:gravity="center"
                         android:text="@string/action_archive"
                         android:textColor="@color/white"
-                        android:textSize="15sp"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>

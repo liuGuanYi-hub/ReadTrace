@@ -218,4 +218,15 @@
     <string name="gallery_focus_view_detail">轻点卡片查看完整详情 ›</string>
     <string name="gallery_empty_title">展厅尚在虚席以待</string>
     <string name="gallery_empty_desc">去记录或读完更多高分心动作品，它们将在这里化作立体殿堂</string>
+    <string name="reader_activity_title">3D 沉浸阅览</string>
+    <string name="reader_action_import_txt">导入 TXT 全文</string>
+    <string name="reader_import_txt_success">TXT 电子书导入成功！</string>
+    <string name="reader_import_txt_failed">TXT 导入失败，请重试</string>
+    <string name="reader_theme_parchment">📜 羊皮古卷</string>
+    <string name="reader_theme_mint">🌿 水绿清心</string>
+    <string name="reader_theme_night">🌌 暗夜漫想</string>
+    <string name="reader_btn_add_excerpt">✦ 提取本页为阅痕摘录</string>
+    <string name="reader_excerpt_added_toast">已将本页内容沉淀至阅痕摘录！</string>
+    <string name="reader_page_indicator_format">%1$d / %2$d 页 (%3$d%%)</string>
+    <string name="action_3d_read">📖 3D 沉浸阅览</string>
 </resources>

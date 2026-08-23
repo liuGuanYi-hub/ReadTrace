@@ -29,6 +29,18 @@ class BookDetailActivity : AppCompatActivity() {
     private var bookId: Long = NO_BOOK_ID
     private var currentBook: Book? = null
 
+    private val importTxtLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri: android.net.Uri? ->
+        if (uri != null && bookId != NO_BOOK_ID) {
+            val success = com.example.readtrace.reader.TxtReaderHelper.importTxtFromUri(this, bookId, uri)
+            if (success) {
+                Toast.makeText(this, R.string.reader_import_txt_success, Toast.LENGTH_SHORT).show()
+                startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
+            } else {
+                Toast.makeText(this, R.string.reader_import_txt_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,6 +60,12 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.detailBackButton).setOnClickListener { finish() }
+        findViewById<View>(R.id.detailRead3DButton).setOnClickListener {
+            startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
+        }
+        findViewById<View>(R.id.detailImportTxtButton).setOnClickListener {
+            importTxtLauncher.launch(arrayOf("text/plain", "*/*"))
+        }
         findViewById<View>(R.id.detailEditButton).setOnClickListener {
             startActivity(AddBookActivity.createEditIntent(this, bookId))
         }

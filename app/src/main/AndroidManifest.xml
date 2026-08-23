@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Readtrace">
         <activity
+            android:name=".reader.Book3DReaderActivity"
+            android:exported="false" />
+        <activity
             android:name=".Gallery3DActivity"
             android:exported="false" />
         <activity
