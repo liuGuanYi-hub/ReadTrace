@@ -92,6 +92,102 @@
                     android:text="@string/section_basic"
                     android:textSize="18sp" />
 
+                <!-- 本地封面选择与预览 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:id="@+id/coverPickerContainer"
+                        android:layout_width="72dp"
+                        android:layout_height="108dp"
+                        android:background="@drawable/bg_book_placeholder"
+                        android:clickable="true"
+                        android:clipToOutline="true"
+                        android:focusable="true"
+                        android:outlineProvider="background">
+
+                        <ImageView
+                            android:id="@+id/coverPreviewImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/coverStatusText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans"
+                            android:text="@string/action_cover_change"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans"
+                            android:text="2:3 黄金比例 · 自动中心裁剪"
+                            android:textColor="@color/readtrace_muted"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/pickCoverButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="34dp"
+                                android:background="@drawable/bg_secondary_button"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:fontFamily="sans"
+                                android:gravity="center"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:text="@string/action_pick_cover"
+                                android:textColor="@color/readtrace_ink"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/removeCoverButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="34dp"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_secondary_button"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:fontFamily="sans"
+                                android:gravity="center"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:text="@string/action_cover_remove"
+                                android:textColor="@color/readtrace_muted"
+                                android:textSize="12sp"
+                                android:visibility="gone"
+                                tools:visibility="visible" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
                 <TextView
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="20dp"

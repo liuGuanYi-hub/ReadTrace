@@ -5,11 +5,13 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.CoverImageHelper
 import org.json.JSONArray
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -158,6 +160,87 @@ class BookDatabaseHelper(context: Context) :
             arrayOf(bookId.toString(), "0"),
         ) > 0
     }
+
+    /**
+     * 恢复已归档的书籍
+     */
+    fun restoreBook(bookId: Long): Boolean {
+        if (bookId <= 0) return false
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 0)
+            putNull(COLUMN_DELETED_AT)
+            put(COLUMN_UPDATED_AT, now)
+        }
+        return writableDatabase.update(
+            TABLE_BOOKS,
+            values,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(bookId.toString(), "1"),
+        ) > 0
+    }
+
+    /**
+     * 获取所有已归档的书籍（回收站）
+     */
+    fun getArchivedBooks(): List<Book> {
+        return readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_IS_DELETED = ?",
+            arrayOf("1"),
+            null,
+            null,
+            "$COLUMN_DELETED_AT DESC, $COLUMN_ID DESC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBook())
+                }
+            }
+        }
+    }
+
+    /**
+     * 彻底物理删除书籍（物理清理关联封面文件、关联笔记及书籍本体）
+     * 必须在用户二次确认后调用
+     */
+    fun hardDeleteBook(bookId: Long): Boolean {
+        if (bookId <= 0) return false
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            // 1. 查询并清理关联的本地封面文件
+            val book = getBookAny(bookId)
+            book?.coverUrl?.let { path ->
+                CoverImageHelper.deleteCoverFile(path)
+            }
+
+            // 2. 删除关联的笔记
+            db.delete(TABLE_NOTES, "$COLUMN_BOOK_ID = ?", arrayOf(bookId.toString()))
+
+            // 3. 删除书籍记录
+            val deleted = db.delete(TABLE_BOOKS, "$COLUMN_ID = ?", arrayOf(bookId.toString())) > 0
+            db.setTransactionSuccessful()
+            return deleted
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    private fun getBookAny(bookId: Long): Book? =
+        readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_ID = ?",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            null,
+            "1",
+        ).use { cursor ->
+            if (cursor.moveToFirst()) cursor.toBook() else null
+        }
 
     /**
      * 批量导入书籍，利用事务提升性能，并检查标题和作者去重
@@ -373,6 +456,90 @@ class BookDatabaseHelper(context: Context) :
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(noteId.toString(), "0"),
         ) > 0
+    }
+
+    /**
+     * 恢复已归档的笔记
+     */
+    fun restoreNote(noteId: Long): Boolean {
+        if (noteId <= 0) return false
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 0)
+            putNull(COLUMN_DELETED_AT)
+            put(COLUMN_UPDATED_AT, now)
+        }
+        return writableDatabase.update(
+            TABLE_NOTES,
+            values,
+            "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
+            arrayOf(noteId.toString(), "1"),
+        ) > 0
+    }
+
+    /**
+     * 获取所有已归档的笔记（带所属书名）
+     */
+    fun getArchivedNotes(): List<ArchivedNoteItem> {
+        val sql = """
+            SELECT n.$COLUMN_ID, n.$COLUMN_BOOK_ID, n.$COLUMN_CONTENT, n.$COLUMN_NOTE_TYPE,
+                   n.$COLUMN_PAGE, n.$COLUMN_CHAPTER, n.$COLUMN_CREATED_AT, n.$COLUMN_UPDATED_AT,
+                   n.$COLUMN_IS_DELETED, n.$COLUMN_DELETED_AT, b.$COLUMN_TITLE AS book_title
+            FROM $TABLE_NOTES n
+            LEFT JOIN $TABLE_BOOKS b ON n.$COLUMN_BOOK_ID = b.$COLUMN_ID
+            WHERE n.$COLUMN_IS_DELETED = 1
+            ORDER BY n.$COLUMN_DELETED_AT DESC, n.$COLUMN_ID DESC
+        """.trimIndent()
+
+        return readableDatabase.rawQuery(sql, null).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    val note = cursor.toNote()
+                    val titleIndex = cursor.getColumnIndex("book_title")
+                    val bookTitle = if (titleIndex != -1 && !cursor.isNull(titleIndex)) cursor.getString(titleIndex) else null
+                    add(ArchivedNoteItem(note, bookTitle))
+                }
+            }
+        }
+    }
+
+    /**
+     * 彻底物理删除笔记
+     * 必须在用户二次确认后调用
+     */
+    fun hardDeleteNote(noteId: Long): Boolean {
+        if (noteId <= 0) return false
+        return writableDatabase.delete(
+            TABLE_NOTES,
+            "$COLUMN_ID = ?",
+            arrayOf(noteId.toString()),
+        ) > 0
+    }
+
+    /**
+     * 彻底清空回收站中的所有书籍与笔记，并清理所有相关封面图片
+     * 必须在用户二次确认后调用
+     * @return Pair(删除的书籍数量, 删除的笔记数量)
+     */
+    fun clearAllTrash(): Pair<Int, Int> {
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            // 1. 获取所有归档书籍的封面并清理文件
+            val archivedBooks = getArchivedBooks()
+            archivedBooks.forEach { book ->
+                book.coverUrl?.let { CoverImageHelper.deleteCoverFile(it) }
+            }
+
+            // 2. 物理删除所有归档书籍关联的笔记及单独归档的笔记
+            val deletedNotesCount = db.delete(TABLE_NOTES, "$COLUMN_IS_DELETED = 1", null)
+            val deletedBooksCount = db.delete(TABLE_BOOKS, "$COLUMN_IS_DELETED = 1", null)
+
+            db.setTransactionSuccessful()
+            return Pair(deletedBooksCount, deletedNotesCount)
+        } finally {
+            db.endTransaction()
+        }
     }
 
     private fun Cursor.toBook(): Book =

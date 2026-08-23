@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +22,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.util.BookCsvParser
+import com.example.readtrace.util.CoverImageHelper
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
@@ -94,6 +96,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.emptyAction).setOnClickListener(openAddBook)
         findViewById<View>(R.id.importPresetButton).setOnClickListener {
             confirmImportPresetBooks()
+        }
+        findViewById<View>(R.id.trashButton).setOnClickListener {
+            startActivity(TrashActivity.createIntent(this))
         }
     }
 
@@ -301,6 +306,9 @@ class MainActivity : AppCompatActivity() {
     private fun createBookCard(book: Book): View {
         val card = LayoutInflater.from(this)
             .inflate(R.layout.item_book_card, booksContainer, false)
+        val coverImageView = card.findViewById<ImageView>(R.id.bookCardCoverImage)
+        CoverImageHelper.loadCover(coverImageView, book.coverUrl)
+
         card.findViewById<TextView>(R.id.bookCardTitle).text = book.title
         card.findViewById<TextView>(R.id.bookCardAuthor).text =
             book.author ?: getString(R.string.unknown_author)

@@ -85,12 +85,22 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <View
+                <FrameLayout
+                    android:id="@+id/detailCoverContainer"
                     android:layout_width="96dp"
-                    android:layout_height="134dp"
+                    android:layout_height="144dp"
                     android:background="@drawable/bg_book_placeholder"
-                    android:contentDescription="@string/decorative_book"
-                    android:importantForAccessibility="no" />
+                    android:clipToOutline="true"
+                    android:outlineProvider="background">
+
+                    <ImageView
+                        android:id="@+id/detailCoverImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/detailBookTitle"

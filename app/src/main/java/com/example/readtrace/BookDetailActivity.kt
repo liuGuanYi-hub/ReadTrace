@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -17,6 +18,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.CoverImageHelper
 import java.text.DecimalFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -74,6 +76,9 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun renderBook(book: Book) {
+        val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
+        CoverImageHelper.loadCover(coverImage, book.coverUrl)
+
         findViewById<TextView>(R.id.detailBookTitle).text = book.title
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)

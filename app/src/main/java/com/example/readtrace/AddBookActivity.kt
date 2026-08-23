@@ -3,15 +3,18 @@ package com.example.readtrace
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -19,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.util.CoverImageHelper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,9 +43,31 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var finishDateInput: TextView
     private lateinit var saveButton: TextView
 
+    private lateinit var coverPickerContainer: View
+    private lateinit var coverPreviewImage: ImageView
+    private lateinit var coverStatusText: TextView
+    private lateinit var pickCoverButton: View
+    private lateinit var removeCoverButton: View
+
     private var startDate: LocalDate? = null
     private var finishDate: LocalDate? = null
     private var editingBookId: Long = NO_BOOK_ID
+    private var currentCoverPath: String? = null
+    private var initialCoverPath: String? = null
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            val savedPath = CoverImageHelper.cropAndSaveCover(this, uri)
+            if (savedPath != null) {
+                currentCoverPath = savedPath
+                coverUrlInput.setText(savedPath)
+                updateCoverPreview()
+                Toast.makeText(this, R.string.cover_selected_success, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, R.string.cover_selected_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +112,24 @@ class AddBookActivity : AppCompatActivity() {
         startDateInput = findViewById(R.id.startDateInput)
         finishDateInput = findViewById(R.id.finishDateInput)
         saveButton = findViewById(R.id.saveButton)
+
+        coverPickerContainer = findViewById(R.id.coverPickerContainer)
+        coverPreviewImage = findViewById(R.id.coverPreviewImage)
+        coverStatusText = findViewById(R.id.coverStatusText)
+        pickCoverButton = findViewById(R.id.pickCoverButton)
+        removeCoverButton = findViewById(R.id.removeCoverButton)
+    }
+
+    private fun updateCoverPreview() {
+        if (!currentCoverPath.isNullOrBlank()) {
+            CoverImageHelper.loadCover(coverPreviewImage, currentCoverPath)
+            coverStatusText.setText(R.string.action_cover_change)
+            removeCoverButton.visibility = View.VISIBLE
+        } else {
+            coverPreviewImage.visibility = View.GONE
+            coverStatusText.setText(R.string.action_pick_cover)
+            removeCoverButton.visibility = View.GONE
+        }
     }
 
     private fun configureFormMode() {
@@ -106,6 +150,9 @@ class AddBookActivity : AppCompatActivity() {
         titleInput.setText(book.title)
         authorInput.setText(book.author.orEmpty())
         coverUrlInput.setText(book.coverUrl.orEmpty())
+        currentCoverPath = book.coverUrl
+        initialCoverPath = book.coverUrl
+        updateCoverPreview()
         categoryInput.setText(book.category.orEmpty())
         statusInput.setSelection(BookStatus.values().indexOf(book.status))
         ratingInput.setText(book.rating?.let { RATING_FORMAT.format(it) }.orEmpty())
@@ -141,6 +188,19 @@ class AddBookActivity : AppCompatActivity() {
 
     private fun configureActions() {
         findViewById<View>(R.id.backButton).setOnClickListener { finish() }
+        coverPickerContainer.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+        pickCoverButton.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+        removeCoverButton.setOnClickListener {
+            currentCoverPath = null
+            coverUrlInput.setText("")
+            updateCoverPreview()
+            Toast.makeText(this, R.string.cover_removed, Toast.LENGTH_SHORT).show()
+        }
+
         startDateInput.setOnClickListener {
             showDatePicker(startDate) { selected ->
                 startDate = selected
@@ -218,11 +278,14 @@ class AddBookActivity : AppCompatActivity() {
             return
         }
 
+        val finalCoverUrl = currentCoverPath?.takeIf { it.isNotEmpty() }
+            ?: coverUrlInput.normalizedText()
+
         val book = Book(
             id = editingBookId.takeIf { it != NO_BOOK_ID } ?: 0,
             title = title,
             author = authorInput.normalizedText(),
-            coverUrl = coverUrlInput.normalizedText(),
+            coverUrl = finalCoverUrl,
             category = categoryInput.normalizedText(),
             status = BookStatus.values()[statusInput.selectedItemPosition],
             rating = rating,
@@ -244,6 +307,11 @@ class AddBookActivity : AppCompatActivity() {
             }
         }.onSuccess { saved ->
             if (saved) {
+                // 如果是编辑模式且更换了封面，清理原旧封面文件
+                if (initialCoverPath != null && initialCoverPath != finalCoverUrl) {
+                    CoverImageHelper.deleteCoverFile(initialCoverPath)
+                }
+
                 setResult(RESULT_OK)
                 Toast.makeText(
                     this,
