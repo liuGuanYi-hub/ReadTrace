@@ -7,11 +7,14 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookCharacter
+import com.example.readtrace.model.BookOutline
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.model.ReadingSession
 import com.example.readtrace.util.CoverImageHelper
 import org.json.JSONArray
 import java.time.LocalDate
@@ -39,6 +42,10 @@ class BookDatabaseHelper(val context: Context) :
                 $COLUMN_REVIEW TEXT,
                 $COLUMN_START_DATE TEXT,
                 $COLUMN_FINISH_DATE TEXT,
+                $COLUMN_BUY_CHANNEL TEXT,
+                $COLUMN_SHELF_LOCATION TEXT,
+                $COLUMN_BINDING_TYPE TEXT,
+                $COLUMN_BUY_PRICE REAL,
                 $COLUMN_CREATED_AT TEXT NOT NULL,
                 $COLUMN_UPDATED_AT TEXT NOT NULL,
                 $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
@@ -51,6 +58,9 @@ class BookDatabaseHelper(val context: Context) :
                 "($COLUMN_STATUS, $COLUMN_IS_DELETED)",
         )
         createNotesTable(database)
+        createReadingSessionsTable(database)
+        createCharactersTable(database)
+        createOutlinesTable(database)
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -63,6 +73,16 @@ class BookDatabaseHelper(val context: Context) :
             database.execSQL(
                 "ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_MEDIA_TYPE TEXT NOT NULL DEFAULT 'book'",
             )
+        }
+        if (oldVersion < 4) {
+            // v3.1：增加实体馆藏字段与阅读打卡/角色谱/大纲脑图表
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_BUY_CHANNEL TEXT") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_SHELF_LOCATION TEXT") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_BINDING_TYPE TEXT") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_BUY_PRICE REAL") }
+            createReadingSessionsTable(database)
+            createCharactersTable(database)
+            createOutlinesTable(database)
         }
     }
 
@@ -86,6 +106,75 @@ class BookDatabaseHelper(val context: Context) :
         )
         database.execSQL(
             "CREATE INDEX IF NOT EXISTS index_notes_book_deleted ON $TABLE_NOTES " +
+                "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
+        )
+    }
+
+    private fun createReadingSessionsTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_READING_SESSIONS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_BOOK_ID INTEGER NOT NULL,
+                $COLUMN_DURATION_MINUTES INTEGER NOT NULL,
+                $COLUMN_PAGES_READ TEXT,
+                $COLUMN_THOUGHT TEXT,
+                $COLUMN_CREATED_AT TEXT NOT NULL,
+                $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_DELETED_AT TEXT,
+                FOREIGN KEY ($COLUMN_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_sessions_book_deleted ON $TABLE_READING_SESSIONS " +
+                "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
+        )
+    }
+
+    private fun createCharactersTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_BOOK_CHARACTERS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_BOOK_ID INTEGER NOT NULL,
+                $COLUMN_NAME TEXT NOT NULL,
+                $COLUMN_ROLE_TITLE TEXT,
+                $COLUMN_AVATAR_EMOJI TEXT NOT NULL DEFAULT '👤',
+                $COLUMN_DESCRIPTION TEXT,
+                $COLUMN_RELATIONSHIP TEXT,
+                $COLUMN_CREATED_AT TEXT NOT NULL,
+                $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_DELETED_AT TEXT,
+                FOREIGN KEY ($COLUMN_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_chars_book_deleted ON $TABLE_BOOK_CHARACTERS " +
+                "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
+        )
+    }
+
+    private fun createOutlinesTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_BOOK_OUTLINES (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_BOOK_ID INTEGER NOT NULL,
+                $COLUMN_CHAPTER_ORDER INTEGER NOT NULL DEFAULT 1,
+                $COLUMN_TITLE TEXT NOT NULL,
+                $COLUMN_SUMMARY TEXT NOT NULL,
+                $COLUMN_KEY_TAKEAWAYS TEXT,
+                $COLUMN_CREATED_AT TEXT NOT NULL,
+                $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_DELETED_AT TEXT,
+                FOREIGN KEY ($COLUMN_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_outlines_book_deleted ON $TABLE_BOOK_OUTLINES " +
                 "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
         )
     }
@@ -748,6 +837,152 @@ class BookDatabaseHelper(val context: Context) :
         return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
     }
 
+    // --- ⏱️ 阅读打卡日志 (Reading Sessions) ---
+
+    fun insertReadingSession(session: ReadingSession): Long {
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_BOOK_ID, session.bookId)
+            put(COLUMN_DURATION_MINUTES, session.durationMinutes)
+            putNullable(COLUMN_PAGES_READ, session.pagesRead)
+            putNullable(COLUMN_THOUGHT, session.thought)
+            put(COLUMN_CREATED_AT, session.createdAt.ifBlank { now })
+            put(COLUMN_IS_DELETED, 0)
+        }
+        return writableDatabase.insertOrThrow(TABLE_READING_SESSIONS, null, values)
+    }
+
+    fun getReadingSessions(bookId: Long): List<ReadingSession> =
+        readableDatabase.query(
+            TABLE_READING_SESSIONS,
+            null,
+            "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            "$COLUMN_CREATED_AT DESC, $COLUMN_ID DESC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toReadingSession())
+                }
+            }
+        }
+
+    fun getTotalReadingMinutes(bookId: Long): Int {
+        val cursor = readableDatabase.rawQuery(
+            "SELECT SUM($COLUMN_DURATION_MINUTES) FROM $TABLE_READING_SESSIONS WHERE $COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+            arrayOf(bookId.toString()),
+        )
+        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
+    }
+
+    fun deleteReadingSession(sessionId: Long): Boolean {
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, currentTimestamp())
+        }
+        return writableDatabase.update(
+            TABLE_READING_SESSIONS,
+            values,
+            "$COLUMN_ID = ?",
+            arrayOf(sessionId.toString()),
+        ) > 0
+    }
+
+    // --- 👥 人物角色谱 (Book Characters) ---
+
+    fun insertCharacter(character: BookCharacter): Long {
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_BOOK_ID, character.bookId)
+            put(COLUMN_NAME, character.name.trim())
+            putNullable(COLUMN_ROLE_TITLE, character.roleTitle)
+            put(COLUMN_AVATAR_EMOJI, character.avatarEmoji.ifBlank { "👤" })
+            putNullable(COLUMN_DESCRIPTION, character.description)
+            putNullable(COLUMN_RELATIONSHIP, character.relationship)
+            put(COLUMN_CREATED_AT, character.createdAt.ifBlank { now })
+            put(COLUMN_IS_DELETED, 0)
+        }
+        return writableDatabase.insertOrThrow(TABLE_BOOK_CHARACTERS, null, values)
+    }
+
+    fun getCharacters(bookId: Long): List<BookCharacter> =
+        readableDatabase.query(
+            TABLE_BOOK_CHARACTERS,
+            null,
+            "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            "$COLUMN_ID ASC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBookCharacter())
+                }
+            }
+        }
+
+    fun deleteCharacter(characterId: Long): Boolean {
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, currentTimestamp())
+        }
+        return writableDatabase.update(
+            TABLE_BOOK_CHARACTERS,
+            values,
+            "$COLUMN_ID = ?",
+            arrayOf(characterId.toString()),
+        ) > 0
+    }
+
+    // --- 🗺️ 章节大纲与脑图 (Book Outlines) ---
+
+    fun insertOutline(outline: BookOutline): Long {
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_BOOK_ID, outline.bookId)
+            put(COLUMN_CHAPTER_ORDER, outline.chapterOrder)
+            put(COLUMN_TITLE, outline.title.trim())
+            put(COLUMN_SUMMARY, outline.summary.trim())
+            putNullable(COLUMN_KEY_TAKEAWAYS, outline.keyTakeaways)
+            put(COLUMN_CREATED_AT, outline.createdAt.ifBlank { now })
+            put(COLUMN_IS_DELETED, 0)
+        }
+        return writableDatabase.insertOrThrow(TABLE_BOOK_OUTLINES, null, values)
+    }
+
+    fun getOutlines(bookId: Long): List<BookOutline> =
+        readableDatabase.query(
+            TABLE_BOOK_OUTLINES,
+            null,
+            "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            "$COLUMN_CHAPTER_ORDER ASC, $COLUMN_ID ASC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBookOutline())
+                }
+            }
+        }
+
+    fun deleteOutline(outlineId: Long): Boolean {
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, currentTimestamp())
+        }
+        return writableDatabase.update(
+            TABLE_BOOK_OUTLINES,
+            values,
+            "$COLUMN_ID = ?",
+            arrayOf(outlineId.toString()),
+        ) > 0
+    }
+
     private fun Cursor.toBook(): Book =
         Book(
             id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
@@ -767,6 +1002,10 @@ class BookDatabaseHelper(val context: Context) :
             review = getNullableString(COLUMN_REVIEW),
             startDate = getNullableString(COLUMN_START_DATE),
             finishDate = getNullableString(COLUMN_FINISH_DATE),
+            buyChannel = getNullableString(COLUMN_BUY_CHANNEL),
+            shelfLocation = getNullableString(COLUMN_SHELF_LOCATION),
+            bindingType = getNullableString(COLUMN_BINDING_TYPE),
+            buyPrice = getNullableDouble(COLUMN_BUY_PRICE),
             createdAt = getString(getColumnIndexOrThrow(COLUMN_CREATED_AT)),
             updatedAt = getString(getColumnIndexOrThrow(COLUMN_UPDATED_AT)),
             isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
@@ -787,6 +1026,42 @@ class BookDatabaseHelper(val context: Context) :
             updatedAt = getString(getColumnIndexOrThrow(COLUMN_UPDATED_AT)),
             isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
             deletedAt = getNullableString(COLUMN_DELETED_AT),
+        )
+
+    private fun Cursor.toReadingSession(): ReadingSession =
+        ReadingSession(
+            id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
+            bookId = getLong(getColumnIndexOrThrow(COLUMN_BOOK_ID)),
+            durationMinutes = getInt(getColumnIndexOrThrow(COLUMN_DURATION_MINUTES)),
+            pagesRead = getNullableString(COLUMN_PAGES_READ),
+            thought = getNullableString(COLUMN_THOUGHT),
+            createdAt = getString(getColumnIndexOrThrow(COLUMN_CREATED_AT)),
+            isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
+        )
+
+    private fun Cursor.toBookCharacter(): BookCharacter =
+        BookCharacter(
+            id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
+            bookId = getLong(getColumnIndexOrThrow(COLUMN_BOOK_ID)),
+            name = getString(getColumnIndexOrThrow(COLUMN_NAME)),
+            roleTitle = getNullableString(COLUMN_ROLE_TITLE),
+            avatarEmoji = getNullableString(COLUMN_AVATAR_EMOJI) ?: "👤",
+            description = getNullableString(COLUMN_DESCRIPTION),
+            relationship = getNullableString(COLUMN_RELATIONSHIP),
+            createdAt = getString(getColumnIndexOrThrow(COLUMN_CREATED_AT)),
+            isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
+        )
+
+    private fun Cursor.toBookOutline(): BookOutline =
+        BookOutline(
+            id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
+            bookId = getLong(getColumnIndexOrThrow(COLUMN_BOOK_ID)),
+            chapterOrder = getInt(getColumnIndexOrThrow(COLUMN_CHAPTER_ORDER)),
+            title = getString(getColumnIndexOrThrow(COLUMN_TITLE)),
+            summary = getString(getColumnIndexOrThrow(COLUMN_SUMMARY)),
+            keyTakeaways = getNullableString(COLUMN_KEY_TAKEAWAYS),
+            createdAt = getString(getColumnIndexOrThrow(COLUMN_CREATED_AT)),
+            isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
         )
 
     private fun Cursor.getNullableString(columnName: String): String? {
@@ -833,6 +1108,10 @@ class BookDatabaseHelper(val context: Context) :
             putNullable(COLUMN_REVIEW, review)
             putNullable(COLUMN_START_DATE, startDate)
             putNullable(COLUMN_FINISH_DATE, finishDate)
+            putNullable(COLUMN_BUY_CHANNEL, buyChannel)
+            putNullable(COLUMN_SHELF_LOCATION, shelfLocation)
+            putNullable(COLUMN_BINDING_TYPE, bindingType)
+            if (buyPrice == null) putNull(COLUMN_BUY_PRICE) else put(COLUMN_BUY_PRICE, buyPrice)
         }
 
     private fun Note.toContentValues(): ContentValues =
@@ -849,10 +1128,14 @@ class BookDatabaseHelper(val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
-        const val DATABASE_VERSION = 3
+        const val DATABASE_VERSION = 4
 
         private const val TABLE_BOOKS = "books"
         private const val TABLE_NOTES = "notes"
+        private const val TABLE_READING_SESSIONS = "reading_sessions"
+        private const val TABLE_BOOK_CHARACTERS = "book_characters"
+        private const val TABLE_BOOK_OUTLINES = "book_outlines"
+
         private const val COLUMN_ID = "id"
         private const val COLUMN_TITLE = "title"
         private const val COLUMN_AUTHOR = "author"
@@ -866,14 +1149,33 @@ class BookDatabaseHelper(val context: Context) :
         private const val COLUMN_REVIEW = "review"
         private const val COLUMN_START_DATE = "start_date"
         private const val COLUMN_FINISH_DATE = "finish_date"
+        private const val COLUMN_BUY_CHANNEL = "buy_channel"
+        private const val COLUMN_SHELF_LOCATION = "shelf_location"
+        private const val COLUMN_BINDING_TYPE = "binding_type"
+        private const val COLUMN_BUY_PRICE = "buy_price"
         private const val COLUMN_CREATED_AT = "created_at"
         private const val COLUMN_UPDATED_AT = "updated_at"
         private const val COLUMN_IS_DELETED = "is_deleted"
         private const val COLUMN_DELETED_AT = "deleted_at"
+
         private const val COLUMN_BOOK_ID = "book_id"
         private const val COLUMN_CONTENT = "content"
         private const val COLUMN_NOTE_TYPE = "note_type"
         private const val COLUMN_PAGE = "page"
         private const val COLUMN_CHAPTER = "chapter"
+
+        private const val COLUMN_DURATION_MINUTES = "duration_minutes"
+        private const val COLUMN_PAGES_READ = "pages_read"
+        private const val COLUMN_THOUGHT = "thought"
+
+        private const val COLUMN_NAME = "name"
+        private const val COLUMN_ROLE_TITLE = "role_title"
+        private const val COLUMN_AVATAR_EMOJI = "avatar_emoji"
+        private const val COLUMN_DESCRIPTION = "description"
+        private const val COLUMN_RELATIONSHIP = "relationship"
+
+        private const val COLUMN_CHAPTER_ORDER = "chapter_order"
+        private const val COLUMN_SUMMARY = "summary"
+        private const val COLUMN_KEY_TAKEAWAYS = "key_takeaways"
     }
 }

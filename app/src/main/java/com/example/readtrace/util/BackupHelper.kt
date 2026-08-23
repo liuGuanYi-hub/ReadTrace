@@ -39,6 +39,10 @@ object BackupHelper {
                     put("review", book.review.orEmpty())
                     put("startDate", book.startDate.orEmpty())
                     put("finishDate", book.finishDate.orEmpty())
+                    put("buyChannel", book.buyChannel.orEmpty())
+                    put("shelfLocation", book.shelfLocation.orEmpty())
+                    put("bindingType", book.bindingType.orEmpty())
+                    if (book.buyPrice != null) put("buyPrice", book.buyPrice)
                     put("createdAt", book.createdAt)
                     put("updatedAt", book.updatedAt)
 
@@ -99,6 +103,10 @@ object BackupHelper {
             val review = bookObj.optString("review").trim().takeIf { it.isNotEmpty() }
             val startDate = bookObj.optString("startDate").trim().takeIf { it.isNotEmpty() }
             val finishDate = bookObj.optString("finishDate").trim().takeIf { it.isNotEmpty() }
+            val buyChannel = bookObj.optString("buyChannel").trim().takeIf { it.isNotEmpty() }
+            val shelfLocation = bookObj.optString("shelfLocation").trim().takeIf { it.isNotEmpty() }
+            val bindingType = bookObj.optString("bindingType").trim().takeIf { it.isNotEmpty() }
+            val buyPrice = if (bookObj.has("buyPrice") && !bookObj.isNull("buyPrice")) bookObj.getDouble("buyPrice") else null
             val createdAt = bookObj.optString("createdAt")
             val updatedAt = bookObj.optString("updatedAt")
 
@@ -116,6 +124,10 @@ object BackupHelper {
                 review = review,
                 startDate = startDate,
                 finishDate = finishDate,
+                buyChannel = buyChannel,
+                shelfLocation = shelfLocation,
+                bindingType = bindingType,
+                buyPrice = buyPrice,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
             )
@@ -189,6 +201,15 @@ object BackupHelper {
                 }
                 if (!book.startDate.isNullOrBlank() || !book.finishDate.isNullOrBlank()) {
                     sb.append("- **时间**：${book.startDate ?: "—"} 至 ${book.finishDate ?: "—"}\n")
+                }
+                if (!book.buyChannel.isNullOrBlank() || !book.shelfLocation.isNullOrBlank() || !book.bindingType.isNullOrBlank() || book.buyPrice != null) {
+                    val collectionDetails = listOfNotNull(
+                        book.buyChannel?.takeIf { it.isNotBlank() }?.let { "渠道: $it" },
+                        book.shelfLocation?.takeIf { it.isNotBlank() }?.let { "位置: $it" },
+                        book.bindingType?.takeIf { it.isNotBlank() }?.let { "装帧: $it" },
+                        book.buyPrice?.let { String.format(java.util.Locale.getDefault(), "价格: ¥%.2f", it) },
+                    ).joinToString(" · ")
+                    sb.append("- **实体藏本**：$collectionDetails\n")
                 }
                 sb.append("\n")
 

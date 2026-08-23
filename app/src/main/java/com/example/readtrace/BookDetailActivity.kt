@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -22,6 +23,7 @@ import com.example.readtrace.util.CoverImageHelper
 import java.text.DecimalFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 class BookDetailActivity : AppCompatActivity() {
@@ -75,6 +77,17 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailNotesAddButton).setOnClickListener {
             startActivity(AddNoteActivity.createAddIntent(this, bookId))
         }
+        findViewById<View>(R.id.detailStartTimerButton).setOnClickListener {
+            currentBook?.let { book ->
+                startActivity(ReadingTimerActivity.createIntent(this, book.id, book.title))
+            }
+        }
+        findViewById<View>(R.id.detailAddCharButton).setOnClickListener {
+            showAddCharacterDialog()
+        }
+        findViewById<View>(R.id.detailAddOutlineButton).setOnClickListener {
+            showAddOutlineDialog()
+        }
 
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
@@ -90,7 +103,285 @@ class BookDetailActivity : AppCompatActivity() {
         }
         currentBook = book
         renderBook(book)
+        renderCollection(book)
         renderNotes(databaseHelper.getNotes(bookId))
+        renderReadingSessions(databaseHelper.getReadingSessions(bookId))
+        renderCharacters(databaseHelper.getCharacters(bookId))
+        renderOutlines(databaseHelper.getOutlines(bookId))
+    }
+
+    private fun renderCollection(book: Book) {
+        val hasCollectionInfo = !book.buyChannel.isNullOrBlank() ||
+            !book.shelfLocation.isNullOrBlank() ||
+            !book.bindingType.isNullOrBlank() ||
+            book.buyPrice != null
+
+        findViewById<View>(R.id.detailCollectionCard).visibility =
+            if (hasCollectionInfo) View.VISIBLE else View.GONE
+
+        findViewById<TextView>(R.id.detailBuyChannel).text = valueOrFallback(book.buyChannel)
+        findViewById<TextView>(R.id.detailShelfLocation).text = valueOrFallback(book.shelfLocation)
+        findViewById<TextView>(R.id.detailBindingType).text = valueOrFallback(book.bindingType)
+        findViewById<TextView>(R.id.detailBuyPrice).text = book.buyPrice?.let {
+            String.format(Locale.getDefault(), "¥ %.2f", it)
+        } ?: getString(R.string.not_recorded)
+    }
+
+    private fun renderReadingSessions(sessions: List<com.example.readtrace.model.ReadingSession>) {
+        val container = findViewById<LinearLayout>(R.id.detailSessionsContainer)
+        val emptyView = findViewById<TextView>(R.id.detailSessionsEmpty)
+        val totalTimeView = findViewById<TextView>(R.id.detailTotalReadingTime)
+        container.removeAllViews()
+
+        val totalMinutes = databaseHelper.getTotalReadingMinutes(bookId)
+        val hours = totalMinutes / 60
+        val remainingMins = totalMinutes % 60
+        val timeFormatted = if (hours > 0) "${hours} 小时 ${remainingMins} 分钟" else "${remainingMins} 分钟"
+        totalTimeView.text = "⌛ 已累计阅读 $timeFormatted · 打卡 ${sessions.size} 次"
+
+        if (sessions.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        sessions.forEach { session ->
+            val item = layoutInflater.inflate(R.layout.item_reading_session, container, false)
+            item.findViewById<TextView>(R.id.sessionDurationBadge).text = "⏱️ 专注 ${session.durationMinutes} 分钟"
+            item.findViewById<TextView>(R.id.sessionPagesText).text = session.pagesRead ?: "阅读打卡"
+            item.findViewById<TextView>(R.id.sessionTimeText).text = formatTimestamp(session.createdAt)
+
+            val thoughtView = item.findViewById<TextView>(R.id.sessionThoughtText)
+            if (session.thought.isNullOrBlank()) {
+                thoughtView.visibility = View.GONE
+            } else {
+                thoughtView.visibility = View.VISIBLE
+                thoughtView.text = session.thought
+            }
+
+            item.findViewById<View>(R.id.sessionDeleteBtn).setOnClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("删除打卡记录")
+                    .setMessage("确定要删除本次 ${session.durationMinutes} 分钟的阅读打卡吗？")
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton("删除") { _, _ ->
+                        databaseHelper.deleteReadingSession(session.id)
+                        renderReadingSessions(databaseHelper.getReadingSessions(bookId))
+                    }
+                    .show()
+            }
+
+            container.addView(item)
+        }
+    }
+
+    private fun renderCharacters(characters: List<com.example.readtrace.model.BookCharacter>) {
+        val container = findViewById<LinearLayout>(R.id.detailCharsContainer)
+        val emptyView = findViewById<TextView>(R.id.detailCharsEmpty)
+        container.removeAllViews()
+
+        if (characters.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        characters.forEach { char ->
+            val item = layoutInflater.inflate(R.layout.item_character_card, container, false)
+            item.findViewById<TextView>(R.id.charAvatarEmoji).text = char.avatarEmoji
+            item.findViewById<TextView>(R.id.charName).text = char.name
+            item.findViewById<TextView>(R.id.charRoleTitle).text = char.roleTitle ?: "人物角色"
+
+            val descView = item.findViewById<TextView>(R.id.charDescription)
+            if (char.description.isNullOrBlank()) {
+                descView.visibility = View.GONE
+            } else {
+                descView.visibility = View.VISIBLE
+                descView.text = char.description
+            }
+
+            val relView = item.findViewById<TextView>(R.id.charRelationship)
+            if (char.relationship.isNullOrBlank()) {
+                relView.visibility = View.GONE
+            } else {
+                relView.visibility = View.VISIBLE
+                relView.text = "🔗 核心羁绊：${char.relationship}"
+            }
+
+            item.findViewById<View>(R.id.charDeleteBtn).setOnClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("删除角色")
+                    .setMessage("确定要从人物谱中移除「${char.name}」吗？")
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton("删除") { _, _ ->
+                        databaseHelper.deleteCharacter(char.id)
+                        renderCharacters(databaseHelper.getCharacters(bookId))
+                    }
+                    .show()
+            }
+
+            container.addView(item)
+        }
+    }
+
+    private fun showAddCharacterDialog() {
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 20, 40, 20)
+        }
+
+        val nameInput = EditText(this).apply {
+            hint = "角色姓名 (如：小狐狸)"
+            textSize = 14f
+        }
+        val roleInput = EditText(this).apply {
+            hint = "身份/阵营/头衔 (如：启蒙导师 · 麦田守望者)"
+            textSize = 13f
+        }
+        val emojiInput = EditText(this).apply {
+            hint = "角色 Emoji (如：🦊 / 👑 / 🌹)"
+            setText("👤")
+            textSize = 14f
+        }
+        val descInput = EditText(this).apply {
+            hint = "人物生平与性格简述..."
+            textSize = 13f
+        }
+        val relInput = EditText(this).apply {
+            hint = "与主角或其他人物的核心羁绊关系..."
+            textSize = 13f
+        }
+
+        dialogView.addView(nameInput)
+        dialogView.addView(roleInput)
+        dialogView.addView(emojiInput)
+        dialogView.addView(descInput)
+        dialogView.addView(relInput)
+
+        AlertDialog.Builder(this)
+            .setTitle("👥 添加人物角色")
+            .setView(dialogView)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton("保存角色") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    val character = com.example.readtrace.model.BookCharacter(
+                        bookId = bookId,
+                        name = name,
+                        roleTitle = roleInput.text.toString().trim().ifBlank { null },
+                        avatarEmoji = emojiInput.text.toString().trim().ifBlank { "👤" },
+                        description = descInput.text.toString().trim().ifBlank { null },
+                        relationship = relInput.text.toString().trim().ifBlank { null },
+                    )
+                    databaseHelper.insertCharacter(character)
+                    renderCharacters(databaseHelper.getCharacters(bookId))
+                }
+            }
+            .show()
+    }
+
+    private fun renderOutlines(outlines: List<com.example.readtrace.model.BookOutline>) {
+        val container = findViewById<LinearLayout>(R.id.detailOutlinesContainer)
+        val emptyView = findViewById<TextView>(R.id.detailOutlinesEmpty)
+        container.removeAllViews()
+
+        if (outlines.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        outlines.forEachIndexed { idx, outline ->
+            val item = layoutInflater.inflate(R.layout.item_outline_card, container, false)
+            item.findViewById<TextView>(R.id.outlineOrderBadge).text = "第 ${outline.chapterOrder} 章节"
+            item.findViewById<TextView>(R.id.outlineTitle).text = outline.title
+            item.findViewById<TextView>(R.id.outlineSummary).text = outline.summary
+
+            val mindMapContainer = item.findViewById<View>(R.id.outlineMindMapContainer)
+            val keyTakeawaysView = item.findViewById<TextView>(R.id.outlineKeyTakeaways)
+            if (outline.keyTakeaways.isNullOrBlank()) {
+                mindMapContainer.visibility = View.GONE
+            } else {
+                mindMapContainer.visibility = View.VISIBLE
+                keyTakeawaysView.text = "脑图要点：${outline.keyTakeaways}"
+            }
+
+            item.findViewById<View>(R.id.outlineDeleteBtn).setOnClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("删除章节大纲")
+                    .setMessage("确定要删除「${outline.title}」的大纲吗？")
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton("删除") { _, _ ->
+                        databaseHelper.deleteOutline(outline.id)
+                        renderOutlines(databaseHelper.getOutlines(bookId))
+                    }
+                    .show()
+            }
+
+            container.addView(item)
+        }
+    }
+
+    private fun showAddOutlineDialog() {
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 20, 40, 20)
+        }
+
+        val orderInput = EditText(this).apply {
+            hint = "章节序号 (如：1)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText("${databaseHelper.getOutlines(bookId).size + 1}")
+            textSize = 14f
+        }
+        val titleInput = EditText(this).apply {
+            hint = "章节名称 (如：荒原中的相遇与羊的肖像)"
+            textSize = 14f
+        }
+        val summaryInput = EditText(this).apply {
+            hint = "核心情节 / 大纲概要..."
+            textSize = 13f
+        }
+        val takeawaysInput = EditText(this).apply {
+            hint = "思想精髓 / 脑图脉络要点 (选填)..."
+            textSize = 13f
+        }
+
+        dialogView.addView(orderInput)
+        dialogView.addView(titleInput)
+        dialogView.addView(summaryInput)
+        dialogView.addView(takeawaysInput)
+
+        AlertDialog.Builder(this)
+            .setTitle("🗺️ 添加章节大纲与脑图")
+            .setView(dialogView)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton("保存大纲") { _, _ ->
+                val title = titleInput.text.toString().trim()
+                val summary = summaryInput.text.toString().trim()
+                val order = orderInput.text.toString().trim().toIntOrNull() ?: 1
+                if (title.isNotEmpty() && summary.isNotEmpty()) {
+                    val outline = com.example.readtrace.model.BookOutline(
+                        bookId = bookId,
+                        chapterOrder = order,
+                        title = title,
+                        summary = summary,
+                        keyTakeaways = takeawaysInput.text.toString().trim().ifBlank { null },
+                    )
+                    databaseHelper.insertOutline(outline)
+                    renderOutlines(databaseHelper.getOutlines(bookId))
+                }
+            }
+            .show()
     }
 
     private fun renderBook(book: Book) {

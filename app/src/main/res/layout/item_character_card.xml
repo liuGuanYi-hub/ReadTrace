@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_glass_panel_soft"
+    android:elevation="3dp"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/charAvatarEmoji"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_status_pill"
+            android:gravity="center"
+            android:textSize="20sp"
+            tools:text="🦊" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/charName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="小狐狸" />
+
+            <TextView
+                android:id="@+id/charRoleTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="导师 · 驯服之约的启蒙者" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/charDeleteBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/charDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="sans"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/readtrace_ink"
+        android:textSize="13sp"
+        tools:text="生于麦田与荒原的智者，教会了小王子什么叫做责任与驯服。" />
+
+    <TextView
+        android:id="@+id/charRelationship"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_status_pill"
+        android:fontFamily="sans"
+        android:paddingStart="10dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/readtrace_ink"
+        android:textSize="11sp"
+        tools:text="🔗 核心羁绊：与小王子建立了相互驯服的唯一纽带" />
+</LinearLayout>

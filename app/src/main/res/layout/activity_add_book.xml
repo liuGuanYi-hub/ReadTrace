@@ -459,6 +459,111 @@
                     android:minLines="5" />
             </LinearLayout>
 
+            <!-- 💰 实体馆藏与藏本印记表单卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="7dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/ReadTraceFieldLabel"
+                    android:text="💰 实体馆藏与藏本印记 (选填)"
+                    android:textSize="18sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/ReadTraceFieldLabel"
+                            android:text="购买渠道" />
+
+                        <EditText
+                            android:id="@+id/buyChannelInput"
+                            style="@style/ReadTraceInput"
+                            android:hint="如：多抓鱼 / 京东"
+                            android:inputType="text"
+                            android:maxLines="1" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/ReadTraceFieldLabel"
+                            android:text="物理位置" />
+
+                        <EditText
+                            android:id="@+id/shelfLocationInput"
+                            style="@style/ReadTraceInput"
+                            android:hint="如：书架第 2 层 A 区"
+                            android:inputType="text"
+                            android:maxLines="1" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/ReadTraceFieldLabel"
+                            android:text="装帧版次" />
+
+                        <EditText
+                            android:id="@+id/bindingTypeInput"
+                            style="@style/ReadTraceInput"
+                            android:hint="如：精装锁线 / 平装"
+                            android:inputType="text"
+                            android:maxLines="1" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/ReadTraceFieldLabel"
+                            android:text="购入价格 (¥)" />
+
+                        <EditText
+                            android:id="@+id/buyPriceInput"
+                            style="@style/ReadTraceInput"
+                            android:hint="如：49.80"
+                            android:inputType="numberDecimal"
+                            android:maxLines="1" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/saveButton"
                 android:layout_width="match_parent"

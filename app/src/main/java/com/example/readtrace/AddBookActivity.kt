@@ -26,6 +26,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class AddBookActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -41,6 +42,10 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var tagsInput: EditText
     private lateinit var shortCommentInput: EditText
     private lateinit var reviewInput: EditText
+    private lateinit var buyChannelInput: EditText
+    private lateinit var shelfLocationInput: EditText
+    private lateinit var bindingTypeInput: EditText
+    private lateinit var buyPriceInput: EditText
     private lateinit var startDateInput: TextView
     private lateinit var finishDateInput: TextView
     private lateinit var saveButton: TextView
@@ -118,6 +123,10 @@ class AddBookActivity : AppCompatActivity() {
         tagsInput = findViewById(R.id.tagsInput)
         shortCommentInput = findViewById(R.id.shortCommentInput)
         reviewInput = findViewById(R.id.reviewInput)
+        buyChannelInput = findViewById(R.id.buyChannelInput)
+        shelfLocationInput = findViewById(R.id.shelfLocationInput)
+        bindingTypeInput = findViewById(R.id.bindingTypeInput)
+        buyPriceInput = findViewById(R.id.buyPriceInput)
         startDateInput = findViewById(R.id.startDateInput)
         finishDateInput = findViewById(R.id.finishDateInput)
         saveButton = findViewById(R.id.saveButton)
@@ -209,6 +218,10 @@ class AddBookActivity : AppCompatActivity() {
         tagsInput.setText(book.tags.joinToString("，"))
         shortCommentInput.setText(book.shortComment.orEmpty())
         reviewInput.setText(book.review.orEmpty())
+        buyChannelInput.setText(book.buyChannel.orEmpty())
+        shelfLocationInput.setText(book.shelfLocation.orEmpty())
+        bindingTypeInput.setText(book.bindingType.orEmpty())
+        buyPriceInput.setText(book.buyPrice?.let { String.format(Locale.getDefault(), "%.2f", it) }.orEmpty())
         startDate = book.startDate?.let { parseDate(it) }
         finishDate = book.finishDate?.let { parseDate(it) }
         startDate?.let { showSelectedDate(startDateInput, it) }
@@ -354,6 +367,10 @@ class AddBookActivity : AppCompatActivity() {
             review = reviewInput.normalizedText(),
             startDate = startDate?.format(DateTimeFormatter.ISO_LOCAL_DATE),
             finishDate = finishDate?.format(DateTimeFormatter.ISO_LOCAL_DATE),
+            buyChannel = buyChannelInput.normalizedText(),
+            shelfLocation = shelfLocationInput.normalizedText(),
+            bindingType = bindingTypeInput.normalizedText(),
+            buyPrice = buyPriceInput.text.toString().trim().toDoubleOrNull(),
         )
 
         saveButton.isEnabled = false
