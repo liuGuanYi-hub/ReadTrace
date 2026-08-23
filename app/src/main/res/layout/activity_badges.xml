@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/badgesRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_readtrace_home"
+    tools:context=".BadgesActivity">
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/badgesContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 顶栏导航与标题 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/badgesBackButton"
+                    android:layout_width="68dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:text="@string/action_back"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:text="@string/badges_activity_title"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:fontFamily="sans"
+                        android:text="@string/badges_activity_subtitle"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 顶部总览卡片 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_glass_panel"
+                android:elevation="8dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="成就达成进度"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/badgeOverallCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="4 / 9" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/badgeOverallProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="14dp"
+                    android:max="100"
+                    android:progress="44"
+                    android:progressTint="@color/readtrace_accent" />
+
+                <TextView
+                    android:id="@+id/badgeOverallPrompt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp"
+                    tools:text="已点亮 4 枚勋章，继续探索更多书本吧！" />
+            </LinearLayout>
+
+            <!-- 勋章列表容器 -->
+            <LinearLayout
+                android:id="@+id/badgesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

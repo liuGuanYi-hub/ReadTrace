@@ -2,11 +2,15 @@ package com.example.readtrace
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,6 +27,7 @@ import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MonthlyReadingStat
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.MilestoneBadgeHelper
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
@@ -44,7 +49,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var monthlyStatPanel: View
     private lateinit var monthlyChartBarsContainer: LinearLayout
     private lateinit var monthlyStatEmptyText: TextView
+
+    private lateinit var homeBadgePanel: View
+    private lateinit var homeBadgeSummary: TextView
+    private lateinit var searchInput: EditText
+    private lateinit var searchClearButton: View
+    private lateinit var tagScroller: HorizontalScrollView
+    private lateinit var tagGroup: LinearLayout
+    private lateinit var tagAll: TextView
+
     private var selectedStatus: BookStatus? = null
+    private var searchKeyword: String = ""
+    private var selectedTag: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,8 +92,17 @@ class MainActivity : AppCompatActivity() {
         monthlyChartBarsContainer = findViewById(R.id.monthlyChartBarsContainer)
         monthlyStatEmptyText = findViewById(R.id.monthlyStatEmptyText)
 
+        homeBadgePanel = findViewById(R.id.homeBadgePanel)
+        homeBadgeSummary = findViewById(R.id.homeBadgeSummary)
+        searchInput = findViewById(R.id.searchInput)
+        searchClearButton = findViewById(R.id.searchClearButton)
+        tagScroller = findViewById(R.id.tagScroller)
+        tagGroup = findViewById(R.id.tagGroup)
+        tagAll = findViewById(R.id.tagAll)
+
         configureActions()
         configureStatusFilters()
+        configureSearchAndTags()
 
         findViewById<View>(R.id.homeContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
@@ -99,6 +124,9 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.trashButton).setOnClickListener {
             startActivity(TrashActivity.createIntent(this))
+        }
+        homeBadgePanel.setOnClickListener {
+            startActivity(BadgesActivity.createIntent(this))
         }
     }
 
@@ -134,6 +162,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun configureSearchAndTags() {
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s?.toString()?.trim().orEmpty()
+                if (searchKeyword != query) {
+                    searchKeyword = query
+                    searchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+                    refreshShelfOnly()
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        searchClearButton.setOnClickListener {
+            searchInput.setText("")
+        }
+
+        tagAll.setOnClickListener {
+            selectTag(null)
+        }
+    }
+
     private fun configureStatusFilters() {
         findViewById<View>(R.id.statusAll).setOnClickListener {
             selectStatus(null)
@@ -154,7 +205,14 @@ class MainActivity : AppCompatActivity() {
         if (selectedStatus == status) return
         selectedStatus = status
         updateStatusChips()
-        refreshBooks()
+        refreshShelfOnly()
+    }
+
+    private fun selectTag(tag: String?) {
+        if (selectedTag == tag) return
+        selectedTag = tag
+        updateTagChips()
+        refreshShelfOnly()
     }
 
     private fun updateStatusChips() {
@@ -182,22 +240,112 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun renderBadgesSummary() {
+        val badges = MilestoneBadgeHelper.calculateBadges(databaseHelper)
+        val unlockedCount = badges.count { it.isUnlocked }
+        val totalCount = badges.size
+        homeBadgeSummary.text = getString(R.string.home_badge_summary_format, unlockedCount, totalCount)
+    }
+
+    private fun renderDynamicTags() {
+        val tagList = databaseHelper.getAllUniqueTags()
+        if (tagList.isEmpty()) {
+            tagScroller.visibility = View.GONE
+            selectedTag = null
+            return
+        }
+
+        tagScroller.visibility = View.VISIBLE
+        // 校验选中的标签是否还存在
+        if (selectedTag != null && tagList.none { it.first == selectedTag }) {
+            selectedTag = null
+        }
+
+        // 移除除了 tagAll 之外的所有标签
+        while (tagGroup.childCount > 1) {
+            tagGroup.removeViewAt(1)
+        }
+
+        tagList.forEach { (tag, count) ->
+            val chip = TextView(this, null, 0, R.style.ReadTraceStatusChip).apply {
+                text = "$tag ($count)"
+                textSize = 12f
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    marginStart = dpToPx(8)
+                }
+                layoutParams = params
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    selectTag(if (selectedTag == tag) null else tag)
+                }
+            }
+            tagGroup.addView(chip)
+        }
+        updateTagChips()
+    }
+
+    private fun updateTagChips() {
+        tagAll.setBackgroundResource(
+            if (selectedTag == null) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+        )
+        tagAll.setTextColor(
+            ContextCompat.getColor(this, if (selectedTag == null) R.color.white else R.color.readtrace_ink),
+        )
+
+        for (i in 1 until tagGroup.childCount) {
+            val chip = tagGroup.getChildAt(i) as? TextView ?: continue
+            val tagText = chip.text.toString().substringBeforeLast(" (")
+            val isSelected = selectedTag == tagText
+            chip.setBackgroundResource(
+                if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+            )
+            chip.setTextColor(
+                ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink),
+            )
+        }
+    }
+
     private fun refreshBooks() {
         val allBooks = databaseHelper.getBooks()
-        val books = selectedStatus?.let { status ->
-            allBooks.filter { it.status == status }
-        } ?: allBooks
-        updateShelfInsight(allBooks, books.size)
+        updateShelfInsight(allBooks, allBooks.size)
+        renderBadgesSummary()
         renderMemoryCard()
         renderMonthlyStats()
+        renderDynamicTags()
+        refreshShelfOnly()
+    }
+
+    private fun refreshShelfOnly() {
+        val allBooks = databaseHelper.getBooks()
+        val books = allBooks.filter { book ->
+            val matchesStatus = selectedStatus == null || book.status == selectedStatus
+            val matchesKeyword = searchKeyword.isEmpty() ||
+                book.title.contains(searchKeyword, ignoreCase = true) ||
+                (book.author?.contains(searchKeyword, ignoreCase = true) == true)
+            val matchesTag = selectedTag == null || book.tags.contains(selectedTag)
+
+            matchesStatus && matchesKeyword && matchesTag
+        }
+
+        shelfCountText.text = getString(R.string.home_shelf_count_format, books.size)
         booksContainer.removeAllViews()
 
         if (books.isEmpty()) {
             booksContainer.visibility = View.GONE
             emptyPanel.visibility = View.VISIBLE
-            val isFiltered = selectedStatus != null
+            val isFiltered = selectedStatus != null || searchKeyword.isNotEmpty() || selectedTag != null
             emptyTitle.setText(
-                if (isFiltered) R.string.empty_filter_title else R.string.empty_shelf_title,
+                if (searchKeyword.isNotEmpty()) {
+                    R.string.search_no_results
+                } else if (isFiltered) {
+                    R.string.empty_filter_title
+                } else {
+                    R.string.empty_shelf_title
+                },
             )
             emptyBody.setText(
                 if (isFiltered) R.string.empty_filter_body else R.string.empty_shelf_body,

@@ -371,11 +371,125 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <!-- 阅读成就微卡片 -->
+            <LinearLayout
+                android:id="@+id/homeBadgePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/bg_status_pill"
+                    android:gravity="center"
+                    android:text="🎖️"
+                    android:textSize="22sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:text="@string/home_badge_title"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/homeBadgeSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="12sp"
+                        tools:text="已达成 4 / 9 项里程碑" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:text="@string/home_badge_view_all"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 即时搜索栏 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔍"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/searchInput"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:fontFamily="sans"
+                    android:hint="@string/search_hint"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColor="@color/readtrace_ink"
+                    android:textColorHint="@color/readtrace_muted"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/searchClearButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:text="@string/search_clear"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!-- 状态过滤条 -->
             <HorizontalScrollView
                 android:id="@+id/statusScroller"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:scrollbars="none">
@@ -418,6 +532,36 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:text="@string/status_finished" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- 动态标签过滤条 -->
+            <HorizontalScrollView
+                android:id="@+id/tagScroller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:id="@+id/tagGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tagAll"
+                        style="@style/ReadTraceStatusChip"
+                        android:background="@drawable/bg_status_chip_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/tag_all"
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </HorizontalScrollView>
 

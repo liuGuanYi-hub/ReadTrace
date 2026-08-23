@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/badgeCardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_glass_panel_soft"
+    android:elevation="6dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <!-- 徽章图标 -->
+    <TextView
+        android:id="@+id/badgeIconEmoji"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_status_pill"
+        android:gravity="center"
+        android:textSize="26sp"
+        tools:text="📖" />
+
+    <!-- 徽章信息与进度 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/badgeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="初涉书海" />
+
+            <TextView
+                android:id="@+id/badgeCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp"
+                tools:text="书卷浩瀚" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/badgeDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans"
+            android:lineSpacingExtra="2dp"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp"
+            tools:text="读完第 1 本书，迈出阅读旅程的第一步" />
+
+        <!-- 进度条与数字 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/badgeProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="100"
+                android:progressTint="@color/readtrace_accent" />
+
+            <TextView
+                android:id="@+id/badgeProgressText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="1 / 1" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 状态胶囊 -->
+    <TextView
+        android:id="@+id/badgeStatusPill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_status_pill"
+        android:fontFamily="sans"
+        android:paddingStart="10dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp"
+        android:text="@string/badge_status_unlocked"
+        android:textColor="@color/readtrace_accent"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

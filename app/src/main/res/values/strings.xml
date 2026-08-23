@@ -169,4 +169,16 @@
     <string name="cover_selected_success">封面已选择并裁切</string>
     <string name="cover_selected_failed">图片处理失败，请重试</string>
     <string name="cover_removed">已移除封面</string>
+    <string name="search_hint">搜索书名、作者...</string>
+    <string name="search_clear">清空</string>
+    <string name="tag_all">全部标签</string>
+    <string name="home_badge_title">阅读勋章</string>
+    <string name="home_badge_summary_format">已达成 %1$d / %2$d 项里程碑</string>
+    <string name="home_badge_view_all">查看全部 ›</string>
+    <string name="badges_activity_title">成就勋章大厅</string>
+    <string name="badges_activity_subtitle">每一次阅读与记录，都是时光的加冕</string>
+    <string name="badge_status_unlocked">已解锁</string>
+    <string name="badge_status_locked">未解锁</string>
+    <string name="badge_progress_format">%1$d / %2$d</string>
+    <string name="search_no_results">没有找到符合条件的书籍</string>
 </resources>
