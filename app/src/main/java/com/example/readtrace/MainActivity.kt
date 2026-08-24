@@ -581,8 +581,76 @@ class MainActivity : AppCompatActivity() {
         card.setOnClickListener {
             openBookDetail(card, book.id)
         }
+        card.setOnLongClickListener {
+            showBookHologramPeekDialog(book)
+            true
+        }
 
         return card
+    }
+
+    private fun showBookHologramPeekDialog(book: Book) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_book_hologram_peek, null)
+        val coverImg = view.findViewById<ImageView>(R.id.peekCoverImage)
+        CoverImageHelper.loadCover(coverImg, book.coverUrl)
+
+        view.findViewById<TextView>(R.id.peekMediaBadge).text = book.mediaType.emoji
+        view.findViewById<TextView>(R.id.peekBookTitle).text = book.title
+        view.findViewById<TextView>(R.id.peekBookAuthor).text = book.author ?: getString(R.string.unknown_author)
+        view.findViewById<TextView>(R.id.peekStatusBadge).text = book.status.getDisplayName(book.mediaType)
+        view.findViewById<TextView>(R.id.peekRating).text = book.rating?.let {
+            getString(R.string.rating_format, RATING_FORMAT.format(it))
+        } ?: getString(R.string.unrated)
+
+        // 六维心智雷达
+        val mindprint = databaseHelper.getMindprint(book.id)
+        val radarView = view.findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.peekMindprintRadar)
+        radarView.setMindprint(mindprint, animate = true)
+
+        // 最近打卡记录
+        val sessions = databaseHelper.getReadingSessions(book.id)
+        val sessionContent = view.findViewById<TextView>(R.id.peekSessionContent)
+        if (sessions.isEmpty()) {
+            sessionContent.text = "暂无专注打卡记录，点击下方开启专注打卡。"
+        } else {
+            val latest = sessions.first()
+            val pageStr = if (!latest.pagesRead.isNullOrBlank()) " · 读至 ${latest.pagesRead}" else ""
+            val thoughtStr = if (!latest.thought.isNullOrBlank()) " · 「${latest.thought}」" else ""
+            sessionContent.text = "专注 ${latest.durationMinutes} 分钟$pageStr$thoughtStr"
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(view)
+            .create()
+
+        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener {
+            dialog.dismiss()
+            startActivity(ReadingTimerActivity.createIntent(this, book.id, book.title))
+        }
+        view.findViewById<View>(R.id.peekActionPoster).setOnClickListener {
+            dialog.dismiss()
+            val notes = databaseHelper.getNotes(book.id)
+            val quote = notes.firstOrNull { it.noteType == com.example.readtrace.model.NoteType.QUOTE }?.content ?: book.shortComment ?: "读书是一场穿越时空的灵魂相遇。"
+            val chapter = notes.firstOrNull { it.noteType == com.example.readtrace.model.NoteType.QUOTE }?.chapter ?: "全息印记"
+            startActivity(
+                QuotePosterActivity.createIntent(
+                    this,
+                    book.id,
+                    book.title,
+                    book.author,
+                    book.coverUrl,
+                    quote,
+                    chapter,
+                ),
+            )
+        }
+        view.findViewById<View>(R.id.peekActionDetail).setOnClickListener {
+            dialog.dismiss()
+            startActivity(BookDetailActivity.createIntent(this, book.id))
+        }
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
     }
 
     private fun updateShelfInsight(allBooks: List<Book>, visibleCount: Int) {
