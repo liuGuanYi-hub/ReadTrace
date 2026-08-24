@@ -78,6 +78,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 2x2 灵感金句与打卡小组件 -->
+        <receiver
+            android:name=".widget.DailyQuoteWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_daily_quote_info" />
+        </receiver>
+
+        <!-- 4x2 全息心智看板小组件 -->
+        <receiver
+            android:name=".widget.MindprintDashboardWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_mindprint_dashboard_info" />
+        </receiver>
     </application>
 
 </manifest>
