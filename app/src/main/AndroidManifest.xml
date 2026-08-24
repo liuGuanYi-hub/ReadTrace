@@ -17,6 +17,9 @@
             android:name=".AnimeTimelineScrollActivity"
             android:exported="false" />
         <activity
+            android:name=".CoverGalleryActivity"
+            android:exported="false" />
+        <activity
             android:name=".MindprintConstellationActivity"
             android:exported="false" />
         <activity

@@ -75,6 +75,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
 
         val options = listOf(
             FilterOption("✦ 全星系", com.example.readtrace.widget.ConstellationFilter.ALL),
+            FilterOption("🌌 跨媒介共鸣", com.example.readtrace.widget.ConstellationFilter.CrossMediaResonance),
             FilterOption("📖 纸墨书籍", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.BOOK)),
             FilterOption("🌸 动漫番剧", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.ANIME)),
             FilterOption("🎬 光影影视", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.MOVIE)),
@@ -158,6 +159,25 @@ class MindprintConstellationActivity : AppCompatActivity() {
             mindprint.emotionScore,
         )
         findViewById<TextView>(R.id.starMindprintSummary).text = mpSummary
+
+        val crossMediaContainer = findViewById<View>(R.id.starCrossMediaContainer)
+        val crossMediaText = findViewById<TextView>(R.id.starCrossMediaText)
+        val btnJumpResonanceStar = findViewById<View>(R.id.btnJumpResonanceStar)
+
+        val resonancePair = constellationCanvas.getCrossMediaResonancePeer(book.id)
+        if (resonancePair != null) {
+            val peer = resonancePair.first
+            val edge = resonancePair.second
+            crossMediaContainer.visibility = View.VISIBLE
+            crossMediaText.text = "✨ 跨媒介共鸣：${peer.book.mediaType.emoji}《${peer.book.title}》${edge.similarity}%\n(${edge.resonanceTrait})"
+            btnJumpResonanceStar.setOnClickListener {
+                constellationCanvas.focusOnBook(peer.book.id)
+                showStarDetailCard(peer.book, peer.mindprint)
+            }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnJumpResonanceStar)
+        } else {
+            crossMediaContainer.visibility = View.GONE
+        }
     }
 
     override fun onDestroy() {

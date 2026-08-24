@@ -976,6 +976,22 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/btnCoverGallery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="🖼️ 画廊"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
                     android:id="@+id/btnAnimeTimeline"
                     android:layout_width="wrap_content"
                     android:layout_height="30dp"

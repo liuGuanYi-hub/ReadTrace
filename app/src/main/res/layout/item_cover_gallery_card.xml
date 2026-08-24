@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- 2:3 大封面卡片容器 -->
+    <FrameLayout
+        android:id="@+id/galleryCardContainer"
+        android:layout_width="260dp"
+        android:layout_height="390dp"
+        android:background="@drawable/bg_book_card">
+
+        <ImageView
+            android:id="@+id/galleryCoverImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="Cover"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:id="@+id/galleryCoverPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#1F1D1A"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/galleryPlaceholderEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📖"
+                android:textSize="44sp" />
+
+            <TextView
+                android:id="@+id/galleryPlaceholderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:textColor="#E8E2D9"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="百年孤独" />
+        </LinearLayout>
+
+        <!-- 顶部媒介类型徽标 -->
+        <TextView
+            android:id="@+id/galleryMediaBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_status_chip_selected"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textColor="#FFFFFF"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            tools:text="🌸 番剧" />
+    </FrameLayout>
+
+    <!-- 底部作品信息与高光金句 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/galleryBookTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            tools:text="新世纪福音战士：终" />
+
+        <TextView
+            android:id="@+id/galleryBookMeta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="13.5sp"
+            tools:text="庵野秀明 · 神作番剧 · ★ 5.0" />
+
+        <TextView
+            android:id="@+id/galleryBookQuote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginHorizontal="24dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="#D4AF37"
+            android:textSize="13.5sp"
+            android:textStyle="italic"
+            tools:text="“不能逃避，面对人与人之间的AT力场，向所有的福音战士告别。”" />
+    </LinearLayout>
+
+</LinearLayout>

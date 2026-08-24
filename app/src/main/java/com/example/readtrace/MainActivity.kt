@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var annualMindprintRadar: com.example.readtrace.widget.MindprintRadarView
     private lateinit var btnExportShelfScroll: View
     private lateinit var btnToggleViewMode: TextView
+    private lateinit var btnCoverGallery: TextView
     private lateinit var btnAnimeTimeline: TextView
     private lateinit var btnBatchFetchAnimeCovers: TextView
 
@@ -140,6 +141,12 @@ class MainActivity : AppCompatActivity() {
             updateViewModeButton()
             refreshShelfOnly()
         }
+
+        btnCoverGallery = findViewById(R.id.btnCoverGallery)
+        btnCoverGallery.setOnClickListener {
+            startActivity(Intent(this, CoverGalleryActivity::class.java))
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnCoverGallery)
 
         btnAnimeTimeline = findViewById(R.id.btnAnimeTimeline)
         btnAnimeTimeline.setOnClickListener {
