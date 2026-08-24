@@ -51,6 +51,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var monthlyChartBarsContainer: LinearLayout
     private lateinit var monthlyStatEmptyText: TextView
 
+    private lateinit var annualPersonaPanel: View
+    private lateinit var annualPersonaBadge: TextView
+    private lateinit var annualPersonaDesc: TextView
+    private lateinit var annualMindprintRadar: com.example.readtrace.widget.MindprintRadarView
+    private lateinit var btnExportShelfScroll: View
+
     private lateinit var homeBadgePanel: View
     private lateinit var homeBadgeSummary: TextView
     private lateinit var homeGalleryPanel: View
@@ -100,6 +106,15 @@ class MainActivity : AppCompatActivity() {
         monthlyStatPanel = findViewById(R.id.monthlyStatPanel)
         monthlyChartBarsContainer = findViewById(R.id.monthlyChartBarsContainer)
         monthlyStatEmptyText = findViewById(R.id.monthlyStatEmptyText)
+
+        annualPersonaPanel = findViewById(R.id.annualPersonaPanel)
+        annualPersonaBadge = findViewById(R.id.annualPersonaBadge)
+        annualPersonaDesc = findViewById(R.id.annualPersonaDesc)
+        annualMindprintRadar = findViewById(R.id.annualMindprintRadar)
+        btnExportShelfScroll = findViewById(R.id.btnExportShelfScroll)
+        btnExportShelfScroll.setOnClickListener {
+            exportShelfScrollImage()
+        }
 
         homeBadgePanel = findViewById(R.id.homeBadgePanel)
         homeBadgeSummary = findViewById(R.id.homeBadgeSummary)
@@ -387,8 +402,21 @@ class MainActivity : AppCompatActivity() {
         renderGallerySummary()
         renderMemoryCard()
         renderMonthlyStats()
+        renderAnnualPersonaInsight()
         renderDynamicTags()
         refreshShelfOnly()
+    }
+
+    private fun renderAnnualPersonaInsight() {
+        val persona = databaseHelper.getAnnualMindprintPersona()
+        if (persona == null) {
+            annualPersonaPanel.visibility = View.GONE
+            return
+        }
+        annualPersonaPanel.visibility = View.VISIBLE
+        annualPersonaBadge.text = persona.personaTitle
+        annualPersonaDesc.text = "${persona.personaDesc}（已深度量化分析 ${persona.finishedBooksCount} 部读毕作品）"
+        annualMindprintRadar.setMindprint(persona.avgMindprint, animate = false)
     }
 
     private fun renderGallerySummary() {
@@ -667,6 +695,211 @@ class MainActivity : AppCompatActivity() {
         shelfCountText.text = selectedStatus?.let {
             getString(R.string.home_shelf_filtered_count_format, it.displayName, visibleCount)
         } ?: getString(R.string.home_shelf_count_format, visibleCount)
+    }
+
+    private fun exportShelfScrollImage() {
+        val allBooks = databaseHelper.getBooks()
+        val filteredBooks = allBooks.filter { book ->
+            val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
+            val matchesStatus = selectedStatus == null || book.status == selectedStatus
+            val matchesKeyword = searchKeyword.isBlank() ||
+                book.title.contains(searchKeyword, ignoreCase = true) ||
+                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
+                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+            val matchesTag = selectedTag == null || book.tags.contains(selectedTag)
+            matchesMedia && matchesStatus && matchesKeyword && matchesTag
+        }
+
+        if (filteredBooks.isEmpty()) {
+            Toast.makeText(this, "当前筛选条件下暂无作品可导出", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val width = 1080
+            val headerHeight = 320
+            val itemHeight = 180
+            val footerHeight = 220
+            val totalHeight = headerHeight + filteredBooks.size * itemHeight + footerHeight
+
+            val bitmap = android.graphics.Bitmap.createBitmap(width, totalHeight, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+
+            // 背景底色 (宣纸米色)
+            canvas.drawColor(android.graphics.Color.parseColor("#F8F5EE"))
+
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+
+            // 边框装饰线
+            paint.style = android.graphics.Paint.Style.STROKE
+            paint.color = android.graphics.Color.parseColor("#DCD3C7")
+            paint.strokeWidth = 3f
+            canvas.drawRect(40f, 40f, (width - 40).toFloat(), (totalHeight - 40).toFloat(), paint)
+            canvas.drawRect(48f, 48f, (width - 48).toFloat(), (totalHeight - 48).toFloat(), paint)
+
+            // 头部标题
+            paint.style = android.graphics.Paint.Style.FILL
+            paint.color = android.graphics.Color.parseColor("#20241F")
+            paint.textSize = 52f
+            paint.isFakeBoldText = true
+            paint.textAlign = android.graphics.Paint.Align.CENTER
+
+            val filterTitle = when {
+                selectedTag != null -> "「${selectedTag}」主题"
+                selectedMediaType != null -> selectedMediaType!!.displayName
+                selectedStatus != null -> selectedStatus!!.displayName
+                else -> "个人典藏"
+            }
+            canvas.drawText("《阅痕 · $filterTitle 全息书单长卷》", width / 2f, 130f, paint)
+
+            paint.textSize = 28f
+            paint.isFakeBoldText = false
+            paint.color = android.graphics.Color.parseColor("#71776D")
+            val totalHours = filteredBooks.sumOf { databaseHelper.getTotalReadingMinutes(it.id) } / 60.0
+            val hoursStr = if (totalHours > 0) " · 累计专注 ${String.format(java.util.Locale.getDefault(), "%.1f", totalHours)} 小时" else ""
+            canvas.drawText("收录 ${filteredBooks.size} 部精神印记$hoursStr", width / 2f, 190f, paint)
+
+            paint.color = android.graphics.Color.parseColor("#4E7A5A")
+            paint.textSize = 24f
+            paint.isFakeBoldText = true
+            canvas.drawText("✦ 纸寿千年 · 心智留痕 ✦", width / 2f, 240f, paint)
+
+            // 分割线
+            paint.color = android.graphics.Color.parseColor("#DCD3C7")
+            paint.strokeWidth = 2f
+            canvas.drawLine(80f, 280f, (width - 80).toFloat(), 280f, paint)
+
+            // 逐本绘制
+            var currentY = headerHeight.toFloat()
+            for ((index, book) in filteredBooks.withIndex()) {
+                val itemTop = currentY
+                val itemBottom = currentY + itemHeight
+
+                paint.textAlign = android.graphics.Paint.Align.LEFT
+                paint.textSize = 34f
+                paint.color = android.graphics.Color.parseColor("#4E7A5A")
+                paint.isFakeBoldText = true
+                canvas.drawText(String.format(java.util.Locale.getDefault(), "%02d", index + 1), 80f, itemTop + 55f, paint)
+
+                paint.textSize = 36f
+                paint.color = android.graphics.Color.parseColor("#20241F")
+                paint.isFakeBoldText = true
+                val title = "${book.mediaType.emoji} 《${book.title}》"
+                val author = book.author?.let { " · $it" } ?: ""
+                val fullTitle = if ((title + author).length > 22) (title + author).take(22) + "..." else title + author
+                canvas.drawText(fullTitle, 150f, itemTop + 55f, paint)
+
+                paint.textSize = 26f
+                paint.color = android.graphics.Color.parseColor("#C47D5C")
+                paint.isFakeBoldText = true
+                val ratingStr = book.rating?.let { "★ $it" } ?: ""
+                val statusStr = "【${book.status.getDisplayName(book.mediaType)}】"
+                canvas.drawText("$statusStr $ratingStr", 150f, itemTop + 98f, paint)
+
+                val mp = databaseHelper.getMindprint(book.id)
+                paint.textSize = 24f
+                paint.color = android.graphics.Color.parseColor("#71776D")
+                paint.isFakeBoldText = false
+                val mpSummary = "🧠 思想 ${String.format(java.util.Locale.getDefault(), "%.1f", mp.depthScore)}  🖋️ 文笔 ${String.format(java.util.Locale.getDefault(), "%.1f", mp.artistryScore)}  ❤️ 情感 ${String.format(java.util.Locale.getDefault(), "%.1f", mp.emotionScore)}  🌿 治愈 ${String.format(java.util.Locale.getDefault(), "%.1f", mp.healingScore)}"
+                canvas.drawText(mpSummary, 150f, itemTop + 138f, paint)
+
+                if (index < filteredBooks.size - 1) {
+                    paint.color = android.graphics.Color.parseColor("#EADFD5")
+                    paint.strokeWidth = 1.5f
+                    canvas.drawLine(100f, itemBottom, (width - 100).toFloat(), itemBottom, paint)
+                }
+
+                currentY += itemHeight
+            }
+
+            val footerCenterY = currentY + footerHeight / 2f
+            paint.textAlign = android.graphics.Paint.Align.CENTER
+            paint.textSize = 28f
+            paint.color = android.graphics.Color.parseColor("#71776D")
+            paint.isFakeBoldText = false
+            canvas.drawText("阅痕 ReadTrace · 留存文字的永恒温度", width / 2f - 60f, footerCenterY - 15f, paint)
+
+            paint.textSize = 22f
+            paint.color = android.graphics.Color.parseColor("#9E9E9E")
+            val dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy年MM月dd日"))
+            canvas.drawText("长卷生成时间：$dateStr", width / 2f - 60f, footerCenterY + 25f, paint)
+
+            val stampX = width - 200f
+            val stampY = footerCenterY - 35f
+            paint.style = android.graphics.Paint.Style.STROKE
+            paint.color = android.graphics.Color.parseColor("#A84232")
+            paint.strokeWidth = 3f
+            canvas.drawRect(stampX, stampY, stampX + 90f, stampY + 90f, paint)
+
+            paint.style = android.graphics.Paint.Style.FILL
+            paint.color = android.graphics.Color.parseColor("#A84232")
+            paint.textSize = 24f
+            paint.isFakeBoldText = true
+            paint.textAlign = android.graphics.Paint.Align.CENTER
+            canvas.drawText("阅痕", stampX + 45f, stampY + 38f, paint)
+            canvas.drawText("馆藏", stampX + 45f, stampY + 72f, paint)
+
+            saveAndShareScrollBitmap(bitmap, filterTitle)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "生成书单长卷失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveAndShareScrollBitmap(bitmap: android.graphics.Bitmap, filterTitle: String) {
+        val filename = "ReadTrace_Scroll_${filterTitle}_${System.currentTimeMillis()}.png"
+        var fos: java.io.OutputStream? = null
+        var success = false
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            val resolver = contentResolver
+            val contentValues = android.content.ContentValues().apply {
+                put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+            }
+            val imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            if (imageUri != null) {
+                fos = resolver.openOutputStream(imageUri)
+                success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos!!)
+            }
+        } else {
+            val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES).toString() + "/ReadTrace"
+            val file = java.io.File(imagesDir)
+            if (!file.exists()) file.mkdirs()
+            val imageFile = java.io.File(file, filename)
+            fos = java.io.FileOutputStream(imageFile)
+            success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+        }
+        fos?.close()
+
+        if (success) {
+            AlertDialog.Builder(this)
+                .setTitle("🎉 书单长卷已生成")
+                .setMessage("全息书单长卷已成功保存至系统相册！是否立即分享给书友？")
+                .setNegativeButton("稍后再说", null)
+                .setPositiveButton("🔗 立即分享") { _, _ ->
+                    val cachePath = java.io.File(cacheDir, "images")
+                    cachePath.mkdirs()
+                    val file = java.io.File(cachePath, "share_scroll.png")
+                    val stream = java.io.FileOutputStream(file)
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+                    stream.close()
+
+                    val contentUri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/png"
+                        putExtra(Intent.EXTRA_STREAM, contentUri)
+                        putExtra(Intent.EXTRA_SUBJECT, "《阅痕 · $filterTitle 全息书单长卷》")
+                        putExtra(Intent.EXTRA_TEXT, "这是我的《阅痕 · $filterTitle 全息书单长卷》，记录阅读的心智留痕与精神印记。")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "分享全息书单长卷"))
+                }
+                .show()
+        } else {
+            Toast.makeText(this, "保存长卷失败，请重试", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun openBookDetail(card: View, bookId: Long) {

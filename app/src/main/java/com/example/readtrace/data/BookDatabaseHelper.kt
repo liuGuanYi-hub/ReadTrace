@@ -1433,6 +1433,58 @@ class BookDatabaseHelper(val context: Context) :
             if (cursor.moveToFirst()) cursor.toBookMindprint() else BookMindprint(bookId = bookId)
         }
 
+    fun getAnnualMindprintPersona(): com.example.readtrace.model.ReadingPersona? {
+        val finishedBooks = getBooks(BookStatus.FINISHED)
+        if (finishedBooks.isEmpty()) return null
+
+        val mindprints = finishedBooks.map { getMindprint(it.id) }
+        val count = mindprints.size.toDouble()
+
+        val avgDepth = mindprints.sumOf { it.depthScore } / count
+        val avgArtistry = mindprints.sumOf { it.artistryScore } / count
+        val avgEmotion = mindprints.sumOf { it.emotionScore } / count
+        val avgLogic = mindprints.sumOf { it.logicScore } / count
+        val avgDifficulty = mindprints.sumOf { it.difficultyScore } / count
+        val avgHealing = mindprints.sumOf { it.healingScore } / count
+
+        val avgMindprint = com.example.readtrace.model.BookMindprint(
+            bookId = 0L,
+            depthScore = avgDepth,
+            artistryScore = avgArtistry,
+            emotionScore = avgEmotion,
+            logicScore = avgLogic,
+            difficultyScore = avgDifficulty,
+            healingScore = avgHealing,
+        )
+
+        val dims = listOf(
+            "depth" to avgDepth,
+            "artistry" to avgArtistry,
+            "emotion" to avgEmotion,
+            "logic" to avgLogic,
+            "difficulty" to avgDifficulty,
+            "healing" to avgHealing,
+        )
+        val maxDim = dims.maxByOrNull { it.second }?.first ?: "depth"
+
+        val (title, desc, dominant) = when (maxDim) {
+            "depth" -> Triple("🧠 深邃哲思探索者", "沉醉于对世界本质与生命哲理的深度审视，在思想高原上自由漫步。", "思想深度")
+            "artistry" -> Triple("🖋️ 唯美文学审美家", "对文字的韵律美、诗性意境与修辞质感具有极高的审美敏锐度。", "文笔意境")
+            "emotion" -> Triple("❤️ 细腻共鸣共情家", "在字里行间捕获最真挚的人性温热，以心感应万千生灵的喜怒哀乐。", "情感共鸣")
+            "logic" -> Triple("📐 严密理性格局派", "追求严丝合缝的因果规律与宏大世界构建，崇尚清晰有力的理性推演。", "逻辑构架")
+            "difficulty" -> Triple("⛰️ 硬核学术攀登者", "敢于直面深奥晦涩的经典大作与思想峻岭，在攀登中享受智识蜕变。", "思想门槛")
+            else -> Triple("🌿 纯粹心灵疗愈者", "在静谧的书海中寻找灵魂的安顿与精神绿洲，温和而坚定地被文字抚慰。", "心灵治愈")
+        }
+
+        return com.example.readtrace.model.ReadingPersona(
+            personaTitle = title,
+            personaDesc = desc,
+            dominantDimension = dominant,
+            avgMindprint = avgMindprint,
+            finishedBooksCount = finishedBooks.size,
+        )
+    }
+
     private fun Cursor.toBook(): Book =
         Book(
             id = getLong(getColumnIndexOrThrow(COLUMN_ID)),

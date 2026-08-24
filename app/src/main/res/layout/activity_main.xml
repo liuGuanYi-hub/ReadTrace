@@ -388,6 +388,67 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <!-- 🧠 年度全息心智图谱与人格画像卡片 -->
+            <LinearLayout
+                android:id="@+id/annualPersonaPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="6dp"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="🧠 年度全息心智人格"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/annualPersonaBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_status_chip_selected"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold"
+                        tools:text="🧠 深邃哲思探索者" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/annualPersonaDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="12.5sp"
+                    tools:text="沉醉于对世界本质与生命哲理的深度审视，在思想高原上自由漫步。" />
+
+                <com.example.readtrace.widget.MindprintRadarView
+                    android:id="@+id/annualMindprintRadar"
+                    android:layout_width="match_parent"
+                    android:layout_height="210dp"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
             <!-- 阅读成就微卡片 -->
             <LinearLayout
                 android:id="@+id/homeBadgePanel"
@@ -795,6 +856,22 @@
                     android:textColor="@color/readtrace_muted"
                     android:textSize="13sp"
                     tools:text="共 12 本" />
+
+                <TextView
+                    android:id="@+id/btnExportShelfScroll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="📜 导出书单长卷"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
