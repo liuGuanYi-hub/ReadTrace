@@ -149,18 +149,19 @@ class MainActivity : AppCompatActivity() {
 
         btnBatchFetchAnimeCovers = findViewById(R.id.btnBatchFetchAnimeCovers)
         btnBatchFetchAnimeCovers.setOnClickListener {
-            Toast.makeText(this, "正在联网从 Bangumi 批量检索番剧官方海报...", Toast.LENGTH_SHORT).show()
+            val label = selectedMediaType?.displayName ?: "书影音游"
+            Toast.makeText(this, "正在联网批量检索 $label 官方高清封面...", Toast.LENGTH_SHORT).show()
             com.example.readtrace.util.AnimeCoverScraperHelper.batchFetchAnimeCovers(
                 this,
                 databaseHelper,
+                targetMediaType = selectedMediaType,
                 onProgress = { current, total, title ->
-                    // 仅偶尔提示避免弹窗过多
                     if (current == 1 || current % 5 == 0 || current == total) {
-                        Toast.makeText(this, "[$current/$total] 正在匹配《$title》海报...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "[$current/$total] 正在匹配《$title》封面...", Toast.LENGTH_SHORT).show()
                     }
                 },
                 onComplete = { success, total ->
-                    Toast.makeText(this, "🌸 番剧海报匹配完成！成功抓取 $success/$total 部", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "✨ $label 封面匹配完成！成功抓取 $success/$total 部", Toast.LENGTH_LONG).show()
                     refreshShelfOnly()
                 }
             )
@@ -325,7 +326,15 @@ class MainActivity : AppCompatActivity() {
 
         val isAnimeSelected = selectedMediaType == MediaType.ANIME
         btnAnimeTimeline.visibility = if (isAnimeSelected) View.VISIBLE else View.GONE
-        btnBatchFetchAnimeCovers.visibility = if (isAnimeSelected) View.VISIBLE else View.GONE
+        btnBatchFetchAnimeCovers.visibility = View.VISIBLE
+        btnBatchFetchAnimeCovers.text = when (selectedMediaType) {
+            MediaType.ANIME -> "🌸 抓番剧海报"
+            MediaType.BOOK -> "📖 抓书籍封面"
+            MediaType.MOVIE -> "🎬 抓影视海报"
+            MediaType.GAME -> "🎮 抓游戏封面"
+            MediaType.PODCAST -> "🎙️ 抓播客封面"
+            null -> "🌐 智能抓封面"
+        }
     }
 
     private fun configureStatusFilters() {

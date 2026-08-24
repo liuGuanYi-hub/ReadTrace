@@ -1086,16 +1086,15 @@ class BookDetailActivity : AppCompatActivity() {
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
 
         coverImage.setOnClickListener {
-            if (book.mediaType == MediaType.ANIME) {
-                Toast.makeText(this, "正在联网从 Bangumi 检索《${book.title}》官方高清海报...", Toast.LENGTH_SHORT).show()
-                com.example.readtrace.util.AnimeCoverScraperHelper.fetchAndSaveAnimeCover(this, book, databaseHelper) { success, path ->
-                    if (success && path != null) {
-                        Toast.makeText(this, "🌸 已成功匹配并下载官方海报！", Toast.LENGTH_SHORT).show()
-                        CoverImageHelper.loadCover(coverImage, path)
-                        currentBook = databaseHelper.getBook(book.id)
-                    } else {
-                        Toast.makeText(this, "未找到匹配的高清海报，可手动在编辑中添加图片", Toast.LENGTH_SHORT).show()
-                    }
+            val mediaLabel = book.mediaType.displayName
+            Toast.makeText(this, "正在联网检索《${book.title}》官方高清海报...", Toast.LENGTH_SHORT).show()
+            com.example.readtrace.util.AnimeCoverScraperHelper.fetchAndSaveAnimeCover(this, book, databaseHelper) { success, path ->
+                if (success && path != null) {
+                    Toast.makeText(this, "✨ 已成功匹配并下载《${book.title}》官方海报！", Toast.LENGTH_SHORT).show()
+                    CoverImageHelper.loadCover(coverImage, path)
+                    currentBook = databaseHelper.getBook(book.id)
+                } else {
+                    Toast.makeText(this, "未找到匹配的高清海报，可手动在编辑中添加图片", Toast.LENGTH_SHORT).show()
                 }
             }
         }

@@ -238,6 +238,103 @@ class BookDatabaseHelper(val context: Context) :
         super.onOpen(db)
         populatePresetBookRichData(db)
         seedUserAnimeList(db)
+        seedCuratedBookCovers(db)
+    }
+
+    private fun seedCuratedBookCovers(db: SQLiteDatabase) {
+        runCatching {
+            data class BookCoverPreset(val title: String, val author: String, val category: String, val coverUrl: String, val shortComment: String)
+
+            val presetList = listOf(
+                BookCoverPreset("1984", "乔治·奥威尔", "反乌托邦", "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600", "战争即和平，自由即奴役，无知即力量。"),
+                BookCoverPreset("鼠疫", "加缪", "存在主义", "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600", "在这个世界上存在着瘟疫，也存在着受害者，我们应当尽量不站在瘟疫一边。"),
+                BookCoverPreset("动物农场", "乔治·奥威尔", "政治讽喻", "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600", "所有动物生来平等，但有些动物比其他动物更平等。"),
+                BookCoverPreset("诡计博物馆", "大山诚一郎", "本格推理", "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600", "封印二十年的悬案，在赤色博物馆内被纯粹的逻辑瞬间洞穿。"),
+                BookCoverPreset("霍乱时期的爱情", "马尔克斯", "拉美文学", "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?w=600", "跨越半个多世纪的等待，换来的是船头上那面永不落下的霍乱黄旗。"),
+                BookCoverPreset("悲惨世界", "雨果", "法国文学", "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600", "释放无限光明的是人心，制造无边黑暗的也是人心。"),
+                BookCoverPreset("四世同堂", "老舍", "华语经典", "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600", "小羊圈胡同的悲欢离合，记录了抗战时期北平底层百姓的风骨与苦难。"),
+                BookCoverPreset("西西弗神话", "加缪", "哲学思辨", "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600", "登上顶峰的斗争足以充实一个人的心灵，我们应当想象西西弗是幸福的。"),
+                BookCoverPreset("挪威的森林", "村上春树", "日本文学", "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600", "每个人都有属于自己的一片森林，迷失的人迷失了，相逢的人会再相逢。"),
+                BookCoverPreset("老人与海", "海明威", "欧美文学", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600", "人不是生来要给打败的，一个人可以被毁灭，但不能被打败。"),
+                BookCoverPreset("上帝掷骰子吗", "曹天元", "硬核科普", "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=600", "这是一部波澜壮阔的量子力学史，带你走进人类认知最神秘的微观微境。"),
+                BookCoverPreset("全员嫌疑人", "大山诚一郎", "密室推理", "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600", "快节奏的逻辑推演，当所有人都被怀疑时，唯有华丽的诡计才能破解真相。"),
+                BookCoverPreset("绝叫", "叶真中显", "社会派推理", "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600", "从普通家庭女性滑向无底深渊，一部令人窒息的平成时代生存绝叫。"),
+                BookCoverPreset("人类简史", "尤瓦尔·赫拉利", "历史哲学", "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600", "认知革命、农业革命与科学革命，虚构故事的能力让人类成为了地球的主宰。"),
+                BookCoverPreset("时间简史", "霍金", "宇宙科普", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600", "探寻黑洞、奇点与时间箭头的终极奥秘，仰望星空的最璀璨思想。"),
+                BookCoverPreset("经济学原理", "曼昆", "经济社会", "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600", "人们面临权衡取舍，某种东西的成本就是为了得到它所放弃的东西。"),
+                BookCoverPreset("廊桥遗梦", "沃勒", "情感文学", "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=600", "这样确切的爱，一生只有一次。麦迪逊桥头的四天，刻骨铭心的一生。"),
+                BookCoverPreset("社会心理学", "迈尔斯", "心理学", "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600", "探索群体对个体的影响、态度与从众、偏见与利他，看透人际关系的本质。"),
+                BookCoverPreset("在细雨中呼喊", "余华", "华语经典", "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=600", "在江南细雨中回望童年与成长的创伤，记忆像水草一样在时间的河流里摇曳。"),
+                BookCoverPreset("白夜行", "东野圭吾", "推理悬疑", "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?w=600", "我的天空里没有太阳，总是黑夜，但并不暗，因为有东西代替了太阳。"),
+                BookCoverPreset("局外人", "加缪", "存在主义", "https://images.unsplash.com/photo-1507842229451-79b1be8868c2?w=600", "今天，妈妈死了。也许是昨天，我不知道。对这荒谬世界的清醒抗争。"),
+                BookCoverPreset("许三观卖血记", "余华", "华语经典", "https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=600", "一盘炒猪肝，二两黄酒，用身体的鲜血托起一个家庭所有风雨的坚韧史诗。"),
+                BookCoverPreset("解忧杂货店", "东野圭吾", "温暖治愈", "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600", "如果把你的地图比作白纸，正因为是一张白纸，才可以随心所欲地描绘地图。"),
+                BookCoverPreset("无人生还", "阿加莎·克里斯蒂", "孤岛推理", "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600", "十个印第安小男孩，孤岛之上的审判与童谣谋杀，本格推理的巅峰神作。"),
+                BookCoverPreset("蛇结", "莫里亚克", "法国文学", "https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=600", "人心如同纠缠在一起的蛇结，唯有爱与宽恕才能解开这深重的仇恨。"),
+                BookCoverPreset("我是猫", "夏目漱石", "日本文学", "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600", "我是猫，还没有名字。以一只猫的独特视角，辛辣审视明治时代文人与社会的百态。"),
+                BookCoverPreset("罗生门", "芥川龙之介", "日本文学", "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600", "在暮色昏暗的罗生门下，每个人都在以谎言掩盖自己丑陋的利己本能。"),
+                BookCoverPreset("活着", "余华", "华语经典", "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600", "人是为活着本身而活着的，而不是为了活着之外的任何事物所活着。"),
+                BookCoverPreset("月亮与六便士", "毛姆", "欧美文学", "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=600", "满地都是六便士，他却抬头看见了月亮。为了艺术狂热抛弃一切的追寻。"),
+                BookCoverPreset("罪与罚", "陀思妥耶夫斯基", "俄苏文学", "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600", "从高傲的超人理论到灵魂的受难救赎，人类心灵最深处的激烈交战。"),
+                BookCoverPreset("消失的十三级台阶", "高野和明", "社会派推理", "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600", "踏上死刑台阶前的生死追凶，直击死刑制度与人性救赎的最震撼思索。"),
+                BookCoverPreset("同名同姓受害者协会", "下村敦史", "社会悬疑", "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=600", "同名同姓带来的网络暴力与偏见审判，一场直击现代互联网生态的悬疑悲剧。"),
+                BookCoverPreset("呼啸山庄", "艾米莉·勃朗特", "古典名著", "https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=600", "荒原上的狂野爱恨，希斯克利夫超越生死与坟墓的终极执念。"),
+                BookCoverPreset("蛤蟆先生去看心理医生", "罗伯特·戴博德", "心理成长", "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600", "探索儿童自我状态、父母自我状态与成人自我状态，找回属于自己的力量。"),
+                BookCoverPreset("帷幕", "阿加莎·克里斯蒂", "古典推理", "https://images.unsplash.com/photo-1499209974431-9dac3ada0047?w=600", "大侦探波洛的谢幕之战，以生命为代价完成对完美罪犯的终极审判。"),
+                BookCoverPreset("一个叫欧维的男人决定去死", "巴克曼", "温情治愈", "https://images.unsplash.com/photo-1499209974431-9dac3ada0047?w=600", "一个固执刻板的孤独老头，被一群吵闹的邻居拯救并重新爱上人间的温情旅程。"),
+                BookCoverPreset("傲慢与偏见", "简·奥斯汀", "古典名著", "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=600", "傲慢让别人无法来爱我，偏见让我无法去爱别人。达西与伊丽莎白的真爱和解。"),
+                BookCoverPreset("恶意", "东野圭吾", "心理推理", "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600", "就算赌上我这一生，我也要将你拉入无间地狱。毫无由来的深渊恶意。"),
+                BookCoverPreset("边城", "沈从文", "华语经典", "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600", "这个人也许永远不回来了，也许‘明天’回来！湘西茶峒的纯美风土与凄美爱恋。"),
+                BookCoverPreset("斜阳", "太宰治", "日本文学", "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600", "在没落贵族的残照中，向旧道德决裂，用生命的微光进行最后的革命。"),
+                BookCoverPreset("基督山伯爵", "大仲马", "传奇冒险", "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600", "人类的一切智慧都包含在这四个字里面：‘等待’和‘希望’。快意恩仇的传奇史诗。"),
+                BookCoverPreset("人间失格", "太宰治", "日本文学", "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600", "生而为人，我很抱歉。叶藏以小丑的面具应付人间，在脆弱中走向毁灭。"),
+                BookCoverPreset("ABC谋杀案", "阿加莎·克里斯蒂", "本格推理", "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600", "按照字母表顺序展开的连环谋杀，波洛用灰色脑细胞破解最巧妙的掩饰诡计。"),
+                BookCoverPreset("春雪", "三岛由纪夫", "丰饶之海", "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600", "清显与聪子之间凄美禁忌的恋情，大正时代绚烂优雅又易碎的贵族挽歌。"),
+                BookCoverPreset("追风筝的人", "胡赛尼", "成长救赎", "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600", "为你，千千万万遍。在喀布尔蓝天下的风筝与漫长一生的罪咎救赎。"),
+                BookCoverPreset("战争与和平", "列夫·托尔斯泰", "俄苏文学", "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600", "俄罗斯辽阔大地上五大家族的命运交织，人类历史长河与个人意志的史诗巨著。"),
+                BookCoverPreset("生死疲劳", "莫言", "魔幻现实", "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600", "西门闹经历六道轮回转世为驴、牛、猪、狗、猴，见证半个世纪中国乡土风云变幻。"),
+                BookCoverPreset("谋杀启事", "阿加莎·克里斯蒂", "古典推理", "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600", "报纸上赫然刊登的谋杀预告游戏，马普尔小姐在宁静乡村中洞察人性隐秘。"),
+                BookCoverPreset("雾都孤儿", "狄更斯", "英国文学", "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600", "在十九世纪伦敦的阴暗底层与贼窝里，纯真少年奥利弗对善良与尊严的执着追求。"),
+                BookCoverPreset("人间椅子", "江户川乱步", "猎奇推理", "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600", "藏身于扶手椅中的制椅匠，在触觉与暗处的窥视中谱写惊悚奇异的幻觉物语。"),
+                BookCoverPreset("雪国", "川端康成", "新感觉派", "https://images.unsplash.com/photo-1517824806704-9040b037703b?w=600", "穿过县界长长的隧道，便是雪国。夜空下一片白茫茫，驹子与岛村徒劳而纯粹的凄美物语。"),
+                BookCoverPreset("伊豆的舞女", "川端康成", "新感觉派", "https://images.unsplash.com/photo-1528164344705-475426879c0d?w=600", "少年的孤独与伊豆山道上舞女熏子的纯真目光，洗净了青春所有阴翳的清冽散文诗。"),
+            )
+
+            val now = currentTimestamp()
+            for (p in presetList) {
+                val cursor = db.query(TABLE_BOOKS, arrayOf(COLUMN_ID, COLUMN_COVER_URL), "$COLUMN_TITLE LIKE ? AND $COLUMN_IS_DELETED = 0", arrayOf("%${p.title}%"), null, null, null)
+                val (existingId, existingCover) = cursor.use {
+                    if (it.moveToFirst()) Pair(it.getLong(0), it.getString(1)) else Pair(null, null)
+                }
+
+                if (existingId != null) {
+                    if (existingCover.isNullOrBlank()) {
+                        val cv = ContentValues().apply {
+                            put(COLUMN_COVER_URL, p.coverUrl)
+                            put(COLUMN_CATEGORY, p.category)
+                            put(COLUMN_UPDATED_AT, now)
+                        }
+                        db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(existingId.toString()))
+                    }
+                } else {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, p.title)
+                        put(COLUMN_AUTHOR, p.author)
+                        put(COLUMN_CATEGORY, p.category)
+                        put(COLUMN_STATUS, "wishlist")
+                        put(COLUMN_MEDIA_TYPE, "book")
+                        put(COLUMN_COVER_URL, p.coverUrl)
+                        put(COLUMN_SHORT_COMMENT, p.shortComment)
+                        put(COLUMN_REVIEW, "经典文学名著 · 收录于《阅痕》书单")
+                        put(COLUMN_TAGS, JSONArray(listOf(p.category, "文学名著", "经典")).toString())
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    db.insert(TABLE_BOOKS, null, cv)
+                }
+            }
+        }
     }
 
     private fun seedUserAnimeList(db: SQLiteDatabase) {
