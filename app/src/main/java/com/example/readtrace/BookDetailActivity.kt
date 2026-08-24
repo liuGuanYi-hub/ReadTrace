@@ -183,6 +183,9 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailCompareMindprintBtn).setOnClickListener {
             showCompareMindprintDialog()
         }
+        findViewById<View>(R.id.detailExportWidgetBtn).setOnClickListener {
+            exportMindprintWidgetCard()
+        }
 
         // 注入 iOS 级 Q 弹手势触觉反馈
         listOfNotNull(
@@ -198,6 +201,7 @@ class BookDetailActivity : AppCompatActivity() {
             findViewById(R.id.detailAddLocationBtn),
             findViewById(R.id.detailEditMindprintBtn),
             findViewById(R.id.detailCompareMindprintBtn),
+            findViewById(R.id.detailExportWidgetBtn),
             findViewById(R.id.detailTimelineExportBtn),
             navOverview, navTimeline, navCharacters, navNotes,
             filterAll, filterSessions, filterNotes,
@@ -1257,6 +1261,264 @@ class BookDetailActivity : AppCompatActivity() {
         runCatching {
             OffsetDateTime.parse(value).format(DISPLAY_TIME_FORMAT)
         }.getOrDefault(valueOrFallback(value))
+
+    private fun exportMindprintWidgetCard() {
+        val book = currentBook ?: return
+        val mindprint = databaseHelper.getMindprint(book.id)
+
+        try {
+            val width = 1080
+            val height = 1080
+            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+
+            val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+            val bgColor = if (isNight) android.graphics.Color.parseColor("#121613") else android.graphics.Color.parseColor("#F5F3EC")
+            val cardBgColor = if (isNight) android.graphics.Color.parseColor("#1B221C") else android.graphics.Color.parseColor("#FFFFFF")
+            val strokeColor = if (isNight) android.graphics.Color.parseColor("#33FFFFFF") else android.graphics.Color.parseColor("#22000000")
+            val textPrimaryColor = if (isNight) android.graphics.Color.parseColor("#F5F3ED") else android.graphics.Color.parseColor("#20241F")
+            val textMutedColor = if (isNight) android.graphics.Color.parseColor("#9EA599") else android.graphics.Color.parseColor("#7A8075")
+            val accentColor = if (isNight) android.graphics.Color.parseColor("#5E9E71") else android.graphics.Color.parseColor("#3A6348")
+
+            // 1. 背景底色
+            canvas.drawColor(bgColor)
+
+            // 2. 居中微卡 (Margin 48px, CornerRadius 44px)
+            val cardRect = android.graphics.RectF(48f, 48f, width - 48f, height - 48f)
+            val cardPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = cardBgColor
+                style = android.graphics.Paint.Style.FILL
+            }
+            canvas.drawRoundRect(cardRect, 44f, 44f, cardPaint)
+
+            val strokePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = strokeColor
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = 3f
+            }
+            canvas.drawRoundRect(cardRect, 44f, 44f, strokePaint)
+
+            // 3. 顶部 Header
+            val headerPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = accentColor
+                textSize = 30f
+                isFakeBoldText = true
+            }
+            canvas.drawText("✨ 阅痕 · 灵魂心智全息微卡", 96f, 126f, headerPaint)
+
+            val subHeaderPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textMutedColor
+                textSize = 24f
+                textAlign = android.graphics.Paint.Align.RIGHT
+            }
+            val dateStr = java.text.SimpleDateFormat("yyyy.MM.dd", java.util.Locale.getDefault()).format(java.util.Date())
+            canvas.drawText(dateStr, width - 96f, 126f, subHeaderPaint)
+
+            // 4. 左侧作品档案信息
+            val titlePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textPrimaryColor
+                textSize = 46f
+                isFakeBoldText = true
+            }
+            val shortTitle = if (book.title.length > 12) book.title.take(11) + "…" else book.title
+            canvas.drawText("《$shortTitle》", 96f, 210f, titlePaint)
+
+            val authorPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textMutedColor
+                textSize = 28f
+            }
+            val authorStr = "${book.mediaType.emoji} ${book.author ?: "未知作者"} · ${book.category ?: "精选"}"
+            canvas.drawText(authorStr, 96f, 260f, authorPaint)
+
+            // 左侧心智评语与指标徽章
+            val badgeBoxPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = if (isNight) android.graphics.Color.parseColor("#263127") else android.graphics.Color.parseColor("#EDF3EE")
+                style = android.graphics.Paint.Style.FILL
+            }
+            val badgeTextPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = accentColor
+                textSize = 24f
+                isFakeBoldText = true
+            }
+
+            val p1 = "🧠 思想深度 ${mindprint.depthScore} · 🖋️ 文笔意境 ${mindprint.artistryScore}"
+            val p2 = "❤️ 情感共鸣 ${mindprint.emotionScore} · 📐 逻辑构架 ${mindprint.logicScore}"
+            val p3 = "⛰️ 阅读阻力 ${mindprint.difficultyScore} · 🌿 心灵治愈 ${mindprint.healingScore}"
+
+            canvas.drawRoundRect(android.graphics.RectF(96f, 310f, 520f, 368f), 18f, 18f, badgeBoxPaint)
+            canvas.drawText(p1, 114f, 348f, badgeTextPaint)
+
+            canvas.drawRoundRect(android.graphics.RectF(96f, 388f, 520f, 446f), 18f, 18f, badgeBoxPaint)
+            canvas.drawText(p2, 114f, 426f, badgeTextPaint)
+
+            canvas.drawRoundRect(android.graphics.RectF(96f, 466f, 520f, 524f), 18f, 18f, badgeBoxPaint)
+            canvas.drawText(p3, 114f, 504f, badgeTextPaint)
+
+            // 左下方短评金句
+            val quoteContent = book.shortComment?.takeIf { it.isNotBlank() }
+                ?: book.review?.takeIf { it.isNotBlank() }
+                ?: "“每一道心智印记，都是灵魂与文字的永恒交汇。”"
+            val quotePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textMutedColor
+                textSize = 26f
+            }
+            val qLine = if (quoteContent.length > 16) quoteContent.take(15) + "…" else quoteContent
+            canvas.drawText("💬 阅痕寄语：", 96f, 600f, badgeTextPaint)
+            canvas.drawText(qLine, 96f, 646f, quotePaint)
+
+            // 底部水印
+            val footerPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textMutedColor
+                textSize = 22f
+                letterSpacing = 0.1f
+            }
+            canvas.drawText("READTRACE · LOCKSCREEN WIDGET", 96f, 980f, footerPaint)
+
+            // 5. 右侧原生绘制六维心智雷达
+            val radarCenterX = 780f
+            val radarCenterY = 560f
+            val radarRadius = 210f
+
+            val webPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = if (isNight) android.graphics.Color.parseColor("#334433") else android.graphics.Color.parseColor("#DDD4CA")
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = 2.5f
+            }
+            val axisPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = if (isNight) android.graphics.Color.parseColor("#283428") else android.graphics.Color.parseColor("#EADFD5")
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = 2.5f
+            }
+            val fillPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.parseColor("#55C47D5C")
+                style = android.graphics.Paint.Style.FILL
+            }
+            val strokeRadarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.parseColor("#C47D5C")
+                style = android.graphics.Paint.Style.STROKE
+                strokeWidth = 5f
+            }
+            val dotPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.parseColor("#9C5232")
+                style = android.graphics.Paint.Style.FILL
+            }
+            val labelRadarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = textPrimaryColor
+                textSize = 24f
+                textAlign = android.graphics.Paint.Align.CENTER
+                isFakeBoldText = true
+            }
+
+            val scores = floatArrayOf(
+                mindprint.depthScore.toFloat(),
+                mindprint.artistryScore.toFloat(),
+                mindprint.emotionScore.toFloat(),
+                mindprint.logicScore.toFloat(),
+                mindprint.difficultyScore.toFloat(),
+                mindprint.healingScore.toFloat(),
+            )
+            val labels = arrayOf("🧠 思想", "🖋️ 文笔", "❤️ 情感", "📐 逻辑", "⛰️ 门槛", "🌿 治愈")
+
+            // 绘制 4 层蛛网多边形
+            for (level in 1..4) {
+                val r = radarRadius * (level / 4f)
+                val path = android.graphics.Path()
+                for (i in 0 until 6) {
+                    val angle = (Math.PI / 3 * i - Math.PI / 2).toFloat()
+                    val px = radarCenterX + r * Math.cos(angle.toDouble()).toFloat()
+                    val py = radarCenterY + r * Math.sin(angle.toDouble()).toFloat()
+                    if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+                }
+                path.close()
+                canvas.drawPath(path, webPaint)
+            }
+
+            // 绘制 6 条放射轴线及标签
+            for (i in 0 until 6) {
+                val angle = (Math.PI / 3 * i - Math.PI / 2).toFloat()
+                val ax = radarCenterX + radarRadius * Math.cos(angle.toDouble()).toFloat()
+                val ay = radarCenterY + radarRadius * Math.sin(angle.toDouble()).toFloat()
+                canvas.drawLine(radarCenterX, radarCenterY, ax, ay, axisPaint)
+
+                val lx = radarCenterX + (radarRadius + 44f) * Math.cos(angle.toDouble()).toFloat()
+                val ly = radarCenterY + (radarRadius + 44f) * Math.sin(angle.toDouble()).toFloat() + 8f
+                canvas.drawText(labels[i], lx, ly, labelRadarPaint)
+            }
+
+            // 绘制心智数据多边形
+            val polyPath = android.graphics.Path()
+            for (i in 0 until 6) {
+                val angle = (Math.PI / 3 * i - Math.PI / 2).toFloat()
+                val r = radarRadius * (scores[i] / 10f).coerceIn(0.1f, 1f)
+                val px = radarCenterX + r * Math.cos(angle.toDouble()).toFloat()
+                val py = radarCenterY + r * Math.sin(angle.toDouble()).toFloat()
+                if (i == 0) polyPath.moveTo(px, py) else polyPath.lineTo(px, py)
+            }
+            polyPath.close()
+            canvas.drawPath(polyPath, fillPaint)
+            canvas.drawPath(polyPath, strokeRadarPaint)
+
+            for (i in 0 until 6) {
+                val angle = (Math.PI / 3 * i - Math.PI / 2).toFloat()
+                val r = radarRadius * (scores[i] / 10f).coerceIn(0.1f, 1f)
+                val px = radarCenterX + r * Math.cos(angle.toDouble()).toFloat()
+                val py = radarCenterY + r * Math.sin(angle.toDouble()).toFloat()
+                canvas.drawCircle(px, py, 9f, dotPaint)
+            }
+
+            // 6. 保存至相册与分享
+            val bookName = book.title.replace(" ", "_")
+            val filename = "ReadTrace_MindprintWidget_${bookName}_${System.currentTimeMillis()}.png"
+            var fos: java.io.OutputStream? = null
+            var imageUri: android.net.Uri? = null
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val resolver = contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+                }
+                imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if (imageUri != null) {
+                    fos = resolver.openOutputStream(imageUri)
+                }
+            } else {
+                val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES).toString() + "/ReadTrace"
+                val file = java.io.File(imagesDir)
+                if (!file.exists()) file.mkdirs()
+                val imgFile = java.io.File(imagesDir, filename)
+                fos = java.io.FileOutputStream(imgFile)
+                imageUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    "$packageName.fileprovider",
+                    imgFile,
+                )
+            }
+
+            if (fos != null && imageUri != null) {
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+                fos.flush()
+                fos.close()
+                Toast.makeText(this, "📱 心智全息锁屏微卡已导出至相册！", Toast.LENGTH_SHORT).show()
+
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, imageUri)
+                    putExtra(Intent.EXTRA_TEXT, "这是我在《阅痕 ReadTrace》为《${book.title}》定制的灵魂心智全息微卡。")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, "分享心智全息锁屏微卡"))
+            } else {
+                Toast.makeText(this, "保存微卡失败，请重试", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "生成微卡异常: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private fun showMissingBookAndClose() {
         Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()

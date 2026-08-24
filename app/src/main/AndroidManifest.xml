@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Readtrace">
         <activity
+            android:name=".MindprintConstellationActivity"
+            android:exported="false" />
+        <activity
             android:name=".QuotePosterActivity"
             android:exported="false" />
         <activity

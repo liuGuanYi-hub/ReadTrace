@@ -1,0 +1,107 @@
+package com.example.readtrace
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.example.readtrace.data.BookDatabaseHelper
+import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ViewAnimationHelper
+import com.example.readtrace.widget.MindprintConstellationView
+import java.util.Locale
+
+class MindprintConstellationActivity : AppCompatActivity() {
+
+    private lateinit var databaseHelper: BookDatabaseHelper
+    private lateinit var constellationCanvas: MindprintConstellationView
+    private lateinit var constellationDetailCard: View
+    private var currentSelectedBook: Book? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_mindprint_constellation)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.constellationRoot)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        databaseHelper = BookDatabaseHelper(this)
+        constellationCanvas = findViewById(R.id.constellationCanvas)
+        constellationDetailCard = findViewById(R.id.constellationDetailCard)
+
+        val backBtn = findViewById<TextView>(R.id.constellationBackBtn)
+        backBtn.setOnClickListener { finish() }
+        ViewAnimationHelper.attachSpringTouch(backBtn)
+
+        val closeCardBtn = findViewById<TextView>(R.id.starCardCloseBtn)
+        closeCardBtn.setOnClickListener {
+            constellationDetailCard.visibility = View.GONE
+        }
+        ViewAnimationHelper.attachSpringTouch(closeCardBtn)
+
+        val goDetailBtn = findViewById<TextView>(R.id.starGoDetailBtn)
+        goDetailBtn.setOnClickListener {
+            currentSelectedBook?.let {
+                startActivity(BookDetailActivity.createIntent(this, it.id))
+            }
+        }
+        ViewAnimationHelper.attachSpringTouch(goDetailBtn)
+
+        constellationCanvas.onStarClickListener = { book, mindprint ->
+            showStarDetailCard(book, mindprint)
+        }
+
+        loadConstellationData()
+    }
+
+    private fun loadConstellationData() {
+        val books = databaseHelper.getBooks()
+        constellationCanvas.setBooksData(books, databaseHelper)
+        findViewById<TextView>(R.id.constellationSubTitle).text =
+            "共汇聚 ${books.size} 颗心智星辰 · 拖拽漫游星空"
+    }
+
+    private fun showStarDetailCard(book: Book, mindprint: BookMindprint) {
+        currentSelectedBook = book
+        constellationDetailCard.visibility = View.VISIBLE
+        constellationDetailCard.startAnimation(AnimationUtils.loadAnimation(this, R.anim.card_enter_delayed))
+
+        val coverImg = findViewById<ImageView>(R.id.starCoverImg)
+        CoverImageHelper.loadCover(coverImg, book.coverUrl)
+
+        findViewById<TextView>(R.id.starBookTitle).text = "${book.mediaType.emoji} 《${book.title}》"
+        findViewById<TextView>(R.id.starBookAuthor).text = "${book.author ?: getString(R.string.unknown_author)} · ${book.category ?: "典藏"}"
+
+        val mpSummary = String.format(
+            Locale.getDefault(),
+            "🧠 思想 %.1f · 🖋️ 文笔 %.1f · ❤️ 情感 %.1f",
+            mindprint.depthScore,
+            mindprint.artistryScore,
+            mindprint.emotionScore,
+        )
+        findViewById<TextView>(R.id.starMindprintSummary).text = mpSummary
+    }
+
+    override fun onDestroy() {
+        databaseHelper.close()
+        super.onDestroy()
+    }
+
+    companion object {
+        fun createIntent(context: Context): Intent {
+            return Intent(context, MindprintConstellationActivity::class.java)
+        }
+    }
+}

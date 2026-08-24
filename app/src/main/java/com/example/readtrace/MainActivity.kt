@@ -176,6 +176,7 @@ class MainActivity : AppCompatActivity() {
         val presetBtn = findViewById<View>(R.id.importPresetButton)
         val trashBtn = findViewById<View>(R.id.trashButton)
         val backupBtn = findViewById<View>(R.id.backupButton)
+        val constellationPanel = findViewById<View>(R.id.homeConstellationPanel)
         val communityPanel = findViewById<View>(R.id.homeCommunityPanel)
 
         addBtn.setOnClickListener(openAddBook)
@@ -185,6 +186,9 @@ class MainActivity : AppCompatActivity() {
         backupBtn.setOnClickListener { startActivity(Intent(this, BackupActivity::class.java)) }
         homeBadgePanel.setOnClickListener { startActivity(BadgesActivity.createIntent(this)) }
         homeGalleryPanel.setOnClickListener { startActivity(Gallery3DActivity.createIntent(this)) }
+        constellationPanel?.setOnClickListener {
+            startActivity(MindprintConstellationActivity.createIntent(this))
+        }
         communityPanel?.setOnClickListener {
             startActivity(com.example.readtrace.community.ui.CommunityActivity.createIntent(this))
         }
@@ -192,7 +196,7 @@ class MainActivity : AppCompatActivity() {
         // 注入 iOS 级 Q 弹物理反馈
         listOfNotNull(
             addBtn, emptyAction, presetBtn, trashBtn, backupBtn,
-            homeBadgePanel, homeGalleryPanel, communityPanel,
+            homeBadgePanel, homeGalleryPanel, constellationPanel, communityPanel,
             btnExportShelfScroll, btnToggleViewMode, memoryPanel,
         ).forEach { com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(it) }
     }
