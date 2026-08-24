@@ -234,6 +234,319 @@ class BookDatabaseHelper(val context: Context) :
         )
     }
 
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        populatePresetBookRichData(db)
+    }
+
+    private fun populatePresetBookRichData(db: SQLiteDatabase) {
+        runCatching {
+            fun findOrInsertBook(title: String, author: String, category: String, status: String, shortComment: String, review: String, rating: Double, tags: List<String>, coverUrl: String, buyChannel: String, shelfLocation: String, bindingType: String, buyPrice: Double): Long {
+                val cursor = db.query(TABLE_BOOKS, arrayOf(COLUMN_ID), "$COLUMN_TITLE LIKE ? AND $COLUMN_IS_DELETED = 0", arrayOf("%$title%"), null, null, null)
+                val bookId = cursor.use {
+                    if (it.moveToFirst()) it.getLong(0) else null
+                }
+
+                val now = currentTimestamp()
+                if (bookId != null) {
+                    // 更新已有作品的藏本属性
+                    val cv = ContentValues().apply {
+                        put(COLUMN_BUY_CHANNEL, buyChannel)
+                        put(COLUMN_SHELF_LOCATION, shelfLocation)
+                        put(COLUMN_BINDING_TYPE, bindingType)
+                        put(COLUMN_BUY_PRICE, buyPrice)
+                    }
+                    db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    return bookId
+                } else {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, title)
+                        put(COLUMN_AUTHOR, author)
+                        put(COLUMN_CATEGORY, category)
+                        put(COLUMN_STATUS, status)
+                        put(COLUMN_MEDIA_TYPE, "book")
+                        put(COLUMN_SHORT_COMMENT, shortComment)
+                        put(COLUMN_REVIEW, review)
+                        put(COLUMN_RATING, rating)
+                        put(COLUMN_TAGS, JSONArray(tags).toString())
+                        put(COLUMN_COVER_URL, coverUrl)
+                        put(COLUMN_START_DATE, "2026-06-01")
+                        put(COLUMN_FINISH_DATE, "2026-06-15")
+                        put(COLUMN_BUY_CHANNEL, buyChannel)
+                        put(COLUMN_SHELF_LOCATION, shelfLocation)
+                        put(COLUMN_BINDING_TYPE, bindingType)
+                        put(COLUMN_BUY_PRICE, buyPrice)
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    return db.insert(TABLE_BOOKS, null, cv)
+                }
+            }
+
+            fun populateForBook(
+                bookId: Long,
+                depth: Double, artistry: Double, emotion: Double, logic: Double, diff: Double, heal: Double,
+                characters: List<Triple<String, String, String>>, // name, role, desc
+                outlines: List<Triple<Int, String, String>>, // order, title, summary
+                locations: List<Triple<String, String, String>>, // name, type, desc
+                sessions: List<Pair<Int, String>>, // duration, pages
+                quotes: List<Pair<String, String>>, // content, page
+            ) {
+                val now = currentTimestamp()
+
+                // 心智评分
+                val mindCv = ContentValues().apply {
+                    put(COLUMN_BOOK_ID, bookId)
+                    put(COLUMN_DEPTH_SCORE, depth)
+                    put(COLUMN_ARTISTRY_SCORE, artistry)
+                    put(COLUMN_EMOTION_SCORE, emotion)
+                    put(COLUMN_LOGIC_SCORE, logic)
+                    put(COLUMN_DIFFICULTY_SCORE, diff)
+                    put(COLUMN_HEALING_SCORE, heal)
+                    put(COLUMN_UPDATED_AT, now)
+                }
+                db.insertWithOnConflict(TABLE_BOOK_MINDPRINTS, null, mindCv, SQLiteDatabase.CONFLICT_REPLACE)
+
+                // 角色谱
+                val charCount = db.query(TABLE_BOOK_CHARACTERS, arrayOf("COUNT(*)"), "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0", arrayOf(bookId.toString()), null, null, null).use {
+                    if (it.moveToFirst()) it.getInt(0) else 0
+                }
+                if (charCount == 0) {
+                    characters.forEach { (name, role, desc) ->
+                        val cv = ContentValues().apply {
+                            put(COLUMN_BOOK_ID, bookId)
+                            put(COLUMN_NAME, name)
+                            put(COLUMN_ROLE_TITLE, role)
+                            put(COLUMN_AVATAR_EMOJI, when {
+                                name.contains("小王子") -> "👑"
+                                name.contains("玫瑰") -> "🌹"
+                                name.contains("狐狸") -> "🦊"
+                                name.contains("叶文洁") -> "🔭"
+                                name.contains("汪淼") -> "👓"
+                                name.contains("史强") -> "👮"
+                                name.contains("布恩迪亚") -> "👴"
+                                else -> "👤"
+                            })
+                            put(COLUMN_DESCRIPTION, desc)
+                            put(COLUMN_CREATED_AT, now)
+                            put(COLUMN_IS_DELETED, 0)
+                        }
+                        db.insert(TABLE_BOOK_CHARACTERS, null, cv)
+                    }
+                }
+
+                // 章节大纲
+                val outlineCount = db.query(TABLE_BOOK_OUTLINES, arrayOf("COUNT(*)"), "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0", arrayOf(bookId.toString()), null, null, null).use {
+                    if (it.moveToFirst()) it.getInt(0) else 0
+                }
+                if (outlineCount == 0) {
+                    outlines.forEach { (order, title, summary) ->
+                        val cv = ContentValues().apply {
+                            put(COLUMN_BOOK_ID, bookId)
+                            put(COLUMN_CHAPTER_ORDER, order)
+                            put(COLUMN_TITLE, title)
+                            put(COLUMN_SUMMARY, summary)
+                            put(COLUMN_CREATED_AT, now)
+                            put(COLUMN_IS_DELETED, 0)
+                        }
+                        db.insert(TABLE_BOOK_OUTLINES, null, cv)
+                    }
+                }
+
+                // 空间地标
+                val locCount = db.query(TABLE_BOOK_LOCATIONS, arrayOf("COUNT(*)"), "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0", arrayOf(bookId.toString()), null, null, null).use {
+                    if (it.moveToFirst()) it.getInt(0) else 0
+                }
+                if (locCount == 0) {
+                    locations.forEach { (name, type, desc) ->
+                        val cv = ContentValues().apply {
+                            put(COLUMN_BOOK_ID, bookId)
+                            put(COLUMN_NAME, name)
+                            put(COLUMN_LOCATION_TYPE, type)
+                            put(COLUMN_DESCRIPTION, desc)
+                            put(COLUMN_CREATED_AT, now)
+                            put(COLUMN_IS_DELETED, 0)
+                        }
+                        db.insert(TABLE_BOOK_LOCATIONS, null, cv)
+                    }
+                }
+
+                // 专注打卡
+                val sessionCount = db.query(TABLE_READING_SESSIONS, arrayOf("COUNT(*)"), "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0", arrayOf(bookId.toString()), null, null, null).use {
+                    if (it.moveToFirst()) it.getInt(0) else 0
+                }
+                if (sessionCount == 0) {
+                    sessions.forEach { (duration, pages) ->
+                        val cv = ContentValues().apply {
+                            put(COLUMN_BOOK_ID, bookId)
+                            put(COLUMN_DURATION_MINUTES, duration)
+                            put(COLUMN_PAGES_READ, pages)
+                            put(COLUMN_THOUGHT, "潜心专注阅读，沉浸在宏大与细腻的文字意境中。")
+                            put(COLUMN_CREATED_AT, now)
+                            put(COLUMN_IS_DELETED, 0)
+                        }
+                        db.insert(TABLE_READING_SESSIONS, null, cv)
+                    }
+                }
+
+                // 经典金句
+                val noteCount = db.query(TABLE_NOTES, arrayOf("COUNT(*)"), "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0", arrayOf(bookId.toString()), null, null, null).use {
+                    if (it.moveToFirst()) it.getInt(0) else 0
+                }
+                if (noteCount == 0) {
+                    quotes.forEach { (content, page) ->
+                        val cv = ContentValues().apply {
+                            put(COLUMN_BOOK_ID, bookId)
+                            put(COLUMN_CONTENT, content)
+                            put(COLUMN_NOTE_TYPE, "quote")
+                            put(COLUMN_PAGE, page)
+                            put(COLUMN_CREATED_AT, now)
+                            put(COLUMN_UPDATED_AT, now)
+                            put(COLUMN_IS_DELETED, 0)
+                        }
+                        db.insert(TABLE_NOTES, null, cv)
+                    }
+                }
+            }
+
+            // 1. 《小王子》
+            val princeId = findOrInsertBook(
+                title = "小王子",
+                author = "圣埃克苏佩里",
+                category = "文学名著",
+                status = "finished",
+                shortComment = "正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。",
+                review = "这是一本写给所有曾经是小孩的大人的童话。它用最纯净的语言，道出了人世间最深刻的真理：爱是驯服与责任，唯有用心才能看清本质。",
+                rating = 5.0,
+                tags = listOf("童话", "治愈", "哲学", "经典"),
+                coverUrl = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600",
+                buyChannel = "上海独立书店 · 季风书园",
+                shelfLocation = "书架第1层 · 治愈精神馆",
+                bindingType = "精装全彩插图典藏本",
+                buyPrice = 45.0,
+            )
+            populateForBook(
+                bookId = princeId,
+                depth = 9.2, artistry = 9.8, emotion = 10.0, logic = 7.5, diff = 2.0, heal = 10.0,
+                characters = listOf(
+                    Triple("小王子", "B-612星球守护者", "纯真执着的金发小男孩，游历星际寻找生命真谛"),
+                    Triple("玫瑰花", "骄傲的初恋", "生长在B-612小行星上的娇艳花朵，有四根刺和虚荣的骄傲"),
+                    Triple("狐狸", "智慧人生导师", "沙漠中的灵性生物，教会小王子什么是‘驯服’与‘责任’"),
+                    Triple("飞行员", "孤独的大人知音", "迫降在撒哈拉沙漠的成年人，保留着童年看透蟒蛇吞大象的纯真眼光"),
+                ),
+                outlines = listOf(
+                    Triple(1, "初遇与星际漫游", "飞行员迫降撒哈拉沙漠，遇到请求画羊的小王子，得知其来自B-612小行星"),
+                    Triple(2, "国王与点灯人的荒谬行星", "小王子游历各小行星，见识了爱发号施令的国王、虚荣者与盲目忙碌的点灯人"),
+                    Triple(3, "狐狸的秘密与爱的驯服", "在地球遇到五千朵相同的玫瑰而伤心，狐狸教会小王子爱的真谛与独一无二"),
+                    Triple(4, "蛇的信约与重归星空", "为了对自己的玫瑰负责，小王子在沙漠中将肉身留在地球，灵魂重归星空"),
+                ),
+                locations = listOf(
+                    Triple("🪐 B-612 小行星", "架空星际", "只有一间房子大的星球，拥有三座火山与一朵骄傲的玫瑰"),
+                    Triple("🏜️ 撒哈拉大沙漠", "现实自然", "无边无际的金色沙海，飞行员迫降与奇遇之地"),
+                    Triple("🌹 地球玫瑰园", "现实景观", "盛开着五千朵一模一样红玫瑰的花园，打破幻觉认知"),
+                ),
+                sessions = listOf(
+                    Pair(45, "P.1 ~ P.45"),
+                    Pair(60, "P.46 ~ P.96"),
+                ),
+                quotes = listOf(
+                    Pair("正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。", "85"),
+                    Pair("所有的大人都曾经是小孩，虽然，只有少数的人记得。", "3"),
+                    Pair("如果你说你在下午四点来，从三点开始，我就开始感到快乐了。", "82"),
+                ),
+            )
+
+            // 2. 《百年孤独》
+            val solitudeId = findOrInsertBook(
+                title = "百年孤独",
+                author = "加西亚·马尔克斯",
+                category = "拉美文学",
+                status = "finished",
+                shortComment = "多年以后，面对行刑队，奥雷里亚诺·布恩迪亚上校将会回想起父亲带他去见识冰块的那个遥远的下午。",
+                review = "魔幻现实主义的巅峰神作。七代人的宿命轮回，将人类无法摆脱的孤独、激情、荒诞与历史遗忘写到了极致。",
+                rating = 5.0,
+                tags = listOf("魔幻现实", "拉美", "家族史诗", "经典"),
+                coverUrl = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600",
+                buyChannel = "京东自营 · 范晔译本",
+                shelfLocation = "书架第2层 · 拉美魔幻现实",
+                bindingType = "精装布面烫金",
+                buyPrice = 59.8,
+            )
+            populateForBook(
+                bookId = solitudeId,
+                depth = 10.0, artistry = 9.8, emotion = 9.0, logic = 8.8, diff = 7.5, heal = 6.0,
+                characters = listOf(
+                    Triple("何塞·阿尔卡蒂奥·布恩迪亚", "马孔多缔造者", "狂热探求炼金术与科学的家族始祖，晚年被绑在栗树下"),
+                    Triple("乌尔苏拉", "家族坚韧之母", "活过百岁维系着庞大家族运转的伟大女性，家族百年兴衰见证者"),
+                    Triple("奥雷里亚诺·布恩迪亚上校", "传奇革命将领", "发动过32次武装起义，晚年在孤独中反复制作金小鱼"),
+                    Triple("梅尔基亚德斯", "吉普赛预言智者", "带来磁铁手稿，预言了马孔多的兴起与被最后的飓风抹去"),
+                ),
+                outlines = listOf(
+                    Triple(1, "马孔多的诞生与吉普赛魔术", "布恩迪亚夫妇穿过沼泽建立马孔多，世界初开时万物未命名"),
+                    Triple(2, "三十二场内战与金小鱼", "上校转战南北看破虚无，在孤独中熔炼金小鱼度过余生"),
+                    Triple(3, "香蕉公司的屠杀与漫长阴雨", "外来资本摧毁马孔多，三千四百名工人被枪杀，随后下了一场近五年的阴雨"),
+                    Triple(4, "羊皮纸手稿与最后的飓风", "家族最后一人破译羊皮纸，飓风席卷马孔多将其从大地上彻底抹去"),
+                ),
+                locations = listOf(
+                    Triple("🏡 马孔多 (Macondo)", "魔幻现实", "被沼泽与河流环绕的封闭市镇，见证布恩迪亚家族七代兴衰"),
+                ),
+                sessions = listOf(
+                    Pair(50, "P.1 ~ P.60"),
+                    Pair(75, "P.180 ~ P.260"),
+                ),
+                quotes = listOf(
+                    Pair("多年以后，面对行刑队，奥雷里亚诺·布恩迪亚上校将会回想起父亲带他去见识冰块的那个遥远的下午。", "1"),
+                    Pair("家族中的第一个人将被绑在树上，最后一个人正在被蚂蚁吃掉。", "356"),
+                ),
+            )
+
+            // 3. 《三体》
+            val threeBodyId = findOrInsertBook(
+                title = "三体",
+                author = "刘慈欣",
+                category = "科幻小说",
+                status = "finished",
+                shortComment = "给岁月以文明，而不是给文明以岁月。",
+                review = "中国科幻的巍峨丰碑。从红岸基地的第一声啼鸣到整个宇宙的黑暗森林法则，宏大的想象力与冷峻的文明思考令人叹为观止。",
+                rating = 5.0,
+                tags = listOf("硬核科幻", "宇宙文明", "硬科幻", "经典"),
+                coverUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                buyChannel = "科幻世界特约渠道",
+                shelfLocation = "书架第1层 · 硬核科幻神作",
+                bindingType = "精装硬壳纪念版",
+                buyPrice = 52.0,
+            )
+            populateForBook(
+                bookId = threeBodyId,
+                depth = 9.8, artistry = 8.5, emotion = 8.8, logic = 10.0, diff = 6.8, heal = 4.5,
+                characters = listOf(
+                    Triple("叶文洁", "红岸统帅 / 执剑先祖", "目睹创伤后对人性绝望，向宇宙发出引向三体文明的第一封信号"),
+                    Triple("汪淼", "纳米材料科学家", "幽灵倒计时见证者，进入三体VR游戏破译三体世界规律"),
+                    Triple("史强 (大史)", "刑警队长 / 粗中有细的智者", "以‘虫子从来没有被真正消灭过’鼓舞人类斗志的草莽英雄"),
+                ),
+                outlines = listOf(
+                    Triple(1, "红岸基地与宇宙初鸣", "叶文洁利用太阳能量镜面增益放大电波，向宇宙发射呼救信号"),
+                    Triple(2, "幽灵倒计时与三体游戏", "汪淼眼前出现倒计时，通过纳米材料与VR游戏揭开三日凌空灾难"),
+                    Triple(3, "古筝行动与智子封锁", "纳米飞刃切开审判日号截获三体信息，得知智子已到达地球封锁基础科学"),
+                ),
+                locations = listOf(
+                    Triple("📡 红岸基地", "历史科研", "位于大兴安岭雷达峰的绝密国防科考基地，拥有巨大抛物面天线"),
+                    Triple("🌌 半人马座α三星系统", "硬核科幻", "三颗恒星无规则运转的混沌地狱，乱纪元与恒纪元残酷交替"),
+                ),
+                sessions = listOf(
+                    Pair(60, "P.1 ~ P.80"),
+                    Pair(90, "P.200 ~ P.280"),
+                ),
+                quotes = listOf(
+                    Pair("给岁月以文明，而不是给文明以岁月。", "218"),
+                    Pair("不要回答！不要回答！不要回答！", "176"),
+                    Pair("弱小和无知不是生存的障碍，傲慢才是。", "190"),
+                ),
+            )
+        }
+    }
+
     fun insertBook(book: Book): Long {
         val now = currentTimestamp()
         val values = book.toContentValues().apply {

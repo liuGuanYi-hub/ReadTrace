@@ -871,6 +871,22 @@
                         android:text="💬摘录"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/detailTimelineExportBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:text="🖼️ 导出长图"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <TextView
@@ -911,6 +927,23 @@
                         android:layout_weight="1"
                         android:text="🕸️ 六维心智雷达"
                         android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/detailCompareMindprintBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="🔍 双书对比"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/detailEditMindprintBtn"

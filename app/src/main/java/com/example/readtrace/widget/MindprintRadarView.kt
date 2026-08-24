@@ -29,6 +29,10 @@ class MindprintRadarView @JvmOverloads constructor(
     private var difficultyScore = 5.0
     private var healingScore = 8.0
 
+    private var primaryTitle: String = ""
+    private var compareTitle: String? = null
+    private var compareMindprint: BookMindprint? = null
+
     private var animProgress = 1.0f
     private var animator: ValueAnimator? = null
 
@@ -56,22 +60,41 @@ class MindprintRadarView @JvmOverloads constructor(
         pathEffect = DashPathEffect(floatArrayOf(dpToPx(3f), dpToPx(3f)), 0f)
     }
 
-    // 数据填充区画笔
+    // 主作品填充区画笔 (琉璃琥珀色)
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#44C47D5C")
         style = Paint.Style.FILL
     }
 
-    // 数据外轮廓画笔
+    // 主作品外轮廓画笔
     private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#C47D5C")
         style = Paint.Style.STROKE
         strokeWidth = dpToPx(2.5f)
     }
 
-    // 数据顶点小圆点画笔
+    // 主作品顶点圆点画笔
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#9C5232")
+        style = Paint.Style.FILL
+    }
+
+    // 对比作品填充区画笔 (深邃冰川蓝)
+    private val compareFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#330284C7")
+        style = Paint.Style.FILL
+    }
+
+    // 对比作品外轮廓画笔
+    private val compareStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#0284C7")
+        style = Paint.Style.STROKE
+        strokeWidth = dpToPx(2.2f)
+    }
+
+    // 对比作品顶点圆点画笔
+    private val compareDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#0369A1")
         style = Paint.Style.FILL
     }
 
@@ -95,13 +118,40 @@ class MindprintRadarView @JvmOverloads constructor(
         isFakeBoldText = true
     }
 
+    private val compareScoreTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#0284C7")
+        textSize = dpToPx(9.5f)
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+    }
+
+    private val legendPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = dpToPx(10.5f)
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+    }
+
     fun setMindprint(mindprint: BookMindprint, animate: Boolean = true) {
-        depthScore = mindprint.depthScore.coerceIn(0.0, 10.0)
-        artistryScore = mindprint.artistryScore.coerceIn(0.0, 10.0)
-        emotionScore = mindprint.emotionScore.coerceIn(0.0, 10.0)
-        logicScore = mindprint.logicScore.coerceIn(0.0, 10.0)
-        difficultyScore = mindprint.difficultyScore.coerceIn(0.0, 10.0)
-        healingScore = mindprint.healingScore.coerceIn(0.0, 10.0)
+        setComparison("", mindprint, null, null, animate)
+    }
+
+    fun setComparison(
+        pTitle: String,
+        pMindprint: BookMindprint,
+        cTitle: String?,
+        cMindprint: BookMindprint?,
+        animate: Boolean = true,
+    ) {
+        primaryTitle = pTitle
+        depthScore = pMindprint.depthScore.coerceIn(0.0, 10.0)
+        artistryScore = pMindprint.artistryScore.coerceIn(0.0, 10.0)
+        emotionScore = pMindprint.emotionScore.coerceIn(0.0, 10.0)
+        logicScore = pMindprint.logicScore.coerceIn(0.0, 10.0)
+        difficultyScore = pMindprint.difficultyScore.coerceIn(0.0, 10.0)
+        healingScore = pMindprint.healingScore.coerceIn(0.0, 10.0)
+
+        compareTitle = cTitle
+        compareMindprint = cMindprint
 
         if (animate) {
             animator?.cancel()
@@ -133,10 +183,19 @@ class MindprintRadarView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         val cx = width / 2f
-        val cy = height / 2f
-        // 留出四周文字边距
-        val maxRadius = min(cx, cy) - dpToPx(38f)
+        val cy = height / 2f + (if (compareMindprint != null) dpToPx(8f) else 0f)
+        val maxRadius = min(width / 2f, height / 2f) - dpToPx(38f)
         if (maxRadius <= 0) return
+
+        // 绘制图例 (若处于对比模式)
+        if (compareMindprint != null && !compareTitle.isNullOrBlank()) {
+            val legendY = dpToPx(14f)
+            legendPaint.color = Color.parseColor("#9C5232")
+            canvas.drawText("■ $primaryTitle", cx - dpToPx(65f), legendY, legendPaint)
+
+            legendPaint.color = Color.parseColor("#0284C7")
+            canvas.drawText("■ $compareTitle", cx + dpToPx(65f), legendY, legendPaint)
+        }
 
         // 1. 绘制 4 层正六边形同心蛛网
         val levels = 4
@@ -163,13 +222,23 @@ class MindprintRadarView @JvmOverloads constructor(
             healingScore,
         )
 
+        val compScores = compareMindprint?.let {
+            doubleArrayOf(
+                it.depthScore,
+                it.artistryScore,
+                it.emotionScore,
+                it.logicScore,
+                it.difficultyScore,
+                it.healingScore,
+            )
+        }
+
         for (j in 0 until 6) {
             val angle = -Math.PI / 2 + j * (Math.PI / 3)
             val endX = (cx + maxRadius * cos(angle)).toFloat()
             val endY = (cy + maxRadius * sin(angle)).toFloat()
             canvas.drawLine(cx, cy, endX, endY, axisPaint)
 
-            // 绘制角标标签与当前分值
             val labelDistance = maxRadius + dpToPx(20f)
             val labelX = (cx + labelDistance * cos(angle)).toFloat()
             val labelY = (cy + labelDistance * sin(angle)).toFloat()
@@ -177,18 +246,49 @@ class MindprintRadarView @JvmOverloads constructor(
             val scoreStr = String.format(Locale.getDefault(), "%.1f", scores[j])
             val labelStr = dimensionLabels[j]
 
-            // 针对上下左右不同方位的文本微调偏移
             val yOffset = when (j) {
-                0 -> -dpToPx(4f) // 顶部
-                3 -> dpToPx(14f) // 底部
+                0 -> -dpToPx(4f)
+                3 -> dpToPx(14f)
                 else -> dpToPx(4f)
             }
 
             canvas.drawText(labelStr, labelX, labelY + yOffset, labelPaint)
-            canvas.drawText(scoreStr, labelX, labelY + yOffset + dpToPx(12f), scoreTextPaint)
+
+            if (compScores != null) {
+                val compStr = String.format(Locale.getDefault(), "%.1f", compScores[j])
+                canvas.drawText("$scoreStr vs $compStr", labelX, labelY + yOffset + dpToPx(12f), compareScoreTextPaint)
+            } else {
+                canvas.drawText(scoreStr, labelX, labelY + yOffset + dpToPx(12f), scoreTextPaint)
+            }
         }
 
-        // 3. 绘制多维心智覆盖多边形
+        // 3. 绘制对比作品覆盖多边形 (若存在)
+        if (compScores != null) {
+            val compPath = Path()
+            val compDots = mutableListOf<Pair<Float, Float>>()
+
+            for (j in 0 until 6) {
+                val angle = -Math.PI / 2 + j * (Math.PI / 3)
+                val currentScore = (compScores[j] / 10.0).toFloat() * animProgress
+                val scoreRadius = maxRadius * currentScore.coerceIn(0.05f, 1.0f)
+                val x = (cx + scoreRadius * cos(angle)).toFloat()
+                val y = (cy + scoreRadius * sin(angle)).toFloat()
+
+                compDots.add(Pair(x, y))
+                if (j == 0) compPath.moveTo(x, y) else compPath.lineTo(x, y)
+            }
+            compPath.close()
+
+            canvas.drawPath(compPath, compareFillPaint)
+            canvas.drawPath(compPath, compareStrokePaint)
+
+            for ((x, y) in compDots) {
+                canvas.drawCircle(x, y, dpToPx(3.5f), compareDotPaint)
+                canvas.drawCircle(x, y, dpToPx(3.5f), dotBorderPaint)
+            }
+        }
+
+        // 4. 绘制主作品覆盖多边形
         val dataPath = Path()
         val dotCoords = mutableListOf<Pair<Float, Float>>()
 
@@ -204,12 +304,9 @@ class MindprintRadarView @JvmOverloads constructor(
         }
         dataPath.close()
 
-        // 填充半透明柔光
         canvas.drawPath(dataPath, fillPaint)
-        // 描边
         canvas.drawPath(dataPath, strokePaint)
 
-        // 4. 绘制顶点高光发光圆点
         for ((x, y) in dotCoords) {
             canvas.drawCircle(x, y, dpToPx(4.5f), dotPaint)
             canvas.drawCircle(x, y, dpToPx(4.5f), dotBorderPaint)

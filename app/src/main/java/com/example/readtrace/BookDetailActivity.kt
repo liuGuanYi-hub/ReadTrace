@@ -177,6 +177,13 @@ class BookDetailActivity : AppCompatActivity() {
         filterSessions.setOnClickListener { updateFilterUi(TimelineFilter.SESSIONS_ONLY) }
         filterNotes.setOnClickListener { updateFilterUi(TimelineFilter.NOTES_ONLY) }
 
+        findViewById<View>(R.id.detailTimelineExportBtn).setOnClickListener {
+            exportTimelineAsLongImage()
+        }
+        findViewById<View>(R.id.detailCompareMindprintBtn).setOnClickListener {
+            showCompareMindprintDialog()
+        }
+
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
     }
@@ -567,6 +574,42 @@ class BookDetailActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showCompareMindprintDialog() {
+        val allBooks = databaseHelper.getBooks().filter { it.id != bookId }
+        if (allBooks.isEmpty()) {
+            Toast.makeText(this, "书架中暂无其他作品可用于对比", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val items = mutableListOf("✦ 取消对比 (恢复单作品雷达)")
+        items.addAll(allBooks.map { "《${it.title}》· ${it.author ?: "未知作者"}" })
+
+        AlertDialog.Builder(this)
+            .setTitle("🔍 选择要对比的心智作品")
+            .setItems(items.toTypedArray()) { _, which ->
+                val currentMindprint = databaseHelper.getMindprint(bookId)
+                val currentTitle = currentBook?.title ?: "当前作品"
+                val radarView = findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.detailMindprintRadar)
+
+                if (which == 0) {
+                    radarView?.setMindprint(currentMindprint, animate = true)
+                    Toast.makeText(this, "已恢复单作品心智雷达", Toast.LENGTH_SHORT).show()
+                } else {
+                    val targetBook = allBooks[which - 1]
+                    val targetMindprint = databaseHelper.getMindprint(targetBook.id)
+                    radarView?.setComparison(
+                        currentTitle,
+                        currentMindprint,
+                        targetBook.title,
+                        targetMindprint,
+                        animate = true,
+                    )
+                    Toast.makeText(this, "已开启《$currentTitle》与《${targetBook.title}》双书心智对照", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .show()
+    }
+
     private fun renderLocations(locations: List<com.example.readtrace.model.BookLocation>) {
         val container = findViewById<LinearLayout>(R.id.detailLocationsContainer)
         val emptyView = findViewById<TextView>(R.id.detailLocationsEmpty)
@@ -883,6 +926,91 @@ class BookDetailActivity : AppCompatActivity() {
             }
 
             container.addView(item)
+        }
+    }
+
+    private fun exportTimelineAsLongImage() {
+        val timelineView = findViewById<View>(R.id.detailTimelineSection)
+        if (timelineView == null || timelineView.width <= 0 || timelineView.height <= 0) {
+            Toast.makeText(this, "时间轴尚未渲染完毕，请稍候", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val bitmap = android.graphics.Bitmap.createBitmap(
+                timelineView.width,
+                timelineView.height,
+                android.graphics.Bitmap.Config.ARGB_8888,
+            )
+            val canvas = android.graphics.Canvas(bitmap)
+            timelineView.draw(canvas)
+
+            val bookName = currentBook?.title?.replace(" ", "_") ?: "book"
+            val filename = "ReadTrace_Timeline_${bookName}_${System.currentTimeMillis()}.png"
+            var fos: java.io.OutputStream? = null
+            var success = false
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val resolver = contentResolver
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+                }
+                val imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if (imageUri != null) {
+                    fos = resolver.openOutputStream(imageUri)
+                    success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos!!)
+                }
+            } else {
+                val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES).toString() + "/ReadTrace"
+                val file = java.io.File(imagesDir)
+                if (!file.exists()) file.mkdirs()
+                val imageFile = java.io.File(file, filename)
+                fos = java.io.FileOutputStream(imageFile)
+                success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+            }
+            fos?.close()
+
+            if (success) {
+                AlertDialog.Builder(this)
+                    .setTitle("🎉 时间轴长图已生成")
+                    .setMessage("全息心路长图已成功保存至系统相册！是否立即分享给书友？")
+                    .setNegativeButton("稍后再说", null)
+                    .setPositiveButton("🔗 立即分享") { _, _ ->
+                        shareTimelineBitmap(bitmap)
+                    }
+                    .show()
+            } else {
+                Toast.makeText(this, "导出长图失败，请稍后重试", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "生成长图出现异常: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun shareTimelineBitmap(bitmap: android.graphics.Bitmap) {
+        try {
+            val cachePath = java.io.File(cacheDir, "images")
+            cachePath.mkdirs()
+            val file = java.io.File(cachePath, "share_timeline.png")
+            val stream = java.io.FileOutputStream(file)
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+            stream.close()
+
+            val contentUri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                putExtra(Intent.EXTRA_SUBJECT, "《${currentBook?.title}》全息心路历程 · 阅痕 ReadTrace")
+                putExtra(Intent.EXTRA_TEXT, "这是我在《${currentBook?.title}》中留下的全息阅读印记与时光时间轴。")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "分享心路全息长图"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "分享长图失败", Toast.LENGTH_SHORT).show()
         }
     }
 
