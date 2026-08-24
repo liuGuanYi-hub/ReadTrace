@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="readtrace_background">#121412</color>
+    <color name="readtrace_glass">#1C201C</color>
+    <color name="readtrace_glass_soft">#242923</color>
+    <color name="readtrace_glass_stroke">#2EFFFFFF</color>
+    <color name="readtrace_ink">#F5F3ED</color>
+    <color name="readtrace_muted">#9EA599</color>
+    <color name="readtrace_accent">#5E9E71</color>
+    <color name="readtrace_accent_pressed">#4B835B</color>
+    <color name="readtrace_danger">#E06D6D</color>
+    <color name="readtrace_danger_pressed">#C75454</color>
+    <color name="readtrace_chip">#252C24</color>
+    <color name="readtrace_chip_selected">#5E9E71</color>
+    <color name="readtrace_chip_selected_stroke">#665E9E71</color>
+    <color name="readtrace_book_cover">#2A3028</color>
+    <color name="readtrace_book_cover_stroke">#33FFFFFF</color>
+    <color name="readtrace_soft_shadow">#66000000</color>
+</resources>

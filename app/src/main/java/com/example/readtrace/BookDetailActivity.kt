@@ -231,6 +231,7 @@ class BookDetailActivity : AppCompatActivity() {
             databaseHelper.getLocations(bookId),
             databaseHelper.getOutlines(bookId),
         )
+        renderSimilarBooks(book)
     }
 
     private fun renderCollection(book: Book) {
@@ -691,6 +692,42 @@ class BookDetailActivity : AppCompatActivity() {
             }
 
             container.addView(item)
+        }
+    }
+
+    private fun renderSimilarBooks(book: Book) {
+        val container = findViewById<LinearLayout>(R.id.detailSimilarContainer) ?: return
+        val emptyView = findViewById<TextView>(R.id.detailSimilarEmpty) ?: return
+        container.removeAllViews()
+
+        val recommendations = com.example.readtrace.util.BookSimilarityEngine.findSimilarBooks(book, databaseHelper, limit = 2)
+
+        if (recommendations.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        recommendations.forEach { rec ->
+            val card = layoutInflater.inflate(R.layout.item_similar_book_card, container, false)
+            val coverImg = card.findViewById<ImageView>(R.id.similarCoverImage)
+            CoverImageHelper.loadCover(coverImg, rec.book.coverUrl)
+
+            card.findViewById<TextView>(R.id.similarMediaBadge).text = rec.book.mediaType.emoji
+            card.findViewById<TextView>(R.id.similarTitle).text = rec.book.title
+            card.findViewById<TextView>(R.id.similarAuthor).text = rec.book.author ?: getString(R.string.unknown_author)
+            card.findViewById<TextView>(R.id.similarMatchBadge).text = "${rec.similarityPercent}% 灵犀契合"
+            card.findViewById<TextView>(R.id.similarMatchReason).text = "✨ ${rec.matchReason}"
+
+            card.setOnClickListener {
+                startActivity(createIntent(this, rec.book.id))
+            }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(card, 0.97f)
+
+            container.addView(card)
         }
     }
 

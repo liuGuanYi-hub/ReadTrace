@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/similarBookCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_glass_panel_soft"
+    android:clickable="true"
+    android:elevation="3dp"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <FrameLayout
+        android:id="@+id/similarCoverFrame"
+        android:layout_width="54dp"
+        android:layout_height="78dp"
+        android:background="@drawable/bg_book_placeholder"
+        android:clipToOutline="true"
+        android:elevation="2dp"
+        android:outlineProvider="background">
+
+        <ImageView
+            android:id="@+id/similarCoverImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/similarMediaBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="📖"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/similarTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="百年孤独" />
+
+            <TextView
+                android:id="@+id/similarMatchBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_pill"
+                android:paddingStart="7dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="96% 契合" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/similarAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp"
+            tools:text="加西亚·马尔克斯" />
+
+        <TextView
+            android:id="@+id/similarMatchReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="sans"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            tools:text="✨ 同属拉美文学 · 六维心智特质极度契合" />
+    </LinearLayout>
+
+</LinearLayout>

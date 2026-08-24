@@ -131,6 +131,26 @@ class MindprintRadarView @JvmOverloads constructor(
         isFakeBoldText = true
     }
 
+    private fun updateThemeColors() {
+        val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (isNight) {
+            webPaint.color = Color.parseColor("#334033")
+            axisPaint.color = Color.parseColor("#283328")
+            labelPaint.color = Color.parseColor("#EAE7DE")
+            scoreTextPaint.color = Color.parseColor("#F5A582")
+            compareScoreTextPaint.color = Color.parseColor("#38BDF8")
+            dotBorderPaint.color = Color.parseColor("#181C18")
+        } else {
+            webPaint.color = Color.parseColor("#DDD4CA")
+            axisPaint.color = Color.parseColor("#EADFD5")
+            labelPaint.color = Color.parseColor("#3F3832")
+            scoreTextPaint.color = Color.parseColor("#9C5232")
+            compareScoreTextPaint.color = Color.parseColor("#0284C7")
+            dotBorderPaint.color = Color.WHITE
+        }
+    }
+
     fun setMindprint(mindprint: BookMindprint, animate: Boolean = true) {
         setComparison("", mindprint, null, null, animate)
     }
@@ -181,6 +201,7 @@ class MindprintRadarView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        updateThemeColors()
 
         val cx = width / 2f
         val cy = height / 2f + (if (compareMindprint != null) dpToPx(8f) else 0f)

@@ -93,6 +93,14 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
         isGridView = prefs.getBoolean("pref_is_grid_view", false)
 
+        val themeToggleBtn = findViewById<TextView>(R.id.themeToggleButton)
+        themeToggleBtn?.text = if (com.example.readtrace.util.ThemeHelper.isDarkMode(this)) "☀️" else "🌙"
+        themeToggleBtn?.setOnClickListener {
+            val isDark = com.example.readtrace.util.ThemeHelper.toggleDarkMode(this)
+            themeToggleBtn.text = if (isDark) "☀️" else "🌙"
+        }
+        themeToggleBtn?.let { com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(it) }
+
         databaseHelper = BookDatabaseHelper(this)
         booksContainer = findViewById(R.id.booksContainer)
         emptyPanel = findViewById(R.id.emptyPanel)

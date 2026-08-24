@@ -75,9 +75,22 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/themeToggleButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="🌙"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="16sp" />
+
+                    <TextView
                         android:id="@+id/trashButton"
                         android:layout_width="wrap_content"
                         android:layout_height="44dp"
+                        android:layout_marginStart="6dp"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
                         android:focusable="true"

@@ -1182,6 +1182,45 @@
                     tools:visibility="visible" />
             </LinearLayout>
 
+            <!-- 🔗 灵犀共鸣 · 相似心智作品推荐 -->
+            <LinearLayout
+                android:id="@+id/detailSimilarSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="7dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/ReadTraceFieldLabel"
+                    android:text="🔗 灵犀共鸣 · 心智相似作品"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans"
+                    android:text="基于六维认知雷达、媒介分类与作者文化源流智能匹配"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="12.5sp" />
+
+                <TextView
+                    android:id="@+id/detailSimilarEmpty"
+                    style="@style/ReadTraceDetailValue"
+                    android:layout_marginTop="12dp"
+                    android:text="书架藏书不足或暂无足够心智样本进行相似推荐。"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/detailSimilarContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
