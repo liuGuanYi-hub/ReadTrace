@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <!-- 左侧时间轴柱与节点图标 -->
+    <LinearLayout
+        android:layout_width="36dp"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- 顶部连接虚线 -->
+        <View
+            android:id="@+id/timelineTopLine"
+            android:layout_width="2dp"
+            android:layout_height="12dp"
+            android:background="#D1C7BD" />
+
+        <!-- 节点光晕圆标 -->
+        <FrameLayout
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_status_chip_selected">
+
+            <TextView
+                android:id="@+id/timelineNodeIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="12sp"
+                tools:text="⏱️" />
+        </FrameLayout>
+
+        <!-- 底部连接线条 -->
+        <View
+            android:id="@+id/timelineBottomLine"
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="#D1C7BD" />
+    </LinearLayout>
+
+    <!-- 右侧内容玻璃卡片 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_glass_panel_soft"
+        android:elevation="3dp"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/timelineTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="⏱️ 专注阅读 45 分钟" />
+
+            <TextView
+                android:id="@+id/timelineTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11sp"
+                tools:text="2026-08-24 10:30" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/timelineSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="12sp"
+            tools:text="读至：第 21 章 · P.85" />
+
+        <TextView
+            android:id="@+id/timelineContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans"
+            android:lineSpacingExtra="3dp"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="13sp"
+            tools:text="正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。" />
+
+        <TextView
+            android:id="@+id/timelineExtraMeta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_status_pill"
+            android:fontFamily="sans"
+            android:paddingStart="8dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="11sp"
+            tools:text="💡 核心感悟：驯服的责任" />
+    </LinearLayout>
+</LinearLayout>

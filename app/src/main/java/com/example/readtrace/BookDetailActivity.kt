@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
@@ -117,6 +118,65 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
+        // 📑 轻量组件化多板块快捷导航条
+        val navOverview = findViewById<TextView>(R.id.navTabOverview)
+        val navTimeline = findViewById<TextView>(R.id.navTabTimeline)
+        val navCharacters = findViewById<TextView>(R.id.navTabCharacters)
+        val navNotes = findViewById<TextView>(R.id.navTabNotes)
+        val mainScrollView = findViewById<android.widget.ScrollView>(R.id.detailContent)
+
+        fun updateNavTabs(activeTab: TextView) {
+            listOf(navOverview, navTimeline, navCharacters, navNotes).forEach {
+                val isSelected = it == activeTab
+                it.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+                it.setTextColor(getColor(if (isSelected) R.color.white else R.color.readtrace_ink))
+            }
+        }
+
+        navOverview.setOnClickListener {
+            updateNavTabs(navOverview)
+            mainScrollView.smoothScrollTo(0, 0)
+        }
+        navTimeline.setOnClickListener {
+            updateNavTabs(navTimeline)
+            val y = findViewById<View>(R.id.detailTimelineSection).top
+            mainScrollView.smoothScrollTo(0, y)
+        }
+        navCharacters.setOnClickListener {
+            updateNavTabs(navCharacters)
+            val y = findViewById<View>(R.id.detailCharsContainer).parent?.let { (it as View).top } ?: 0
+            mainScrollView.smoothScrollTo(0, y)
+        }
+        navNotes.setOnClickListener {
+            updateNavTabs(navNotes)
+            val y = findViewById<View>(R.id.detailNotesContainer).parent?.let { (it as View).top } ?: 0
+            mainScrollView.smoothScrollTo(0, y)
+        }
+
+        // ⏳ 时间轴筛选按钮
+        val filterAll = findViewById<TextView>(R.id.detailTimelineFilterAll)
+        val filterSessions = findViewById<TextView>(R.id.detailTimelineFilterSessions)
+        val filterNotes = findViewById<TextView>(R.id.detailTimelineFilterNotes)
+
+        fun updateFilterUi(filter: TimelineFilter) {
+            currentTimelineFilter = filter
+            val map = listOf(
+                filterAll to TimelineFilter.ALL,
+                filterSessions to TimelineFilter.SESSIONS_ONLY,
+                filterNotes to TimelineFilter.NOTES_ONLY,
+            )
+            map.forEach { (view, type) ->
+                val isSel = type == filter
+                view.setBackgroundResource(if (isSel) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+                view.setTextColor(getColor(if (isSel) R.color.white else R.color.readtrace_ink))
+            }
+            currentBook?.let { refreshTimelineOnly(it) }
+        }
+
+        filterAll.setOnClickListener { updateFilterUi(TimelineFilter.ALL) }
+        filterSessions.setOnClickListener { updateFilterUi(TimelineFilter.SESSIONS_ONLY) }
+        filterNotes.setOnClickListener { updateFilterUi(TimelineFilter.NOTES_ONLY) }
+
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
     }
@@ -138,6 +198,13 @@ class BookDetailActivity : AppCompatActivity() {
         renderOutlines(databaseHelper.getOutlines(bookId))
         renderMindprint(databaseHelper.getMindprint(bookId))
         renderLocations(databaseHelper.getLocations(bookId))
+        renderTimeline(
+            book,
+            databaseHelper.getReadingSessions(bookId),
+            databaseHelper.getNotes(bookId),
+            databaseHelper.getLocations(bookId),
+            databaseHelper.getOutlines(bookId),
+        )
     }
 
     private fun renderCollection(book: Book) {
@@ -425,6 +492,10 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailMindprintSummary).text =
             String.format(Locale.getDefault(), "🌟 综合认知深度指数：%.1f / 10 · %s", avg, tag)
 
+        // 驱动原生 Canvas 蛛网雷达图绘制
+        findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.detailMindprintRadar)
+            ?.setMindprint(mindprint, animate = true)
+
         findViewById<TextView>(R.id.detailScoreDepth).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.depthScore)
         findViewById<TextView>(R.id.detailScoreArtistry).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.artistryScore)
         findViewById<TextView>(R.id.detailScoreEmotion).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.emotionScore)
@@ -606,9 +677,213 @@ class BookDetailActivity : AppCompatActivity() {
                     )
                     databaseHelper.insertLocation(location)
                     renderLocations(databaseHelper.getLocations(bookId))
+                    currentBook?.let { refreshTimelineOnly(it) }
                 }
             }
             .show()
+    }
+
+    private enum class TimelineFilter {
+        ALL, SESSIONS_ONLY, NOTES_ONLY
+    }
+
+    private var currentTimelineFilter = TimelineFilter.ALL
+
+    private fun refreshTimelineOnly(book: Book) {
+        renderTimeline(
+            book,
+            databaseHelper.getReadingSessions(book.id),
+            databaseHelper.getNotes(book.id),
+            databaseHelper.getLocations(book.id),
+            databaseHelper.getOutlines(book.id),
+        )
+    }
+
+    private fun renderTimeline(
+        book: Book,
+        sessions: List<com.example.readtrace.model.ReadingSession>,
+        notes: List<Note>,
+        locations: List<com.example.readtrace.model.BookLocation>,
+        outlines: List<com.example.readtrace.model.BookOutline>,
+    ) {
+        val container = findViewById<LinearLayout>(R.id.detailTimelineContainer)
+        val emptyView = findViewById<TextView>(R.id.detailTimelineEmpty)
+        container.removeAllViews()
+
+        val events = mutableListOf<com.example.readtrace.model.TimelineEvent>()
+
+        // 1. 初读起点
+        if (!book.startDate.isNullOrBlank()) {
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "start_${book.id}",
+                    type = com.example.readtrace.model.TimelineEventType.START_READING,
+                    timestamp = book.startDate + "T08:00:00",
+                    title = "🏁 启程 · 翻开扉页",
+                    subtitle = "当前状态：${book.status.displayName} · 载体：${book.mediaType.displayName}",
+                    content = "初读期待与相遇",
+                    extraMeta = book.category?.let { "分类：$it" },
+                ),
+            )
+        }
+
+        // 2. 专注阅读打卡
+        sessions.forEach { session ->
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "session_${session.id}",
+                    type = com.example.readtrace.model.TimelineEventType.READING_SESSION,
+                    timestamp = session.createdAt,
+                    title = "⏱️ 专注阅读 ${session.durationMinutes} 分钟",
+                    subtitle = session.pagesRead?.takeIf { it.isNotBlank() }?.let { "读至：$it" },
+                    content = session.thought,
+                    extraMeta = "打卡印记",
+                    rawId = session.id,
+                ),
+            )
+        }
+
+        // 3. 灵感与高光摘录
+        notes.forEach { note ->
+            val positionMeta = listOfNotNull(
+                note.chapter?.trim()?.takeIf { it.isNotEmpty() },
+                note.page?.trim()?.takeIf { it.isNotEmpty() }?.let { "P.$it" },
+            ).joinToString(" · ")
+
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "note_${note.id}",
+                    type = com.example.readtrace.model.TimelineEventType.NOTE_QUOTE,
+                    timestamp = note.createdAt,
+                    title = "💬 [${note.noteType.displayName}] 灵感火花",
+                    subtitle = positionMeta.takeIf { it.isNotEmpty() },
+                    content = note.content,
+                    extraMeta = "🎨 点击制作金句海报",
+                    rawId = note.id,
+                ),
+            )
+        }
+
+        // 4. 空间叙事地标
+        locations.forEach { loc ->
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "loc_${loc.id}",
+                    type = com.example.readtrace.model.TimelineEventType.LOCATION_DISCOVERED,
+                    timestamp = loc.createdAt,
+                    title = "🗺️ 空间漫游：${loc.name}",
+                    subtitle = loc.locationType + (loc.coordinates?.let { " · $it" } ?: ""),
+                    content = loc.description,
+                    extraMeta = loc.significance?.let { "📍 象征：$it" },
+                    rawId = loc.id,
+                ),
+            )
+        }
+
+        // 5. 章节大纲脑图
+        outlines.forEach { outline ->
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "outline_${outline.id}",
+                    type = com.example.readtrace.model.TimelineEventType.OUTLINE_CHAPTER,
+                    timestamp = outline.createdAt,
+                    title = "📖 第 ${outline.chapterOrder} 章：${outline.title}",
+                    subtitle = "全书大纲脉络",
+                    content = outline.summary,
+                    extraMeta = outline.keyTakeaways?.let { "💡 思想精髓：$it" },
+                    rawId = outline.id,
+                ),
+            )
+        }
+
+        // 6. 完读与深度复盘
+        if (!book.finishDate.isNullOrBlank() || book.status == BookStatus.FINISHED) {
+            events.add(
+                com.example.readtrace.model.TimelineEvent(
+                    id = "finish_${book.id}",
+                    type = com.example.readtrace.model.TimelineEventType.FINISH_REVIEW,
+                    timestamp = (book.finishDate ?: book.updatedAt) + "T23:59:59",
+                    title = "🌟 终章 · 全书完读复盘",
+                    subtitle = book.rating?.let { "个人评分：★ $it / 5.0" } ?: "已读完",
+                    content = book.review?.takeIf { it.isNotBlank() } ?: book.shortComment,
+                    extraMeta = "精神沉淀与思想烙印",
+                ),
+            )
+        }
+
+        // 按发生时间排序
+        events.sort()
+
+        val filteredEvents = when (currentTimelineFilter) {
+            TimelineFilter.ALL -> events
+            TimelineFilter.SESSIONS_ONLY -> events.filter { it.type == com.example.readtrace.model.TimelineEventType.READING_SESSION }
+            TimelineFilter.NOTES_ONLY -> events.filter { it.type == com.example.readtrace.model.TimelineEventType.NOTE_QUOTE }
+        }
+
+        if (filteredEvents.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        filteredEvents.forEachIndexed { index, event ->
+            val item = layoutInflater.inflate(R.layout.item_timeline_node, container, false)
+            item.findViewById<TextView>(R.id.timelineNodeIcon).text = event.type.icon
+            item.findViewById<TextView>(R.id.timelineTitle).text = event.title
+            item.findViewById<TextView>(R.id.timelineTimeText).text = formatTimestamp(event.timestamp)
+
+            if (index == 0) {
+                item.findViewById<View>(R.id.timelineTopLine).visibility = View.INVISIBLE
+            }
+            if (index == filteredEvents.size - 1) {
+                item.findViewById<View>(R.id.timelineBottomLine).visibility = View.INVISIBLE
+            }
+
+            val subView = item.findViewById<TextView>(R.id.timelineSubtitle)
+            if (event.subtitle.isNullOrBlank()) {
+                subView.visibility = View.GONE
+            } else {
+                subView.visibility = View.VISIBLE
+                subView.text = event.subtitle
+            }
+
+            val contentView = item.findViewById<TextView>(R.id.timelineContent)
+            if (event.content.isNullOrBlank()) {
+                contentView.visibility = View.GONE
+            } else {
+                contentView.visibility = View.VISIBLE
+                contentView.text = event.content
+            }
+
+            val extraView = item.findViewById<TextView>(R.id.timelineExtraMeta)
+            if (event.extraMeta.isNullOrBlank()) {
+                extraView.visibility = View.GONE
+            } else {
+                extraView.visibility = View.VISIBLE
+                extraView.text = event.extraMeta
+            }
+
+            if (event.type == com.example.readtrace.model.TimelineEventType.NOTE_QUOTE) {
+                item.setOnClickListener {
+                    startActivity(
+                        QuotePosterActivity.createIntent(
+                            this,
+                            book.id,
+                            book.title,
+                            book.author,
+                            book.coverUrl,
+                            event.content.orEmpty(),
+                            event.subtitle,
+                        ),
+                    )
+                }
+            }
+
+            container.addView(item)
+        }
     }
 
     private fun renderBook(book: Book) {
