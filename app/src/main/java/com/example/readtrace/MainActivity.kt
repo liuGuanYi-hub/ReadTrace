@@ -149,26 +149,30 @@ class MainActivity : AppCompatActivity() {
         val openAddBook = View.OnClickListener {
             startActivity(Intent(this, AddBookActivity::class.java))
         }
-        findViewById<View>(R.id.addButton).setOnClickListener(openAddBook)
-        findViewById<View>(R.id.emptyAction).setOnClickListener(openAddBook)
-        findViewById<View>(R.id.importPresetButton).setOnClickListener {
-            confirmImportPresetBooks()
-        }
-        findViewById<View>(R.id.trashButton).setOnClickListener {
-            startActivity(TrashActivity.createIntent(this))
-        }
-        findViewById<View>(R.id.backupButton).setOnClickListener {
-            startActivity(Intent(this, BackupActivity::class.java))
-        }
-        homeBadgePanel.setOnClickListener {
-            startActivity(BadgesActivity.createIntent(this))
-        }
-        homeGalleryPanel.setOnClickListener {
-            startActivity(Gallery3DActivity.createIntent(this))
-        }
-        findViewById<View>(R.id.homeCommunityPanel)?.setOnClickListener {
+        val addBtn = findViewById<View>(R.id.addButton)
+        val emptyAction = findViewById<View>(R.id.emptyAction)
+        val presetBtn = findViewById<View>(R.id.importPresetButton)
+        val trashBtn = findViewById<View>(R.id.trashButton)
+        val backupBtn = findViewById<View>(R.id.backupButton)
+        val communityPanel = findViewById<View>(R.id.homeCommunityPanel)
+
+        addBtn.setOnClickListener(openAddBook)
+        emptyAction.setOnClickListener(openAddBook)
+        presetBtn.setOnClickListener { confirmImportPresetBooks() }
+        trashBtn.setOnClickListener { startActivity(TrashActivity.createIntent(this)) }
+        backupBtn.setOnClickListener { startActivity(Intent(this, BackupActivity::class.java)) }
+        homeBadgePanel.setOnClickListener { startActivity(BadgesActivity.createIntent(this)) }
+        homeGalleryPanel.setOnClickListener { startActivity(Gallery3DActivity.createIntent(this)) }
+        communityPanel?.setOnClickListener {
             startActivity(com.example.readtrace.community.ui.CommunityActivity.createIntent(this))
         }
+
+        // 注入 iOS 级 Q 弹物理反馈
+        listOfNotNull(
+            addBtn, emptyAction, presetBtn, trashBtn, backupBtn,
+            homeBadgePanel, homeGalleryPanel, communityPanel,
+            btnExportShelfScroll, memoryPanel,
+        ).forEach { com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(it) }
     }
 
     private fun confirmImportPresetBooks() {
@@ -613,6 +617,7 @@ class MainActivity : AppCompatActivity() {
             showBookHologramPeekDialog(book)
             true
         }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(card, 0.97f)
 
         return card
     }
@@ -918,14 +923,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun animateBookCard(card: View, index: Int) {
-        card.alpha = 0f
-        card.translationY = 28f
-        card.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setStartDelay(index.coerceAtMost(6) * 55L)
-            .setDuration(460L)
-            .start()
+        com.example.readtrace.util.ViewAnimationHelper.staggerFadeIn(card, index)
     }
 
     override fun onDestroy() {

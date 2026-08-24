@@ -184,6 +184,25 @@ class BookDetailActivity : AppCompatActivity() {
             showCompareMindprintDialog()
         }
 
+        // 注入 iOS 级 Q 弹手势触觉反馈
+        listOfNotNull(
+            findViewById(R.id.detailBackButton),
+            findViewById(R.id.detailEditButton),
+            findViewById(R.id.detailArchiveButton),
+            findViewById(R.id.detailStartTimerButton),
+            findViewById(R.id.detailQuotePosterButton),
+            findViewById(R.id.detailRead3DButton),
+            findViewById(R.id.detailImportTxtButton),
+            findViewById(R.id.detailAddCharButton),
+            findViewById(R.id.detailAddOutlineButton),
+            findViewById(R.id.detailAddLocationBtn),
+            findViewById(R.id.detailEditMindprintBtn),
+            findViewById(R.id.detailCompareMindprintBtn),
+            findViewById(R.id.detailTimelineExportBtn),
+            navOverview, navTimeline, navCharacters, navNotes,
+            filterAll, filterSessions, filterNotes,
+        ).forEach { com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(it) }
+
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
     }

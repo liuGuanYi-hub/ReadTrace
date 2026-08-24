@@ -4,20 +4,22 @@
     android:id="@+id/bookCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
+    android:layout_marginTop="10dp"
     android:background="@drawable/bg_glass_panel_soft"
     android:clickable="true"
-    android:elevation="7dp"
+    android:elevation="4dp"
     android:focusable="true"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:padding="14dp">
 
     <FrameLayout
         android:id="@+id/bookCardCoverFrame"
-        android:layout_width="72dp"
-        android:layout_height="102dp"
+        android:layout_width="66dp"
+        android:layout_height="94dp"
         android:background="@drawable/bg_book_placeholder"
         android:clipToOutline="true"
+        android:elevation="2dp"
         android:outlineProvider="background">
 
         <ImageView
@@ -32,142 +34,130 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
+        android:layout_marginStart="14dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/bookCardTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="sans"
-            android:maxLines="2"
-            android:textColor="@color/readtrace_ink"
-            android:textSize="19sp"
-            android:textStyle="bold"
-            tools:text="海边的卡夫卡" />
-
-        <TextView
-            android:id="@+id/bookCardAuthor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
-            android:ellipsize="end"
-            android:fontFamily="sans"
-            android:maxLines="1"
-            android:textColor="@color/readtrace_muted"
-            android:textSize="14sp"
-            tools:text="村上春树" />
-
-        <TextView
-            android:id="@+id/bookCardMeta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="13dp"
-            android:fontFamily="sans"
-            android:textColor="@color/readtrace_accent"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            tools:text="在读 · 8.5 / 10" />
-
         <LinearLayout
-            android:id="@+id/bookCardSummaryRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="13dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/bookCardMediaBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
-                android:background="@drawable/bg_secondary_button"
-                android:fontFamily="sans"
-                android:paddingStart="6dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="2dp"
+                android:text="📖"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/bookCardTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:maxLines="1"
                 android:textColor="@color/readtrace_ink"
-                android:textSize="11sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
-                tools:text="🎬" />
+                tools:text="海边的卡夫卡" />
 
             <TextView
                 android:id="@+id/bookCardStatusPill"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_pill"
-                android:fontFamily="sans"
+                android:paddingStart="7dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
                 android:textColor="@color/readtrace_accent"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
-                tools:text="已看" />
+                tools:text="读完" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/bookCardAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12.5sp"
+            tools:text="村上春树" />
+
+        <TextView
+            android:id="@+id/bookCardMeta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="在读 · 8.5 / 10" />
+
+        <LinearLayout
+            android:id="@+id/bookCardSummaryRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/bookCardRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:fontFamily="sans"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="13sp"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                tools:text="8.5 / 10" />
+                tools:text="★ 8.5" />
 
             <TextView
                 android:id="@+id/bookCardCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_secondary_button"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1dp"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="10.5sp"
+                tools:text="外国文学" />
+
+            <TextView
+                android:id="@+id/bookCardTags"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
-                android:fontFamily="sans"
                 android:gravity="end"
                 android:maxLines="1"
                 android:textColor="@color/readtrace_muted"
-                android:textSize="12sp"
-                tools:text="小说" />
+                android:textSize="11sp"
+                tools:text="成长 · 哲学" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/bookCardTags"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
-            android:ellipsize="end"
-            android:fontFamily="sans"
-            android:maxLines="2"
-            android:textColor="@color/readtrace_muted"
-            android:textSize="12sp"
-            tools:text="成长 · 日本文学 · 小说" />
 
         <TextView
             android:id="@+id/bookCardComment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:ellipsize="end"
-            android:fontFamily="sans"
-            android:maxLines="2"
+            android:maxLines="1"
             android:textColor="@color/readtrace_muted"
-            android:textSize="13sp"
-            tools:text="像潮水一样缓慢地留下来。" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="sans"
-            android:gravity="end"
-            android:text="@string/book_detail_hint"
-            android:textColor="@color/readtrace_accent"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            tools:text="“像潮水一样缓慢地留下来。”" />
     </LinearLayout>
 
 </LinearLayout>
