@@ -347,49 +347,62 @@ class MindprintConstellationView @JvmOverloads constructor(
         val aTitle = a.book.title
         val bTitle = b.book.title
 
-        // 1. 存在主义哲学与终极孤独（《百年孤独》/《局外人》/《1984》 vs 《EVA》/《来自深渊》/《夏日重现》）
-        if ((aTitle.contains("百年孤独") || aTitle.contains("局外人") || aTitle.contains("1984")) &&
-            (bTitle.contains("EVA") || bTitle.contains("新世纪福音战士") || bTitle.contains("来自深渊") || bTitle.contains("夏日重现")) ||
-            (bTitle.contains("百年孤独") || bTitle.contains("局外人") || bTitle.contains("1984")) &&
-            (aTitle.contains("EVA") || aTitle.contains("新世纪福音战士") || aTitle.contains("来自深渊") || aTitle.contains("夏日重现"))
-        ) {
+        fun matchesPair(keywordA: List<String>, keywordB: List<String>): Boolean {
+            val aHasA = keywordA.any { aTitle.contains(it) }
+            val bHasB = keywordB.any { bTitle.contains(it) }
+            val aHasB = keywordB.any { aTitle.contains(it) }
+            val bHasA = keywordA.any { bTitle.contains(it) }
+            return (aHasA && bHasB) || (aHasB && bHasA)
+        }
+
+        // 1. 存在主义思辨 · 终极孤独 (94%)
+        if (matchesPair(listOf("百年孤独", "局外人", "1984", "西西弗"), listOf("EVA", "新世纪福音战士", "来自深渊", "夏日重现"))) {
             return Pair("存在主义思辨 · 终极孤独", 94)
         }
 
-        // 2. 爱的驯服与治愈救赎（《小王子》/《解忧杂货店》 vs 《紫罗兰永恒花园》/《夏目友人帐》）
-        if ((aTitle.contains("小王子") || aTitle.contains("解忧杂货店")) &&
-            (bTitle.contains("紫罗兰") || bTitle.contains("夏目友人帐")) ||
-            (bTitle.contains("小王子") || bTitle.contains("解忧杂货店")) &&
-            (aTitle.contains("紫罗兰") || aTitle.contains("夏目友人帐"))
-        ) {
+        // 2. 爱的驯服 · 治愈救赎 (96%)
+        if (matchesPair(listOf("小王子", "解忧杂货店", "廊桥遗梦"), listOf("紫罗兰", "夏目友人帐", "天使的心跳", "Angel Beats"))) {
             return Pair("爱的驯服 · 治愈救赎", 96)
         }
 
-        // 3. 宇宙宿命与宏大哲思（《三体》/《时间简史》 vs 《魔法少女小圆》/《EVA》）
-        if ((aTitle.contains("三体") || aTitle.contains("时间简史") || aTitle.contains("上帝掷骰子")) &&
-            (bTitle.contains("小圆") || bTitle.contains("EVA") || bTitle.contains("命运石之门")) ||
-            (bTitle.contains("三体") || bTitle.contains("时间简史") || bTitle.contains("上帝掷骰子")) &&
-            (aTitle.contains("小圆") || aTitle.contains("EVA") || aTitle.contains("命运石之门"))
-        ) {
-            return Pair("宇宙宿命 · 哲学神域", 93)
+        // 3. 宇宙宿命 · 哲学神域 (95%)
+        if (matchesPair(listOf("三体", "时间简史", "上帝掷骰子"), listOf("小圆", "魔法少女小圆", "EVA", "命运石之门"))) {
+            return Pair("宇宙宿命 · 哲学神域", 95)
         }
 
-        // 4. 青春悸动与灵魂追寻（《挪威的森林》/《边城》 vs 《孤独摇滚！》/《春物》/《强风吹拂》）
-        if ((aTitle.contains("挪威的森林") || aTitle.contains("边城") || aTitle.contains("在细雨中呼喊")) &&
-            (bTitle.contains("孤独摇滚") || bTitle.contains("春物") || bTitle.contains("青春恋爱物语") || bTitle.contains("强风吹拂")) ||
-            (bTitle.contains("挪威的森林") || bTitle.contains("边城") || bTitle.contains("在细雨中呼喊")) &&
-            (aTitle.contains("孤独摇滚") || aTitle.contains("春物") || aTitle.contains("青春恋爱物语") || aTitle.contains("强风吹拂"))
-        ) {
-            return Pair("青春羁绊 · 精神共鸣", 91)
+        // 4. 青春迷茫 · 孤独摇滚 (93%)
+        if (matchesPair(listOf("挪威的森林", "在细雨中呼喊"), listOf("孤独摇滚", "春物", "青春恋爱物语", "轻音"))) {
+            return Pair("青春迷茫 · 孤独摇滚", 93)
         }
 
-        // 5. 智斗推演与人性暗涌（《白夜行》/《恶意外》/《无人生还》 vs 《夏日重现》/《蓝色监狱》）
-        if ((aTitle.contains("白夜行") || aTitle.contains("恶意") || aTitle.contains("无人生还")) &&
-            (bTitle.contains("夏日重现") || bTitle.contains("蓝色监狱") || bTitle.contains("实力至上")) ||
-            (bTitle.contains("白夜行") || bTitle.contains("恶意") || bTitle.contains("无人生还")) &&
-            (aTitle.contains("夏日重现") || aTitle.contains("蓝色监狱") || aTitle.contains("实力至上"))
-        ) {
-            return Pair("本格智斗 · 人性推演", 90)
+        // 5. 坚韧意志 · 极限超越 (94%)
+        if (matchesPair(listOf("老人与海", "活着", "许三观"), listOf("强风吹拂", "蓝色监狱", "排球"))) {
+            return Pair("坚韧意志 · 极限超越", 94)
+        }
+
+        // 6. 人情温暖 · 羁绊守候 (95%)
+        if (matchesPair(listOf("我是猫", "一个叫欧维", "蛤蟆先生"), listOf("夏目", "间谍过家家", "点兔", "玉子市场"))) {
+            return Pair("人情温暖 · 羁绊守候", 95)
+        }
+
+        // 7. 正义边界 · 灵魂受难 (92%)
+        if (matchesPair(listOf("罪与罚", "悲惨世界", "消失的十三级台阶"), listOf("灵能百分百", "国王排名", "文豪野犬"))) {
+            return Pair("正义边界 · 灵魂受难", 92)
+        }
+
+        // 8. 深渊互持 · 残酷救赎 (94%)
+        if (matchesPair(listOf("白夜行", "恶意", "无人生还", "绝叫"), listOf("来自深渊", "夏日重现", "咒术回战", "约定的梦幻岛"))) {
+            return Pair("深渊互持 · 残酷救赎", 94)
+        }
+
+        // 9. 黄金精神 · 意志传承 (93%)
+        if (matchesPair(listOf("基督山伯爵", "四世同堂", "战争与和平"), listOf("JOJO", "鬼灭之刃", "浪客剑心"))) {
+            return Pair("黄金精神 · 意志传承", 93)
+        }
+
+        // 10. 纯美爱恋 · 故乡清冽 (91%)
+        if (matchesPair(listOf("边城", "雪国", "伊豆的舞女", "春雪"), listOf("月刊少女", "玉子市场", "魔女之旅"))) {
+            return Pair("纯美爱恋 · 故乡清冽", 91)
         }
 
         return null
