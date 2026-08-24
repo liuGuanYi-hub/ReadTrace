@@ -33,6 +33,21 @@ class ReadingTimerActivity : AppCompatActivity() {
     private lateinit var thoughtInput: EditText
     private lateinit var finishBtn: TextView
 
+    private lateinit var ambienceStatusText: TextView
+    private lateinit var ambienceRainBtn: TextView
+    private lateinit var ambienceFireBtn: TextView
+    private lateinit var ambienceForestBtn: TextView
+    private lateinit var ambienceOceanBtn: TextView
+
+    private enum class AmbienceType(val displayName: String, val prompt: String) {
+        RAIN("🌧️ 雨夜", "🌧️ 雨声渐沥 · 窗外细雨洗涤浮尘"),
+        FIRE("🔥 壁炉", "🔥 柴火噼啪 · 炉火融融暖意流淌"),
+        FOREST("🌲 松林", "🌲 松涛阵阵 · 幽林清风拂过书页"),
+        OCEAN("🌊 潮汐", "🌊 潮起潮落 · 随海浪律动潜入深境"),
+    }
+
+    private var currentAmbience = AmbienceType.RAIN
+
     private var isRunning = false
     private var elapsedSeconds = 0
     private val handler = Handler(Looper.getMainLooper())
@@ -62,6 +77,7 @@ class ReadingTimerActivity : AppCompatActivity() {
         databaseHelper = BookDatabaseHelper(this)
 
         bindViews()
+        selectAmbience(AmbienceType.RAIN)
     }
 
     private fun bindViews() {
@@ -74,6 +90,12 @@ class ReadingTimerActivity : AppCompatActivity() {
         pagesInput = findViewById(R.id.timerPagesInput)
         thoughtInput = findViewById(R.id.timerThoughtInput)
         finishBtn = findViewById(R.id.timerFinishAndSaveBtn)
+
+        ambienceStatusText = findViewById(R.id.ambienceStatusText)
+        ambienceRainBtn = findViewById(R.id.ambienceRain)
+        ambienceFireBtn = findViewById(R.id.ambienceFire)
+        ambienceForestBtn = findViewById(R.id.ambienceForest)
+        ambienceOceanBtn = findViewById(R.id.ambienceOcean)
 
         titleView.text = if (bookTitle.isNotBlank()) "《$bookTitle》· 专注阅读时光" else "专注阅读时光"
 
@@ -96,8 +118,33 @@ class ReadingTimerActivity : AppCompatActivity() {
             resetTimer()
         }
 
+        ambienceRainBtn.setOnClickListener { selectAmbience(AmbienceType.RAIN) }
+        ambienceFireBtn.setOnClickListener { selectAmbience(AmbienceType.FIRE) }
+        ambienceForestBtn.setOnClickListener { selectAmbience(AmbienceType.FOREST) }
+        ambienceOceanBtn.setOnClickListener { selectAmbience(AmbienceType.OCEAN) }
+
         finishBtn.setOnClickListener {
             saveSessionAndFinish()
+        }
+    }
+
+    private fun selectAmbience(ambience: AmbienceType) {
+        currentAmbience = ambience
+        ambienceStatusText.text = ambience.prompt
+        if (isRunning) {
+            statusTip.text = "📖 ${ambience.prompt}..."
+        }
+
+        val buttons = listOf(
+            ambienceRainBtn to AmbienceType.RAIN,
+            ambienceFireBtn to AmbienceType.FIRE,
+            ambienceForestBtn to AmbienceType.FOREST,
+            ambienceOceanBtn to AmbienceType.OCEAN,
+        )
+        buttons.forEach { (btn, type) ->
+            val isSelected = currentAmbience == type
+            btn.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+            btn.setTextColor(getColor(if (isSelected) R.color.white else R.color.readtrace_ink))
         }
     }
 

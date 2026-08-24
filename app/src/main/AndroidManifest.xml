@@ -12,8 +12,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Readtrace">
         <activity
+            android:name=".QuotePosterActivity"
+            android:exported="false" />
+        <activity
             android:name=".ReadingTimerActivity"
             android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <activity
             android:name=".community.ui.PublishExhibitionActivity"
             android:exported="false" />

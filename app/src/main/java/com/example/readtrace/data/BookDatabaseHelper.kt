@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookCharacter
+import com.example.readtrace.model.BookLocation
+import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.model.BookOutline
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
@@ -61,6 +63,8 @@ class BookDatabaseHelper(val context: Context) :
         createReadingSessionsTable(database)
         createCharactersTable(database)
         createOutlinesTable(database)
+        createLocationsTable(database)
+        createMindprintsTable(database)
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -83,6 +87,11 @@ class BookDatabaseHelper(val context: Context) :
             createReadingSessionsTable(database)
             createCharactersTable(database)
             createOutlinesTable(database)
+        }
+        if (oldVersion < 5) {
+            // v3.2：增加空间地标足迹表与六维心智评分表
+            createLocationsTable(database)
+            createMindprintsTable(database)
         }
     }
 
@@ -176,6 +185,52 @@ class BookDatabaseHelper(val context: Context) :
         database.execSQL(
             "CREATE INDEX IF NOT EXISTS index_outlines_book_deleted ON $TABLE_BOOK_OUTLINES " +
                 "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
+        )
+    }
+
+    private fun createLocationsTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_BOOK_LOCATIONS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_BOOK_ID INTEGER NOT NULL,
+                $COLUMN_NAME TEXT NOT NULL,
+                $COLUMN_LOCATION_TYPE TEXT NOT NULL DEFAULT '🏙️ 现实都市',
+                $COLUMN_DESCRIPTION TEXT,
+                $COLUMN_SIGNIFICANCE TEXT,
+                $COLUMN_COORDINATES TEXT,
+                $COLUMN_CREATED_AT TEXT NOT NULL,
+                $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_DELETED_AT TEXT,
+                FOREIGN KEY ($COLUMN_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_locations_book_deleted ON $TABLE_BOOK_LOCATIONS " +
+                "($COLUMN_BOOK_ID, $COLUMN_IS_DELETED)",
+        )
+    }
+
+    private fun createMindprintsTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_BOOK_MINDPRINTS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_BOOK_ID INTEGER NOT NULL UNIQUE,
+                $COLUMN_DEPTH_SCORE REAL NOT NULL DEFAULT 8.0,
+                $COLUMN_ARTISTRY_SCORE REAL NOT NULL DEFAULT 8.0,
+                $COLUMN_EMOTION_SCORE REAL NOT NULL DEFAULT 8.0,
+                $COLUMN_LOGIC_SCORE REAL NOT NULL DEFAULT 8.0,
+                $COLUMN_DIFFICULTY_SCORE REAL NOT NULL DEFAULT 5.0,
+                $COLUMN_HEALING_SCORE REAL NOT NULL DEFAULT 8.0,
+                $COLUMN_UPDATED_AT TEXT NOT NULL,
+                FOREIGN KEY ($COLUMN_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_mindprints_book ON $TABLE_BOOK_MINDPRINTS ($COLUMN_BOOK_ID)",
         )
     }
 
@@ -983,6 +1038,88 @@ class BookDatabaseHelper(val context: Context) :
         ) > 0
     }
 
+    // --- 🗺️ 空间地标与叙事足迹 (Book Locations) ---
+
+    fun insertLocation(location: BookLocation): Long {
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_BOOK_ID, location.bookId)
+            put(COLUMN_NAME, location.name.trim())
+            put(COLUMN_LOCATION_TYPE, location.locationType.ifBlank { "🏙️ 现实都市" })
+            putNullable(COLUMN_DESCRIPTION, location.description)
+            putNullable(COLUMN_SIGNIFICANCE, location.significance)
+            putNullable(COLUMN_COORDINATES, location.coordinates)
+            put(COLUMN_CREATED_AT, location.createdAt.ifBlank { now })
+            put(COLUMN_IS_DELETED, 0)
+        }
+        return writableDatabase.insertOrThrow(TABLE_BOOK_LOCATIONS, null, values)
+    }
+
+    fun getLocations(bookId: Long): List<BookLocation> =
+        readableDatabase.query(
+            TABLE_BOOK_LOCATIONS,
+            null,
+            "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            "$COLUMN_ID ASC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBookLocation())
+                }
+            }
+        }
+
+    fun deleteLocation(locationId: Long): Boolean {
+        val values = ContentValues().apply {
+            put(COLUMN_IS_DELETED, 1)
+            put(COLUMN_DELETED_AT, currentTimestamp())
+        }
+        return writableDatabase.update(
+            TABLE_BOOK_LOCATIONS,
+            values,
+            "$COLUMN_ID = ?",
+            arrayOf(locationId.toString()),
+        ) > 0
+    }
+
+    // --- 🕸️ 六维心智评分雷达 (Book Mindprints) ---
+
+    fun saveMindprint(mindprint: BookMindprint): Long {
+        val now = currentTimestamp()
+        val values = ContentValues().apply {
+            put(COLUMN_BOOK_ID, mindprint.bookId)
+            put(COLUMN_DEPTH_SCORE, mindprint.depthScore)
+            put(COLUMN_ARTISTRY_SCORE, mindprint.artistryScore)
+            put(COLUMN_EMOTION_SCORE, mindprint.emotionScore)
+            put(COLUMN_LOGIC_SCORE, mindprint.logicScore)
+            put(COLUMN_DIFFICULTY_SCORE, mindprint.difficultyScore)
+            put(COLUMN_HEALING_SCORE, mindprint.healingScore)
+            put(COLUMN_UPDATED_AT, now)
+        }
+        return writableDatabase.insertWithOnConflict(
+            TABLE_BOOK_MINDPRINTS,
+            null,
+            values,
+            SQLiteDatabase.CONFLICT_REPLACE,
+        )
+    }
+
+    fun getMindprint(bookId: Long): BookMindprint =
+        readableDatabase.query(
+            TABLE_BOOK_MINDPRINTS,
+            null,
+            "$COLUMN_BOOK_ID = ?",
+            arrayOf(bookId.toString()),
+            null,
+            null,
+            null,
+        ).use { cursor ->
+            if (cursor.moveToFirst()) cursor.toBookMindprint() else BookMindprint(bookId = bookId)
+        }
+
     private fun Cursor.toBook(): Book =
         Book(
             id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
@@ -1064,6 +1201,32 @@ class BookDatabaseHelper(val context: Context) :
             isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
         )
 
+    private fun Cursor.toBookLocation(): BookLocation =
+        BookLocation(
+            id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
+            bookId = getLong(getColumnIndexOrThrow(COLUMN_BOOK_ID)),
+            name = getString(getColumnIndexOrThrow(COLUMN_NAME)),
+            locationType = getString(getColumnIndexOrThrow(COLUMN_LOCATION_TYPE)),
+            description = getNullableString(COLUMN_DESCRIPTION),
+            significance = getNullableString(COLUMN_SIGNIFICANCE),
+            coordinates = getNullableString(COLUMN_COORDINATES),
+            createdAt = getString(getColumnIndexOrThrow(COLUMN_CREATED_AT)),
+            isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
+        )
+
+    private fun Cursor.toBookMindprint(): BookMindprint =
+        BookMindprint(
+            id = getLong(getColumnIndexOrThrow(COLUMN_ID)),
+            bookId = getLong(getColumnIndexOrThrow(COLUMN_BOOK_ID)),
+            depthScore = getDouble(getColumnIndexOrThrow(COLUMN_DEPTH_SCORE)),
+            artistryScore = getDouble(getColumnIndexOrThrow(COLUMN_ARTISTRY_SCORE)),
+            emotionScore = getDouble(getColumnIndexOrThrow(COLUMN_EMOTION_SCORE)),
+            logicScore = getDouble(getColumnIndexOrThrow(COLUMN_LOGIC_SCORE)),
+            difficultyScore = getDouble(getColumnIndexOrThrow(COLUMN_DIFFICULTY_SCORE)),
+            healingScore = getDouble(getColumnIndexOrThrow(COLUMN_HEALING_SCORE)),
+            updatedAt = getString(getColumnIndexOrThrow(COLUMN_UPDATED_AT)),
+        )
+
     private fun Cursor.getNullableString(columnName: String): String? {
         val index = getColumnIndexOrThrow(columnName)
         return if (isNull(index)) null else getString(index)
@@ -1128,13 +1291,15 @@ class BookDatabaseHelper(val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
-        const val DATABASE_VERSION = 4
+        const val DATABASE_VERSION = 5
 
         private const val TABLE_BOOKS = "books"
         private const val TABLE_NOTES = "notes"
         private const val TABLE_READING_SESSIONS = "reading_sessions"
         private const val TABLE_BOOK_CHARACTERS = "book_characters"
         private const val TABLE_BOOK_OUTLINES = "book_outlines"
+        private const val TABLE_BOOK_LOCATIONS = "book_locations"
+        private const val TABLE_BOOK_MINDPRINTS = "book_mindprints"
 
         private const val COLUMN_ID = "id"
         private const val COLUMN_TITLE = "title"
@@ -1177,5 +1342,16 @@ class BookDatabaseHelper(val context: Context) :
         private const val COLUMN_CHAPTER_ORDER = "chapter_order"
         private const val COLUMN_SUMMARY = "summary"
         private const val COLUMN_KEY_TAKEAWAYS = "key_takeaways"
+
+        private const val COLUMN_LOCATION_TYPE = "location_type"
+        private const val COLUMN_SIGNIFICANCE = "significance"
+        private const val COLUMN_COORDINATES = "coordinates"
+
+        private const val COLUMN_DEPTH_SCORE = "depth_score"
+        private const val COLUMN_ARTISTRY_SCORE = "artistry_score"
+        private const val COLUMN_EMOTION_SCORE = "emotion_score"
+        private const val COLUMN_LOGIC_SCORE = "logic_score"
+        private const val COLUMN_DIFFICULTY_SCORE = "difficulty_score"
+        private const val COLUMN_HEALING_SCORE = "healing_score"
     }
 }

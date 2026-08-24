@@ -88,6 +88,34 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailAddOutlineButton).setOnClickListener {
             showAddOutlineDialog()
         }
+        findViewById<View>(R.id.detailEditMindprintBtn).setOnClickListener {
+            showEditMindprintDialog()
+        }
+        findViewById<View>(R.id.detailAddLocationBtn).setOnClickListener {
+            showAddLocationDialog()
+        }
+        findViewById<View>(R.id.detailQuotePosterButton).setOnClickListener {
+            currentBook?.let { book ->
+                val notes = databaseHelper.getNotes(book.id)
+                val quote = book.shortComment?.takeIf { it.isNotBlank() }
+                    ?: notes.firstOrNull()?.content
+                    ?: "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
+                val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
+                    listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
+                } else "一句话感悟"
+                startActivity(
+                    QuotePosterActivity.createIntent(
+                        this,
+                        book.id,
+                        book.title,
+                        book.author,
+                        book.coverUrl,
+                        quote,
+                        source,
+                    ),
+                )
+            }
+        }
 
         findViewById<View>(R.id.detailContent)
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
@@ -108,6 +136,8 @@ class BookDetailActivity : AppCompatActivity() {
         renderReadingSessions(databaseHelper.getReadingSessions(bookId))
         renderCharacters(databaseHelper.getCharacters(bookId))
         renderOutlines(databaseHelper.getOutlines(bookId))
+        renderMindprint(databaseHelper.getMindprint(bookId))
+        renderLocations(databaseHelper.getLocations(bookId))
     }
 
     private fun renderCollection(book: Book) {
@@ -384,6 +414,203 @@ class BookDetailActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun renderMindprint(mindprint: com.example.readtrace.model.BookMindprint) {
+        val avg = mindprint.averageScore()
+        val tag = when {
+            avg >= 9.0 -> "殿堂神作 · 精神灯塔"
+            avg >= 8.0 -> "深刻思辨 · 高度共鸣"
+            avg >= 7.0 -> "优秀佳作 · 值得品读"
+            else -> "个性小众 · 独特印记"
+        }
+        findViewById<TextView>(R.id.detailMindprintSummary).text =
+            String.format(Locale.getDefault(), "🌟 综合认知深度指数：%.1f / 10 · %s", avg, tag)
+
+        findViewById<TextView>(R.id.detailScoreDepth).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.depthScore)
+        findViewById<TextView>(R.id.detailScoreArtistry).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.artistryScore)
+        findViewById<TextView>(R.id.detailScoreEmotion).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.emotionScore)
+        findViewById<TextView>(R.id.detailScoreLogic).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.logicScore)
+        findViewById<TextView>(R.id.detailScoreDifficulty).text = String.format(Locale.getDefault(), "%.1f / 10 (门槛)", mindprint.difficultyScore)
+        findViewById<TextView>(R.id.detailScoreHealing).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.healingScore)
+    }
+
+    private fun showEditMindprintDialog() {
+        val current = databaseHelper.getMindprint(bookId)
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 20, 40, 20)
+        }
+
+        fun createScoreInput(label: String, initScore: Double): Pair<TextView, EditText> {
+            val tv = TextView(this).apply {
+                text = "$label (当前: $initScore)"
+                textSize = 13f
+                setTextColor(getColor(R.color.readtrace_ink))
+                setPadding(0, 12, 0, 4)
+            }
+            val et = EditText(this).apply {
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                setText(String.format(Locale.getDefault(), "%.1f", initScore))
+                textSize = 14f
+            }
+            return tv to et
+        }
+
+        val (depthTv, depthEt) = createScoreInput("🧠 思想深度 (1~10)", current.depthScore)
+        val (artistryTv, artistryEt) = createScoreInput("🖋️ 文笔意境 (1~10)", current.artistryScore)
+        val (emotionTv, emotionEt) = createScoreInput("❤️ 情感共鸣 (1~10)", current.emotionScore)
+        val (logicTv, logicEt) = createScoreInput("📐 逻辑构架 (1~10)", current.logicScore)
+        val (difficultyTv, difficultyEt) = createScoreInput("⛰️ 阅读门槛 (1~10)", current.difficultyScore)
+        val (healingTv, healingEt) = createScoreInput("🌿 心灵治愈 (1~10)", current.healingScore)
+
+        val scroll = android.widget.ScrollView(this).apply {
+            addView(dialogView.apply {
+                addView(depthTv); addView(depthEt)
+                addView(artistryTv); addView(artistryEt)
+                addView(emotionTv); addView(emotionEt)
+                addView(logicTv); addView(logicEt)
+                addView(difficultyTv); addView(difficultyEt)
+                addView(healingTv); addView(healingEt)
+            })
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("🕸️ 调整六维心智评分")
+            .setView(scroll)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton("保存评分") { _, _ ->
+                fun parseScore(et: EditText, fallback: Double): Double =
+                    et.text.toString().trim().toDoubleOrNull()?.coerceIn(1.0, 10.0) ?: fallback
+
+                val newMindprint = current.copy(
+                    depthScore = parseScore(depthEt, current.depthScore),
+                    artistryScore = parseScore(artistryEt, current.artistryScore),
+                    emotionScore = parseScore(emotionEt, current.emotionScore),
+                    logicScore = parseScore(logicEt, current.logicScore),
+                    difficultyScore = parseScore(difficultyEt, current.difficultyScore),
+                    healingScore = parseScore(healingEt, current.healingScore),
+                )
+                databaseHelper.saveMindprint(newMindprint)
+                renderMindprint(databaseHelper.getMindprint(bookId))
+                Toast.makeText(this, "六维心智评分已更新", Toast.LENGTH_SHORT).show()
+            }
+            .show()
+    }
+
+    private fun renderLocations(locations: List<com.example.readtrace.model.BookLocation>) {
+        val container = findViewById<LinearLayout>(R.id.detailLocationsContainer)
+        val emptyView = findViewById<TextView>(R.id.detailLocationsEmpty)
+        container.removeAllViews()
+
+        if (locations.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            container.visibility = View.GONE
+            return
+        }
+
+        emptyView.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        locations.forEach { loc ->
+            val item = layoutInflater.inflate(R.layout.item_location_card, container, false)
+            item.findViewById<TextView>(R.id.locationTypeBadge).text = loc.locationType
+            item.findViewById<TextView>(R.id.locationName).text = loc.name
+
+            val descView = item.findViewById<TextView>(R.id.locationDescription)
+            if (loc.description.isNullOrBlank()) {
+                descView.visibility = View.GONE
+            } else {
+                descView.visibility = View.VISIBLE
+                descView.text = loc.description
+            }
+
+            val sigView = item.findViewById<TextView>(R.id.locationSignificance)
+            if (loc.significance.isNullOrBlank()) {
+                sigView.visibility = View.GONE
+            } else {
+                sigView.visibility = View.VISIBLE
+                sigView.text = "📍 叙事象征：${loc.significance}"
+            }
+
+            val coordView = item.findViewById<TextView>(R.id.locationCoordinates)
+            if (loc.coordinates.isNullOrBlank()) {
+                coordView.visibility = View.GONE
+            } else {
+                coordView.visibility = View.VISIBLE
+                coordView.text = "🌐 空间方位：${loc.coordinates}"
+            }
+
+            item.findViewById<View>(R.id.locationDeleteBtn).setOnClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("删除空间地标")
+                    .setMessage("确定要移除地标「${loc.name}」吗？")
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .setPositiveButton("删除") { _, _ ->
+                        databaseHelper.deleteLocation(loc.id)
+                        renderLocations(databaseHelper.getLocations(bookId))
+                    }
+                    .show()
+            }
+
+            container.addView(item)
+        }
+    }
+
+    private fun showAddLocationDialog() {
+        val dialogView = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 20, 40, 20)
+        }
+
+        val nameInput = EditText(this).apply {
+            hint = "地标名称 (如：B-612小行星 / 贝克街221B)"
+            textSize = 14f
+        }
+        val typeInput = EditText(this).apply {
+            hint = "空间类型 (如：🪐 架空星际 / 🏙️ 现实都市 / 🌲 荒原自然)"
+            setText("🏙️ 现实都市")
+            textSize = 13f
+        }
+        val descInput = EditText(this).apply {
+            hint = "空间环境与景观描写..."
+            textSize = 13f
+        }
+        val sigInput = EditText(this).apply {
+            hint = "核心情节发生与象征意义..."
+            textSize = 13f
+        }
+        val coordInput = EditText(this).apply {
+            hint = "空间方位 / 坐标 (选填，如：撒哈拉沙漠腹地)..."
+            textSize = 13f
+        }
+
+        dialogView.addView(nameInput)
+        dialogView.addView(typeInput)
+        dialogView.addView(descInput)
+        dialogView.addView(sigInput)
+        dialogView.addView(coordInput)
+
+        AlertDialog.Builder(this)
+            .setTitle("🗺️ 添加空间叙事地标")
+            .setView(dialogView)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton("保存地标") { _, _ ->
+                val name = nameInput.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    val location = com.example.readtrace.model.BookLocation(
+                        bookId = bookId,
+                        name = name,
+                        locationType = typeInput.text.toString().trim().ifBlank { "🏙️ 现实都市" },
+                        description = descInput.text.toString().trim().ifBlank { null },
+                        significance = sigInput.text.toString().trim().ifBlank { null },
+                        coordinates = coordInput.text.toString().trim().ifBlank { null },
+                    )
+                    databaseHelper.insertLocation(location)
+                    renderLocations(databaseHelper.getLocations(bookId))
+                }
+            }
+            .show()
+    }
+
     private fun renderBook(book: Book) {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
@@ -464,7 +691,33 @@ class BookDetailActivity : AppCompatActivity() {
             val params = item.layoutParams as LinearLayout.LayoutParams
             params.topMargin = dpToPx(if (index == 0) 14 else 10)
             item.layoutParams = params
-            item.setOnClickListener { openNoteEditor(note.id) }
+            item.setOnClickListener {
+                AlertDialog.Builder(this)
+                    .setTitle("笔记印记操作")
+                    .setItems(arrayOf("🎨 生成专属金句海报", "✏️ 编辑笔记", "📦 归档至回收站")) { _, which ->
+                        when (which) {
+                            0 -> {
+                                currentBook?.let { book ->
+                                    val source = listOfNotNull(note.chapter, note.page?.let { "P.$it" }).joinToString(" · ")
+                                    startActivity(
+                                        QuotePosterActivity.createIntent(
+                                            this,
+                                            book.id,
+                                            book.title,
+                                            book.author,
+                                            book.coverUrl,
+                                            note.content,
+                                            source.ifBlank { null },
+                                        ),
+                                    )
+                                }
+                            }
+                            1 -> openNoteEditor(note.id)
+                            2 -> confirmArchiveNote(note)
+                        }
+                    }
+                    .show()
+            }
             item.setOnLongClickListener {
                 confirmArchiveNote(note)
                 true

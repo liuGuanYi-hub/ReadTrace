@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/posterRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_readtrace_home"
+    android:orientation="vertical">
+
+    <!-- 顶栏导航 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/posterBackBtn"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="‹"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:fontFamily="sans"
+            android:text="🎨 金句印记海报"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/posterShareBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="🔗 分享"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/posterSaveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_primary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="💾 保存相册"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 主题风格切换选择器 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/themeParchment"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_status_chip_selected"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="📜 宣纸"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/themeCosmos"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_status_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="🌌 星夜"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/themeJade"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_status_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="🍵 水绿"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/themeGraphite"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_status_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:gravity="center"
+            android:text="🖤 暗黑"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:overScrollMode="never"
+        android:padding="20dp"
+        android:scrollbars="none">
+
+        <!-- 可渲染并导出的海报卡片 -->
+        <FrameLayout
+            android:id="@+id/posterCardContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#FAF8F5"
+            android:elevation="10dp"
+            android:padding="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 头部：书籍与作者信息 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="44dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_book_placeholder"
+                        android:clipToOutline="true"
+                        android:outlineProvider="background">
+
+                        <ImageView
+                            android:id="@+id/posterCoverImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/posterBookTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="serif"
+                            android:textColor="#2D2824"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            tools:text="《小王子》" />
+
+                        <TextView
+                            android:id="@+id/posterBookAuthor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:fontFamily="sans"
+                            android:textColor="#7A7067"
+                            android:textSize="12sp"
+                            tools:text="圣埃克苏佩里 著" />
+                    </LinearLayout>
+
+                    <!-- 朱砂方印章 -->
+                    <TextView
+                        android:id="@+id/posterSealStamp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:background="@drawable/bg_status_chip_selected"
+                        android:fontFamily="serif"
+                        android:gravity="center"
+                        android:text="阅\n痕"
+                        android:textColor="#FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/posterDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="18dp"
+                    android:background="#E8E2D9" />
+
+                <!-- 双引号装饰 -->
+                <TextView
+                    android:id="@+id/posterQuoteSymbol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:text="“"
+                    android:textColor="#C47D5C"
+                    android:textSize="36sp"
+                    android:textStyle="bold" />
+
+                <!-- 金句正文 -->
+                <TextView
+                    android:id="@+id/posterQuoteText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-10dp"
+                    android:fontFamily="serif"
+                    android:lineSpacingExtra="8dp"
+                    android:textColor="#2D2824"
+                    android:textSize="17sp"
+                    tools:text="正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。所有的大人都曾经是小孩，虽然，只有少数的人记得。" />
+
+                <!-- 章节与页码出处 -->
+                <TextView
+                    android:id="@+id/posterQuoteSource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="sans"
+                    android:textColor="#9E9284"
+                    android:textSize="12sp"
+                    tools:text="— 第 21 章 · P.85" />
+
+                <View
+                    android:id="@+id/posterBottomDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="14dp"
+                    android:background="#E8E2D9" />
+
+                <!-- 底部水印与日期 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/posterWatermark"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="阅痕 ReadTrace · 个人精神印记"
+                        android:textColor="#B0A69A"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/posterDateText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:textColor="#B0A69A"
+                        android:textSize="11sp"
+                        tools:text="2026.08.24" />
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </ScrollView>
+</LinearLayout>
