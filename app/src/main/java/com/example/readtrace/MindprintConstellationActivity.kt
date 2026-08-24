@@ -63,8 +63,73 @@ class MindprintConstellationActivity : AppCompatActivity() {
             showStarDetailCard(book, mindprint)
         }
 
+        configureFilterChips()
         loadConstellationData()
     }
+
+    private fun configureFilterChips() {
+        val filterContainer = findViewById<android.widget.LinearLayout>(R.id.constellationFilterContainer) ?: return
+        filterContainer.removeAllViews()
+
+        data class FilterOption(val label: String, val filter: com.example.readtrace.widget.ConstellationFilter)
+
+        val options = listOf(
+            FilterOption("✦ 全星系", com.example.readtrace.widget.ConstellationFilter.ALL),
+            FilterOption("📖 纸墨书籍", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.BOOK)),
+            FilterOption("🎬 光影影视", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.MOVIE)),
+            FilterOption("🎮 互动游戏", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.GAME)),
+            FilterOption("🎙️ 沉浸播客", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.PODCAST)),
+            FilterOption("🇨🇳 华语经典", com.example.readtrace.widget.ConstellationFilter.ByRegion("华语")),
+            FilterOption("🇯🇵 日本文学", com.example.readtrace.widget.ConstellationFilter.ByRegion("日本")),
+            FilterOption("🌎 拉美文学", com.example.readtrace.widget.ConstellationFilter.ByRegion("拉美")),
+            FilterOption("🇷🇺 俄苏文学", com.example.readtrace.widget.ConstellationFilter.ByRegion("俄")),
+            FilterOption("🏛️ 欧美名著", com.example.readtrace.widget.ConstellationFilter.ByRegion("欧美")),
+        )
+
+        val chipViews = mutableListOf<TextView>()
+
+        options.forEachIndexed { index, opt ->
+            val chip = TextView(this).apply {
+                text = opt.label
+                textSize = 12.5f
+                setPadding(dpToPx(12), dpToPx(6), dpToPx(12), dpToPx(6))
+                val lp = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    marginEnd = dpToPx(8)
+                }
+                layoutParams = lp
+                setBackgroundResource(if (index == 0) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+                setTextColor(
+                    androidx.core.content.ContextCompat.getColor(
+                        context,
+                        if (index == 0) R.color.white else R.color.readtrace_ink,
+                    ),
+                )
+            }
+
+            chip.setOnClickListener {
+                chipViews.forEachIndexed { i, v ->
+                    val isSelected = (v == chip)
+                    v.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+                    v.setTextColor(
+                        androidx.core.content.ContextCompat.getColor(
+                            this@MindprintConstellationActivity,
+                            if (isSelected) R.color.white else R.color.readtrace_ink,
+                        ),
+                    )
+                }
+                constellationCanvas.setFilter(opt.filter)
+            }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(chip)
+            chipViews.add(chip)
+            filterContainer.addView(chip)
+        }
+    }
+
+    private fun dpToPx(dp: Int): Int =
+        (dp * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun loadConstellationData() {
         val books = databaseHelper.getBooks()

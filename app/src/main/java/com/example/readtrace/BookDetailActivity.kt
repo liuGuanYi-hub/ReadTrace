@@ -184,7 +184,7 @@ class BookDetailActivity : AppCompatActivity() {
             showCompareMindprintDialog()
         }
         findViewById<View>(R.id.detailExportWidgetBtn).setOnClickListener {
-            exportMindprintWidgetCard()
+            showSelectWidgetThemeDialog()
         }
 
         // 注入 iOS 级 Q 弹手势触觉反馈
@@ -1262,7 +1262,21 @@ class BookDetailActivity : AppCompatActivity() {
             OffsetDateTime.parse(value).format(DISPLAY_TIME_FORMAT)
         }.getOrDefault(valueOrFallback(value))
 
-    private fun exportMindprintWidgetCard() {
+    private fun showSelectWidgetThemeDialog() {
+        val themes = com.example.readtrace.model.WidgetCardTheme.values()
+        val items = themes.map { "${it.displayName}\n${it.description}" }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("🎨 选择锁屏微卡 / 小组件主题")
+            .setItems(items) { _, which ->
+                val selectedTheme = themes[which]
+                exportMindprintWidgetCard(selectedTheme)
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun exportMindprintWidgetCard(theme: com.example.readtrace.model.WidgetCardTheme = com.example.readtrace.model.WidgetCardTheme.ALABASTER_PAPER) {
         val book = currentBook ?: return
         val mindprint = databaseHelper.getMindprint(book.id)
 
@@ -1272,15 +1286,12 @@ class BookDetailActivity : AppCompatActivity() {
             val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(bitmap)
 
-            val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-            val bgColor = if (isNight) android.graphics.Color.parseColor("#121613") else android.graphics.Color.parseColor("#F5F3EC")
-            val cardBgColor = if (isNight) android.graphics.Color.parseColor("#1B221C") else android.graphics.Color.parseColor("#FFFFFF")
-            val strokeColor = if (isNight) android.graphics.Color.parseColor("#33FFFFFF") else android.graphics.Color.parseColor("#22000000")
-            val textPrimaryColor = if (isNight) android.graphics.Color.parseColor("#F5F3ED") else android.graphics.Color.parseColor("#20241F")
-            val textMutedColor = if (isNight) android.graphics.Color.parseColor("#9EA599") else android.graphics.Color.parseColor("#7A8075")
-            val accentColor = if (isNight) android.graphics.Color.parseColor("#5E9E71") else android.graphics.Color.parseColor("#3A6348")
+            val bgColor = theme.bgColor
+            val cardBgColor = theme.cardBgColor
+            val strokeColor = theme.strokeColor
+            val textPrimaryColor = theme.textPrimaryColor
+            val textMutedColor = theme.textMutedColor
+            val accentColor = theme.accentColor
 
             // 1. 背景底色
             canvas.drawColor(bgColor)
@@ -1334,7 +1345,7 @@ class BookDetailActivity : AppCompatActivity() {
 
             // 左侧心智评语与指标徽章
             val badgeBoxPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = if (isNight) android.graphics.Color.parseColor("#263127") else android.graphics.Color.parseColor("#EDF3EE")
+                color = theme.pillBgColor
                 style = android.graphics.Paint.Style.FILL
             }
             val badgeTextPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
@@ -1374,7 +1385,7 @@ class BookDetailActivity : AppCompatActivity() {
                 textSize = 22f
                 letterSpacing = 0.1f
             }
-            canvas.drawText("READTRACE · LOCKSCREEN WIDGET", 96f, 980f, footerPaint)
+            canvas.drawText("READTRACE · ${theme.name}", 96f, 980f, footerPaint)
 
             // 5. 右侧原生绘制六维心智雷达
             val radarCenterX = 780f
@@ -1382,26 +1393,26 @@ class BookDetailActivity : AppCompatActivity() {
             val radarRadius = 210f
 
             val webPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = if (isNight) android.graphics.Color.parseColor("#334433") else android.graphics.Color.parseColor("#DDD4CA")
+                color = theme.radarWebColor
                 style = android.graphics.Paint.Style.STROKE
                 strokeWidth = 2.5f
             }
             val axisPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = if (isNight) android.graphics.Color.parseColor("#283428") else android.graphics.Color.parseColor("#EADFD5")
+                color = theme.radarAxisColor
                 style = android.graphics.Paint.Style.STROKE
                 strokeWidth = 2.5f
             }
             val fillPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.parseColor("#55C47D5C")
+                color = theme.radarFillColor
                 style = android.graphics.Paint.Style.FILL
             }
             val strokeRadarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.parseColor("#C47D5C")
+                color = theme.radarStrokeColor
                 style = android.graphics.Paint.Style.STROKE
                 strokeWidth = 5f
             }
             val dotPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                color = android.graphics.Color.parseColor("#9C5232")
+                color = theme.radarDotColor
                 style = android.graphics.Paint.Style.FILL
             }
             val labelRadarPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
@@ -1470,7 +1481,7 @@ class BookDetailActivity : AppCompatActivity() {
 
             // 6. 保存至相册与分享
             val bookName = book.title.replace(" ", "_")
-            val filename = "ReadTrace_MindprintWidget_${bookName}_${System.currentTimeMillis()}.png"
+            val filename = "ReadTrace_Widget_${theme.name}_${bookName}_${System.currentTimeMillis()}.png"
             var fos: java.io.OutputStream? = null
             var imageUri: android.net.Uri? = null
 
@@ -1502,15 +1513,15 @@ class BookDetailActivity : AppCompatActivity() {
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
                 fos.flush()
                 fos.close()
-                Toast.makeText(this, "📱 心智全息锁屏微卡已导出至相册！", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "📱 已导出「${theme.displayName}」锁屏微卡至相册！", Toast.LENGTH_SHORT).show()
 
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, imageUri)
-                    putExtra(Intent.EXTRA_TEXT, "这是我在《阅痕 ReadTrace》为《${book.title}》定制的灵魂心智全息微卡。")
+                    putExtra(Intent.EXTRA_TEXT, "这是我在《阅痕 ReadTrace》为《${book.title}》定制的「${theme.displayName}」灵魂心智全息微卡。")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                startActivity(Intent.createChooser(shareIntent, "分享心智全息锁屏微卡"))
+                startActivity(Intent.createChooser(shareIntent, "分享「${theme.displayName}」锁屏微卡"))
             } else {
                 Toast.makeText(this, "保存微卡失败，请重试", Toast.LENGTH_SHORT).show()
             }

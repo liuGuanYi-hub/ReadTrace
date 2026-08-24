@@ -83,7 +83,7 @@ object BookSimilarityEngine {
         return scored.sortedByDescending { it.similarityPercent }.take(limit)
     }
 
-    private fun detectRegion(book: Book): String {
+    fun detectRegion(book: Book): String {
         val author = book.author ?: ""
         val tags = book.tags.joinToString(" ")
         val category = book.category ?: ""

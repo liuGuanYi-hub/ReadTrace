@@ -16,12 +16,18 @@ import android.view.animation.LinearInterpolator
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.BookSimilarityEngine
 import kotlin.math.cos
 import kotlin.math.hypot
-import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
+
+sealed class ConstellationFilter {
+    object ALL : ConstellationFilter()
+    data class ByMedia(val mediaType: MediaType) : ConstellationFilter()
+    data class ByRegion(val regionName: String) : ConstellationFilter()
+}
 
 class MindprintConstellationView @JvmOverloads constructor(
     context: Context,
@@ -36,8 +42,20 @@ class MindprintConstellationView @JvmOverloads constructor(
         var worldY: Float,
         var radius: Float,
         val colorHex: Int,
-        val region: String,
-    )
+        val detectedRegion: String,
+    ) {
+        fun matches(filter: ConstellationFilter): Boolean {
+            return when (filter) {
+                is ConstellationFilter.ALL -> true
+                is ConstellationFilter.ByMedia -> book.mediaType == filter.mediaType
+                is ConstellationFilter.ByRegion -> {
+                    detectedRegion.contains(filter.regionName) ||
+                        (book.category ?: "").contains(filter.regionName) ||
+                        book.tags.any { it.contains(filter.regionName) }
+                }
+            }
+        }
+    }
 
     data class ConstellationEdge(
         val nodeA: StarNode,
@@ -61,6 +79,7 @@ class MindprintConstellationView @JvmOverloads constructor(
     private var offsetY = 0f
     private var animPhase = 0f
 
+    private var activeFilter: ConstellationFilter = ConstellationFilter.ALL
     private var selectedStar: StarNode? = null
     var onStarClickListener: ((Book, BookMindprint) -> Unit)? = null
 
@@ -130,7 +149,6 @@ class MindprintConstellationView @JvmOverloads constructor(
     }
 
     init {
-        // 生成 60 颗背景微光星辰
         val rnd = Random(42)
         for (i in 0 until 60) {
             ambientParticles.add(
@@ -153,6 +171,11 @@ class MindprintConstellationView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         animator.cancel()
         super.onDetachedFromWindow()
+    }
+
+    fun setFilter(filter: ConstellationFilter) {
+        activeFilter = filter
+        invalidate()
     }
 
     fun setBooksData(books: List<Book>, databaseHelper: BookDatabaseHelper) {
@@ -187,6 +210,8 @@ class MindprintConstellationView @JvmOverloads constructor(
             val wx = cos(angle) * baseDist + logicBias
             val wy = sin(angle) * baseDist + depthBias
 
+            val detectedReg = BookSimilarityEngine.detectRegion(book)
+
             val node = StarNode(
                 book = book,
                 mindprint = mp,
@@ -194,7 +219,7 @@ class MindprintConstellationView @JvmOverloads constructor(
                 worldY = wy,
                 radius = dpToPx(14f + (mp.averageScore().toFloat() - 5f).coerceAtLeast(0f) * 1.5f),
                 colorHex = colors[idx % colors.size],
-                region = book.category ?: "经典",
+                detectedRegion = detectedReg,
             )
             stars.add(node)
         }
@@ -224,7 +249,6 @@ class MindprintConstellationView @JvmOverloads constructor(
         val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-        // 1. 深邃星空背景渐变
         if (isNight) {
             canvas.drawColor(Color.parseColor("#0F1310"))
         } else {
@@ -234,7 +258,7 @@ class MindprintConstellationView @JvmOverloads constructor(
         val cx = width / 2f + offsetX
         val cy = height / 2f + offsetY
 
-        // 2. 绘制背景散落微光星子
+        // 1. 绘制背景散落微光星子
         ambientParticles.forEach { p ->
             val px = cx + p.x
             val py = cy + p.y
@@ -246,54 +270,80 @@ class MindprintConstellationView @JvmOverloads constructor(
             }
         }
 
-        // 3. 绘制认知星座连线 (Constellation Lines)
+        // 2. 绘制认知星座连线 (Constellation Lines)
         edges.forEach { edge ->
+            val aMatch = edge.nodeA.matches(activeFilter)
+            val bMatch = edge.nodeB.matches(activeFilter)
+            val isBothMatch = aMatch && bMatch
+
             val ax = cx + edge.nodeA.worldX
             val ay = cy + edge.nodeA.worldY
             val bx = cx + edge.nodeB.worldX
             val by = cy + edge.nodeB.worldY
 
-            val lineAlpha = (edge.similarity.toFloat() / 100f * (if (isNight) 160 else 110)).toInt().coerceIn(30, 220)
+            val baseAlpha = if (isBothMatch) {
+                (edge.similarity.toFloat() / 100f * (if (isNight) 170 else 120)).toInt().coerceIn(40, 230)
+            } else {
+                25
+            }
+
             linePaint.color = if (isNight) Color.parseColor("#80A48A") else Color.parseColor("#A89E90")
-            linePaint.alpha = lineAlpha
+            linePaint.alpha = baseAlpha
+            linePaint.strokeWidth = dpToPx(if (isBothMatch) 1.4f else 0.8f)
             canvas.drawLine(ax, ay, bx, by, linePaint)
         }
 
-        // 4. 绘制星辰节点 (Star Nodes)
+        // 3. 绘制星辰节点 (Star Nodes)
         stars.forEach { star ->
+            val isMatch = star.matches(activeFilter)
             val sx = cx + star.worldX
             val sy = cy + star.worldY
 
             val isSel = star == selectedStar
-            val breathe = 1f + 0.12f * sin(animPhase * 6.283f * 1.5f + star.worldX * 0.01f)
-            val currentRadius = star.radius * breathe * (if (isSel) 1.25f else 1.0f)
+            val breathe = if (isMatch) (1f + 0.12f * sin(animPhase * 6.283f * 1.5f + star.worldX * 0.01f)) else 1.0f
+            val currentRadius = (if (isMatch) star.radius else star.radius * 0.75f) * breathe * (if (isSel) 1.25f else 1.0f)
 
-            // 发光光晕 (Radial Glow)
-            val glowRadius = currentRadius * 2.6f
-            val glowColor = Color.argb(if (isNight) 110 else 70, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
-            val transparentGlow = Color.argb(0, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
+            if (isMatch) {
+                // 发光光晕 (Radial Glow)
+                val glowRadius = currentRadius * 2.6f
+                val glowColor = Color.argb(if (isNight) 110 else 70, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
+                val transparentGlow = Color.argb(0, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
 
-            val glowShader = RadialGradient(sx, sy, glowRadius, glowColor, transparentGlow, Shader.TileMode.CLAMP)
-            starGlowPaint.shader = glowShader
-            canvas.drawCircle(sx, sy, glowRadius, starGlowPaint)
+                val glowShader = RadialGradient(sx, sy, glowRadius, glowColor, transparentGlow, Shader.TileMode.CLAMP)
+                starGlowPaint.shader = glowShader
+                canvas.drawCircle(sx, sy, glowRadius, starGlowPaint)
 
-            // 星核实心圆
-            starCorePaint.color = star.colorHex
-            canvas.drawCircle(sx, sy, currentRadius, starCorePaint)
+                // 星核实心圆
+                starCorePaint.color = star.colorHex
+                starCorePaint.alpha = 255
+                canvas.drawCircle(sx, sy, currentRadius, starCorePaint)
 
-            // 核心白曜高光
-            starCorePaint.color = if (isNight) Color.WHITE else Color.parseColor("#FFFDF7")
-            canvas.drawCircle(sx, sy, currentRadius * 0.42f, starCorePaint)
+                // 核心白曜高光
+                starCorePaint.color = if (isNight) Color.WHITE else Color.parseColor("#FFFDF7")
+                canvas.drawCircle(sx, sy, currentRadius * 0.42f, starCorePaint)
 
-            // 作品名称与作者标签
-            textPaint.color = if (isNight) Color.parseColor("#F5F3ED") else Color.parseColor("#20241F")
-            textPaint.textSize = dpToPx(12.5f)
-            canvas.drawText("《${star.book.title}》", sx, sy + currentRadius + dpToPx(15f), textPaint)
+                // 作品名称与作者标签
+                textPaint.color = if (isNight) Color.parseColor("#F5F3ED") else Color.parseColor("#20241F")
+                textPaint.alpha = 255
+                textPaint.textSize = dpToPx(12.5f)
+                canvas.drawText("《${star.book.title}》", sx, sy + currentRadius + dpToPx(15f), textPaint)
 
-            subTextPaint.color = if (isNight) Color.parseColor("#9EA599") else Color.parseColor("#71776D")
-            subTextPaint.textSize = dpToPx(10.5f)
-            val author = star.book.author ?: "未知"
-            canvas.drawText("${star.book.mediaType.emoji} $author · ${star.region}", sx, sy + currentRadius + dpToPx(27f), subTextPaint)
+                subTextPaint.color = if (isNight) Color.parseColor("#9EA599") else Color.parseColor("#71776D")
+                subTextPaint.alpha = 230
+                subTextPaint.textSize = dpToPx(10.5f)
+                val author = star.book.author ?: "未知"
+                canvas.drawText("${star.book.mediaType.emoji} $author · ${star.detectedRegion}", sx, sy + currentRadius + dpToPx(27f), subTextPaint)
+            } else {
+                // 暗淡微光呈现 (Dimmed Node)
+                starCorePaint.color = star.colorHex
+                starCorePaint.alpha = 45
+                canvas.drawCircle(sx, sy, currentRadius, starCorePaint)
+
+                textPaint.color = if (isNight) Color.parseColor("#556055") else Color.parseColor("#B0A89C")
+                textPaint.alpha = 60
+                textPaint.textSize = dpToPx(11f)
+                canvas.drawText("《${star.book.title}》", sx, sy + currentRadius + dpToPx(14f), textPaint)
+            }
         }
     }
 

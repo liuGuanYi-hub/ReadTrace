@@ -73,6 +73,30 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 星座聚类与媒介/源流筛选栏 -->
+    <HorizontalScrollView
+        android:id="@+id/constellationFilterScroller"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/constellationHeader">
+
+        <LinearLayout
+            android:id="@+id/constellationFilterContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp" />
+    </HorizontalScrollView>
+
     <!-- 底部选定作品浮动微卡 -->
     <LinearLayout
         android:id="@+id/constellationDetailCard"
