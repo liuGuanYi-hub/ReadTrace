@@ -163,6 +163,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
         val crossMediaContainer = findViewById<View>(R.id.starCrossMediaContainer)
         val crossMediaText = findViewById<TextView>(R.id.starCrossMediaText)
         val btnJumpResonanceStar = findViewById<View>(R.id.btnJumpResonanceStar)
+        val btnExportTwinPoster = findViewById<View>(R.id.btnExportTwinPoster)
 
         val resonancePair = constellationCanvas.getCrossMediaResonancePeer(book.id)
         if (resonancePair != null) {
@@ -175,6 +176,18 @@ class MindprintConstellationActivity : AppCompatActivity() {
                 showStarDetailCard(peer.book, peer.mindprint)
             }
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnJumpResonanceStar)
+
+            btnExportTwinPoster.setOnClickListener {
+                val intent = ResonancePosterActivity.createIntent(
+                    context = this,
+                    bookAId = book.id,
+                    bookBId = peer.book.id,
+                    similarity = edge.similarity,
+                    resonanceTrait = edge.resonanceTrait,
+                )
+                startActivity(intent)
+            }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnExportTwinPoster)
         } else {
             crossMediaContainer.visibility = View.GONE
         }

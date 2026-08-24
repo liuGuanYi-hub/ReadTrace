@@ -222,6 +222,19 @@
                 android:textColor="@color/readtrace_ink"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnExportTwinPoster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_pill_button"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:text="🎨 双生微卡"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="11sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView

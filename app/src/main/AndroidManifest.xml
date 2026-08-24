@@ -20,6 +20,9 @@
             android:name=".CoverGalleryActivity"
             android:exported="false" />
         <activity
+            android:name=".ResonancePosterActivity"
+            android:exported="false" />
+        <activity
             android:name=".MindprintConstellationActivity"
             android:exported="false" />
         <activity
