@@ -237,6 +237,155 @@ class BookDatabaseHelper(val context: Context) :
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
         populatePresetBookRichData(db)
+        seedUserAnimeList(db)
+    }
+
+    private fun seedUserAnimeList(db: SQLiteDatabase) {
+        runCatching {
+            data class AnimeEntry(
+                val title: String,
+                val author: String,
+                val category: String,
+                val status: String,
+                val yearTag: String,
+                val tags: List<String>,
+                val rating: Double?,
+                val shortComment: String?,
+                val mindprint: FloatArray? = null, // depth, art, emo, log, diff, heal
+            )
+
+            val animeList = listOf(
+                // 1995 - 2024 补完番剧
+                AnimeEntry("EVA (新世纪福音战士)", "庵野秀明 · Gainax", "机甲哲学", "finished", "1995", listOf("1995年", "EVA", "机甲神作", "神作"), 5.0, "不能逃避，面对人与人之间的AT力场，向所有的福音战士告别。", floatArrayOf(9.9f, 9.6f, 9.8f, 8.5f, 6.0f, 9.5f)),
+                AnimeEntry("浪客剑心 追忆篇", "古桥一浩 · Studio Deen", "时代剑戟", "finished", "1999", listOf("1999年", "时代剑戟", "凄美神作", "雪代巴"), 5.0, "你真是能呼唤腥风血雨的人啊，十字伤的宿命与救赎。", floatArrayOf(9.5f, 9.8f, 10.0f, 8.8f, 4.0f, 6.0f)),
+                AnimeEntry("夏目友人帐", "大森贵弘 · Brain's Base", "治愈妖怪", "finished", "2008", listOf("2008年", "治愈系", "夏目贵志", "猫咪老师"), 5.0, "我想成为一个温柔的人，因为曾被温柔的人那样对待过。", floatArrayOf(8.8f, 9.5f, 10.0f, 8.0f, 2.0f, 10.0f)),
+                AnimeEntry("轻音少女", "山田尚子 · 京都动画", "青春音乐", "finished", "2009", listOf("2009年", "京阿尼", "萌系日常", "放学后TEA TIME"), 4.8, "请不要拔掉插头，因为我们还要演奏更多属于青春的旋律！", floatArrayOf(7.5f, 9.0f, 9.2f, 7.0f, 1.5f, 10.0f)),
+                AnimeEntry("轻音少女 第二季", "山田尚子 · 京都动画", "青春音乐", "finished", "2010", listOf("2010年", "京阿尼", "毕业季", "天使にふれたよ!"), 5.0, "但我们相遇了天使，毕业并不是终点，我们永远是同伴。", floatArrayOf(8.0f, 9.5f, 9.8f, 7.5f, 1.5f, 10.0f)),
+                AnimeEntry("怪盗基德 (魔术快斗)", "TMS Entertainment", "悬疑奇幻", "finished", "2010", listOf("2010年", "怪盗基德", "魔术月光", "黑羽快斗"), 4.7, "如果说怪盗是个技艺精湛的魔术师，那侦探不过是跟在后面的评论家罢了。"),
+                AnimeEntry("Angel Beats！", "麻枝准 · P.A.WORKS", "奇幻催泪", "finished", "2010", listOf("2010年", "麻枝准", "死后世界", "催泪神作"), 4.9, "即便转世重生，我依然会喜欢上你，这就是我的心跳声。", floatArrayOf(9.0f, 9.2f, 10.0f, 8.0f, 3.0f, 9.5f)),
+                AnimeEntry("JOJO 的奇妙冒险", "津田尚克 · david production", "奇幻热血", "finished", "2012", listOf("2012年", "JOJO", "波纹疾走", "大乔二乔"), 4.9, "人类的赞歌就是勇气的赞歌！人类的伟大就是勇气的伟大！", floatArrayOf(9.0f, 9.2f, 9.5f, 9.0f, 4.5f, 8.0f)),
+                AnimeEntry("我的青春恋爱物语果然有问题", "吉村爱 · Brain's Base", "青春思辨", "finished", "2013", listOf("2013年", "春物", "大老师", "真物"), 4.8, "温柔正确的人总是难以生存，因为这世界既不温柔也不正确。", floatArrayOf(9.4f, 9.2f, 9.5f, 8.5f, 4.5f, 8.0f)),
+                AnimeEntry("约会大作战", "元永庆太郎 · AIC PLUS+", "奇幻恋爱", "finished", "2013", listOf("2013年", "约战", "精灵", "十香"), 4.5, "那么，开始我们的约会吧。"),
+                AnimeEntry("JOJO 的奇妙冒险 星尘远征军", "津田尚克 · david production", "奇幻热血", "finished", "2014", listOf("2014年", "JOJO", "替身白金之星", "承太郎"), 5.0, "正义必然会战胜邪恶，因为你惹怒了我。"),
+                AnimeEntry("月刊少女野崎君", "山崎光惠 · 动画工房", "搞笑恋爱", "finished", "2014", listOf("2014年", "搞笑", "少女漫画", "野崎君与佐仓"), 4.8, "我很喜欢哦，看烟花的时候你也是这么想的吧。"),
+                AnimeEntry("Charlotte (夏洛特)", "麻枝准 · P.A.WORKS", "超能青春", "finished", "2015", listOf("2015年", "麻枝准", "超能力", "友利奈绪"), 4.6, "掠夺全世界的超能力，只为了守护你一个人的约定。"),
+                AnimeEntry("我的青春恋爱物语果然有问题 续", "及川启 · feel.", "青春思辨", "finished", "2015", listOf("2015年", "春物续", "雪乃", "团子", "寻找真物"), 4.9, "我不想要被欺瞒的理解，我想要的是真正的真物。"),
+                AnimeEntry("路人女主的养成方法", "龟井干太 · A-1 Pictures", "青春恋爱", "finished", "2015", listOf("2015年", "路人女主", "加藤惠", "圣人惠"), 4.7, "将不起眼的你，培养成心动的主角。"),
+                AnimeEntry("齐木楠雄的灾难", "樱井弘明 · J.C.STAFF", "搞笑日常", "finished", "2016", listOf("2016年", "超能力搞笑", "齐神", "咖啡果冻"), 4.9, "呀咧呀咧，虽然超能力很麻烦，但平静的高中生活才是终极目标。"),
+                AnimeEntry("JOJO 的奇妙冒险 不灭钻石", "津田尚克 · david production", "奇幻热血", "finished", "2016", listOf("2016年", "杜王町", "东方仗助", "吉良吉影"), 5.0, "黄金精神永不熄灭，守护杜王町的日常与正义。"),
+                AnimeEntry("在下坂本，有何贵干？", "高松信司 · Studio Deen", "搞笑日常", "finished", "2016", listOf("2016年", "装逼如风", "坂本大佬", "日常搞笑"), 4.7, "无论面对何种刁难，都要以最优雅从容的姿态化解。"),
+                AnimeEntry("灵能百分百", "立川让 · BONES 骨头社", "热血成长", "finished", "2016", listOf("2016年", "骨头社", "龙套", "灵幻新隆"), 5.0, "超能力只是个性的一种，并不代表高人一等，重要的是如何做个好人。", floatArrayOf(9.5f, 9.0f, 9.8f, 9.2f, 3.0f, 9.6f)),
+                AnimeEntry("夏目友人帐 伍", "出合小都美 · 朱夏", "治愈妖怪", "finished", "2016", listOf("2016年", "夏目友人帐5", "治愈", "妖怪物语"), 4.9, "那些温暖的羁绊，会在岁月的河流里永恒闪光。"),
+                AnimeEntry("来自深渊", "小岛正幸 · Kinema Citrus", "黑暗奇幻", "finished", "2017", listOf("2017年", "阿比斯深渊", "黎明卿", "斯巴拉西"), 5.0, "深渊在凝视着你，探窟者的灵魂永不停歇地追寻未知的深处。", floatArrayOf(9.8f, 9.5f, 9.6f, 9.5f, 7.0f, 3.0f)),
+                AnimeEntry("笨女孩", "草川启造 · Diomedéa", "搞笑日常", "finished", "2017", listOf("2017年", "猴子香蕉", "花畑佳子", "爆笑解压"), 4.5, "只要有香蕉吃，智商什么的根本不重要！"),
+                AnimeEntry("欢迎来到实力至上主义教室", "岸诚二 · Lerche", "悬疑校园", "finished", "2017", listOf("2017年", "路哥", "绫小路清隆", "实力至上"), 4.6, "所有人对我来说都不过是棋子，只要最后获胜的是我就行了。"),
+                AnimeEntry("夏目友人帐 陆", "出合小都美 · 朱夏", "治愈妖怪", "finished", "2017", listOf("2017年", "夏目友人帐6", "治愈", "岁月温柔"), 4.9, "只要有想见的人，就不是孤身一人。"),
+                AnimeEntry("路人女主的养成方法 2", "龟井干太 · A-1 Pictures", "青春恋爱", "finished", "2017", listOf("2017年", "路人女主2", "同人游戏制作", "加藤惠"), 4.8, "我们所创作的游戏，就是倾注了所有青春热忱的证明。"),
+                AnimeEntry("JOJO 的奇妙冒险 黄金之风", "津田尚克 · 木村泰大 · david production", "奇幻热血", "finished", "2018", listOf("2018年", "JOJO5", "乔鲁诺", "布加拉提"), 5.0, "觉悟就是在这漆黑的荒野中，开辟出一条光明坦途！", floatArrayOf(9.2f, 9.6f, 9.5f, 9.6f, 5.0f, 8.0f)),
+                AnimeEntry("青春猪头少年不会梦到兔女郎学姐", "增井壮一 · CloverWorks", "奇幻青春", "finished", "2018", listOf("2018年", "青春综合征", "麻衣学姐", "咲太"), 4.9, "即便全世界都遗忘了你，我也会在操场上大声喊出喜欢你！", floatArrayOf(9.2f, 9.0f, 9.8f, 9.0f, 4.0f, 9.0f)),
+                AnimeEntry("紫罗兰永恒花园", "石立太一 · 京都动画", "情感史诗", "finished", "2018", listOf("2018年", "京阿尼巅峰", "薇尔莉特", "爱是什么"), 5.0, "我想知道‘我爱你’究竟是什么意思，自动手记人偶为你传达所有心意。", floatArrayOf(9.6f, 10.0f, 10.0f, 8.5f, 2.5f, 10.0f)),
+                AnimeEntry("碧蓝之海", "高松信司 · ZERO-G", "搞笑青春", "finished", "2018", listOf("2018年", "硬核潜水", "乌龙茶(可燃)", "爆笑大学"), 4.8, "来一杯可以点燃的乌龙茶吧，这就是大学潜水社的青春！"),
+                AnimeEntry("强风吹拂", "野村和也 · Production I.G", "运动热血", "finished", "2018", listOf("2018年", "箱根驿传", "跑步的意义", "宽政大"), 5.0, "你喜欢跑步吗？跑步不是为了超越别人，而是为了到达属于自己的彼岸。", floatArrayOf(9.5f, 9.2f, 9.8f, 9.5f, 3.5f, 9.8f)),
+                AnimeEntry("文豪野犬 第二季", "五十岚卓哉 · BONES 骨头社", "异能战斗", "finished", "2019", listOf("2019年", "黑之时代", "织田作之助", "太宰治"), 4.8, "去成为救人的一方吧，既然在善恶哪边都一样，那就去救人吧。"),
+                AnimeEntry("灵能百分百 第二季", "立川让 · BONES 骨头社", "热血成长", "finished", "2019", listOf("2019年", "骨头社神作", "最上启示", "师徒情"), 5.0, "哪怕不依靠超能力，我也想要凭借自己的双手改变人生。"),
+                AnimeEntry("约会大作战 第三季", "元永庆太郎 · J.C.STAFF", "奇幻恋爱", "finished", "2019", listOf("2019年", "约战3", "七罪", "折纸"), 4.5, "为了拯救折纸与精灵们，再次展开跨越时空的约会。"),
+                AnimeEntry("魔女之旅", "洼冈俊之 · C2C", "奇幻公路", "finished", "2020", listOf("2020年", "伊蕾娜", "灰之魔女", "公路物语"), 4.7, "这是一个关于旅人与不同国度相遇的故事，那位可爱的魔女是谁呢？没错，就是我。"),
+                AnimeEntry("我的青春恋爱物语果然有问题。完", "及川启 · feel.", "青春思辨", "finished", "2020", listOf("2020年", "春物完结", "比企谷八幡", "雪之下雪乃"), 4.8, "请将你的人生交给我，即便痛苦，我也要和你纠缠到底。"),
+                AnimeEntry("Re：从零开始的异世界生活 新编集版", "渡边政治 · WHITE FOX", "奇幻穿越", "finished", "2020", listOf("2020年", "死亡回归", "菜月昴", "蕾姆"), 4.9, "哪怕从零开始，我也要在这残酷的世界里拯救所有人！"),
+                AnimeEntry("国王排名", "八田洋介 · WIT STUDIO", "奇幻成长", "finished", "2021", listOf("2021年", "波吉王子", "卡克", "催泪治愈"), 4.8, "最弱小无声的聋哑王子，拥有这世上最坚强纯善的心灵。"),
+                AnimeEntry("转生成蜘蛛又怎样！", "板垣伸 · Millepensee", "异界转生", "finished", "2021", listOf("2021年", "单口相声", "蜘蛛子", "悠木碧"), 4.6, "只要拼尽全力活下去，就算转生成小蜘蛛也能弑神！"),
+                AnimeEntry("JOJO 的奇妙冒险 石之海", "铃木健一 · david production", "奇幻热血", "finished", "2021", listOf("2021年", "空条徐伦", "普奇神父", "天堂制造"), 4.9, "这是属于乔斯达家族百年的血脉宿命，人类的觉悟跨越新世界。"),
+                AnimeEntry("间谍过家家", "古桥一浩 · WIT STUDIO / CloverWorks", "搞笑日常", "finished", "2022", listOf("2022年", "阿尼亚", "黄昏", "约尔太太"), 4.9, "哇酷哇酷！间谍、杀手与读心术超能力少女的伪装温馨家庭。"),
+                AnimeEntry("夏日重现", "渡边步 · OLM", "悬疑循环", "finished", "2022", listOf("2022年", "日都岛", "时间轮回", "影子病"), 4.9, "跨越无数次死亡轮回，只为在日都岛夏日祭上拯救潮与所有人！", floatArrayOf(9.4f, 9.0f, 9.2f, 9.8f, 5.0f, 7.5f)),
+                AnimeEntry("孤独摇滚！", "斋藤圭一郎 · CloverWorks", "音乐日常", "finished", "2022", listOf("2022年", "波奇酱", "结束乐队", "社恐神作"), 5.0, "社恐又怎样？只要抱起吉他，我的声音就能穿透整个世界！", floatArrayOf(9.0f, 9.6f, 9.8f, 8.5f, 2.0f, 10.0f)),
+                AnimeEntry("蓝色监狱", "渡边彻明 · 8bit", "竞技热血", "finished", "2022", listOf("2022年", "唯我独尊", "洁世一", "利己主义前锋"), 4.8, "丢掉温情脉脉的合作吧，在这里只有最疯狂的利己前锋才能生存！"),
+                AnimeEntry("灵能百分百 第三季", "莲井隆弘 · BONES 骨头社", "热血成长", "finished", "2022", listOf("2022年", "神树篇", "告白篇", "完美谢幕"), 5.0, "接纳不完美的自己，龙套与灵幻迎来了最温暖动人的圆满结局。"),
+                AnimeEntry("约会大作战 第四季", "中川淳 · GEEK TOYS", "奇幻恋爱", "finished", "2022", listOf("2022年", "本条二亚", "星宫六喰", "约战4"), 4.6, "封印万由里与所有精灵的心灵之门。"),
+                AnimeEntry("间谍过家家 第二季", "古桥一浩 · WIT STUDIO / CloverWorks", "搞笑日常", "finished", "2023", listOf("2023年", "豪华游轮篇", "约尔太太大显身手"), 4.8, "守护家人的平静生活，就是杀手与间谍最崇高的使命。"),
+                AnimeEntry("我独自升级", "中重俊祐 · A-1 Pictures", "爽快异能", "finished", "2024", listOf("2024年", "成振宇", "暗影君王", "站起来"), 4.7, "从最弱E级猎人到支配死亡的暗影君王，站起来吧！"),
+                AnimeEntry("蓝色监狱 第二季", "生原雄次 · 8bit", "竞技热血", "finished", "2024", listOf("2024年", "U-20决战", "怪物觉醒"), 4.7, "赌上职业生涯的U-20代表战，让世界见证蓝色监狱的变革！"),
+                AnimeEntry("鬼灭之刃", "外崎春雄 · Ufotable", "和风热血", "finished", "经典", listOf("飞碟社", "炭治郎", "祢豆子", "无限列车"), 4.9, "纵使身形俱灭，也定将恶鬼斩杀！心之火永不熄灭。"),
+                AnimeEntry("魔法少女小圆", "新房昭之 · 虚渊玄 · SHAFT", "黑暗奇幻", "finished", "经典", listOf("圆神", "晓美焰", "爱的战士", "神作"), 5.0, "为了拯救你，我愿意在这个无限轮回的时空里战斗千百次！", floatArrayOf(9.9f, 9.5f, 9.8f, 9.8f, 5.5f, 6.0f)),
+                AnimeEntry("咒术回战", "朴性厚 · MAPPA", "热血奇幻", "finished", "待整理", listOf("咒术回战", "虎杖悠仁", "五条悟", "MAPPA"), 4.8, "在众人簇拥下死去，吞下宿傩手指的少年走向咒术之路。"),
+                AnimeEntry("咒术回战 第二季", "御所园翔太 · MAPPA", "怀玉玉折/涩谷事变", "finished", "待整理", listOf("怀玉玉折", "涩谷事变", "五条悟", "夏油杰"), 5.0, "青春的夏日终究走向破碎，涩谷地下展开了最残酷的咒术大战。"),
+                AnimeEntry("咒术回战 第三季 (死灭回游)", "MAPPA", "热血奇幻", "finished", "待整理", listOf("死灭回游", "羂索", "乙骨忧太"), 4.8, "死灭回游结界开启，为了解除五条悟封印而浴血奋战。"),
+                AnimeEntry("魔都精兵的奴隶", "Seven Arcs", "战斗奇幻", "finished", "待整理", listOf("魔都精兵", "羽前京香", "奴隶契约"), 4.5, "成为魔防队长的专属奴隶，在魔都阴影中斩杀丑鬼。"),
+                AnimeEntry("魔都精兵的奴隶 第二季", "Passione", "战斗奇幻", "finished", "待整理", listOf("魔都精兵2", "八雷神", "魔防队"), 4.5, "更深层次的魔都隐秘揭开，强敌八雷神降临。"),
+                AnimeEntry("我推的孩子 第二季", "平牧大辅 · 动画工房", "演艺悬疑", "finished", "待整理", listOf("东京BLADE", "舞台剧篇", "黑川茜", "有马加奈"), 4.9, "在东京BLADE舞台上释放真正的演技，阿库亚直面复仇心魔。"),
+                AnimeEntry("我推的孩子 第三季", "动画工房", "演艺悬疑", "finished", "待整理", listOf("我推的孩子3", "偶像与复仇", "真相逼近"), 4.8, "B小町全国巡演与隐藏在黑暗中的终极幕后黑手。"),
+
+                // 待看列表 (想追 / wishlist)
+                AnimeEntry("玉子市场", "山田尚子 · 京都动画", "日常治愈", "wishlist", "待看", listOf("待看清单", "京阿尼", "兔山商店街", "大路饼藏"), null, "兔山商店街的温馨人情，会说人话的奇妙鸟与纯真青春。"),
+                AnimeEntry("某科学的超电磁炮", "长井龙雪 · J.C.STAFF", "超能战斗", "wishlist", "待看", listOf("待看清单", "炮姐", "御坂美琴", "唯我超电磁炮"), null, "学园都市最强LV5超电磁炮，硬币弹起的瞬间就是正义。"),
+                AnimeEntry("凉宫春日的忧郁", "石原立也 · 京都动画", "校园科幻", "wishlist", "待看", listOf("待看清单", "SOS团", "凉宫春日", "漫无止境的八月"), null, "我对普通的人类没有兴趣，如果你们之中有外星人、未来人、超能力者，就来找我吧！"),
+                AnimeEntry("中二病也要谈恋爱！", "石原立也 · 京都动画", "青春恋爱", "wishlist", "待看", listOf("待看清单", "京阿尼", "邪王真眼", "六花与勇太"), null, "被漆黑烈焰吞噬吧！爆裂吧现实，粉碎吧精神，放逐这个世界！"),
+                AnimeEntry("冰菓", "武本康弘 · 京都动画", "青春推理", "wishlist", "待看", listOf("待看清单", "京阿尼巅峰", "折木奉太郎", "我很好奇"), null, "做没有必要做的事情就不要做，必须做的事情就从简。但是，我很好奇！"),
+                AnimeEntry("野良神", "田村耕太郎 · BONES 骨头社", "神魔奇幻", "wishlist", "待看", listOf("待看清单", "骨头社", "五元神明", "夜斗"), null, "只需五元香火钱，实现你所有愿望的无家可归神明夜斗。"),
+                AnimeEntry("请问您今天要来点兔子吗？", "桥本裕之 · WHITE FOX", "萌系日常", "wishlist", "待看", listOf("待看清单", "点兔", "保登心爱", "香风智乃"), null, "充满咖啡香气与温暖兔子的木造小镇日常生活。"),
+                AnimeEntry("干物妹！小埋", "太田雅彦 · 动画工房", "搞笑日常", "wishlist", "待看", listOf("待看清单", "小埋", "披着仓鼠斗篷", "可乐薯片"), null, "在外完美无瑕的高中女神，回家立刻化身二头身吃零食打游戏！"),
+                AnimeEntry("逆转裁判", "渡边步 · A-1 Pictures", "法庭推理", "wishlist", "待看", listOf("待看清单", "成步堂龙一", "异议阿里", "法庭对决"), null, "异议あり！在绝境中寻找证据的唯一矛盾，彻底逆转法庭！"),
+                AnimeEntry("杀戮天使", "铃木健太郎 · J.C.STAFF", "悬疑逃脱", "wishlist", "待看", listOf("待看清单", "Angels of Death", "扎克", "瑞吉儿"), null, "誓言与杀戮的约定，从这栋封闭的大楼深处逃出生天。"),
+                AnimeEntry("多罗罗", "古桥一浩 · MAPPA / 手冢Production", "暗黑武侠", "wishlist", "待看", listOf("待看清单", "手冢治虫", "百鬼丸", "夺回身体"), null, "被魔神夺走四十八处器官的少年，在战国乱世中斩魔夺回肉身。"),
+                AnimeEntry("葬送的芙莉莲", "斋藤圭一郎 · Madhouse", "史诗治愈", "wishlist", "待看", listOf("待看清单", "年度霸权", "千年精灵", "勇者辛美尔"), null, "在打倒魔王之后的漫长岁月里，长生精灵芙莉莲重新踏上体会人心的旅程。"),
+                AnimeEntry("超时空要塞", "河森正治 · Satelight", "机甲歌姬", "wishlist", "待看", listOf("待看清单", "超时空要塞", "战术音乐", "女武神"), null, "歌声能跨越宇宙的硝烟，机甲与歌姬唱响银河最后的恋歌。"),
+                AnimeEntry("辉夜大小姐想让我告白", "畠山守 · A-1 Pictures", "恋爱喜剧", "wishlist", "待看", listOf("待看清单", "天才们的恋爱头脑战", "辉夜与会长"), null, "先告白的人就是输家！秀知院学园两位顶级天才的傲娇智斗恋爱。"),
+            )
+
+            val now = currentTimestamp()
+            for (anime in animeList) {
+                val cursor = db.query(
+                    TABLE_BOOKS,
+                    arrayOf(COLUMN_ID),
+                    "$COLUMN_TITLE = ? AND $COLUMN_IS_DELETED = 0",
+                    arrayOf(anime.title),
+                    null, null, null,
+                )
+                val existingId = cursor.use {
+                    if (it.moveToFirst()) it.getLong(0) else null
+                }
+
+                val bookId = if (existingId != null) {
+                    existingId
+                } else {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, anime.title)
+                        put(COLUMN_AUTHOR, anime.author)
+                        put(COLUMN_CATEGORY, anime.category)
+                        put(COLUMN_STATUS, anime.status)
+                        put(COLUMN_MEDIA_TYPE, "anime")
+                        put(COLUMN_RATING, anime.rating)
+                        put(COLUMN_TAGS, JSONArray(anime.tags).toString())
+                        put(COLUMN_SHORT_COMMENT, anime.shortComment)
+                        put(COLUMN_REVIEW, if (anime.status == "finished") "已完成追番 · 留存在《阅痕》的珍贵青春印记" else "加入个人待看追番清单")
+                        put(COLUMN_START_DATE, if (anime.status == "finished") "${anime.yearTag}-01-01" else null)
+                        put(COLUMN_FINISH_DATE, if (anime.status == "finished") "${anime.yearTag}-12-31" else null)
+                        put(COLUMN_BUY_CHANNEL, "Bilibili / 官方正版番剧")
+                        put(COLUMN_SHELF_LOCATION, "展厅第3层 · 经典番剧回廊")
+                        put(COLUMN_BINDING_TYPE, "TV / 剧场版动画")
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    db.insert(TABLE_BOOKS, null, cv)
+                }
+
+                // 如果包含心智评分，则注入雷达
+                if (anime.mindprint != null && bookId > 0) {
+                    val mp = anime.mindprint
+                    val mpCv = ContentValues().apply {
+                        put(COLUMN_BOOK_ID, bookId)
+                        put(COLUMN_DEPTH_SCORE, mp[0].toDouble())
+                        put(COLUMN_ARTISTRY_SCORE, mp[1].toDouble())
+                        put(COLUMN_EMOTION_SCORE, mp[2].toDouble())
+                        put(COLUMN_LOGIC_SCORE, mp[3].toDouble())
+                        put(COLUMN_DIFFICULTY_SCORE, mp[4].toDouble())
+                        put(COLUMN_HEALING_SCORE, mp[5].toDouble())
+                        put(COLUMN_UPDATED_AT, now)
+                    }
+                    db.insertWithOnConflict(TABLE_BOOK_MINDPRINTS, null, mpCv, SQLiteDatabase.CONFLICT_REPLACE)
+                }
+            }
+        }
     }
 
     private fun populatePresetBookRichData(db: SQLiteDatabase) {
