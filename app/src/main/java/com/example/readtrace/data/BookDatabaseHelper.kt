@@ -238,6 +238,7 @@ class BookDatabaseHelper(val context: Context) :
         super.onOpen(db)
         populatePresetBookRichData(db)
         seedUserAnimeList(db)
+        seedUserMovieList(db)
         seedCuratedBookCovers(db)
     }
 
@@ -469,6 +470,230 @@ class BookDatabaseHelper(val context: Context) :
                 // 如果包含心智评分，则注入雷达
                 if (anime.mindprint != null && bookId > 0) {
                     val mp = anime.mindprint
+                    val mpCv = ContentValues().apply {
+                        put(COLUMN_BOOK_ID, bookId)
+                        put(COLUMN_DEPTH_SCORE, mp[0].toDouble())
+                        put(COLUMN_ARTISTRY_SCORE, mp[1].toDouble())
+                        put(COLUMN_EMOTION_SCORE, mp[2].toDouble())
+                        put(COLUMN_LOGIC_SCORE, mp[3].toDouble())
+                        put(COLUMN_DIFFICULTY_SCORE, mp[4].toDouble())
+                        put(COLUMN_HEALING_SCORE, mp[5].toDouble())
+                        put(COLUMN_UPDATED_AT, now)
+                    }
+                    db.insertWithOnConflict(TABLE_BOOK_MINDPRINTS, null, mpCv, SQLiteDatabase.CONFLICT_REPLACE)
+                }
+            }
+        }
+    }
+
+    private fun seedUserMovieList(db: SQLiteDatabase) {
+        runCatching {
+            data class MovieEntry(
+                val title: String,
+                val author: String,
+                val category: String,
+                val status: String,
+                val tags: List<String>,
+                val rating: Double?,
+                val shortComment: String?,
+                val review: String?,
+                val coverUrl: String,
+                val mindprint: FloatArray? = null, // depth, art, emo, log, diff, heal
+            )
+
+            val movieList = listOf(
+                MovieEntry(
+                    title = "蜘蛛侠：崭新之日",
+                    author = "漫威影业 · 索尼电影",
+                    category = "超级英雄",
+                    status = "finished",
+                    tags = listOf("漫威影业", "超级英雄", "崭新之日", "街头英雄", "成长"),
+                    rating = 4.8,
+                    shortComment = "能力越大，责任越大。无论世界如何遗忘彼得·帕克，蜘蛛侠永远守护纽约的晨曦。",
+                    review = "剥离了斯塔克工业高科技光环，彼得·帕克在简陋公寓中缝制新战衣，重拾街头英雄的坚韧与初心。",
+                    coverUrl = "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=600",
+                    mindprint = floatArrayOf(8.0f, 8.5f, 9.2f, 8.4f, 4.0f, 8.8f),
+                ),
+                MovieEntry(
+                    title = "哪吒之魔童闹海",
+                    author = "饺子 · 可可豆动画",
+                    category = "神话国漫",
+                    status = "finished",
+                    tags = listOf("国漫神作", "神话史诗", "魔童降世续集", "逆天改命", "视觉震撼"),
+                    rating = 4.9,
+                    shortComment = "我命由我不由天，是魔是仙，我自己说了才算！四海龙族受死！",
+                    review = "国产动画电影巅峰巨制。哪吒与敖丙肉身虽灭但魂魄尚存，重塑肉身与四海龙王掀起撼天动地的终极决战。",
+                    coverUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600",
+                    mindprint = floatArrayOf(8.8f, 9.2f, 9.6f, 8.6f, 5.0f, 8.8f),
+                ),
+                MovieEntry(
+                    title = "肖申克的救赎",
+                    author = "弗兰克·德拉邦特",
+                    category = "剧情经典",
+                    status = "finished",
+                    tags = listOf("影史第一", "自由意志", "希望救赎", "经典神作", "人性史诗"),
+                    rating = 5.0,
+                    shortComment = "有些鸟儿是关不住的，它们的每一片羽毛都闪耀着自由的光辉。希望是件好东西，也许是最好的东西。",
+                    review = "影史无可争议的无冕之王。安迪用一把小石锤在十九年里凿开肖申克监狱的高墙，暴雨中拥抱自由的瞬间成为人类电影史的永恒丰碑。",
+                    coverUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                    mindprint = floatArrayOf(10.0f, 9.8f, 9.8f, 9.7f, 6.0f, 9.6f),
+                ),
+                MovieEntry(
+                    title = "哈尔的移动城堡",
+                    author = "宫崎骏 · 吉卜力工作室",
+                    category = "奇幻治愈",
+                    status = "finished",
+                    tags = listOf("宫崎骏", "吉卜力", "浪漫奇幻", "反战治愈", "童话史诗"),
+                    rating = 5.0,
+                    shortComment = "在茫茫人海中相遇，我已经找了你很久很久。世界这么大，人生这么长，总会有一个人，让你想要温柔对待。",
+                    review = "宫崎骏最唯美浪漫的心灵寓言。即使外表衰老如风烛残年，真挚勇敢的心灵也能让沉重钢铁城堡翱翔于澄澈星空与花海。",
+                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    mindprint = floatArrayOf(9.0f, 10.0f, 10.0f, 8.5f, 4.0f, 10.0f),
+                ),
+                MovieEntry(
+                    title = "星际穿越",
+                    author = "克里斯托弗·诺兰",
+                    category = "硬核科幻",
+                    status = "finished",
+                    tags = listOf("诺兰神作", "硬核科幻", "黑洞时空", "父女深情", "五维空间"),
+                    rating = 5.0,
+                    shortComment = "不要温和地走进那个良夜。爱是唯一可以超越时间与空间维度的力量。",
+                    review = "硬核相对论物理与极致父女亲情的壮丽交响。穿越五维超正方体拨动书架手表的秒针，浩瀚宇宙在人类的情感面前亦化作回音。",
+                    coverUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                    mindprint = floatArrayOf(9.8f, 9.6f, 10.0f, 9.8f, 7.5f, 9.0f),
+                ),
+                MovieEntry(
+                    title = "盗梦空间",
+                    author = "克里斯托弗·诺兰",
+                    category = "悬疑科幻",
+                    status = "finished",
+                    tags = listOf("诺兰神作", "潜意识", "梦境架构", "极致烧脑", "哲学悬疑"),
+                    rating = 5.0,
+                    shortComment = "最坚韧的寄生虫是什么？是想法。一个想法可以筑起城市，也可以改变世界。图腾旋转不息，但我们已回到真实。",
+                    review = "多层梦境嵌套与时间差叙事的结构奇迹。旋转的陀螺成为了整个电影史最迷人的哲学隐喻。",
+                    coverUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                    mindprint = floatArrayOf(9.6f, 9.5f, 9.0f, 10.0f, 8.0f, 7.5f),
+                ),
+                MovieEntry(
+                    title = "疯狂动物城",
+                    author = "拜伦·霍华德 · 迪士尼",
+                    category = "动画喜剧",
+                    status = "finished",
+                    tags = listOf("迪士尼", "乌托邦", "爆笑治愈", "打破偏见", "狐兔CP"),
+                    rating = 4.9,
+                    shortComment = "生活总会有点不顺心，但无论你是何种动物，改变都从你开始。Try Everything!",
+                    review = "迪士尼兼具极致娱乐性与深刻社会多元包容思辨的现代经典。兔朱迪与狐尼克的乌托邦冒险充满灵动与温暖。",
+                    coverUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
+                    mindprint = floatArrayOf(9.2f, 9.4f, 9.4f, 9.0f, 4.0f, 9.6f),
+                ),
+                MovieEntry(
+                    title = "教父",
+                    author = "弗朗西斯·福特·科波拉",
+                    category = "黑帮史诗",
+                    status = "finished",
+                    tags = listOf("影史巅峰", "黑帮史诗", "权力圣经", "柯里昂家族", "教父"),
+                    rating = 5.0,
+                    shortComment = "伟大的人不是生来就伟大的，而是在成长过程中展现其伟大的。永远不要让别人知道你在想什么。",
+                    review = "男人的圣经，电影美学的教科书。柯里昂家族在光影暗调中的沉浮与决断，构筑了人类权力与家庭责任的最冷峻赞歌。",
+                    coverUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600",
+                    mindprint = floatArrayOf(9.8f, 9.8f, 9.2f, 9.6f, 6.5f, 6.5f),
+                ),
+                MovieEntry(
+                    title = "功夫",
+                    author = "周星驰",
+                    category = "武侠动作",
+                    status = "finished",
+                    tags = listOf("周星驰", "武侠巅峰", "动作喜剧", "童年梦想", "如来神掌"),
+                    rating = 4.9,
+                    shortComment = "想学啊？我教你啊。一曲肝肠断，天涯何处觅知音。",
+                    review = "周星驰无厘头与传统武侠浪漫美学的集大成之作。从猪笼城寨的市井烟火到如来神掌化作彩蝶，充满了小人物对纯真童梦的守候。",
+                    coverUrl = "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600",
+                    mindprint = floatArrayOf(8.8f, 9.4f, 9.2f, 8.6f, 4.0f, 9.5f),
+                ),
+                MovieEntry(
+                    title = "新世纪福音战士新剧场版：终",
+                    author = "庵野秀明 · Khara",
+                    category = "科幻哲学",
+                    status = "finished",
+                    tags = listOf("EVA终章", "神作电影", "庵野秀明", "告别EVA", "哲学心智"),
+                    rating = 5.0,
+                    shortComment = "不能逃避，面对人与人之间的AT力场，向所有的福音战士告别，再见所有的Evangelion。",
+                    review = "跨越四分之一个世纪的青春终章。庵野秀明用最真诚的成年人笔触，打破了虚幻的避难所，教我们走出忧郁，拥抱真实的人间与现实世界。",
+                    coverUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                    mindprint = floatArrayOf(9.9f, 9.6f, 9.8f, 8.5f, 6.0f, 9.5f),
+                ),
+                MovieEntry(
+                    title = "给阿嘛的情书",
+                    author = "闽南纪实影音",
+                    category = "温情纪录",
+                    status = "finished",
+                    tags = listOf("亲情纪录", "闽南古厝", "阿嘛的爱", "岁月温情", "人间烟火"),
+                    rating = 4.9,
+                    shortComment = "阿嘛留下的不仅是摇椅与古厝的风，更是流淌在血脉里永远不会褪色的温暖记忆。",
+                    review = "真挚动人的代际亲情与乡土记忆。用温柔细腻的镜头记录祖辈的坚韧与慈爱，勾起无数人内心最柔软的归宿感与故土乡愁。",
+                    coverUrl = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600",
+                    mindprint = floatArrayOf(9.0f, 9.5f, 10.0f, 8.6f, 3.5f, 10.0f),
+                ),
+            )
+
+            val now = currentTimestamp()
+
+            movieList.forEach { movie ->
+                val cursor = db.query(
+                    TABLE_BOOKS,
+                    arrayOf(COLUMN_ID, COLUMN_COVER_URL, COLUMN_SHORT_COMMENT),
+                    "$COLUMN_TITLE = ? AND $COLUMN_IS_DELETED = 0",
+                    arrayOf(movie.title),
+                    null,
+                    null,
+                    null,
+                )
+
+                var bookId: Long = -1
+                val exists = cursor.use { c ->
+                    if (c.moveToFirst()) {
+                        bookId = c.getLong(0)
+                        true
+                    } else false
+                }
+
+                if (exists) {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_MEDIA_TYPE, "movie")
+                        if (movie.shortComment != null) put(COLUMN_SHORT_COMMENT, movie.shortComment)
+                        if (movie.review != null) put(COLUMN_REVIEW, movie.review)
+                        if (movie.rating != null) put(COLUMN_RATING, movie.rating)
+                        if (movie.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, movie.coverUrl)
+                        put(COLUMN_TAGS, JSONArray(movie.tags).toString())
+                    }
+                    db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                } else {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, movie.title)
+                        put(COLUMN_AUTHOR, movie.author)
+                        put(COLUMN_CATEGORY, movie.category)
+                        put(COLUMN_STATUS, movie.status)
+                        put(COLUMN_MEDIA_TYPE, "movie")
+                        put(COLUMN_SHORT_COMMENT, movie.shortComment)
+                        put(COLUMN_REVIEW, movie.review)
+                        put(COLUMN_RATING, movie.rating ?: 5.0)
+                        put(COLUMN_TAGS, JSONArray(movie.tags).toString())
+                        put(COLUMN_COVER_URL, movie.coverUrl)
+                        put(COLUMN_START_DATE, "2026-07-01")
+                        put(COLUMN_FINISH_DATE, "2026-07-15")
+                        put(COLUMN_BUY_CHANNEL, "院线公映 · 影院观影")
+                        put(COLUMN_SHELF_LOCATION, "展厅第4层 · 影音光影展区")
+                        put(COLUMN_BINDING_TYPE, "IMAX / 杜比影院")
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    bookId = db.insert(TABLE_BOOKS, null, cv)
+                }
+
+                // 注入六维心智雷达
+                if (movie.mindprint != null && bookId > 0) {
+                    val mp = movie.mindprint
                     val mpCv = ContentValues().apply {
                         put(COLUMN_BOOK_ID, bookId)
                         put(COLUMN_DEPTH_SCORE, mp[0].toDouble())
