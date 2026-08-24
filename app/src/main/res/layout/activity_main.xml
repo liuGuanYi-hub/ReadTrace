@@ -748,6 +748,14 @@
                         android:text="@string/media_type_book" />
 
                     <TextView
+                        android:id="@+id/mediaTabAnime"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_marginStart="8dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/media_type_anime" />
+
+                    <TextView
                         android:id="@+id/mediaTabMovie"
                         style="@style/ReadTraceStatusChip"
                         android:layout_marginStart="8dp"

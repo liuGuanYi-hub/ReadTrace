@@ -122,6 +122,14 @@
                             android:textColor="@color/white" />
 
                         <TextView
+                            android:id="@+id/mediaTypeAnime"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/media_type_anime" />
+
+                        <TextView
                             android:id="@+id/mediaTypeMovie"
                             style="@style/ReadTraceStatusChip"
                             android:layout_marginStart="10dp"

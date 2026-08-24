@@ -68,6 +68,7 @@ object GalleryTextureHelper {
         // 1. 根据媒介类型配置主色调渐变
         val (topColor, bottomColor) = when (book.mediaType) {
             MediaType.BOOK -> Pair(Color.parseColor("#1C2833"), Color.parseColor("#0E1626"))
+            MediaType.ANIME -> Pair(Color.parseColor("#341B2D"), Color.parseColor("#150A13"))
             MediaType.MOVIE -> Pair(Color.parseColor("#2C1820"), Color.parseColor("#120A0E"))
             MediaType.GAME -> Pair(Color.parseColor("#17252A"), Color.parseColor("#0B1316"))
             MediaType.PODCAST -> Pair(Color.parseColor("#2A1E17"), Color.parseColor("#140E0A"))

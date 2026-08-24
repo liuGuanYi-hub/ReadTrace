@@ -76,6 +76,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
         val options = listOf(
             FilterOption("✦ 全星系", com.example.readtrace.widget.ConstellationFilter.ALL),
             FilterOption("📖 纸墨书籍", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.BOOK)),
+            FilterOption("🌸 动漫番剧", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.ANIME)),
             FilterOption("🎬 光影影视", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.MOVIE)),
             FilterOption("🎮 互动游戏", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.GAME)),
             FilterOption("🎙️ 沉浸播客", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.PODCAST)),

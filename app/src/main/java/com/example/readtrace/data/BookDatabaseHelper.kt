@@ -241,7 +241,7 @@ class BookDatabaseHelper(val context: Context) :
 
     private fun populatePresetBookRichData(db: SQLiteDatabase) {
         runCatching {
-            fun findOrInsertBook(title: String, author: String, category: String, status: String, shortComment: String, review: String, rating: Double, tags: List<String>, coverUrl: String, buyChannel: String, shelfLocation: String, bindingType: String, buyPrice: Double): Long {
+            fun findOrInsertBook(title: String, author: String, category: String, status: String, shortComment: String, review: String, rating: Double, tags: List<String>, coverUrl: String, buyChannel: String, shelfLocation: String, bindingType: String, buyPrice: Double, mediaType: String = "book"): Long {
                 val cursor = db.query(TABLE_BOOKS, arrayOf(COLUMN_ID), "$COLUMN_TITLE LIKE ? AND $COLUMN_IS_DELETED = 0", arrayOf("%$title%"), null, null, null)
                 val bookId = cursor.use {
                     if (it.moveToFirst()) it.getLong(0) else null
@@ -264,7 +264,7 @@ class BookDatabaseHelper(val context: Context) :
                         put(COLUMN_AUTHOR, author)
                         put(COLUMN_CATEGORY, category)
                         put(COLUMN_STATUS, status)
-                        put(COLUMN_MEDIA_TYPE, "book")
+                        put(COLUMN_MEDIA_TYPE, mediaType)
                         put(COLUMN_SHORT_COMMENT, shortComment)
                         put(COLUMN_REVIEW, review)
                         put(COLUMN_RATING, rating)
@@ -542,6 +542,49 @@ class BookDatabaseHelper(val context: Context) :
                     Pair("给岁月以文明，而不是给文明以岁月。", "218"),
                     Pair("不要回答！不要回答！不要回答！", "176"),
                     Pair("弱小和无知不是生存的障碍，傲慢才是。", "190"),
+                ),
+            )
+
+            // 4. 《新世纪福音战士：终》 (番剧 / 动漫)
+            val evaId = findOrInsertBook(
+                title = "新世纪福音战士：终",
+                author = "庵野秀明 · Khara",
+                category = "神作番剧",
+                status = "finished",
+                shortComment = "不能逃避，面对人与人之间的AT力场，向所有的福音战士告别，再见所有的Evangelion。",
+                review = "跨越四分之一个世纪的青春终章。庵野秀明用最真诚的成年人笔触，打破了虚幻的避难所，教我们走出忧郁，拥抱真实的人间与现实世界。",
+                rating = 5.0,
+                tags = listOf("神作番剧", "机甲科幻", "哲学心智", "治愈成长"),
+                coverUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                buyChannel = "Bilibili 番剧 · 正版特装",
+                shelfLocation = "展厅第3层 · 经典番剧回廊",
+                bindingType = "BD 蓝光典藏全集",
+                buyPrice = 128.0,
+                mediaType = "anime",
+            )
+            populateForBook(
+                bookId = evaId,
+                depth = 9.9, artistry = 9.6, emotion = 9.8, logic = 8.5, diff = 6.0, heal = 9.5,
+                characters = listOf(
+                    Triple("碇真嗣", "初号机适格者", "背负巨大心理创伤的少年，历经三次冲击与补完，最终选择走出孤独拥抱现实"),
+                    Triple("绫波丽", "零号机驾驶员 / 灵魂之源", "人造灵魂与神性容器，在第三村体验了人间烟火与劳作温暖的无垢少女"),
+                    Triple("式波·明日香", "二号机驾驶员 / 骄傲的战士", "用坚硬外壳包裹脆弱自尊的王牌驾驶员，在绝境中完成自我和解"),
+                ),
+                outlines = listOf(
+                    Triple(1, "第三村的生活与人间烟火", "真嗣在废墟后的避难村落休养，黑丽体验耕种与情感，真嗣逐渐走出绝望"),
+                    Triple(2, "最终作战：大和号进发", "WILLE舰队驶向南极中心，与NERV终极机体展开悲壮决战"),
+                    Triple(3, "心之补完与再见所有EVA", "真嗣在意识宇宙与父亲碇源堂对谈解开心结，重塑没有EVA的新现实世界"),
+                ),
+                locations = listOf(
+                    Triple("🌾 第三村 (Village 3)", "末世田园", "废墟世界中充满人情味的幸存者村落，木质电车与麦田"),
+                    Triple("🌊 巴黎塞纳河畔 / 新世界", "现实人间", "脱去特摄战斗服后的现实车站，拥抱阳光与奔跑的街道"),
+                ),
+                sessions = listOf(
+                    Pair(155, "全剧完结"),
+                ),
+                quotes = listOf(
+                    Pair("不能逃避，不能逃避……只要活着，哪里都是天堂。", "全篇"),
+                    Pair("再见了，所有的福音战士 (Neon Genesis)。", "终幕"),
                 ),
             )
         }

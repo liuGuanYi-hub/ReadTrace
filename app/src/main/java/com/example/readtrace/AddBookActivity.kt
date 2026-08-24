@@ -51,6 +51,7 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var saveButton: TextView
 
     private lateinit var mediaTypeBook: TextView
+    private lateinit var mediaTypeAnime: TextView
     private lateinit var mediaTypeMovie: TextView
     private lateinit var mediaTypeGame: TextView
     private lateinit var mediaTypePodcast: TextView
@@ -132,6 +133,7 @@ class AddBookActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.saveButton)
 
         mediaTypeBook = findViewById(R.id.mediaTypeBook)
+        mediaTypeAnime = findViewById(R.id.mediaTypeAnime)
         mediaTypeMovie = findViewById(R.id.mediaTypeMovie)
         mediaTypeGame = findViewById(R.id.mediaTypeGame)
         mediaTypePodcast = findViewById(R.id.mediaTypePodcast)
@@ -166,6 +168,7 @@ class AddBookActivity : AppCompatActivity() {
     private fun updateMediaTypeChips() {
         val chips = listOf(
             mediaTypeBook to MediaType.BOOK,
+            mediaTypeAnime to MediaType.ANIME,
             mediaTypeMovie to MediaType.MOVIE,
             mediaTypeGame to MediaType.GAME,
             mediaTypePodcast to MediaType.PODCAST,
@@ -256,6 +259,7 @@ class AddBookActivity : AppCompatActivity() {
     private fun configureActions() {
         findViewById<View>(R.id.backButton).setOnClickListener { finish() }
         mediaTypeBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
+        mediaTypeAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         mediaTypeMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
         mediaTypeGame.setOnClickListener { selectMediaType(MediaType.GAME) }
         mediaTypePodcast.setOnClickListener { selectMediaType(MediaType.PODCAST) }

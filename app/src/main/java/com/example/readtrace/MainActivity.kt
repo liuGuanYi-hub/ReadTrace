@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var homeGallerySummary: TextView
     private lateinit var mediaTabAll: TextView
     private lateinit var mediaTabBook: TextView
+    private lateinit var mediaTabAnime: TextView
     private lateinit var mediaTabMovie: TextView
     private lateinit var mediaTabGame: TextView
     private lateinit var mediaTabPodcast: TextView
@@ -144,6 +145,7 @@ class MainActivity : AppCompatActivity() {
         homeGallerySummary = findViewById(R.id.homeGallerySummary)
         mediaTabAll = findViewById(R.id.mediaTabAll)
         mediaTabBook = findViewById(R.id.mediaTabBook)
+        mediaTabAnime = findViewById(R.id.mediaTabAnime)
         mediaTabMovie = findViewById(R.id.mediaTabMovie)
         mediaTabGame = findViewById(R.id.mediaTabGame)
         mediaTabPodcast = findViewById(R.id.mediaTabPodcast)
@@ -259,6 +261,7 @@ class MainActivity : AppCompatActivity() {
     private fun configureMediaTypeFilters() {
         mediaTabAll.setOnClickListener { selectMediaType(null) }
         mediaTabBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
+        mediaTabAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         mediaTabMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
         mediaTabGame.setOnClickListener { selectMediaType(MediaType.GAME) }
         mediaTabPodcast.setOnClickListener { selectMediaType(MediaType.PODCAST) }
@@ -277,6 +280,7 @@ class MainActivity : AppCompatActivity() {
         val tabs = listOf(
             mediaTabAll to null,
             mediaTabBook to MediaType.BOOK,
+            mediaTabAnime to MediaType.ANIME,
             mediaTabMovie to MediaType.MOVIE,
             mediaTabGame to MediaType.GAME,
             mediaTabPodcast to MediaType.PODCAST,
