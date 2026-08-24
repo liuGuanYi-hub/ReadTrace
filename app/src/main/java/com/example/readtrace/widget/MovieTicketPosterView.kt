@@ -1,0 +1,509 @@
+package com.example.readtrace.widget
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.DashPathEffect
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Shader
+import android.util.AttributeSet
+import android.view.View
+import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookMindprint
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.cos
+import kotlin.math.sin
+
+class MovieTicketPosterView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+) : View(context, attrs, defStyleAttr) {
+
+    enum class TicketTheme(
+        val displayName: String,
+        val bgColors: IntArray,
+        val ticketBgColor: Int,
+        val textColor: Int,
+        val subTextColor: Int,
+        val accentColor: Int,
+        val stubBgColor: Int,
+        val perforationColor: Int,
+        val radarColor: Int,
+        val borderGlowColor: Int,
+    ) {
+        NOIR_CINEMA(
+            "🎞️ 经典胶片",
+            intArrayOf(Color.parseColor("#121113"), Color.parseColor("#1E1B18"), Color.parseColor("#0D0D0E")),
+            Color.parseColor("#211F24"),
+            Color.parseColor("#F5EFE6"),
+            Color.parseColor("#A89F91"),
+            Color.parseColor("#D4AF37"), // 胶片金
+            Color.parseColor("#1A181D"),
+            Color.parseColor("#55D4AF37"),
+            Color.parseColor("#F4A261"),
+            Color.parseColor("#40D4AF37"),
+        ),
+        NEON_MIDNIGHT(
+            "🌆 霓虹午夜",
+            intArrayOf(Color.parseColor("#090A10"), Color.parseColor("#12142B"), Color.parseColor("#1A0B2E")),
+            Color.parseColor("#13172E"),
+            Color.parseColor("#E0F7FA"),
+            Color.parseColor("#80DEEA"),
+            Color.parseColor("#00F5D4"), // 霓虹青
+            Color.parseColor("#0E1122"),
+            Color.parseColor("#5500F5D4"),
+            Color.parseColor("#F72585"),
+            Color.parseColor("#4000F5D4"),
+        ),
+        VINTAGE_KRAFT(
+            "📜 复古羊皮",
+            intArrayOf(Color.parseColor("#F5EBE1"), Color.parseColor("#EBDCC9"), Color.parseColor("#E0CDB8")),
+            Color.parseColor("#FAF3EB"),
+            Color.parseColor("#2C221E"),
+            Color.parseColor("#7A685D"),
+            Color.parseColor("#A64B2A"), // 陶土红
+            Color.parseColor("#F0E4D3"),
+            Color.parseColor("#55A64B2A"),
+            Color.parseColor("#C84B31"),
+            Color.parseColor("#33A64B2A"),
+        ),
+        SUNSET_SCREEN(
+            "🌅 落日放映",
+            intArrayOf(Color.parseColor("#1F1118"), Color.parseColor("#38192A"), Color.parseColor("#1A1423")),
+            Color.parseColor("#2E1929"),
+            Color.parseColor("#FFF0F5"),
+            Color.parseColor("#D8B4C8"),
+            Color.parseColor("#FF758F"), // 珊瑚粉
+            Color.parseColor("#241320"),
+            Color.parseColor("#55FF758F"),
+            Color.parseColor("#FFB703"),
+            Color.parseColor("#40FF758F"),
+        ),
+    }
+
+    private var currentTheme: TicketTheme = TicketTheme.NOIR_CINEMA
+    private var movie: Book? = null
+    private var mindprint: BookMindprint? = null
+
+    private var movieCoverBitmap: Bitmap? = null
+
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    fun setData(
+        movie: Book,
+        mindprint: BookMindprint?,
+        theme: TicketTheme = TicketTheme.NOIR_CINEMA,
+    ) {
+        this.movie = movie
+        this.mindprint = mindprint
+        this.currentTheme = theme
+
+        loadCoverBitmap(movie.coverUrl.orEmpty())
+        invalidate()
+    }
+
+    fun setTheme(theme: TicketTheme) {
+        this.currentTheme = theme
+        invalidate()
+    }
+
+    fun getTheme(): TicketTheme = currentTheme
+
+    private fun loadCoverBitmap(url: String) {
+        if (url.isBlank()) {
+            movieCoverBitmap = null
+            return
+        }
+
+        Thread {
+            try {
+                val bmp = if (url.startsWith("/")) {
+                    val file = File(url)
+                    if (file.exists()) BitmapFactory.decodeFile(url) else null
+                } else if (url.startsWith("http")) {
+                    val stream = java.net.URL(url).openStream()
+                    BitmapFactory.decodeStream(stream)
+                } else null
+
+                if (bmp != null) {
+                    post {
+                        movieCoverBitmap = bmp
+                        invalidate()
+                    }
+                }
+            } catch (_: Exception) {
+                movieCoverBitmap = null
+            }
+        }.start()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        drawTicket(canvas, width.toFloat(), height.toFloat())
+    }
+
+    private fun drawTicket(canvas: Canvas, w: Float, h: Float) {
+        // 1. 绘制背景渐变
+        val bgShader = LinearGradient(0f, 0f, w, h, currentTheme.bgColors, null, Shader.TileMode.CLAMP)
+        paint.shader = bgShader
+        paint.style = Paint.Style.FILL
+        canvas.drawRect(0f, 0f, w, h, paint)
+        paint.shader = null
+
+        val movieItem = movie ?: return
+
+        // 2. 计算票根区域 (按 2:1 或居中适配比例)
+        val pad = w * 0.04f
+        val ticketLeft = pad
+        val ticketTop = h * 0.08f
+        val ticketRight = w - pad
+        val ticketBottom = h - h * 0.08f
+        val ticketW = ticketRight - ticketLeft
+        val ticketH = ticketBottom - ticketTop
+
+        val splitRatio = 0.72f // 72% 主票，28% 副票
+        val splitX = ticketLeft + ticketW * splitRatio
+        val cornerRadius = ticketH * 0.04f
+        val notchRadius = ticketH * 0.05f
+
+        // 3. 构建票根双联裁切路径 (带上下缺口打孔)
+        val ticketPath = Path().apply {
+            // 从左上角开始
+            moveTo(ticketLeft + cornerRadius, ticketTop)
+            // 顶边至缺口
+            lineTo(splitX - notchRadius, ticketTop)
+            // 顶部打孔半圆缺口
+            arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 180f, -180f, false)
+            // 顶边至右上角
+            lineTo(ticketRight - cornerRadius, ticketTop)
+            arcTo(ticketRight - cornerRadius * 2, ticketTop, ticketRight, ticketTop + cornerRadius * 2, 270f, 90f, false)
+            // 右边
+            lineTo(ticketRight, ticketBottom - cornerRadius)
+            arcTo(ticketRight - cornerRadius * 2, ticketBottom - cornerRadius * 2, ticketRight, ticketBottom, 0f, 90f, false)
+            // 底边至缺口
+            lineTo(splitX + notchRadius, ticketBottom)
+            // 底部打孔半圆缺口
+            arcTo(splitX - notchRadius, ticketBottom - notchRadius, splitX + notchRadius, ticketBottom + notchRadius, 0f, -180f, false)
+            // 底边至左下角
+            lineTo(ticketLeft + cornerRadius, ticketBottom)
+            arcTo(ticketLeft, ticketBottom - cornerRadius * 2, ticketLeft + cornerRadius * 2, ticketBottom, 90f, 90f, false)
+            // 左边
+            lineTo(ticketLeft, ticketTop + cornerRadius)
+            arcTo(ticketLeft, ticketTop, ticketLeft + cornerRadius * 2, ticketTop + cornerRadius * 2, 180f, 90f, false)
+            close()
+        }
+
+        // 绘制主票阴影 / 辉光
+        paint.color = currentTheme.borderGlowColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+        canvas.drawPath(ticketPath, paint)
+
+        // 填充主票背景
+        paint.color = currentTheme.ticketBgColor
+        paint.style = Paint.Style.FILL
+        canvas.drawPath(ticketPath, paint)
+
+        // 填充副票背景 (略微更暗/深色)
+        val stubPath = Path().apply {
+            moveTo(splitX, ticketTop)
+            arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 180f, -180f, false)
+            lineTo(ticketRight - cornerRadius, ticketTop)
+            arcTo(ticketRight - cornerRadius * 2, ticketTop, ticketRight, ticketTop + cornerRadius * 2, 270f, 90f, false)
+            lineTo(ticketRight, ticketBottom - cornerRadius)
+            arcTo(ticketRight - cornerRadius * 2, ticketBottom - cornerRadius * 2, ticketRight, ticketBottom, 0f, 90f, false)
+            lineTo(splitX + notchRadius, ticketBottom)
+            arcTo(splitX - notchRadius, ticketBottom - notchRadius, splitX + notchRadius, ticketBottom + notchRadius, 0f, -180f, false)
+            lineTo(splitX, ticketBottom)
+            close()
+        }
+        paint.color = currentTheme.stubBgColor
+        canvas.drawPath(stubPath, paint)
+
+        // 绘制中缝虚线 (撕票线)
+        paint.color = currentTheme.perforationColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2.5f
+        paint.pathEffect = DashPathEffect(floatArrayOf(12f, 8f), 0f)
+        canvas.drawLine(splitX, ticketTop + notchRadius, splitX, ticketBottom - notchRadius, paint)
+        paint.pathEffect = null
+
+        // 4. 绘制左侧主票内容
+        drawMainTicketContent(canvas, movieItem, ticketLeft, ticketTop, splitX - ticketLeft, ticketH)
+
+        // 5. 绘制右侧副票内容
+        drawStubTicketContent(canvas, movieItem, splitX, ticketTop, ticketRight - splitX, ticketH)
+    }
+
+    private fun drawMainTicketContent(canvas: Canvas, movie: Book, left: Float, top: Float, w: Float, h: Float) {
+        val innerPad = w * 0.05f
+
+        // A. 顶部影院放映头
+        val headerY = top + h * 0.08f
+        textPaint.color = currentTheme.accentColor
+        textPaint.textSize = h * 0.032f
+        textPaint.isFakeBoldText = true
+        canvas.drawText("READTRACE CINEMA ARCHIVE · 阅痕光影", left + innerPad, headerY, textPaint)
+
+        textPaint.color = currentTheme.subTextColor
+        textPaint.textSize = h * 0.024f
+        textPaint.isFakeBoldText = false
+        val seatInfo = "01厅 · DOLBY ATMOS · VIP 06排12座"
+        canvas.drawText(seatInfo, left + w - innerPad - textPaint.measureText(seatInfo), headerY, textPaint)
+
+        // 顶部分隔线
+        paint.color = currentTheme.perforationColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1.2f
+        canvas.drawLine(left + innerPad, headerY + h * 0.02f, left + w - innerPad, headerY + h * 0.02f, paint)
+
+        // B. 电影海报 (左侧)
+        val posterTop = headerY + h * 0.05f
+        val posterW = w * 0.28f
+        val posterH = posterW * 1.45f
+        val posterRect = RectF(left + innerPad, posterTop, left + innerPad + posterW, posterTop + posterH)
+
+        if (movieCoverBitmap != null) {
+            canvas.save()
+            val clipPath = Path().apply {
+                addRoundRect(posterRect, 14f, 14f, Path.Direction.CW)
+            }
+            canvas.clipPath(clipPath)
+            canvas.drawBitmap(movieCoverBitmap!!, null, posterRect, paint)
+            canvas.restore()
+        } else {
+            paint.color = currentTheme.stubBgColor
+            paint.style = Paint.Style.FILL
+            canvas.drawRoundRect(posterRect, 14f, 14f, paint)
+
+            textPaint.color = currentTheme.subTextColor
+            textPaint.textSize = h * 0.028f
+            textPaint.textAlign = Paint.Align.CENTER
+            canvas.drawText("🎬", posterRect.centerX(), posterRect.centerY(), textPaint)
+            textPaint.textAlign = Paint.Align.LEFT
+        }
+
+        // 海报微边框
+        paint.color = currentTheme.accentColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1.5f
+        canvas.drawRoundRect(posterRect, 14f, 14f, paint)
+
+        // C. 电影标题与导演信息 (海报右侧)
+        val infoLeft = posterRect.right + innerPad * 0.8f
+        val infoMaxW = left + w - innerPad - infoLeft
+
+        var textY = posterTop + h * 0.045f
+        textPaint.color = currentTheme.textColor
+        textPaint.textSize = h * 0.048f
+        textPaint.isFakeBoldText = true
+        val title = if (movie.title.length > 12) movie.title.substring(0, 11) + "..." else movie.title
+        canvas.drawText(title, infoLeft, textY, textPaint)
+
+        // 导演 / 制作社
+        textY += h * 0.038f
+        textPaint.color = currentTheme.accentColor
+        textPaint.textSize = h * 0.025f
+        textPaint.isFakeBoldText = false
+        val author = "导演: " + (movie.author.orEmpty().ifBlank { "经典名导" })
+        canvas.drawText(author, infoLeft, textY, textPaint)
+
+        // 分类标签与评分星级
+        textY += h * 0.036f
+        textPaint.color = currentTheme.subTextColor
+        textPaint.textSize = h * 0.022f
+        val ratingStr = "★★★★★  ${movie.rating ?: 5.0} 分"
+        canvas.drawText(ratingStr, infoLeft, textY, textPaint)
+
+        // D. 经典台词金句 (在海报下方或右侧延展)
+        val quoteTop = posterRect.bottom + h * 0.04f
+        val quoteW = w - innerPad * 2
+        val quoteH = h * 0.22f
+        val quoteRect = RectF(left + innerPad, quoteTop, left + innerPad + quoteW, quoteTop + quoteH)
+
+        paint.color = Color.argb(30, Color.red(currentTheme.accentColor), Color.green(currentTheme.accentColor), Color.blue(currentTheme.accentColor))
+        paint.style = Paint.Style.FILL
+        canvas.drawRoundRect(quoteRect, 12f, 12f, paint)
+
+        paint.color = currentTheme.accentColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1f
+        canvas.drawRoundRect(quoteRect, 12f, 12f, paint)
+
+        // 金句文本
+        val quote = movie.shortComment?.ifBlank { "“有些鸟儿是关不住的，它们的每一片羽毛都闪耀着自由的光辉。”" }
+            ?: "“爱是唯一可以超越时间与空间维度的力量。”"
+        textPaint.color = currentTheme.textColor
+        textPaint.textSize = h * 0.026f
+        textPaint.isFakeBoldText = false
+
+        // 简易两行折行
+        val line1 = if (quote.length > 24) quote.substring(0, 24) else quote
+        val line2 = if (quote.length > 24) quote.substring(24).take(26) + if (quote.length > 50) "..." else "" else ""
+
+        canvas.drawText(line1, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.42f, textPaint)
+        if (line2.isNotBlank()) {
+            canvas.drawText(line2, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.78f, textPaint)
+        }
+
+        // E. 底部六维心智微缩雷达
+        val radarBottomY = top + h - innerPad * 0.8f
+        val radarCenterY = quoteRect.bottom + (radarBottomY - quoteRect.bottom) * 0.55f
+        val radarCenterX = left + innerPad + h * 0.08f
+        val radarRadius = h * 0.065f
+
+        drawMiniRadar(canvas, radarCenterX, radarCenterY, radarRadius)
+
+        // 心智解读文本
+        val mpTextX = radarCenterX + radarRadius + innerPad * 0.8f
+        textPaint.color = currentTheme.subTextColor
+        textPaint.textSize = h * 0.020f
+        canvas.drawText("6D COGNITIVE MINDPRINT", mpTextX, radarCenterY - h * 0.015f, textPaint)
+        textPaint.color = currentTheme.textColor
+        textPaint.textSize = h * 0.022f
+        textPaint.isFakeBoldText = true
+        val avgScore = String.format(Locale.getDefault(), "%.1f", mindprint?.averageScore() ?: 9.5)
+        canvas.drawText("综合心智评分: $avgScore / 10.0 (殿堂级光影)", mpTextX, radarCenterY + h * 0.018f, textPaint)
+    }
+
+    private fun drawStubTicketContent(canvas: Canvas, movie: Book, left: Float, top: Float, w: Float, h: Float) {
+        val innerPad = w * 0.08f
+
+        // A. 顶部 ADMIT ONE 纪念印章
+        val stampCenterY = top + h * 0.16f
+        val stampCenterX = left + w * 0.5f
+
+        paint.color = currentTheme.accentColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2.5f
+        val stampRect = RectF(stampCenterX - w * 0.38f, stampCenterY - h * 0.045f, stampCenterX + w * 0.38f, stampCenterY + h * 0.045f)
+        canvas.drawRoundRect(stampRect, 8f, 8f, paint)
+
+        textPaint.color = currentTheme.accentColor
+        textPaint.textSize = h * 0.026f
+        textPaint.isFakeBoldText = true
+        textPaint.textAlign = Paint.Align.CENTER
+        canvas.drawText("ADMIT ONE", stampCenterX, stampCenterY + h * 0.009f, textPaint)
+
+        // B. 观影日期与编码
+        val dateY = stampRect.bottom + h * 0.06f
+        textPaint.color = currentTheme.subTextColor
+        textPaint.textSize = h * 0.020f
+        textPaint.isFakeBoldText = false
+        val curDate = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date())
+        canvas.drawText("DATE: $curDate", stampCenterX, dateY, textPaint)
+
+        val codeY = dateY + h * 0.035f
+        val movieCode = "NO." + (1000 + (movie.id % 9000)) + "-RT"
+        canvas.drawText("CODE: $movieCode", stampCenterX, codeY, textPaint)
+
+        // C. 电影标题缩写
+        val titleY = codeY + h * 0.08f
+        textPaint.color = currentTheme.textColor
+        textPaint.textSize = h * 0.028f
+        textPaint.isFakeBoldText = true
+        val shortTitle = if (movie.title.length > 8) movie.title.substring(0, 7) + ".." else movie.title
+        canvas.drawText("《$shortTitle》", stampCenterX, titleY, textPaint)
+
+        // D. 拟真防伪条形码 (Barcode)
+        val barcodeTop = top + h * 0.62f
+        val barcodeH = h * 0.18f
+        val barcodeW = w * 0.75f
+        val barcodeLeft = stampCenterX - barcodeW * 0.5f
+
+        drawBarcode(canvas, barcodeLeft, barcodeTop, barcodeW, barcodeH)
+
+        // 底部防伪字
+        textPaint.color = currentTheme.subTextColor
+        textPaint.textSize = h * 0.016f
+        textPaint.isFakeBoldText = false
+        canvas.drawText("READTRACE CINEMA VERIFIED", stampCenterX, barcodeTop + barcodeH + h * 0.04f, textPaint)
+        textPaint.textAlign = Paint.Align.LEFT
+    }
+
+    private fun drawBarcode(canvas: Canvas, left: Float, top: Float, w: Float, h: Float) {
+        paint.color = currentTheme.textColor
+        paint.style = Paint.Style.FILL
+
+        val barCount = 28
+        val gap = w / barCount
+        val hash = movie?.title?.hashCode() ?: 12345
+
+        for (i in 0 until barCount) {
+            val isThick = ((hash shr (i % 16)) and 1) == 1
+            val bw = if (isThick) gap * 0.65f else gap * 0.3f
+            val bx = left + i * gap
+            canvas.drawRect(bx, top, bx + bw, top + h, paint)
+        }
+    }
+
+    private fun drawMiniRadar(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val scores = floatArrayOf(
+            mindprint?.depthScore?.toFloat() ?: 9.5f,
+            mindprint?.artistryScore?.toFloat() ?: 9.8f,
+            mindprint?.emotionScore?.toFloat() ?: 9.6f,
+            mindprint?.logicScore?.toFloat() ?: 9.2f,
+            mindprint?.difficultyScore?.toFloat() ?: 7.5f,
+            mindprint?.healingScore?.toFloat() ?: 8.5f,
+        )
+
+        // 网格线
+        paint.color = currentTheme.perforationColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1f
+
+        for (step in 1..3) {
+            val r = radius * (step / 3f)
+            val gridPath = Path()
+            for (i in 0..5) {
+                val angle = (i * 60 - 90) * Math.PI / 180.0
+                val px = (cx + r * cos(angle)).toFloat()
+                val py = (cy + r * sin(angle)).toFloat()
+                if (i == 0) gridPath.moveTo(px, py) else gridPath.lineTo(px, py)
+            }
+            gridPath.close()
+            canvas.drawPath(gridPath, paint)
+        }
+
+        // 数据多边形
+        val dataPath = Path()
+        for (i in 0..5) {
+            val norm = (scores[i] / 10f).coerceIn(0.1f, 1.0f)
+            val r = radius * norm
+            val angle = (i * 60 - 90) * Math.PI / 180.0
+            val px = (cx + r * cos(angle)).toFloat()
+            val py = (cy + r * sin(angle)).toFloat()
+            if (i == 0) dataPath.moveTo(px, py) else dataPath.lineTo(px, py)
+        }
+        dataPath.close()
+
+        paint.color = Color.argb(90, Color.red(currentTheme.radarColor), Color.green(currentTheme.radarColor), Color.blue(currentTheme.radarColor))
+        paint.style = Paint.Style.FILL
+        canvas.drawPath(dataPath, paint)
+
+        paint.color = currentTheme.radarColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2f
+        canvas.drawPath(dataPath, paint)
+    }
+
+    fun create1080pPosterBitmap(): Bitmap {
+        val targetW = 1080
+        val targetH = 540 // 2:1 经典电影双联票根比例
+        val bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        drawTicket(canvas, targetW.toFloat(), targetH.toFloat())
+        return bmp
+    }
+}

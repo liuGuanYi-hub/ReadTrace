@@ -20,6 +20,15 @@
             android:name=".CoverGalleryActivity"
             android:exported="false" />
         <activity
+            android:name=".MovieTicketPosterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GameCartridgePosterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CulturalPassportActivity"
+            android:exported="false" />
+        <activity
             android:name=".ResonancePosterActivity"
             android:exported="false" />
         <activity

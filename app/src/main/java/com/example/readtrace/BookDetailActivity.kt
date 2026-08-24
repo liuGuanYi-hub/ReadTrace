@@ -98,24 +98,34 @@ class BookDetailActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.detailQuotePosterButton).setOnClickListener {
             currentBook?.let { book ->
-                val notes = databaseHelper.getNotes(book.id)
-                val quote = book.shortComment?.takeIf { it.isNotBlank() }
-                    ?: notes.firstOrNull()?.content
-                    ?: "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
-                val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
-                    listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
-                } else "一句话感悟"
-                startActivity(
-                    QuotePosterActivity.createIntent(
-                        this,
-                        book.id,
-                        book.title,
-                        book.author,
-                        book.coverUrl,
-                        quote,
-                        source,
-                    ),
-                )
+                when (book.mediaType) {
+                    com.example.readtrace.model.MediaType.MOVIE -> {
+                        startActivity(MovieTicketPosterActivity.createIntent(this, book.id))
+                    }
+                    com.example.readtrace.model.MediaType.GAME -> {
+                        startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
+                    }
+                    else -> {
+                        val notes = databaseHelper.getNotes(book.id)
+                        val quote = book.shortComment?.takeIf { it.isNotBlank() }
+                            ?: notes.firstOrNull()?.content
+                            ?: "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
+                        val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
+                            listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
+                        } else "一句话感悟"
+                        startActivity(
+                            QuotePosterActivity.createIntent(
+                                this,
+                                book.id,
+                                book.title,
+                                book.author,
+                                book.coverUrl,
+                                quote,
+                                source,
+                            ),
+                        )
+                    }
+                }
             }
         }
 
@@ -1100,6 +1110,12 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
+        findViewById<TextView>(R.id.detailQuotePosterButton).text = when (book.mediaType) {
+            com.example.readtrace.model.MediaType.MOVIE -> "🎟️ 电影票根"
+            com.example.readtrace.model.MediaType.GAME -> "🕹️ 白金卡带"
+            com.example.readtrace.model.MediaType.ANIME -> "🌸 追番海报"
+            else -> "🎨 金句海报"
+        }
         findViewById<TextView>(R.id.detailBookTitle).text = book.title
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)

@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnToggleViewMode: TextView
     private lateinit var btnCoverGallery: TextView
     private lateinit var btnAnimeTimeline: TextView
+    private lateinit var btnCulturalPassport: TextView
     private lateinit var btnBatchFetchAnimeCovers: TextView
 
     private lateinit var homeBadgePanel: View
@@ -153,6 +154,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
         }
         com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnAnimeTimeline)
+
+        btnCulturalPassport = findViewById(R.id.btnCulturalPassport)
+        btnCulturalPassport.setOnClickListener {
+            val defaultTab = if (selectedMediaType == MediaType.GAME) MediaType.GAME else MediaType.ANIME
+            startActivity(CulturalPassportActivity.createIntent(this, defaultTab))
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnCulturalPassport)
 
         btnBatchFetchAnimeCovers = findViewById(R.id.btnBatchFetchAnimeCovers)
         btnBatchFetchAnimeCovers.setOnClickListener {
