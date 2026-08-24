@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bookGridCard"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:background="@drawable/bg_glass_panel_soft"
+    android:clickable="true"
+    android:elevation="3dp"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <FrameLayout
+        android:id="@+id/bookGridCoverFrame"
+        android:layout_width="match_parent"
+        android:layout_height="170dp"
+        android:background="@drawable/bg_book_placeholder"
+        android:clipToOutline="true"
+        android:elevation="2dp"
+        android:outlineProvider="background">
+
+        <ImageView
+            android:id="@+id/bookGridCoverImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/bookGridMediaBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_status_chip"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            android:text="📖"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/bookGridStatusPill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_status_pill"
+            android:paddingStart="7dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="7dp"
+            android:paddingBottom="2dp"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            tools:text="读完" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/bookGridTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:fontFamily="serif"
+        android:maxLines="1"
+        android:textColor="@color/readtrace_ink"
+        android:textSize="14.5sp"
+        android:textStyle="bold"
+        tools:text="海边的卡夫卡" />
+
+    <TextView
+        android:id="@+id/bookGridAuthor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/readtrace_muted"
+        android:textSize="11.5sp"
+        tools:text="村上春树" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/bookGridRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            tools:text="★ 8.5" />
+
+        <TextView
+            android:id="@+id/bookGridCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="10.5sp"
+            tools:text="外国文学" />
+    </LinearLayout>
+
+</LinearLayout>

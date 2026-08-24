@@ -739,14 +739,21 @@
                     android:layout_marginTop="12dp"
                     android:text="暂无人物角色，点击右上角为作品建立出场角色谱。" />
 
-                <LinearLayout
-                    android:id="@+id/detailCharsContainer"
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/detailCharsContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </HorizontalScrollView>
             </LinearLayout>
 
             <!-- 🗺️ 章节大纲与思维脑图卡片 -->
@@ -794,14 +801,21 @@
                     android:layout_marginTop="12dp"
                     android:text="暂无章节大纲，点击右上角梳理全书情节脉络与脑图要点。" />
 
-                <LinearLayout
-                    android:id="@+id/detailOutlinesContainer"
+                <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/detailOutlinesContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </HorizontalScrollView>
             </LinearLayout>
 
             <!-- ⏳ 作品全息心路时间轴板块 -->

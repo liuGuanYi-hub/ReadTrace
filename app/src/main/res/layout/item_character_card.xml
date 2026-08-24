@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="200dp"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="4dp"
     android:background="@drawable/bg_glass_panel_soft"
     android:elevation="3dp"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,17 +18,17 @@
 
         <TextView
             android:id="@+id/charAvatarEmoji"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:background="@drawable/bg_status_pill"
             android:gravity="center"
-            android:textSize="20sp"
+            android:textSize="18sp"
             tools:text="🦊" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -35,9 +36,11 @@
                 android:id="@+id/charName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="sans"
+                android:maxLines="1"
                 android:textColor="@color/readtrace_ink"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 tools:text="小狐狸" />
 
@@ -45,25 +48,27 @@
                 android:id="@+id/charRoleTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
                 android:fontFamily="sans"
+                android:maxLines="1"
                 android:textColor="@color/readtrace_accent"
-                android:textSize="11sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold"
-                tools:text="导师 · 驯服之约的启蒙者" />
+                tools:text="导师 · 驯服之约" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/charDeleteBtn"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:background="@drawable/bg_secondary_button"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
             android:text="✕"
             android:textColor="@color/readtrace_muted"
-            android:textSize="13sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
     <TextView
@@ -71,10 +76,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:ellipsize="end"
         android:fontFamily="sans"
         android:lineSpacingExtra="2dp"
+        android:maxLines="3"
         android:textColor="@color/readtrace_ink"
-        android:textSize="13sp"
+        android:textSize="12sp"
         tools:text="生于麦田与荒原的智者，教会了小王子什么叫做责任与驯服。" />
 
     <TextView
@@ -83,12 +90,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:background="@drawable/bg_status_pill"
+        android:ellipsize="end"
         android:fontFamily="sans"
-        android:paddingStart="10dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="4dp"
+        android:maxLines="2"
+        android:paddingStart="8dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="3dp"
         android:textColor="@color/readtrace_ink"
-        android:textSize="11sp"
-        tools:text="🔗 核心羁绊：与小王子建立了相互驯服的唯一纽带" />
+        android:textSize="10.5sp"
+        tools:text="🔗 核心羁绊：与小王子建立唯一纽带" />
 </LinearLayout>

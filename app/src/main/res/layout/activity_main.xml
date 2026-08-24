@@ -868,7 +868,23 @@
                     android:gravity="center"
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
-                    android:text="📜 导出书单长卷"
+                    android:text="📜 长卷"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnToggleViewMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="🍱 双列"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp"
                     android:textStyle="bold" />

@@ -337,7 +337,8 @@ class BookDetailActivity : AppCompatActivity() {
                 relView.text = "🔗 核心羁绊：${char.relationship}"
             }
 
-            item.findViewById<View>(R.id.charDeleteBtn).setOnClickListener {
+            val delBtn = item.findViewById<View>(R.id.charDeleteBtn)
+            delBtn.setOnClickListener {
                 AlertDialog.Builder(this)
                     .setTitle("删除角色")
                     .setMessage("确定要从人物谱中移除「${char.name}」吗？")
@@ -348,6 +349,8 @@ class BookDetailActivity : AppCompatActivity() {
                     }
                     .show()
             }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(item, 0.97f)
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(delBtn)
 
             container.addView(item)
         }
@@ -438,7 +441,8 @@ class BookDetailActivity : AppCompatActivity() {
                 keyTakeawaysView.text = "脑图要点：${outline.keyTakeaways}"
             }
 
-            item.findViewById<View>(R.id.outlineDeleteBtn).setOnClickListener {
+            val delBtn = item.findViewById<View>(R.id.outlineDeleteBtn)
+            delBtn.setOnClickListener {
                 AlertDialog.Builder(this)
                     .setTitle("删除章节大纲")
                     .setMessage("确定要删除「${outline.title}」的大纲吗？")
@@ -449,6 +453,8 @@ class BookDetailActivity : AppCompatActivity() {
                     }
                     .show()
             }
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(item, 0.97f)
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(delBtn)
 
             container.addView(item)
         }

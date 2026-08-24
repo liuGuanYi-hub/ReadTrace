@@ -1,5 +1,6 @@
 package com.example.readtrace
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var annualPersonaDesc: TextView
     private lateinit var annualMindprintRadar: com.example.readtrace.widget.MindprintRadarView
     private lateinit var btnExportShelfScroll: View
+    private lateinit var btnToggleViewMode: TextView
 
     private lateinit var homeBadgePanel: View
     private lateinit var homeBadgeSummary: TextView
@@ -76,6 +78,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedStatus: BookStatus? = null
     private var searchKeyword: String = ""
     private var selectedTag: String? = null
+    private var isGridView: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +89,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val prefs = getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
+        isGridView = prefs.getBoolean("pref_is_grid_view", false)
 
         databaseHelper = BookDatabaseHelper(this)
         booksContainer = findViewById(R.id.booksContainer)
@@ -114,6 +120,14 @@ class MainActivity : AppCompatActivity() {
         btnExportShelfScroll = findViewById(R.id.btnExportShelfScroll)
         btnExportShelfScroll.setOnClickListener {
             exportShelfScrollImage()
+        }
+        btnToggleViewMode = findViewById(R.id.btnToggleViewMode)
+        updateViewModeButton()
+        btnToggleViewMode.setOnClickListener {
+            isGridView = !isGridView
+            prefs.edit().putBoolean("pref_is_grid_view", isGridView).apply()
+            updateViewModeButton()
+            refreshShelfOnly()
         }
 
         homeBadgePanel = findViewById(R.id.homeBadgePanel)
@@ -171,7 +185,7 @@ class MainActivity : AppCompatActivity() {
         listOfNotNull(
             addBtn, emptyAction, presetBtn, trashBtn, backupBtn,
             homeBadgePanel, homeGalleryPanel, communityPanel,
-            btnExportShelfScroll, memoryPanel,
+            btnExportShelfScroll, btnToggleViewMode, memoryPanel,
         ).forEach { com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(it) }
     }
 
@@ -432,6 +446,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateViewModeButton() {
+        btnToggleViewMode.text = if (isGridView) "📋 列表" else "🍱 双列"
+    }
+
     private fun refreshShelfOnly() {
         val allBooks = databaseHelper.getBooks()
         val books = allBooks.filter { book ->
@@ -472,10 +490,50 @@ class MainActivity : AppCompatActivity() {
 
         emptyPanel.visibility = View.GONE
         booksContainer.visibility = View.VISIBLE
-        books.forEachIndexed { index, book ->
-            val card = createBookCard(book)
-            booksContainer.addView(card)
-            animateBookCard(card, index)
+
+        if (!isGridView) {
+            books.forEachIndexed { index, book ->
+                val card = createBookCard(book)
+                booksContainer.addView(card)
+                animateBookCard(card, index)
+            }
+        } else {
+            val rows = books.chunked(2)
+            rows.forEachIndexed { rowIndex, pair ->
+                val rowLayout = LinearLayout(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply {
+                        topMargin = if (rowIndex == 0) 0 else dpToPx(10)
+                    }
+                    orientation = LinearLayout.HORIZONTAL
+                }
+
+                val card1 = createBookGridCard(pair[0])
+                rowLayout.addView(card1)
+
+                if (pair.size == 2) {
+                    val spacer = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(dpToPx(10), LinearLayout.LayoutParams.MATCH_PARENT)
+                    }
+                    rowLayout.addView(spacer)
+                    val card2 = createBookGridCard(pair[1])
+                    rowLayout.addView(card2)
+                } else {
+                    val spacer = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(dpToPx(10), LinearLayout.LayoutParams.MATCH_PARENT)
+                    }
+                    rowLayout.addView(spacer)
+                    val dummy = View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+                    }
+                    rowLayout.addView(dummy)
+                }
+
+                booksContainer.addView(rowLayout)
+                animateBookCard(rowLayout, rowIndex)
+            }
         }
     }
 
@@ -619,6 +677,42 @@ class MainActivity : AppCompatActivity() {
         }
         com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(card, 0.97f)
 
+        return card
+    }
+
+    private fun createBookGridCard(book: Book): View {
+        val card = LayoutInflater.from(this).inflate(R.layout.item_book_grid_card, null, false)
+        val coverImg = card.findViewById<ImageView>(R.id.bookGridCoverImage)
+        CoverImageHelper.loadCover(coverImg, book.coverUrl)
+
+        card.findViewById<TextView>(R.id.bookGridMediaBadge).text = book.mediaType.emoji
+        card.findViewById<TextView>(R.id.bookGridStatusPill).text = book.status.getDisplayName(book.mediaType)
+        card.findViewById<TextView>(R.id.bookGridTitle).text = book.title
+        card.findViewById<TextView>(R.id.bookGridAuthor).text = book.author ?: getString(R.string.unknown_author)
+
+        val ratingLabel = book.rating?.let {
+            "★ ${RATING_FORMAT.format(it)}"
+        } ?: getString(R.string.unrated)
+        card.findViewById<TextView>(R.id.bookGridRating).text = ratingLabel
+
+        card.findViewById<TextView>(R.id.bookGridCategory).apply {
+            val category = book.category?.trim()
+            if (category.isNullOrEmpty()) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                text = category
+            }
+        }
+
+        card.setOnClickListener {
+            openBookDetail(card, book.id)
+        }
+        card.setOnLongClickListener {
+            showBookHologramPeekDialog(book)
+            true
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(card, 0.96f)
         return card
     }
 
