@@ -224,15 +224,51 @@ class MindprintConstellationView @JvmOverloads constructor(
             stars.add(node)
         }
 
-        // 计算星座连线 (依据书籍相似度 >= 72%)
+        // 计算星座连线 (依据书籍相似度 >= 72% 或 番剧同制作社/系列共鸣)
         for (i in 0 until stars.size) {
             for (j in i + 1 until stars.size) {
                 val a = stars[i]
                 val b = stars[j]
+
+                // 1. 基于 6 维心智相似度
                 val recs = BookSimilarityEngine.findSimilarBooks(a.book, databaseHelper, limit = 4)
                 val match = recs.firstOrNull { it.book.id == b.book.id }
                 if (match != null && match.similarityPercent >= 72) {
                     edges.add(ConstellationEdge(a, b, match.similarityPercent))
+                    continue
+                }
+
+                // 2. 番剧专属系列与同社团星座连线
+                if (a.book.mediaType == MediaType.ANIME && b.book.mediaType == MediaType.ANIME) {
+                    val aAuthor = a.book.author.orEmpty()
+                    val bAuthor = b.book.author.orEmpty()
+                    val aTitle = a.book.title
+                    val bTitle = b.book.title
+
+                    val isSameStudio = (aAuthor.contains("京都动画") && bAuthor.contains("京都动画")) ||
+                            (aAuthor.contains("骨头社") && bAuthor.contains("骨头社")) ||
+                            (aAuthor.contains("david") && bAuthor.contains("david")) ||
+                            (aAuthor.contains("MAPPA") && bAuthor.contains("MAPPA")) ||
+                            (aAuthor.contains("A-1") && bAuthor.contains("A-1")) ||
+                            (aAuthor.contains("CloverWorks") && bAuthor.contains("CloverWorks")) ||
+                            (aAuthor.contains("WHITE FOX") && bAuthor.contains("WHITE FOX")) ||
+                            (aAuthor.contains("动画工房") && bAuthor.contains("动画工房"))
+
+                    val isSameFranchise = (aTitle.contains("JOJO") && bTitle.contains("JOJO")) ||
+                            (aTitle.contains("夏目") && bTitle.contains("夏目")) ||
+                            (aTitle.contains("轻音") && bTitle.contains("轻音")) ||
+                            (aTitle.contains("春物") || aTitle.contains("青春恋爱物语")) && (bTitle.contains("春物") || bTitle.contains("青春恋爱物语")) ||
+                            (aTitle.contains("灵能") && bTitle.contains("灵能")) ||
+                            (aTitle.contains("间谍过家家") && bTitle.contains("间谍过家家")) ||
+                            (aTitle.contains("咒术") && bTitle.contains("咒术")) ||
+                            (aTitle.contains("路人女主") && bTitle.contains("路人女主")) ||
+                            (aTitle.contains("约会大作战") && bTitle.contains("约会大作战"))
+
+                    if (isSameFranchise) {
+                        edges.add(ConstellationEdge(a, b, 95))
+                    } else if (isSameStudio) {
+                        edges.add(ConstellationEdge(a, b, 88))
+                    }
                 }
             }
         }

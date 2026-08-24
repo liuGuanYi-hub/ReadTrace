@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
+import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
@@ -1083,6 +1084,21 @@ class BookDetailActivity : AppCompatActivity() {
     private fun renderBook(book: Book) {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
+
+        coverImage.setOnClickListener {
+            if (book.mediaType == MediaType.ANIME) {
+                Toast.makeText(this, "正在联网从 Bangumi 检索《${book.title}》官方高清海报...", Toast.LENGTH_SHORT).show()
+                com.example.readtrace.util.AnimeCoverScraperHelper.fetchAndSaveAnimeCover(this, book, databaseHelper) { success, path ->
+                    if (success && path != null) {
+                        Toast.makeText(this, "🌸 已成功匹配并下载官方海报！", Toast.LENGTH_SHORT).show()
+                        CoverImageHelper.loadCover(coverImage, path)
+                        currentBook = databaseHelper.getBook(book.id)
+                    } else {
+                        Toast.makeText(this, "未找到匹配的高清海报，可手动在编辑中添加图片", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
 
         findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
         findViewById<TextView>(R.id.detailBookTitle).text = book.title

@@ -58,6 +58,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var annualMindprintRadar: com.example.readtrace.widget.MindprintRadarView
     private lateinit var btnExportShelfScroll: View
     private lateinit var btnToggleViewMode: TextView
+    private lateinit var btnAnimeTimeline: TextView
+    private lateinit var btnBatchFetchAnimeCovers: TextView
 
     private lateinit var homeBadgePanel: View
     private lateinit var homeBadgeSummary: TextView
@@ -138,6 +140,32 @@ class MainActivity : AppCompatActivity() {
             updateViewModeButton()
             refreshShelfOnly()
         }
+
+        btnAnimeTimeline = findViewById(R.id.btnAnimeTimeline)
+        btnAnimeTimeline.setOnClickListener {
+            startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnAnimeTimeline)
+
+        btnBatchFetchAnimeCovers = findViewById(R.id.btnBatchFetchAnimeCovers)
+        btnBatchFetchAnimeCovers.setOnClickListener {
+            Toast.makeText(this, "正在联网从 Bangumi 批量检索番剧官方海报...", Toast.LENGTH_SHORT).show()
+            com.example.readtrace.util.AnimeCoverScraperHelper.batchFetchAnimeCovers(
+                this,
+                databaseHelper,
+                onProgress = { current, total, title ->
+                    // 仅偶尔提示避免弹窗过多
+                    if (current == 1 || current % 5 == 0 || current == total) {
+                        Toast.makeText(this, "[$current/$total] 正在匹配《$title》海报...", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onComplete = { success, total ->
+                    Toast.makeText(this, "🌸 番剧海报匹配完成！成功抓取 $success/$total 部", Toast.LENGTH_LONG).show()
+                    refreshShelfOnly()
+                }
+            )
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnBatchFetchAnimeCovers)
 
         homeBadgePanel = findViewById(R.id.homeBadgePanel)
         homeBadgeSummary = findViewById(R.id.homeBadgeSummary)
@@ -294,6 +322,10 @@ class MainActivity : AppCompatActivity() {
                 ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink),
             )
         }
+
+        val isAnimeSelected = selectedMediaType == MediaType.ANIME
+        btnAnimeTimeline.visibility = if (isAnimeSelected) View.VISIBLE else View.GONE
+        btnBatchFetchAnimeCovers.visibility = if (isAnimeSelected) View.VISIBLE else View.GONE
     }
 
     private fun configureStatusFilters() {

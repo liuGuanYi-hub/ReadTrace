@@ -4,10 +4,19 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.ImageView
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.security.MessageDigest
+import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
 
@@ -18,6 +27,9 @@ object CoverImageHelper {
     private const val TARGET_MAX_HEIGHT = 1620
     private const val JPEG_QUALITY = 90
 
+    private val imageExecutor = Executors.newFixedThreadPool(4)
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     /**
      * 将用户选择的图片裁剪为 2:3 比例并保存到 App 私有存储目录
      * @return 保存后的本地文件绝对路径，失败返回 null
@@ -25,34 +37,39 @@ object CoverImageHelper {
     fun cropAndSaveCover(context: Context, sourceUri: Uri): String? {
         return runCatching {
             val resolver = context.contentResolver
+            val bytes = resolver.openInputStream(sourceUri)?.use { it.readBytes() } ?: return null
+            cropAndSaveCoverFromBytes(context, bytes)
+        }.getOrNull()
+    }
 
-            // 1. 获取图片尺寸
-            val options = BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-            }
-            resolver.openInputStream(sourceUri)?.use { stream ->
-                BitmapFactory.decodeStream(stream, null, options)
-            }
+    /**
+     * 从输入流中读取图片并裁剪为 2:3 保存到私有目录
+     */
+    fun cropAndSaveCoverFromStream(context: Context, inputStream: InputStream, customFileName: String? = null): String? {
+        return runCatching {
+            val bytes = inputStream.use { it.readBytes() }
+            cropAndSaveCoverFromBytes(context, bytes, customFileName)
+        }.getOrNull()
+    }
+
+    private fun cropAndSaveCoverFromBytes(context: Context, bytes: ByteArray, customFileName: String? = null): String? {
+        return runCatching {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
 
             val originWidth = options.outWidth
             val originHeight = options.outHeight
             if (originWidth <= 0 || originHeight <= 0) return null
 
-            // 2. 计算采样率，避免 OOM
             options.inSampleSize = calculateInSampleSize(originWidth, originHeight, TARGET_MAX_WIDTH, TARGET_MAX_HEIGHT)
             options.inJustDecodeBounds = false
 
-            // 3. 解码 Bitmap
-            val decodedBitmap = resolver.openInputStream(sourceUri)?.use { stream ->
-                BitmapFactory.decodeStream(stream, null, options)
-            } ?: return null
-
-            // 4. 2:3 比例中心裁剪
+            val decodedBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options) ?: return null
             val croppedBitmap = centerCropToRatio(decodedBitmap, 2, 3)
 
-            // 5. 保存到内部存储
             val dir = File(context.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
-            val coverFile = File(dir, "cover_${System.currentTimeMillis()}.jpg")
+            val fileName = customFileName ?: "cover_${System.currentTimeMillis()}.jpg"
+            val coverFile = File(dir, fileName)
 
             FileOutputStream(coverFile).use { out ->
                 croppedBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
@@ -119,7 +136,7 @@ object CoverImageHelper {
     }
 
     /**
-     * 加载封面到 ImageView，如果图片不存在则展示占位图
+     * 加载封面到 ImageView，支持本地文件路径与 http/https 网络图片，具备自动异步下载与磁盘缓存
      */
     fun loadCover(imageView: ImageView, path: String?, placeholderView: View? = null) {
         if (path.isNullOrBlank()) {
@@ -128,7 +145,63 @@ object CoverImageHelper {
             return
         }
 
-        val file = File(path)
+        val trimmed = path.trim()
+
+        // 1. 如果是网络 URL (http/https)
+        if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+            val context = imageView.context
+            val cacheKey = md5(trimmed)
+            val cacheDir = File(context.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
+            val cacheFile = File(cacheDir, "net_$cacheKey.jpg")
+
+            if (cacheFile.exists() && cacheFile.length() > 0) {
+                // 已有缓存
+                val bitmap = BitmapFactory.decodeFile(cacheFile.absolutePath)
+                if (bitmap != null) {
+                    imageView.setImageBitmap(bitmap)
+                    imageView.visibility = View.VISIBLE
+                    placeholderView?.visibility = View.GONE
+                    return
+                }
+            }
+
+            // 无缓存，先显示占位图，异步下载
+            imageView.visibility = View.GONE
+            placeholderView?.visibility = View.VISIBLE
+            imageView.tag = trimmed
+
+            imageExecutor.execute {
+                runCatching {
+                    val url = URL(trimmed)
+                    val connection = (url.openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 8000
+                        readTimeout = 8000
+                        instanceFollowRedirects = true
+                        setRequestProperty("User-Agent", "ReadTrace/4.4 (Android; AnimePosters)")
+                    }
+                    if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                        val bytes = connection.inputStream.use { it.readBytes() }
+                        val savedPath = cropAndSaveCoverFromBytes(context, bytes, "net_$cacheKey.jpg")
+                        if (savedPath != null) {
+                            val downloadedBitmap = BitmapFactory.decodeFile(savedPath)
+                            if (downloadedBitmap != null) {
+                                mainHandler.post {
+                                    if (imageView.tag == trimmed) {
+                                        imageView.setImageBitmap(downloadedBitmap)
+                                        imageView.visibility = View.VISIBLE
+                                        placeholderView?.visibility = View.GONE
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return
+        }
+
+        // 2. 本地文件路径
+        val file = File(trimmed)
         if (!file.exists() || !file.isFile) {
             imageView.visibility = View.GONE
             placeholderView?.visibility = View.VISIBLE
@@ -149,5 +222,11 @@ object CoverImageHelper {
             imageView.visibility = View.GONE
             placeholderView?.visibility = View.VISIBLE
         }
+    }
+
+    private fun md5(input: String): String {
+        val md = MessageDigest.getInstance("MD5")
+        val digest = md.digest(input.toByteArray())
+        return digest.joinToString("") { "%02x".format(it) }
     }
 }
