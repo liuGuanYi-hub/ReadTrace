@@ -45,6 +45,10 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
         TwinResonancePreset("白夜行", "来自深渊", "深渊互持 · 残酷救赎", 94),
         TwinResonancePreset("基督山伯爵", "JOJO", "黄金精神 · 意志传承", 93),
         TwinResonancePreset("边城", "夏日重现", "纯美爱恋 · 故乡清冽", 91),
+        TwinResonancePreset("晴る (Haru)", "紫罗兰永恒花园", "物哀音律 · 澄澈释怀", 98),
+        TwinResonancePreset("嘘じゃない (No Lie)", "孤独摇滚！", "疾走真夜中 · 放克共鸣", 97),
+        TwinResonancePreset("アポリア (Aporia)", "三体", "宇宙求索 · 真理追寻", 96),
+        TwinResonancePreset("花一匁 (Hanaichimonme)", "女神异闻录5皇家版", "叛逆放克 · 潮酷心声", 95),
     )
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {

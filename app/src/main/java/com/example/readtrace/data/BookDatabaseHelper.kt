@@ -240,6 +240,7 @@ class BookDatabaseHelper(val context: Context) :
         seedUserAnimeList(db)
         seedUserMovieList(db)
         seedUserGameList(db)
+        seedUserPodcastMusicList(db)
         seedCuratedBookCovers(db)
     }
 
@@ -867,6 +868,307 @@ class BookDatabaseHelper(val context: Context) :
                 // 注入六维心智雷达
                 if (game.mindprint != null && bookId > 0) {
                     val mp = game.mindprint
+                    val mpCv = ContentValues().apply {
+                        put(COLUMN_BOOK_ID, bookId)
+                        put(COLUMN_DEPTH_SCORE, mp[0].toDouble())
+                        put(COLUMN_ARTISTRY_SCORE, mp[1].toDouble())
+                        put(COLUMN_EMOTION_SCORE, mp[2].toDouble())
+                        put(COLUMN_LOGIC_SCORE, mp[3].toDouble())
+                        put(COLUMN_DIFFICULTY_SCORE, mp[4].toDouble())
+                        put(COLUMN_HEALING_SCORE, mp[5].toDouble())
+                        put(COLUMN_UPDATED_AT, now)
+                    }
+                    db.insertWithOnConflict(TABLE_BOOK_MINDPRINTS, null, mpCv, SQLiteDatabase.CONFLICT_REPLACE)
+                }
+            }
+        }
+    }
+
+    private fun seedUserPodcastMusicList(db: SQLiteDatabase) {
+        runCatching {
+            data class PodcastMusicEntry(
+                val title: String,
+                val artist: String,
+                val category: String,
+                val status: String,
+                val year: String,
+                val tags: List<String>,
+                val rating: Double?,
+                val shortComment: String?,
+                val review: String?,
+                val coverUrl: String,
+                val mindprint: FloatArray? = null,
+            )
+
+            val podcastMusicList = listOf(
+                // 🌙 ヨルシカ (Yorushika / 夜鹿) 2023 - 2024 经典作品
+                PodcastMusicEntry(
+                    title = "晴る (Haru)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "日系摇滚 / 物哀美学",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "葬送的芙莉莲OP", "夜鹿", "n-buna", "治愈神曲"),
+                    rating = 5.0,
+                    shortComment = "向着蔚蓝的晴空挥手作别，那滴落在手心的泪水，终会化为滋润大地的春雨。",
+                    review = "TV动画《葬送的芙莉莲》第2季度 OP 主题曲。n-buna 标志性的清澈吉他扫弦与 suis 纯净高亢的声线，将千年精灵对漫长时光、生死别离的释然与深情吟唱得淋漓尽致，堪称 2024 年日系摇滚的巅峰之作。",
+                    coverUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
+                    mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.5f, 10.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "アポリア (Aporia)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "哲学摇滚 / 宇宙浪漫",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "关于地球的运动ED", "地动说", "真理追寻", "夜鹿"),
+                    rating = 5.0,
+                    shortComment = "即便双脚陷于泥泞，我们依然要仰望并追寻那转动星辰的真理之火。",
+                    review = "TV动画《地。-关于地球的运动-》ED 主题曲。歌名 Aporia 意为哲学术语中的‘困惑 / 无路可走’。探讨人类在浩瀚宇宙未知面前的渺小，以及前仆后继为真理献身的壮丽诗篇。",
+                    coverUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                    mindprint = floatArrayOf(9.8f, 9.6f, 9.6f, 9.5f, 5.0f, 8.5f),
+                ),
+                PodcastMusicEntry(
+                    title = "忘れてください (Please Forget)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "日系抒情 / 夏日叙事",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "夏日残响", "suis", "温柔放手", "夜鹿"),
+                    rating = 4.9,
+                    shortComment = "如果回忆会成为你的负担，那就请你连同我的名字与这个夏夜，一并遗忘吧。",
+                    review = "夜鹿经典的夏日与离别物语。低回呢喃的琴键伴奏与渐进的弦乐编制，刻画出极致的物哀之美与温柔的解脱。",
+                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    mindprint = floatArrayOf(9.4f, 9.8f, 10.0f, 8.5f, 3.0f, 9.5f),
+                ),
+                PodcastMusicEntry(
+                    title = "ルバート (Rubato)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "灵动轻摇滚 / 爵士切分",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "自由节拍", "漫步曲", "灵动", "夜鹿"),
+                    rating = 4.8,
+                    shortComment = "在不被定义的拍子中自在漫步，把生活中的每一次停顿写成一首浪漫的散步曲。",
+                    review = "轻快跳跃的爵士摇摆律动，如同雨后初霁在湿润的柏油路面上随意踏水前行，自由而充满生命力。",
+                    coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
+                    mindprint = floatArrayOf(8.8f, 9.5f, 9.2f, 9.0f, 2.5f, 9.8f),
+                ),
+                PodcastMusicEntry(
+                    title = "斜陽 (Setting Sun)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "青春摇滚 / 酸甜心境",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "我心里危险的东西OP", "青春心动", "斜阳", "夜鹿"),
+                    rating = 5.0,
+                    shortComment = "放学后被斜阳染红的走廊里，那心照不宣的对视，是整个青春最滚烫的秘密。",
+                    review = "TV动画《我心里危险的东西》第1季 OP 主题曲。轻盈奔放的吉他分解和弦与青涩悸动的歌词，描摹出初恋最纯粹的心动轨迹。",
+                    coverUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                    mindprint = floatArrayOf(9.0f, 9.6f, 9.8f, 8.8f, 2.0f, 10.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "アルジャーノン (Algernon)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "文学摇滚 / 治愈救赎",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "黄昏牵手", "献给阿尔吉侬的花束", "慢热神曲", "夜鹿"),
+                    rating = 5.0,
+                    shortComment = "慢慢地、慢慢地成长，即便智慧终会退去，也请在我的墓前放上一束鲜花。",
+                    review = "TBS电视剧《夕暮れに、手をつなぐ》主题曲。灵感源自丹尼尔·凯斯世界名著《献给阿尔吉侬的花束》，温柔而深邃的生命叹息。",
+                    coverUrl = "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+                    mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.0f, 10.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "451 (华氏451)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "硬派反乌托邦摇滚",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "画集幻燈", "华氏451", "硬派摇滚", "思想火种"),
+                    rating = 4.9,
+                    shortComment = "书页在华氏451度燃烧，但思想的火种永远不会在灰烬中熄灭。",
+                    review = "画集专辑《幻燈》核心收录曲。致敬科幻大师雷·布拉德伯里的经典反乌托邦巨著，重型吉他 Riff 与极具张力的演唱。",
+                    coverUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600",
+                    mindprint = floatArrayOf(9.6f, 9.5f, 9.2f, 9.6f, 5.0f, 7.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "月光浴 (Moonlight Bath)",
+                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
+                    category = "唯美抒情 / 静谧夜色",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "大名倒产主题曲", "月光", "静心", "夜鹿"),
+                    rating = 4.9,
+                    shortComment = "在银白色的月光下洗尽尘世疲惫，时间在夜风里静止，灵魂重归静谧。",
+                    review = "电影《大名倒产》主题曲。如同在深夜独自漫步在清凉月色下，琴音与声线如清泉流淌，抚平一切喧嚣与焦虑。",
+                    coverUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                    mindprint = floatArrayOf(9.2f, 9.8f, 9.8f, 8.5f, 2.0f, 10.0f),
+                ),
+
+                // 🌌 ずっと真夜中でいいのに。 (ZUTOMAYO / 永远是深夜有多好。) 2023 - 2024 经典作品
+                PodcastMusicEntry(
+                    title = "嘘じゃない (No Lie)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "前卫放克摇滚 / 疾走感",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "我的鬼女孩主题曲", "ACAね", "神级放克", "真夜中"),
+                    rating = 5.0,
+                    shortComment = "即便把软弱和真心伪装起来，那份为你而战的执念，绝对不是谎言！",
+                    review = "动画电影《我的鬼女孩 (My Oni Girl)》主题曲。ACAね 标志性的高速吉他切音与炸裂的 Slap Bass，在疾走感中诉说着少年少女笨拙却炽热的真心。",
+                    coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
+                    mindprint = floatArrayOf(9.4f, 9.8f, 9.8f, 9.2f, 4.0f, 9.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "Blues in the Closet",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "夜光放克 / 都会律动",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "真夜中放克", "秘密衣橱", "都会孤独", "ACAね"),
+                    rating = 4.9,
+                    shortComment = "把所有的不安塞进衣橱深处，戴上耳机，在蓝调的重低音里独自起舞。",
+                    review = "ACAね 极具辨识度的真假音转换与复杂的爵士和弦走向，将都市年轻人在暗夜中的敏感孤独转化为摇摆律动。",
+                    coverUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600",
+                    mindprint = floatArrayOf(9.0f, 9.8f, 9.4f, 9.5f, 4.5f, 8.8f),
+                ),
+                PodcastMusicEntry(
+                    title = "海馬成長痛 (Hippocampus Growing Pains)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "意识流摇滚 / 锐利切分",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "虚仮の一念", "成长阵痛", "高密节奏", "真夜中"),
+                    rating = 4.9,
+                    shortComment = "海马体中隐隐作痛的记忆回响，是灵魂脱胎换骨的证明。",
+                    review = "迷你专辑《虚仮の一念海馬に託す》主打曲。密集的节奏鼓点与天马行空的歌词隐喻，直击现代人的精神内耗与觉醒。",
+                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    mindprint = floatArrayOf(9.5f, 9.8f, 9.6f, 9.4f, 6.0f, 8.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "TAIKUTSU (退屈)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "疾走放克摇滚",
+                    status = "finished",
+                    year = "2024",
+                    tags = listOf("2024年", "超自然当哒当联动", "炸裂贝斯", "音速暴击", "真夜中"),
+                    rating = 4.9,
+                    shortComment = "用狂暴的贝斯轰碎无聊日常，在超自然的夜色中掀起狂澜！",
+                    review = "极速狂飙的贝斯与二胡传统民乐音色奇妙碰撞，真夜中独门的高密度音乐轰炸，打破一切审美疲劳。",
+                    coverUrl = "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600",
+                    mindprint = floatArrayOf(9.0f, 9.6f, 9.2f, 9.5f, 5.0f, 8.5f),
+                ),
+                PodcastMusicEntry(
+                    title = "花一匁 (Hanaichimonme)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "和风放克摇滚 / 殿堂主打",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "沈香学", "神专主打", "童谣解构", "真夜中"),
+                    rating = 5.0,
+                    shortComment = "想要那个孩子，不给那个孩子。在世俗的算计与博弈中，夺回属于自己的心跳。",
+                    review = "3rd 专辑《沈香学》核心主打神作。将日本古老童谣《花一匁》解构重组为充满朋克反叛精神与精巧律动的殿堂级放克曲。",
+                    coverUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                    mindprint = floatArrayOf(9.6f, 10.0f, 9.8f, 9.6f, 5.5f, 9.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "沈香学 (Jin Kou Gaku 专辑)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "正规概念专辑 / 殿堂之作",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "公信榜冠军", "沈香学", "年度神专", "真夜中"),
+                    rating = 5.0,
+                    shortComment = "像沉香一样历经伤口与岁月沉淀，在深夜里散发出幽微而绝美的香气。",
+                    review = "真夜中集大成的第3张正规概念专辑。收录《残机》《綺羅キラー》《消えてしまいそうです》等多首殿堂名曲，狂放与细腻并存。",
+                    coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
+                    mindprint = floatArrayOf(9.8f, 10.0f, 9.8f, 9.6f, 6.0f, 9.5f),
+                ),
+                PodcastMusicEntry(
+                    title = "不法侵入 (Trespass)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "迷幻放克 / 恋爱心境",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "ABEMA恋爱番", "侵入心扉", "律动放克", "真夜中"),
+                    rating = 4.8,
+                    shortComment = "未经允许便悄然闯入我心中的你，留下了无法抹去的痕迹。",
+                    review = "ABEMA 节目主题曲。标志性的键盘敲击与灵动声线，勾勒出恋爱中防不胜防的心动瞬间。",
+                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    mindprint = floatArrayOf(9.0f, 9.6f, 9.5f, 9.0f, 3.5f, 9.0f),
+                ),
+                PodcastMusicEntry(
+                    title = "残機 (Time Left)",
+                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
+                    category = "硬核疾走放克 / 爆裂现场",
+                    status = "finished",
+                    year = "2023",
+                    tags = listOf("2023年", "电锯人ED2", "残机", "血脉贲张", "真夜中"),
+                    rating = 5.0,
+                    shortComment = "即便剩余的生命只剩一条，也要握紧电锯，在血肉横飞的绝望里杀穿终局！",
+                    review = "TV动画《电锯人》ED2。爆裂的切分音与 ACAね 的狂气嘶吼，堪称日系摇滚新浪潮的核弹级现场演绎。",
+                    coverUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600",
+                    mindprint = floatArrayOf(9.6f, 9.8f, 9.6f, 9.5f, 6.5f, 8.5f),
+                ),
+            )
+
+            val now = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(java.time.LocalDateTime.now())
+
+            podcastMusicList.forEach { item ->
+                val cursor = db.query(
+                    TABLE_BOOKS,
+                    arrayOf(COLUMN_ID),
+                    "$COLUMN_TITLE = ? AND $COLUMN_IS_DELETED = 0",
+                    arrayOf(item.title),
+                    null, null, null,
+                )
+                var bookId = 0L
+                val exists = cursor.use {
+                    if (it.moveToFirst()) {
+                        bookId = it.getLong(0)
+                        true
+                    } else false
+                }
+
+                if (exists) {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_MEDIA_TYPE, "podcast")
+                        if (item.shortComment != null) put(COLUMN_SHORT_COMMENT, item.shortComment)
+                        if (item.review != null) put(COLUMN_REVIEW, item.review)
+                        if (item.rating != null) put(COLUMN_RATING, item.rating)
+                        if (item.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, item.coverUrl)
+                        put(COLUMN_TAGS, JSONArray(item.tags).toString())
+                    }
+                    db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                } else {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, item.title)
+                        put(COLUMN_AUTHOR, item.artist)
+                        put(COLUMN_CATEGORY, item.category)
+                        put(COLUMN_STATUS, item.status)
+                        put(COLUMN_MEDIA_TYPE, "podcast")
+                        put(COLUMN_SHORT_COMMENT, item.shortComment)
+                        put(COLUMN_REVIEW, item.review)
+                        put(COLUMN_RATING, item.rating ?: 5.0)
+                        put(COLUMN_TAGS, JSONArray(item.tags).toString())
+                        put(COLUMN_COVER_URL, item.coverUrl)
+                        put(COLUMN_START_DATE, "${item.year}-01-01")
+                        put(COLUMN_FINISH_DATE, "${item.year}-12-31")
+                        put(COLUMN_BUY_CHANNEL, "Apple Music / Spotify / 正版专辑")
+                        put(COLUMN_SHELF_LOCATION, "声音宇宙 · 夜鹿 & 真夜中回响专区")
+                        put(COLUMN_BINDING_TYPE, "Hi-Res 无损黑胶 / 正规专辑")
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    bookId = db.insert(TABLE_BOOKS, null, cv)
+                }
+
+                // 注入六维心智雷达
+                if (item.mindprint != null && bookId > 0) {
+                    val mp = item.mindprint
                     val mpCv = ContentValues().apply {
                         put(COLUMN_BOOK_ID, bookId)
                         put(COLUMN_DEPTH_SCORE, mp[0].toDouble())

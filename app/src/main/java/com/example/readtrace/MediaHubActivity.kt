@@ -223,11 +223,15 @@ class MediaHubActivity : AppCompatActivity() {
                 }
             }
             MediaType.PODCAST -> {
-                hubTitle.text = "🎙️ 随心播客"
+                hubTitle.text = "🎙️ 声音与播客宇宙"
                 hubStatusReading.text = "收听中"
                 hubStatusFinished.text = "已听完"
                 hubStatusWishlist.text = "想听"
-                btnHubSpecialFeature.visibility = View.GONE
+                btnHubSpecialFeature.visibility = View.VISIBLE
+                btnHubSpecialFeature.text = "🎴 共鸣双生微卡"
+                btnHubSpecialFeature.setOnClickListener {
+                    startActivity(Intent(this, ResonancePosterActivity::class.java))
+                }
                 btnHubPassport.visibility = View.GONE
             }
         }
