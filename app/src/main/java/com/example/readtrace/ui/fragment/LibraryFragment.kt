@@ -64,6 +64,7 @@ class LibraryFragment : Fragment() {
     private var searchKeyword: String = ""
     private var selectedTag: String? = null
     private var isGridView: Boolean = false
+    private var currentDisplayLimit: Int = 24
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -143,6 +144,7 @@ class LibraryFragment : Fragment() {
                 val query = s?.toString()?.trim().orEmpty()
                 if (searchKeyword != query) {
                     searchKeyword = query
+                    currentDisplayLimit = 24
                     librarySearchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
                     refreshShelfOnly()
                 }
@@ -179,6 +181,7 @@ class LibraryFragment : Fragment() {
     private fun selectMediaType(type: MediaType?) {
         if (selectedMediaType == type) return
         selectedMediaType = type
+        currentDisplayLimit = 24
         updateMediaChips()
         refreshLibrary()
     }
@@ -201,6 +204,7 @@ class LibraryFragment : Fragment() {
     private fun selectStatus(status: BookStatus?) {
         if (selectedStatus == status) return
         selectedStatus = status
+        currentDisplayLimit = 24
         updateStatusChips()
         refreshShelfOnly()
     }
@@ -222,6 +226,7 @@ class LibraryFragment : Fragment() {
     private fun selectTag(tag: String?) {
         if (selectedTag == tag) return
         selectedTag = tag
+        currentDisplayLimit = 24
         updateTagChips()
         refreshShelfOnly()
     }
@@ -322,14 +327,16 @@ class LibraryFragment : Fragment() {
         libraryEmptyPanel.visibility = View.GONE
         libraryBooksContainer.visibility = View.VISIBLE
 
+        val displayBooks = books.take(currentDisplayLimit)
+
         if (!isGridView) {
-            books.forEachIndexed { index, book ->
+            displayBooks.forEachIndexed { index, book ->
                 val card = createBookCard(book)
                 libraryBooksContainer.addView(card)
-                if (index < 12) ViewAnimationHelper.staggerFadeIn(card, index)
+                if (index < 8) ViewAnimationHelper.staggerFadeIn(card, index)
             }
         } else {
-            val rows = books.chunked(2)
+            val rows = displayBooks.chunked(2)
             val ctx = requireContext()
             rows.forEachIndexed { rowIndex, pair ->
                 val rowLayout = LinearLayout(ctx).apply {
@@ -365,8 +372,36 @@ class LibraryFragment : Fragment() {
                 }
 
                 libraryBooksContainer.addView(rowLayout)
-                if (rowIndex < 6) ViewAnimationHelper.staggerFadeIn(rowLayout, rowIndex)
+                if (rowIndex < 4) ViewAnimationHelper.staggerFadeIn(rowLayout, rowIndex)
             }
+        }
+
+        // 若藏品数量超过当前展示上限，添加优雅的「加载更多」按钮
+        if (books.size > currentDisplayLimit) {
+            val ctx = requireContext()
+            val loadMoreBtn = TextView(ctx).apply {
+                text = "查看更多藏品 (剩余 ${books.size - currentDisplayLimit} 部) ↓"
+                textSize = 13f
+                gravity = android.view.Gravity.CENTER
+                setBackgroundResource(R.drawable.bg_secondary_button)
+                setTextColor(ContextCompat.getColor(ctx, R.color.readtrace_ink))
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dpToPx(42),
+                ).apply {
+                    topMargin = dpToPx(16)
+                    bottomMargin = dpToPx(12)
+                }
+                layoutParams = params
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    currentDisplayLimit += 30
+                    refreshShelfOnly()
+                }
+            }
+            ViewAnimationHelper.attachSpringTouch(loadMoreBtn)
+            libraryBooksContainer.addView(loadMoreBtn)
         }
     }
 

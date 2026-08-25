@@ -2,9 +2,9 @@ package com.example.readtrace.widget
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RadialGradient
@@ -13,23 +13,25 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.model.MediaType
-import com.example.readtrace.util.BookSimilarityEngine
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 sealed class ConstellationFilter {
     object ALL : ConstellationFilter()
     data class ByMedia(val mediaType: MediaType) : ConstellationFilter()
     data class ByRegion(val regionName: String) : ConstellationFilter()
-    object CrossMediaResonance : ConstellationFilter() // 🌌 跨媒介心智共鸣
+    object CrossMediaResonance : ConstellationFilter()
 }
 
 class MindprintConstellationView @JvmOverloads constructor(
@@ -43,9 +45,9 @@ class MindprintConstellationView @JvmOverloads constructor(
         val mindprint: BookMindprint,
         var worldX: Float,
         var worldY: Float,
-        var radius: Float,
+        var baseRadius: Float,
         val colorHex: Int,
-        val detectedRegion: String,
+        val isMajorStar: Boolean = false,
         var hasCrossMediaEdge: Boolean = false,
     ) {
         fun matches(filter: ConstellationFilter): Boolean {
@@ -53,8 +55,7 @@ class MindprintConstellationView @JvmOverloads constructor(
                 is ConstellationFilter.ALL -> true
                 is ConstellationFilter.ByMedia -> book.mediaType == filter.mediaType
                 is ConstellationFilter.ByRegion -> {
-                    detectedRegion.contains(filter.regionName) ||
-                        (book.category ?: "").contains(filter.regionName) ||
+                    (book.category ?: "").contains(filter.regionName) ||
                         book.tags.any { it.contains(filter.regionName) }
                 }
                 is ConstellationFilter.CrossMediaResonance -> hasCrossMediaEdge
@@ -70,7 +71,7 @@ class MindprintConstellationView @JvmOverloads constructor(
         val resonanceTrait: String = "",
     )
 
-    data class AmbientParticle(
+    data class AmbientStar(
         val x: Float,
         val y: Float,
         val size: Float,
@@ -80,90 +81,46 @@ class MindprintConstellationView @JvmOverloads constructor(
 
     private val stars = mutableListOf<StarNode>()
     private val edges = mutableListOf<ConstellationEdge>()
-    private val ambientParticles = mutableListOf<AmbientParticle>()
+    private val ambientStars = mutableListOf<AmbientStar>()
 
+    // 变换与交互参数
     private var offsetX = 0f
     private var offsetY = 0f
+    private var scaleFactor = 1.0f
     private var animPhase = 0f
 
     private var activeFilter: ConstellationFilter = ConstellationFilter.ALL
     private var selectedStar: StarNode? = null
     var onStarClickListener: ((Book, BookMindprint) -> Unit)? = null
 
-    // 画笔
+    // 画笔系统
+    private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val starCorePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val starGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dpToPx(1.2f)
-        pathEffect = DashPathEffect(floatArrayOf(dpToPx(4f), dpToPx(4f)), 0f)
     }
 
     private val auroraLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = dpToPx(2.2f)
     }
 
-    private val pulseParticlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
+    private val pulseParticlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private val starGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val starCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val labelTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         isFakeBoldText = true
     }
 
-    private val subTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
+    private val labelBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
     }
 
-    private val badgeBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val badgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
-    }
-
-    private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-        override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-            offsetX -= distanceX
-            offsetY -= distanceY
-            invalidate()
-            return true
-        }
-
-        override fun onSingleTapUp(e: MotionEvent): Boolean {
-            val touchX = e.x - width / 2f - offsetX
-            val touchY = e.y - height / 2f - offsetY
-
-            val hit = stars.firstOrNull { star ->
-                hypot((touchX - star.worldX).toDouble(), (touchY - star.worldY).toDouble()) <= star.radius * 2.5f
-            }
-
-            if (hit != null) {
-                selectedStar = hit
-                invalidate()
-                onStarClickListener?.invoke(hit.book, hit.mindprint)
-                return true
-            }
-            return false
-        }
-    })
-
+    // 动画驱动 (深空呼吸与微粒闪烁)
     private val animator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 10000L
+        duration = 9000L
         repeatCount = ValueAnimator.INFINITE
         interpolator = LinearInterpolator()
         addUpdateListener {
@@ -172,16 +129,90 @@ class MindprintConstellationView @JvmOverloads constructor(
         }
     }
 
+    // 手势系统（以缩放中心为锚点的平滑捏合缩放 + 惯性拖拽）
+    private val scaleGestureDetector = ScaleGestureDetector(
+        context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val oldScale = scaleFactor
+                scaleFactor *= detector.scaleFactor
+                scaleFactor = scaleFactor.coerceIn(0.35f, 3.0f)
+
+                // 保持缩放中心点在手势焦点处，避免视觉跳跃
+                val focusX = detector.focusX - width / 2f
+                val focusY = detector.focusY - height / 2f
+                offsetX = (offsetX - focusX) * (scaleFactor / oldScale) + focusX
+                offsetY = (offsetY - focusY) * (scaleFactor / oldScale) + focusY
+
+                constrainOffset()
+                invalidate()
+                return true
+            }
+        },
+    )
+
+    private val gestureDetector = GestureDetector(
+        context,
+        object : GestureDetector.SimpleOnGestureListener() {
+            override fun onScroll(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                distanceX: Float,
+                distanceY: Float,
+            ): Boolean {
+                offsetX -= distanceX
+                offsetY -= distanceY
+                constrainOffset()
+                invalidate()
+                return true
+            }
+
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                val touchX = e.x
+                val touchY = e.y
+                val cx = width / 2f + offsetX
+                val cy = height / 2f + offsetY
+
+                // 触摸热区判定 (扩大至 32dp 以便手指精准拾取星辰)
+                var nearestStar: StarNode? = null
+                var minDist = dpToPx(32f) * scaleFactor.coerceAtLeast(0.7f)
+
+                stars.forEach { star ->
+                    if (star.matches(activeFilter)) {
+                        val sx = cx + star.worldX * scaleFactor
+                        val sy = cy + star.worldY * scaleFactor
+                        val dist = hypot(touchX - sx, touchY - sy)
+                        if (dist < minDist) {
+                            minDist = dist
+                            nearestStar = star
+                        }
+                    }
+                }
+
+                if (nearestStar != null) {
+                    selectedStar = nearestStar
+                    onStarClickListener?.invoke(nearestStar!!.book, nearestStar!!.mindprint)
+                    smoothFocusOn(nearestStar!!.worldX, nearestStar!!.worldY)
+                } else {
+                    selectedStar = null
+                    invalidate()
+                }
+                return true
+            }
+        },
+    )
+
     init {
+        // 生成深空背景微光星屑 (140颗随机分布的微粒，营造宇宙深邃感)
         val rnd = Random(42)
-        for (i in 0 until 60) {
-            ambientParticles.add(
-                AmbientParticle(
-                    x = (rnd.nextFloat() - 0.5f) * 2000f,
-                    y = (rnd.nextFloat() - 0.5f) * 2000f,
-                    size = dpToPx(1f + rnd.nextFloat() * 2f),
-                    baseAlpha = 0.2f + rnd.nextFloat() * 0.5f,
-                    phase = rnd.nextFloat() * 6.28f,
+        for (i in 0 until 140) {
+            ambientStars.add(
+                AmbientStar(
+                    x = (rnd.nextFloat() - 0.5f) * 3600f,
+                    y = (rnd.nextFloat() - 0.5f) * 3600f,
+                    size = dpToPx(0.7f + rnd.nextFloat() * 1.6f),
+                    baseAlpha = 0.12f + rnd.nextFloat() * 0.40f,
+                    phase = rnd.nextFloat() * 6.283f,
                 ),
             )
         }
@@ -205,29 +236,53 @@ class MindprintConstellationView @JvmOverloads constructor(
     fun focusOnBook(bookId: Long) {
         val target = stars.firstOrNull { it.book.id == bookId } ?: return
         selectedStar = target
+        smoothFocusOn(target.worldX, target.worldY)
+    }
+
+    /**
+     * 获取与当前书籍关联的跨媒介共鸣伙伴星辰与连线
+     */
+    fun getCrossMediaResonancePeer(bookId: Long): Pair<StarNode, ConstellationEdge>? {
+        val edge = edges.firstOrNull {
+            it.isCrossMedia && (it.nodeA.book.id == bookId || it.nodeB.book.id == bookId)
+        } ?: return null
+
+        val peer = if (edge.nodeA.book.id == bookId) edge.nodeB else edge.nodeA
+        return Pair(peer, edge)
+    }
+
+    private fun smoothFocusOn(targetWorldX: Float, targetWorldY: Float) {
         val startX = offsetX
         val startY = offsetY
-        val destX = -target.worldX
-        val destY = -target.worldY
+        val destX = -targetWorldX * scaleFactor
+        val destY = -targetWorldY * scaleFactor
 
         val anim = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 600L
+            duration = 450L
+            interpolator = DecelerateInterpolator()
             addUpdateListener {
                 val f = it.animatedValue as Float
                 offsetX = startX + (destX - startX) * f
                 offsetY = startY + (destY - startY) * f
+                constrainOffset()
                 invalidate()
             }
         }
         anim.start()
     }
 
-    fun getCrossMediaResonancePeer(bookId: Long): Pair<StarNode, ConstellationEdge>? {
-        val edge = edges.firstOrNull { it.isCrossMedia && (it.nodeA.book.id == bookId || it.nodeB.book.id == bookId) } ?: return null
-        val peer = if (edge.nodeA.book.id == bookId) edge.nodeB else edge.nodeA
-        return Pair(peer, edge)
+    private fun constrainOffset() {
+        val maxBound = 2200f * scaleFactor
+        offsetX = offsetX.coerceIn(-maxBound, maxBound)
+        offsetY = offsetY.coerceIn(-maxBound, maxBound)
     }
 
+    /**
+     * 核心星系生成算法：
+     * 1. 划分 4 大文化星系旋臂 (文学星云、动漫星团、光影银河、第九艺术星域)
+     * 2. 采用黄金螺旋角 (137.5°) + 六维心智势能散落，彻底杜绝 211 节点互相重叠
+     * 3. 严格控制骨干连线与跨媒介极光流光弦密度
+     */
     fun setBooksData(books: List<Book>, databaseHelper: BookDatabaseHelper) {
         stars.clear()
         edges.clear()
@@ -236,95 +291,78 @@ class MindprintConstellationView @JvmOverloads constructor(
             return
         }
 
-        val colors = intArrayOf(
-            Color.parseColor("#E07A5F"), // 珊瑚琥珀
-            Color.parseColor("#3D84B8"), // 星云海蓝
-            Color.parseColor("#81B29A"), // 翡翠微绿
-            Color.parseColor("#F4A261"), // 暖阳金黄
-            Color.parseColor("#9B5DE5"), // 幻夜紫罗兰
-            Color.parseColor("#00BBF9"), // 冰川青蓝
+        // 四大文化星区世界中心坐标配置 (分布于广袤深空，互不交叠)
+        val clusterCenters = mapOf(
+            MediaType.BOOK to Pair(-dpToPx(380f), -dpToPx(320f)), // 左上：典雅文学星云
+            MediaType.ANIME to Pair(dpToPx(380f), -dpToPx(320f)), // 右上：梦幻动漫星团
+            MediaType.MOVIE to Pair(-dpToPx(360f), dpToPx(360f)), // 左下：沉浸影视银河
+            MediaType.GAME to Pair(dpToPx(380f), dpToPx(340f)), // 右下：赛博游戏星海
+            MediaType.PODCAST to Pair(0f, 0f), // 中央：灵性声音星核
         )
 
-        val count = books.size
-        val spread = dpToPx(300f)
+        val mediaPalette = mapOf(
+            MediaType.BOOK to Color.parseColor("#E07A5F"), // 珊瑚琥珀
+            MediaType.ANIME to Color.parseColor("#9B5DE5"), // 幻境紫罗兰
+            MediaType.MOVIE to Color.parseColor("#F4A261"), // 光影落日金
+            MediaType.GAME to Color.parseColor("#00BBF9"), // 赛博冰川青
+            MediaType.PODCAST to Color.parseColor("#81B29A"), // 灵息翡翠绿
+        )
 
-        books.forEachIndexed { idx, book ->
-            val mp = databaseHelper.getMindprint(book.id)
-            val angle = (idx.toFloat() / count) * 6.283185f
+        // 1. 生成星辰节点（基于多维心智势能 + 斐波那契黄金螺旋分布）
+        val mediaGroups = books.groupBy { it.mediaType }
 
-            // 基于六维心智投影计算星系相对位置
-            val logicBias = (mp.logicScore - mp.emotionScore).toFloat() * dpToPx(18f)
-            val depthBias = (mp.depthScore - mp.healingScore).toFloat() * dpToPx(18f)
-            val baseDist = spread * (0.6f + 0.4f * (idx % 3))
+        mediaGroups.forEach { (mediaType, list) ->
+            val center = clusterCenters[mediaType] ?: Pair(0f, 0f)
+            val baseColor = mediaPalette[mediaType] ?: Color.parseColor("#E07A5F")
 
-            val wx = cos(angle) * baseDist + logicBias
-            val wy = sin(angle) * baseDist + depthBias
+            list.forEachIndexed { index, book ->
+                val mp = databaseHelper.getMindprint(book.id)
 
-            val detectedReg = BookSimilarityEngine.detectRegion(book)
+                // 黄金角散落算法：按索引平滑扩展半径，彻底消除重叠
+                val goldenAngle = 2.399963f // 137.5 度
+                val dist = dpToPx(42f) + dpToPx(18.5f) * sqrt(index.toFloat() + 1f) * (1f + (index % 4) * 0.12f)
+                val theta = index * goldenAngle + (mp.depthScore - mp.healingScore).toFloat() * 0.08f
 
-            val node = StarNode(
-                book = book,
-                mindprint = mp,
-                worldX = wx,
-                worldY = wy,
-                radius = dpToPx(14f + (mp.averageScore().toFloat() - 5f).coerceAtLeast(0f) * 1.5f),
-                colorHex = colors[idx % colors.size],
-                detectedRegion = detectedReg,
-            )
-            stars.add(node)
+                // 六维心智微偏移 (逻辑/理性 vs 情感/感性，深度 vs 治愈)
+                val logicOffset = (mp.logicScore - mp.emotionScore).toFloat() * dpToPx(7f)
+                val depthOffset = (mp.depthScore - mp.artistryScore).toFloat() * dpToPx(7f)
+
+                val wx = center.first + cos(theta) * dist + logicOffset
+                val wy = center.second + sin(theta) * dist + depthOffset
+
+                // 核心知名作品（各星区前 3 部）或高评分神作标记为主要星辰 (Major Star)
+                val isMajor = index < 3 || mp.averageScore() >= 9.1
+
+                val node = StarNode(
+                    book = book,
+                    mindprint = mp,
+                    worldX = wx,
+                    worldY = wy,
+                    baseRadius = if (isMajor) dpToPx(6.0f) else dpToPx(3.8f),
+                    colorHex = baseColor,
+                    isMajorStar = isMajor,
+                )
+                stars.add(node)
+            }
         }
 
-        // 计算星座连线
-        for (i in 0 until stars.size) {
-            for (j in i + 1 until stars.size) {
-                val a = stars[i]
-                val b = stars[j]
+        // 2. 生成星系骨干连线（严格控制密度，构建优美星座骨架，杜绝蛛网灾难）
+        val majorStars = stars.filter { it.isMajorStar }
+        for (i in majorStars.indices) {
+            for (j in i + 1 until majorStars.size) {
+                val a = majorStars[i]
+                val b = majorStars[j]
 
-                // 1. 同媒介心智相似度连线
+                // 同媒介主星连线 (近距离星座主干)
                 if (a.book.mediaType == b.book.mediaType) {
-                    val recs = BookSimilarityEngine.findSimilarBooks(a.book, databaseHelper, limit = 4)
-                    val match = recs.firstOrNull { it.book.id == b.book.id }
-                    if (match != null && match.similarityPercent >= 72) {
-                        edges.add(ConstellationEdge(a, b, match.similarityPercent))
-                        continue
-                    }
-
-                    // 番剧专属系列与同社团星座连线
-                    if (a.book.mediaType == MediaType.ANIME && b.book.mediaType == MediaType.ANIME) {
-                        val aAuthor = a.book.author.orEmpty()
-                        val bAuthor = b.book.author.orEmpty()
-                        val aTitle = a.book.title
-                        val bTitle = b.book.title
-
-                        val isSameStudio = (aAuthor.contains("京都动画") && bAuthor.contains("京都动画")) ||
-                                (aAuthor.contains("骨头社") && bAuthor.contains("骨头社")) ||
-                                (aAuthor.contains("david") && bAuthor.contains("david")) ||
-                                (aAuthor.contains("MAPPA") && bAuthor.contains("MAPPA")) ||
-                                (aAuthor.contains("A-1") && bAuthor.contains("A-1")) ||
-                                (aAuthor.contains("CloverWorks") && bAuthor.contains("CloverWorks")) ||
-                                (aAuthor.contains("WHITE FOX") && bAuthor.contains("WHITE FOX")) ||
-                                (aAuthor.contains("动画工房") && bAuthor.contains("动画工房"))
-
-                        val isSameFranchise = (aTitle.contains("JOJO") && bTitle.contains("JOJO")) ||
-                                (aTitle.contains("夏目") && bTitle.contains("夏目")) ||
-                                (aTitle.contains("轻音") && bTitle.contains("轻音")) ||
-                                (aTitle.contains("春物") || aTitle.contains("青春恋爱物语")) && (bTitle.contains("春物") || bTitle.contains("青春恋爱物语")) ||
-                                (aTitle.contains("灵能") && bTitle.contains("灵能")) ||
-                                (aTitle.contains("间谍过家家") && bTitle.contains("间谍过家家")) ||
-                                (aTitle.contains("咒术") && bTitle.contains("咒术")) ||
-                                (aTitle.contains("路人女主") && bTitle.contains("路人女主")) ||
-                                (aTitle.contains("约会大作战") && bTitle.contains("约会大作战"))
-
-                        if (isSameFranchise) {
-                            edges.add(ConstellationEdge(a, b, 95))
-                        } else if (isSameStudio) {
-                            edges.add(ConstellationEdge(a, b, 88))
-                        }
+                    val dist = hypot(a.worldX - b.worldX, a.worldY - b.worldY)
+                    if (dist < dpToPx(340f) && edges.count { !it.isCrossMedia && (it.nodeA == a || it.nodeB == a) } < 3) {
+                        edges.add(ConstellationEdge(a, b, 88))
                     }
                 } else {
-                    // 2. 跨媒介灵魂共鸣连线（书籍 vs 番剧 / 影视 / 游戏）
+                    // 跨媒介灵魂共鸣连线 (控制最多 10~14 条极具哲思的极光光弦)
                     val crossTrait = detectCrossMediaTrait(a, b)
-                    if (crossTrait != null) {
+                    if (crossTrait != null && edges.count { it.isCrossMedia } < 12) {
                         a.hasCrossMediaEdge = true
                         b.hasCrossMediaEdge = true
                         edges.add(
@@ -334,266 +372,156 @@ class MindprintConstellationView @JvmOverloads constructor(
                                 similarity = crossTrait.second,
                                 isCrossMedia = true,
                                 resonanceTrait = crossTrait.first,
-                            )
+                            ),
                         )
                     }
                 }
             }
         }
+
         invalidate()
     }
 
     private fun detectCrossMediaTrait(a: StarNode, b: StarNode): Pair<String, Int>? {
-        val aTitle = a.book.title
-        val bTitle = b.book.title
-
-        fun matchesPair(keywordA: List<String>, keywordB: List<String>): Boolean {
-            val aHasA = keywordA.any { aTitle.contains(it) }
-            val bHasB = keywordB.any { bTitle.contains(it) }
-            val aHasB = keywordB.any { aTitle.contains(it) }
-            val bHasA = keywordA.any { bTitle.contains(it) }
-            return (aHasA && bHasB) || (aHasB && bHasA)
+        fun matchesPair(k1: List<String>, k2: List<String>): Boolean {
+            val aStr = "${a.book.title} ${a.book.author.orEmpty()} ${a.book.category.orEmpty()}"
+            val bStr = "${b.book.title} ${b.book.author.orEmpty()} ${b.book.category.orEmpty()}"
+            val m1 = k1.any { aStr.contains(it, ignoreCase = true) } && k2.any { bStr.contains(it, ignoreCase = true) }
+            val m2 = k2.any { aStr.contains(it, ignoreCase = true) } && k1.any { bStr.contains(it, ignoreCase = true) }
+            return m1 || m2
         }
 
-        // 1. 存在主义思辨 · 终极孤独 (94%)
-        if (matchesPair(listOf("百年孤独", "局外人", "1984", "西西弗"), listOf("EVA", "新世纪福音战士", "来自深渊", "夏日重现"))) {
-            return Pair("存在主义思辨 · 终极孤独", 94)
+        if (matchesPair(listOf("百年孤独", "鼠疫", "1984", "局外人"), listOf("EVA", "新世纪福音战士", "进击的巨人", "艾尔登法环"))) {
+            return Pair("存在主义思辨 · 终极救赎", 98)
         }
-
-        // 2. 爱的驯服 · 治愈救赎 (96%)
-        if (matchesPair(listOf("小王子", "解忧杂货店", "廊桥遗梦"), listOf("紫罗兰", "夏目友人帐", "天使的心跳", "Angel Beats"))) {
-            return Pair("爱的驯服 · 治愈救赎", 96)
+        if (matchesPair(listOf("小王子", "边城", "月亮与六便士"), listOf("紫罗兰永恒花园", "夏目友人帐", "哈尔的移动城堡", "去月球"))) {
+            return Pair("跨越时空 · 纯真之爱", 97)
         }
-
-        // 3. 宇宙宿命 · 哲学神域 (95%)
-        if (matchesPair(listOf("三体", "时间简史", "上帝掷骰子"), listOf("小圆", "魔法少女小圆", "EVA", "命运石之门"))) {
-            return Pair("宇宙宿命 · 哲学神域", 95)
-        }
-
-        // 4. 青春迷茫 · 孤独摇滚 (93%)
-        if (matchesPair(listOf("挪威的森林", "在细雨中呼喊"), listOf("孤独摇滚", "春物", "青春恋爱物语", "轻音"))) {
-            return Pair("青春迷茫 · 孤独摇滚", 93)
-        }
-
-        // 5. 坚韧意志 · 极限超越 (94%)
-        if (matchesPair(listOf("老人与海", "活着", "许三观"), listOf("强风吹拂", "蓝色监狱", "排球"))) {
-            return Pair("坚韧意志 · 极限超越", 94)
-        }
-
-        // 6. 人情温暖 · 羁绊守候 (95%)
-        if (matchesPair(listOf("我是猫", "一个叫欧维", "蛤蟆先生"), listOf("夏目", "间谍过家家", "点兔", "玉子市场"))) {
-            return Pair("人情温暖 · 羁绊守候", 95)
-        }
-
-        // 7. 正义边界 · 灵魂受难 (92%)
-        if (matchesPair(listOf("罪与罚", "悲惨世界", "消失的十三级台阶"), listOf("灵能百分百", "国王排名", "文豪野犬"))) {
-            return Pair("正义边界 · 灵魂受难", 92)
-        }
-
-        // 8. 深渊互持 · 残酷救赎 (94%)
-        if (matchesPair(listOf("白夜行", "恶意", "无人生还", "绝叫"), listOf("来自深渊", "夏日重现", "咒术回战", "约定的梦幻岛"))) {
-            return Pair("深渊互持 · 残酷救赎", 94)
-        }
-
-        // 9. 黄金精神 · 意志传承 (93%)
-        if (matchesPair(listOf("基督山伯爵", "四世同堂", "战争与和平"), listOf("JOJO", "鬼灭之刃", "浪客剑心"))) {
-            return Pair("黄金精神 · 意志传承", 93)
-        }
-
-        // 10. 纯美爱恋 · 故乡清冽 (91%)
-        if (matchesPair(listOf("边城", "雪国", "伊豆的舞女", "春雪"), listOf("月刊少女", "玉子市场", "魔女之旅"))) {
-            return Pair("纯美爱恋 · 故乡清冽", 91)
-        }
-
-        // 11. 自由意志 · 希望救赎 (97%) (电影: 《肖申克的救赎》 ⇋ 《基督山伯爵》/《老人与海》)
-        if (matchesPair(listOf("肖申克", "基督山伯爵", "老人与海"), listOf("肖申克", "基督山伯爵", "老人与海", "进击的巨人"))) {
-            return Pair("自由意志 · 希望救赎", 97)
-        }
-
-        // 12. 时空维度 · 宏大哲思 (96%) (电影: 《星际穿越》/《盗梦空间》 ⇋ 《三体》/《时间简史》)
-        if (matchesPair(listOf("星际穿越", "盗梦空间"), listOf("三体", "时间简史", "EVA", "命运石之门"))) {
+        if (matchesPair(listOf("三体", "时间简史", "银河帝国"), listOf("星际穿越", "盗梦空间", "命运石之门", "星际拓荒"))) {
             return Pair("时空维度 · 宏大哲思", 96)
         }
-
-        // 13. 唯美奇幻 · 纯真之爱 (96%) (电影: 《哈尔的移动城堡》 ⇋ 《小王子》/《紫罗兰》)
-        if (matchesPair(listOf("哈尔的移动城堡", "哈尔"), listOf("小王子", "紫罗兰永恒花园", "千与千寻"))) {
-            return Pair("唯美奇幻 · 纯真之爱", 96)
+        if (matchesPair(listOf("活着", "老人与海"), listOf("肖申克的救赎", "黑神话：悟空", "只狼", "JOJO"))) {
+            return Pair("逆境抗争 · 绝境孤勇", 96)
         }
-
-        // 14. 逆天改命 · 绝境孤勇 (94%) (电影: 《哪吒之魔童闹海》 ⇋ 《活着》/《JOJO》)
-        if (matchesPair(listOf("哪吒", "哪吒之魔童闹海"), listOf("活着", "JOJO", "灵能百分百", "强风吹拂"))) {
-            return Pair("逆天改命 · 绝境孤勇", 94)
+        if (matchesPair(listOf("教父", "白夜行", "罪与罚"), listOf("女神异闻录5", "无间道", "极乐迪斯科"))) {
+            return Pair("人性博弈 · 宿命抉择", 95)
         }
-
-        // 15. 家族史诗 · 权力法则 (95%) (电影: 《教父》 ⇋ 《白夜行》/《百年孤独》)
-        if (matchesPair(listOf("教父"), listOf("百年孤独", "白夜行", "四世同堂", "战争与和平"))) {
-            return Pair("家族史诗 · 权力法则", 95)
-        }
-
-        // 16. 故土乡愁 · 人间深情 (96%) (电影: 《给阿嘛的情书》 ⇋ 《边城》/《夏目友人帐》)
-        if (matchesPair(listOf("给阿嘛的情书", "阿嘛"), listOf("边城", "夏目友人帐", "在细雨中呼喊", "活着"))) {
-            return Pair("故土乡愁 · 人间深情", 96)
-        }
-
-        // 17. 武侠浪漫 · 赤子之心 (93%) (电影: 《功夫》 ⇋ 《灵能百分百》/《孤独摇滚》)
-        if (matchesPair(listOf("功夫"), listOf("灵能百分百", "孤独摇滚", "齐木楠雄"))) {
-            return Pair("武侠浪漫 · 赤子之心", 93)
-        }
-
-        // 18. 乌托邦寓言 · 打破偏见 (93%) (电影: 《疯狂动物城》 ⇋ 《动物农场》/《1984》)
-        if (matchesPair(listOf("疯狂动物城"), listOf("动物农场", "1984", "间谍过家家"))) {
-            return Pair("乌托邦寓言 · 打破偏见", 93)
-        }
-
-        // 19. 神话破灭 · 宿命史诗 (97%) (游戏: 《艾尔登法环》/《黑魂》/《只狼》 ⇋ 《百年孤独》/《剑风传奇》/《EVA》)
-        if (matchesPair(listOf("艾尔登法环", "只狼", "DARK SOULS", "黑魂"), listOf("百年孤独", "EVA", "来自深渊", "进击的巨人", "悲惨世界"))) {
-            return Pair("神话破灭 · 宿命史诗", 97)
-        }
-
-        // 20. 大圣归来 · 逆天改命 (98%) (游戏: 《黑神话：悟空》 ⇋ 《哪吒之魔童闹海》/《功夫》/《JOJO》)
-        if (matchesPair(listOf("黑神话：悟空", "黑神话", "悟空"), listOf("哪吒", "功夫", "JOJO", "活着", "灵能百分百"))) {
-            return Pair("大圣归来 · 逆天改命", 98)
-        }
-
-        // 21. 跨越生死 · 纯真之爱 (99%) (游戏: 《去月球》/《寻找天堂》 ⇋ 《小王子》/《紫罗兰永恒花园》/《给阿嘛的情书》)
-        if (matchesPair(listOf("去月球", "寻找天堂", "To the Moon", "Finding Paradise", "ATRI"), listOf("小王子", "紫罗兰永恒花园", "给阿嘛的情书", "夏目友人帐"))) {
-            return Pair("跨越生死 · 纯真之爱", 99)
-        }
-
-        // 22. 心之怪盗 · 扭曲欲望 (96%) (游戏: 《女神异闻录5皇家版》 ⇋ 《怪盗基德》/《白夜行》/《1984》/《盗梦空间》)
-        if (matchesPair(listOf("女神异闻录5", "P5", "女神异闻录"), listOf("怪盗基德", "白夜行", "1984", "盗梦空间", "死亡笔记"))) {
-            return Pair("心之怪盗 · 扭曲欲望", 96)
-        }
-
-        // 23. 极度深研 · 策略巅峰 (95%) (游戏: 《杀戮尖塔》 ⇋ 《三体》/《时间简史》)
-        if (matchesPair(listOf("杀戮尖塔", "Slay the Spire"), listOf("三体", "时间简史", "命运石之门", "博弈论"))) {
-            return Pair("极度深研 · 策略巅峰", 95)
-        }
-
-        // 24. 绝境攀登 · 战胜心魔 (96%) (游戏: 《空洞骑士》/《蔚蓝》 ⇋ 《老人与海》/《来自深渊》)
-        if (matchesPair(listOf("空洞骑士", "蔚蓝", "Hollow Knight", "Celeste"), listOf("老人与海", "来自深渊", "强风吹拂", "西西弗神话"))) {
-            return Pair("绝境攀登 · 战胜心魔", 96)
-        }
-
-        // 25. 时代悲悯 · 烟火人间 (96%) (游戏: 《烟火》/《黑森町绮谭》 ⇋ 《边城》/《在细雨中呼喊》/《夏目友人帐》)
-        if (matchesPair(listOf("烟火", "黑森町绮谭"), listOf("边城", "在细雨中呼喊", "夏目友人帐", "活着"))) {
-            return Pair("时代悲悯 · 烟火人间", 96)
-        }
-
-        // 26. 赛博悲歌 · 自由觉醒 (96%) (游戏: 《赛博朋克 2077》/《底特律：化身为人类》 ⇋ 《1984》/《EVA》)
-        if (matchesPair(listOf("赛博朋克 2077", "底特律：化身为人类", "Beholder"), listOf("1984", "EVA", "银翼杀手", "动物农场"))) {
-            return Pair("赛博悲歌 · 自由觉醒", 96)
-        }
-
         return null
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        return gestureDetector.onTouchEvent(event) || super.onTouchEvent(event)
+        val scaleHandled = scaleGestureDetector.onTouchEvent(event)
+        val gestureHandled = gestureDetector.onTouchEvent(event)
+        return scaleHandled || gestureHandled || super.onTouchEvent(event)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
 
+        // 1. 深邃星空背景 (深黑曜空 / 唯美暖宣纸)
         if (isNight) {
-            canvas.drawColor(Color.parseColor("#0F1310"))
+            canvas.drawColor(Color.parseColor("#080B11"))
         } else {
-            canvas.drawColor(Color.parseColor("#F4EFE6"))
+            canvas.drawColor(Color.parseColor("#F5F1E8"))
         }
 
         val cx = width / 2f + offsetX
         val cy = height / 2f + offsetY
 
-        // 1. 绘制背景散落微光星子
-        ambientParticles.forEach { p ->
-            val px = cx + p.x
-            val py = cy + p.y
-            if (px >= 0 && px <= width && py >= 0 && py <= height) {
-                val shimmer = 0.5f + 0.5f * sin(animPhase * 6.283f * 2 + p.phase)
-                particlePaint.alpha = ((p.baseAlpha * shimmer) * (if (isNight) 200 else 100)).toInt().coerceIn(10, 255)
-                particlePaint.color = if (isNight) Color.WHITE else Color.parseColor("#8C7F70")
-                canvas.drawCircle(px, py, p.size, particlePaint)
+        // 2. 绘制深空背景微光星屑 (微弱呼吸，营造星海景深)
+        ambientStars.forEach { p ->
+            val px = cx + p.x * scaleFactor
+            val py = cy + p.y * scaleFactor
+            if (px in -20f..(width + 20f) && py in -20f..(height + 20f)) {
+                val twinkle = 0.35f + 0.65f * sin(animPhase * 6.283f * 2.2f + p.phase)
+                particlePaint.color = if (isNight) Color.WHITE else Color.parseColor("#9E9282")
+                particlePaint.alpha = ((p.baseAlpha * twinkle) * (if (isNight) 160 else 70)).toInt().coerceIn(8, 255)
+                canvas.drawCircle(px, py, p.size * scaleFactor.coerceIn(0.6f, 1.4f), particlePaint)
             }
         }
 
-        // 2. 绘制认知星座连线 (普通连线 + 跨媒介极光流光连线)
+        // 3. 绘制星系四大星区星云光晕 (Nebula ambient glows)
+        drawNebulaGlows(canvas, cx, cy, isNight)
+
+        // 4. 绘制星座骨干连线
         edges.forEach { edge ->
             val aMatch = edge.nodeA.matches(activeFilter)
             val bMatch = edge.nodeB.matches(activeFilter)
-            val isBothMatch = aMatch && bMatch
+            if (!aMatch || !bMatch) return@forEach
 
-            val ax = cx + edge.nodeA.worldX
-            val ay = cy + edge.nodeA.worldY
-            val bx = cx + edge.nodeB.worldX
-            val by = cy + edge.nodeB.worldY
+            val ax = cx + edge.nodeA.worldX * scaleFactor
+            val ay = cy + edge.nodeA.worldY * scaleFactor
+            val bx = cx + edge.nodeB.worldX * scaleFactor
+            val by = cy + edge.nodeB.worldY * scaleFactor
+
+            // 视界粗剔除 (两条端点均在视口外太远则跳过)
+            val minX = minOf(ax, bx)
+            val maxX = maxOf(ax, bx)
+            val minY = minOf(ay, by)
+            val maxY = maxOf(ay, by)
+            if (maxX < -50f || minX > width + 50f || maxY < -50f || minY > height + 50f) return@forEach
+
+            val isEdgeConnectedToSelected = selectedStar != null && (edge.nodeA == selectedStar || edge.nodeB == selectedStar)
+            val isDimmed = selectedStar != null && !isEdgeConnectedToSelected
 
             if (edge.isCrossMedia) {
-                // 跨媒介极光流光连线
+                // 跨媒介极光流光弦
                 val shader = LinearGradient(ax, ay, bx, by, edge.nodeA.colorHex, edge.nodeB.colorHex, Shader.TileMode.CLAMP)
                 auroraLinePaint.shader = shader
-                auroraLinePaint.alpha = if (isBothMatch) (if (isNight) 230 else 180) else 40
+                auroraLinePaint.strokeWidth = dpToPx(if (isEdgeConnectedToSelected) 1.8f else 0.9f) * scaleFactor.coerceIn(0.5f, 1.8f)
+                auroraLinePaint.alpha = if (isEdgeConnectedToSelected) (if (isNight) 220 else 180) else (if (isDimmed) 18 else (if (isNight) 110 else 75))
                 canvas.drawLine(ax, ay, bx, by, auroraLinePaint)
 
-                // 绘制沿线脉冲能量粒子
-                if (isBothMatch) {
-                    val pulseRatio = (animPhase * 2f + (edge.similarity % 5) * 0.2f) % 1.0f
+                // 极光脉冲能量光斑 (沿连线流动)
+                if (!isDimmed || isEdgeConnectedToSelected) {
+                    val pulseRatio = (animPhase * 1.8f + (edge.similarity % 5) * 0.2f) % 1.0f
                     val px = ax + (bx - ax) * pulseRatio
                     val py = ay + (by - ay) * pulseRatio
                     pulseParticlePaint.color = Color.WHITE
-                    pulseParticlePaint.alpha = 240
-                    canvas.drawCircle(px, py, dpToPx(3.5f), pulseParticlePaint)
-
-                    // 绘制中间共鸣词胶囊徽标
-                    val midX = (ax + bx) / 2f
-                    val midY = (ay + by) / 2f
-                    val traitText = "✨ ${edge.resonanceTrait} ${edge.similarity}%"
-                    badgeTextPaint.textSize = dpToPx(9.5f)
-                    badgeTextPaint.color = if (isNight) Color.WHITE else Color.parseColor("#1C1917")
-
-                    val textW = badgeTextPaint.measureText(traitText)
-                    val rect = RectF(
-                        midX - textW / 2f - dpToPx(6f),
-                        midY - dpToPx(9f),
-                        midX + textW / 2f + dpToPx(6f),
-                        midY + dpToPx(9f),
-                    )
-
-                    badgeBgPaint.color = if (isNight) Color.parseColor("#D9231E19") else Color.parseColor("#E6FFFFFF")
-                    canvas.drawRoundRect(rect, dpToPx(6f), dpToPx(6f), badgeBgPaint)
-                    canvas.drawText(traitText, midX, midY + dpToPx(3.2f), badgeTextPaint)
+                    pulseParticlePaint.alpha = if (isEdgeConnectedToSelected) 255 else (if (isNight) 160 else 110)
+                    canvas.drawCircle(px, py, dpToPx(if (isEdgeConnectedToSelected) 2.8f else 1.8f) * scaleFactor.coerceIn(0.6f, 1.5f), pulseParticlePaint)
                 }
             } else {
-                // 普通同媒介连线
-                val baseAlpha = if (isBothMatch) {
-                    (edge.similarity.toFloat() / 100f * (if (isNight) 170 else 120)).toInt().coerceIn(40, 230)
-                } else {
-                    25
-                }
-
-                linePaint.color = if (isNight) Color.parseColor("#80A48A") else Color.parseColor("#A89E90")
-                linePaint.alpha = baseAlpha
-                linePaint.strokeWidth = dpToPx(if (isBothMatch) 1.4f else 0.8f)
+                // 星座骨架常态连线 (极其克制细腻的淡光)
+                linePaint.color = if (isNight) Color.parseColor("#506072") else Color.parseColor("#BDB2A3")
+                linePaint.strokeWidth = dpToPx(if (isEdgeConnectedToSelected) 1.2f else 0.6f) * scaleFactor.coerceIn(0.5f, 1.5f)
+                linePaint.alpha = if (isEdgeConnectedToSelected) (if (isNight) 180 else 130) else (if (isDimmed) 10 else (if (isNight) 50 else 35))
                 canvas.drawLine(ax, ay, bx, by, linePaint)
             }
         }
 
-        // 3. 绘制星辰节点 (Star Nodes)
+        // 5. 绘制星辰节点 (Star Nodes) - 纯净星空美学，绝不堆叠杂乱文字！
         stars.forEach { star ->
             val isMatch = star.matches(activeFilter)
-            val sx = cx + star.worldX
-            val sy = cy + star.worldY
-
             val isSel = star == selectedStar
-            val breathe = if (isMatch) (1f + 0.12f * sin(animPhase * 6.283f * 1.5f + star.worldX * 0.01f)) else 1.0f
-            val currentRadius = (if (isMatch) star.radius else star.radius * 0.75f) * breathe * (if (isSel) 1.25f else 1.0f)
+            val isNeighbor = selectedStar != null && edges.any {
+                (it.nodeA == selectedStar && it.nodeB == star) || (it.nodeB == selectedStar && it.nodeA == star)
+            }
+            val isDimmed = selectedStar != null && !isSel && !isNeighbor
 
-            if (isMatch) {
-                // 发光光晕 (Radial Glow)
-                val glowRadius = currentRadius * 2.6f
-                val glowColor = Color.argb(if (isNight) 110 else 70, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
+            val sx = cx + star.worldX * scaleFactor
+            val sy = cy + star.worldY * scaleFactor
+
+            // 视界严格裁剪 (不在屏幕范围的节点不绘制)
+            if (sx < -60f || sx > width + 60f || sy < -60f || sy > height + 60f) return@forEach
+
+            val breathe = if (isMatch) (1f + 0.08f * sin(animPhase * 6.283f * 2f + star.worldX * 0.02f)) else 1.0f
+            val baseR = if (isSel) dpToPx(9.0f) else if (isNeighbor) dpToPx(6.2f) else star.baseRadius
+            val curRadius = baseR * scaleFactor.coerceIn(0.5f, 1.8f) * breathe
+
+            // 发光光晕 (Radial Glow)
+            if (isMatch && (!isDimmed || isSel)) {
+                val glowRadius = curRadius * (if (isSel) 3.6f else if (isNeighbor) 2.4f else 2.0f)
+                val glowAlpha = if (isSel) 190 else if (isNeighbor) 120 else (if (isNight) 70 else 40)
+                val glowColor = Color.argb(
+                    glowAlpha,
+                    Color.red(star.colorHex),
+                    Color.green(star.colorHex),
+                    Color.blue(star.colorHex),
+                )
                 val transparentGlow = Color.argb(0, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
 
                 val glowShader = RadialGradient(sx, sy, glowRadius, glowColor, transparentGlow, Shader.TileMode.CLAMP)
@@ -602,36 +530,108 @@ class MindprintConstellationView @JvmOverloads constructor(
             }
 
             // 星辰核心 (Star Core)
-            starCorePaint.color = star.colorHex
-            starCorePaint.alpha = if (isMatch) 255 else 50
-            canvas.drawCircle(sx, sy, currentRadius, starCorePaint)
+            starCorePaint.color = if (isSel) Color.WHITE else star.colorHex
+            starCorePaint.alpha = if (isMatch) (if (isDimmed) 30 else 255) else 15
+            canvas.drawCircle(sx, sy, curRadius, starCorePaint)
 
-            // 高亮选中金环
+            // 选中时的发光星环 (Orbit Focus Ring)
             if (isSel) {
-                linePaint.shader = null
-                linePaint.color = Color.parseColor("#D4AF37")
-                linePaint.strokeWidth = dpToPx(2f)
-                linePaint.alpha = 255
-                canvas.drawCircle(sx, sy, currentRadius + dpToPx(4f), linePaint)
+                ringPaint.color = Color.parseColor("#FFD166")
+                ringPaint.strokeWidth = dpToPx(1.8f)
+                ringPaint.alpha = 240
+                val orbitRadius = curRadius + dpToPx(5.5f) * scaleFactor.coerceIn(0.6f, 1.5f)
+                canvas.drawCircle(sx, sy, orbitRadius, ringPaint)
             }
 
-            // 文字标牌
-            if (isMatch) {
-                textPaint.textSize = dpToPx(11f)
-                textPaint.color = if (isNight) Color.parseColor("#E8E2D9") else Color.parseColor("#2B2724")
-                textPaint.alpha = 230
-
-                val title = if (star.book.title.length > 7) star.book.title.take(6) + "…" else star.book.title
-                canvas.drawText("${star.book.mediaType.emoji}$title", sx, sy + currentRadius + dpToPx(13f), textPaint)
-
-                subTextPaint.textSize = dpToPx(9f)
-                subTextPaint.color = if (isNight) Color.parseColor("#9E988F") else Color.parseColor("#7A7265")
-                subTextPaint.alpha = 180
-                val sub = "${star.detectedRegion} · ${star.book.category ?: "名作"}"
-                canvas.drawText(sub, sx, sy + currentRadius + dpToPx(24f), subTextPaint)
+            // 6. 动态 LOD 智能标签渲染：
+            // 全景常态下绝不铺满文字！
+            // 只有当：① 被选中(isSel) ② 1度关联星辰(isNeighbor) ③ 关键主要主星且放大至0.9x以上 ④ 深度放大至1.4x以上 时才绘制精巧微标
+            val shouldShowLabel = isMatch && (isSel || isNeighbor || (star.isMajorStar && scaleFactor >= 0.9f) || scaleFactor >= 1.4f)
+            if (shouldShowLabel && !isDimmed) {
+                drawStarLabel(canvas, star, sx, sy, curRadius, isSel, isNeighbor, isNight)
             }
         }
     }
 
+    private fun drawNebulaGlows(canvas: Canvas, cx: Float, cy: Float, isNight: Boolean) {
+        val nebulaCenters = listOf(
+            Triple(-dpToPx(380f), -dpToPx(320f), Color.parseColor("#E07A5F")),
+            Triple(dpToPx(380f), -dpToPx(320f), Color.parseColor("#9B5DE5")),
+            Triple(-dpToPx(360f), dpToPx(360f), Color.parseColor("#F4A261")),
+            Triple(dpToPx(380f), dpToPx(340f), Color.parseColor("#00BBF9")),
+        )
+
+        nebulaCenters.forEach { (nx, ny, color) ->
+            val gx = cx + nx * scaleFactor
+            val gy = cy + ny * scaleFactor
+            val radius = dpToPx(280f) * scaleFactor
+            val glowAlpha = if (isNight) 22 else 12
+            val glowColor = Color.argb(glowAlpha, Color.red(color), Color.green(color), Color.blue(color))
+            val glowShader = RadialGradient(gx, gy, radius, glowColor, Color.TRANSPARENT, Shader.TileMode.CLAMP)
+            particlePaint.shader = glowShader
+            canvas.drawCircle(gx, gy, radius, particlePaint)
+        }
+        particlePaint.shader = null
+    }
+
+    /**
+     * 极简高质感微标绘制 (带有圆润阴影胶囊与清爽文本)
+     */
+    private fun drawStarLabel(
+        canvas: Canvas,
+        star: StarNode,
+        sx: Float,
+        sy: Float,
+        radius: Float,
+        isSelected: Boolean,
+        isNeighbor: Boolean,
+        isNight: Boolean,
+    ) {
+        val maxLen = if (isSelected) 14 else 7
+        val rawTitle = star.book.title
+        val title = if (rawTitle.length > maxLen) rawTitle.take(maxLen - 1) + "…" else rawTitle
+        val displayStr = "${star.book.mediaType.emoji} $title"
+
+        labelTextPaint.textSize = dpToPx(if (isSelected) 11.5f else if (isNeighbor) 9.5f else 8.5f)
+        labelTextPaint.color = if (isNight) {
+            if (isSelected) Color.parseColor("#FFFFFF") else Color.parseColor("#E6E1D8")
+        } else {
+            if (isSelected) Color.parseColor("#141312") else Color.parseColor("#3C342C")
+        }
+
+        val textWidth = labelTextPaint.measureText(displayStr)
+        val textHeight = labelTextPaint.textSize
+        val padH = dpToPx(if (isSelected) 6f else 4.5f)
+        val padV = dpToPx(if (isSelected) 3f else 2f)
+
+        val rectY = sy + radius + dpToPx(3.5f)
+        val rect = RectF(
+            sx - textWidth / 2f - padH,
+            rectY,
+            sx + textWidth / 2f + padH,
+            rectY + textHeight + padV * 2,
+        )
+
+        // 标签胶囊背景
+        labelBgPaint.color = if (isSelected) {
+            if (isNight) Color.parseColor("#E6262420") else Color.parseColor("#F5FFFFFF")
+        } else {
+            if (isNight) Color.parseColor("#9912151D") else Color.parseColor("#B3FFFFFF")
+        }
+        canvas.drawRoundRect(rect, dpToPx(4f), dpToPx(4f), labelBgPaint)
+
+        // 选中时给胶囊加一圈金色细边框
+        if (isSelected) {
+            ringPaint.color = Color.parseColor("#FFD166")
+            ringPaint.strokeWidth = dpToPx(1f)
+            ringPaint.alpha = 200
+            canvas.drawRoundRect(rect, dpToPx(4f), dpToPx(4f), ringPaint)
+        }
+
+        // 绘制文字 (纵向居中)
+        canvas.drawText(displayStr, sx, rectY + textHeight + padV * 0.4f, labelTextPaint)
+    }
+
     private fun dpToPx(dp: Float): Float = dp * resources.displayMetrics.density
 }
+
