@@ -88,12 +88,53 @@ class AddNoteActivity : AppCompatActivity() {
         archiveButton.visibility = View.VISIBLE
     }
 
+    private fun updateMediaTypeLabels() {
+        val book = databaseHelper.getBook(bookId)
+        val mediaType = book?.mediaType ?: com.example.readtrace.model.MediaType.BOOK
+        val labelPage = findViewById<TextView>(R.id.labelNotePage)
+        val labelChapter = findViewById<TextView>(R.id.labelNoteChapter)
+
+        when (mediaType) {
+            com.example.readtrace.model.MediaType.BOOK -> {
+                labelPage.text = "页码"
+                pageInput.hint = "例如：P.120"
+                labelChapter.text = "所属章节"
+                chapterInput.hint = "例如：第三章 · 驯服狐狸"
+            }
+            com.example.readtrace.model.MediaType.ANIME -> {
+                labelPage.text = "集数 / 时间点"
+                pageInput.hint = "例如：第 12 话 / 14:20"
+                labelChapter.text = "篇章 / 剧集"
+                chapterInput.hint = "例如：第一季 · 决战前夜"
+            }
+            com.example.readtrace.model.MediaType.MOVIE -> {
+                labelPage.text = "时间点"
+                pageInput.hint = "例如：01:24:30"
+                labelChapter.text = "场景 / 幕"
+                chapterInput.hint = "例如：第二幕 · 银幕高潮"
+            }
+            com.example.readtrace.model.MediaType.GAME -> {
+                labelPage.text = "关卡 / 进度"
+                pageInput.hint = "例如：第 5 关 / Boss 战前"
+                labelChapter.text = "任务 / 篇章"
+                chapterInput.hint = "例如：主线任务 · 黄金树之影"
+            }
+            com.example.readtrace.model.MediaType.PODCAST -> {
+                labelPage.text = "播放时间戳"
+                pageInput.hint = "例如：34:20"
+                labelChapter.text = "话题 / 环节"
+                chapterInput.hint = "例如：嘉宾观点 · 深度对话"
+            }
+        }
+    }
+
     private fun loadNoteForEditing() {
         if (editingNoteId == NO_NOTE_ID) {
             if (bookId == NO_BOOK_ID) {
                 Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
                 finish()
             }
+            updateMediaTypeLabels()
             return
         }
         val note = databaseHelper.getNote(editingNoteId)
@@ -104,6 +145,7 @@ class AddNoteActivity : AppCompatActivity() {
         }
 
         bookId = note.bookId
+        updateMediaTypeLabels()
         noteTypeInput.setSelection(NoteType.values().indexOf(note.noteType))
         contentInput.setText(note.content)
         pageInput.setText(note.page.orEmpty())

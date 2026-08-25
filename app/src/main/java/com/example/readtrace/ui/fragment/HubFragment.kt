@@ -25,6 +25,7 @@ import com.example.readtrace.MediaHubActivity
 import com.example.readtrace.MovieTicketPosterActivity
 import com.example.readtrace.R
 import com.example.readtrace.ReadingTimerActivity
+import com.example.readtrace.ResonancePosterActivity
 import com.example.readtrace.TrashActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
@@ -274,9 +275,15 @@ class HubFragment : Fragment() {
         heroBtnRead.setOnClickListener {
             val book = currentHeroBook
             if (book != null) {
-                startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+                when (book.mediaType) {
+                    MediaType.BOOK -> startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+                    MediaType.ANIME -> startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
+                    MediaType.MOVIE -> startActivity(MovieTicketPosterActivity.createIntent(requireContext(), book.id))
+                    MediaType.GAME -> startActivity(GameCartridgePosterActivity.createIntent(requireContext(), book.id))
+                    MediaType.PODCAST -> startActivity(Intent(requireContext(), ResonancePosterActivity::class.java))
+                }
             } else {
-                Toast.makeText(requireContext(), "请先添加或导入藏书", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "请先添加或导入藏品", Toast.LENGTH_SHORT).show()
             }
         }
         val openHeroDetail = {
@@ -447,6 +454,13 @@ class HubFragment : Fragment() {
             heroBadgeMedia.text = "${featuredBook.mediaType.emoji} ${featuredBook.category ?: featuredBook.mediaType.displayName}"
             heroBookTitle.text = "《${featuredBook.title}》"
             heroBookAuthor.text = featuredBook.author?.ifBlank { "未知作者" } ?: "未知作者"
+            heroBtnRead.text = when (featuredBook.mediaType) {
+                MediaType.BOOK -> "📖 3D 沉浸翻阅"
+                MediaType.ANIME -> "🌸 追番入境签证"
+                MediaType.MOVIE -> "🎟️ 透光电影票根"
+                MediaType.GAME -> "🕹️ 全息白金卡带"
+                MediaType.PODCAST -> "🎴 共鸣双生微卡"
+            }
 
             val rating = featuredBook.rating
             heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating)} · 精神典藏" else "✦ 重点策展推荐"

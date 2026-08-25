@@ -72,9 +72,6 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.detailBackButton).setOnClickListener { supportFinishAfterTransition() }
-        findViewById<View>(R.id.detailRead3DButton).setOnClickListener {
-            startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
-        }
         findViewById<View>(R.id.detailImportTxtButton).setOnClickListener {
             importTxtLauncher.launch(arrayOf("text/plain", "*/*"))
         }
@@ -103,38 +100,6 @@ class BookDetailActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.detailAddLocationBtn).setOnClickListener {
             showAddLocationDialog()
-        }
-        findViewById<View>(R.id.detailQuotePosterButton).setOnClickListener {
-            currentBook?.let { book ->
-                when (book.mediaType) {
-                    com.example.readtrace.model.MediaType.MOVIE -> {
-                        startActivity(MovieTicketPosterActivity.createIntent(this, book.id))
-                    }
-                    com.example.readtrace.model.MediaType.GAME -> {
-                        startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
-                    }
-                    else -> {
-                        val notes = databaseHelper.getNotes(book.id)
-                        val quote = book.shortComment?.takeIf { it.isNotBlank() }
-                            ?: notes.firstOrNull()?.content
-                            ?: "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
-                        val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
-                            listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
-                        } else "一句话感悟"
-                        startActivity(
-                            QuotePosterActivity.createIntent(
-                                this,
-                                book.id,
-                                book.title,
-                                book.author,
-                                book.coverUrl,
-                                quote,
-                                source,
-                            ),
-                        )
-                    }
-                }
-            }
         }
 
         // 📑 轻量组件化多板块快捷导航条
@@ -1099,6 +1064,39 @@ class BookDetailActivity : AppCompatActivity() {
         }
     }
 
+    private fun openQuotePoster(book: Book) {
+        val notes = databaseHelper.getNotes(book.id)
+        val quote = book.shortComment?.takeIf { it.isNotBlank() }
+            ?: notes.firstOrNull()?.content
+            ?: when (book.mediaType) {
+                MediaType.MOVIE -> "光影定格瞬间，回声穿透岁月。在银幕的光斑里，看见未曾经历的人生。"
+                MediaType.ANIME -> "若你跨越次元与时光，我们终将在热血与泪水的彼岸重逢。"
+                MediaType.GAME -> "每个按键的跃动，都是灵魂在异世界的无畏出征。"
+                MediaType.PODCAST -> "声音划过耳畔，思维在无垠空间激荡起共鸣的涟漪。"
+                else -> "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
+            }
+        val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
+            listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
+        } else when (book.mediaType) {
+            MediaType.MOVIE -> "🎬 光影名台词"
+            MediaType.ANIME -> "🌸 高光台词"
+            MediaType.GAME -> "🎮 通关寄语"
+            MediaType.PODCAST -> "🎙️ 声音印记"
+            else -> "📖 一句话感悟"
+        }
+        startActivity(
+            QuotePosterActivity.createIntent(
+                this,
+                book.id,
+                book.title,
+                book.author,
+                book.coverUrl,
+                quote,
+                source,
+            ),
+        )
+    }
+
     private fun renderBook(book: Book) {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
@@ -1117,13 +1115,147 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
-        findViewById<TextView>(R.id.detailQuotePosterButton).text = when (book.mediaType) {
-            com.example.readtrace.model.MediaType.MOVIE -> "🎟️ 电影票根"
-            com.example.readtrace.model.MediaType.GAME -> "🕹️ 白金卡带"
-            com.example.readtrace.model.MediaType.ANIME -> "🌸 追番海报"
-            else -> "🎨 金句海报"
+        // 🏷️ 顶栏与核心分类严格区分
+        val headerTitle = findViewById<TextView>(R.id.detailHeaderTitle)
+        val headerSubtitle = findViewById<TextView>(R.id.detailHeaderSubtitle)
+        val read3DBtn = findViewById<TextView>(R.id.detailRead3DButton)
+        val importTxtBtn = findViewById<TextView>(R.id.detailImportTxtButton)
+        val quotePosterBtn = findViewById<TextView>(R.id.detailQuotePosterButton)
+        val sectionIdentityTitle = findViewById<TextView>(R.id.detailSectionIdentityTitle)
+        val labelCategory = findViewById<TextView>(R.id.detailLabelCategory)
+        val sectionReadingTitle = findViewById<TextView>(R.id.detailSectionReadingTitle)
+        val sectionThoughtsTitle = findViewById<TextView>(R.id.detailSectionThoughtsTitle)
+        val shortCommentLabel = findViewById<TextView>(R.id.detailShortCommentLabel)
+        val reviewLabel = findViewById<TextView>(R.id.detailReviewLabel)
+        val sectionNotesTitle = findViewById<TextView>(R.id.detailSectionNotesTitle)
+        val sectionTimerTitle = findViewById<TextView>(R.id.detailSectionTimerTitle)
+        val collectionTitle = findViewById<TextView>(R.id.detailCollectionTitle)
+        val sectionCharTitle = findViewById<TextView>(R.id.detailSectionCharTitle)
+        val navTabNotes = findViewById<TextView>(R.id.navTabNotes)
+
+        when (book.mediaType) {
+            MediaType.BOOK -> {
+                headerTitle.text = "书籍详情"
+                headerSubtitle.text = "慢慢回看这本书留下的痕迹。"
+                read3DBtn.text = "📖 3D 沉浸翻阅"
+                read3DBtn.visibility = View.VISIBLE
+                read3DBtn.setOnClickListener {
+                    startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, book.id))
+                }
+                importTxtBtn.visibility = View.VISIBLE
+                quotePosterBtn.text = "🎨 生成金句印记海报"
+                quotePosterBtn.setOnClickListener { openQuotePoster(book) }
+                sectionIdentityTitle.text = "关于这本书"
+                labelCategory.text = "书籍分类"
+                sectionReadingTitle.text = "阅读印记"
+                sectionThoughtsTitle.text = "个人感悟"
+                shortCommentLabel.text = "一句话感悟"
+                reviewLabel.text = "长篇书评"
+                sectionNotesTitle.text = "摘录与笔记"
+                sectionTimerTitle.text = "⏱️ 阅读时光与打卡"
+                collectionTitle.text = "💰 实体馆藏与藏书印记"
+                sectionCharTitle.text = "👥 人物角色谱"
+                navTabNotes.text = "💬 痕迹与摘录"
+            }
+            MediaType.ANIME -> {
+                headerTitle.text = "番剧详情"
+                headerSubtitle.text = "重温这部番剧带来的感动与热血。"
+                read3DBtn.text = "🌸 追番编年画卷"
+                read3DBtn.visibility = View.VISIBLE
+                read3DBtn.setOnClickListener {
+                    startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
+                }
+                importTxtBtn.visibility = View.GONE
+                quotePosterBtn.text = "🛂 追番入境签证"
+                quotePosterBtn.setOnClickListener {
+                    startActivity(CulturalPassportActivity.createIntent(this, MediaType.ANIME))
+                }
+                sectionIdentityTitle.text = "关于这部番剧"
+                labelCategory.text = "番剧题材"
+                sectionReadingTitle.text = "追番印记"
+                sectionThoughtsTitle.text = "追番心境"
+                shortCommentLabel.text = "经典台词 / 金句"
+                reviewLabel.text = "完结长评"
+                sectionNotesTitle.text = "高光台词与名场面"
+                sectionTimerTitle.text = "⏱️ 追番沉浸时光与打卡"
+                collectionTitle.text = "💰 周边特典与实体盘片"
+                sectionCharTitle.text = "🌸 登场角色与声优谱"
+                navTabNotes.text = "💬 经典台词"
+            }
+            MediaType.MOVIE -> {
+                headerTitle.text = "影视详情"
+                headerSubtitle.text = "回味这部光影作品留下的回响。"
+                read3DBtn.text = "🎟️ 复古透光电影票根"
+                read3DBtn.visibility = View.VISIBLE
+                read3DBtn.setOnClickListener {
+                    startActivity(MovieTicketPosterActivity.createIntent(this, book.id))
+                }
+                importTxtBtn.visibility = View.GONE
+                quotePosterBtn.text = "🎨 生成光影名台词海报"
+                quotePosterBtn.setOnClickListener { openQuotePoster(book) }
+                sectionIdentityTitle.text = "关于这部影视"
+                labelCategory.text = "影视类型"
+                sectionReadingTitle.text = "观影印记"
+                sectionThoughtsTitle.text = "观影心境"
+                shortCommentLabel.text = "经典台词"
+                reviewLabel.text = "深度影评"
+                sectionNotesTitle.text = "光影名句与长评"
+                sectionTimerTitle.text = "⏱️ 观影沉浸时光与打卡"
+                collectionTitle.text = "💰 实体票根与蓝光收藏"
+                sectionCharTitle.text = "🎬 演职人员与角色谱"
+                navTabNotes.text = "💬 光影名句"
+            }
+            MediaType.GAME -> {
+                headerTitle.text = "游戏详情"
+                headerSubtitle.text = "重温这段通关冒险与高光时刻。"
+                read3DBtn.text = "🕹️ 白金全息实体卡带"
+                read3DBtn.visibility = View.VISIBLE
+                read3DBtn.setOnClickListener {
+                    startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
+                }
+                importTxtBtn.visibility = View.GONE
+                quotePosterBtn.text = "🛂 游戏白金通关签证"
+                quotePosterBtn.setOnClickListener {
+                    startActivity(CulturalPassportActivity.createIntent(this, MediaType.GAME))
+                }
+                sectionIdentityTitle.text = "关于这款游戏"
+                labelCategory.text = "游戏类型"
+                sectionReadingTitle.text = "游玩印记"
+                sectionThoughtsTitle.text = "通关心得"
+                shortCommentLabel.text = "通关寄语 / 金句"
+                reviewLabel.text = "深度评测"
+                sectionNotesTitle.text = "高光战报与心得"
+                sectionTimerTitle.text = "⏱️ 游玩专注时光与打卡"
+                collectionTitle.text = "💰 实体卡带与典藏周边"
+                sectionCharTitle.text = "🎮 主要角色与NPC谱"
+                navTabNotes.text = "💬 战报心得"
+            }
+            MediaType.PODCAST -> {
+                headerTitle.text = "播客详情"
+                headerSubtitle.text = "倾听思维碰撞与声音印记。"
+                read3DBtn.text = "🎴 跨媒介双生印记微卡"
+                read3DBtn.visibility = View.VISIBLE
+                read3DBtn.setOnClickListener {
+                    startActivity(Intent(this, ResonancePosterActivity::class.java))
+                }
+                importTxtBtn.visibility = View.GONE
+                quotePosterBtn.text = "🎨 播客灵感金句海报"
+                quotePosterBtn.setOnClickListener { openQuotePoster(book) }
+                sectionIdentityTitle.text = "关于这档播客"
+                labelCategory.text = "播客类别"
+                sectionReadingTitle.text = "收听印记"
+                sectionThoughtsTitle.text = "听后感悟"
+                shortCommentLabel.text = "灵感金句"
+                reviewLabel.text = "深度听感"
+                sectionNotesTitle.text = "灵感火花与速记"
+                sectionTimerTitle.text = "⏱️ 聆听专注时光与打卡"
+                collectionTitle.text = "💰 实体唱片与录音带"
+                sectionCharTitle.text = "🎙️ 主播与嘉宾谱"
+                navTabNotes.text = "💬 灵感速记"
+            }
         }
+
+        findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
         findViewById<TextView>(R.id.detailBookTitle).text = book.title
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)

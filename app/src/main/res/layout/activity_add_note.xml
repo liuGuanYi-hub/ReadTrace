@@ -117,6 +117,7 @@
                     android:textSize="15sp" />
 
                 <TextView
+                    android:id="@+id/labelNotePage"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="16dp"
                     android:text="@string/field_note_page" />
@@ -129,6 +130,7 @@
                     android:maxLines="1" />
 
                 <TextView
+                    android:id="@+id/labelNoteChapter"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="16dp"
                     android:text="@string/field_note_chapter" />

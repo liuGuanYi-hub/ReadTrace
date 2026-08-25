@@ -97,7 +97,33 @@ class ReadingTimerActivity : AppCompatActivity() {
         ambienceForestBtn = findViewById(R.id.ambienceForest)
         ambienceOceanBtn = findViewById(R.id.ambienceOcean)
 
-        titleView.text = if (bookTitle.isNotBlank()) "《$bookTitle》· 专注阅读时光" else "专注阅读时光"
+        val book = databaseHelper.getBook(bookId)
+        val mediaType = book?.mediaType ?: com.example.readtrace.model.MediaType.BOOK
+        titleView.text = if (bookTitle.isNotBlank()) {
+            when (mediaType) {
+                com.example.readtrace.model.MediaType.BOOK -> "《$bookTitle》· 专注阅读时光"
+                com.example.readtrace.model.MediaType.ANIME -> "《$bookTitle》· 追番沉浸时光"
+                com.example.readtrace.model.MediaType.MOVIE -> "《$bookTitle》· 观影沉浸时光"
+                com.example.readtrace.model.MediaType.GAME -> "《$bookTitle》· 游戏专注时光"
+                com.example.readtrace.model.MediaType.PODCAST -> "《$bookTitle》· 播客聆听时光"
+            }
+        } else {
+            "专注沉浸时光"
+        }
+        pagesInput.hint = when (mediaType) {
+            com.example.readtrace.model.MediaType.BOOK -> "本次阅读页数（例如：25）"
+            com.example.readtrace.model.MediaType.ANIME -> "本次观看话数（例如：2）"
+            com.example.readtrace.model.MediaType.MOVIE -> "本次观看时长（分钟）"
+            com.example.readtrace.model.MediaType.GAME -> "本次通关关卡/进度"
+            com.example.readtrace.model.MediaType.PODCAST -> "本次收听集数/时长"
+        }
+        thoughtInput.hint = when (mediaType) {
+            com.example.readtrace.model.MediaType.BOOK -> "随手记下这刻的思考或金句..."
+            com.example.readtrace.model.MediaType.ANIME -> "随手记下本集的名场面或心境..."
+            com.example.readtrace.model.MediaType.MOVIE -> "随手记下本片的触动时刻..."
+            com.example.readtrace.model.MediaType.GAME -> "随手记下本段通关心得或战报..."
+            com.example.readtrace.model.MediaType.PODCAST -> "随手记下本期灵感与观点..."
+        }
 
         findViewById<View>(R.id.timerBackBtn).setOnClickListener {
             if (isRunning) {

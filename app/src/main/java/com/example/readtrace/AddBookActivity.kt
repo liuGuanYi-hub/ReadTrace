@@ -32,6 +32,7 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
     private lateinit var formTitle: TextView
     private lateinit var formSubtitle: TextView
+    private lateinit var titleLabel: TextView
     private lateinit var titleInput: EditText
     private lateinit var authorLabel: TextView
     private lateinit var authorInput: EditText
@@ -114,6 +115,7 @@ class AddBookActivity : AppCompatActivity() {
     private fun bindViews() {
         formTitle = findViewById(R.id.formTitle)
         formSubtitle = findViewById(R.id.formSubtitle)
+        titleLabel = findViewById(R.id.titleLabel)
         titleInput = findViewById(R.id.titleInput)
         authorLabel = findViewById(R.id.authorLabel)
         authorInput = findViewById(R.id.authorInput)
@@ -187,12 +189,55 @@ class AddBookActivity : AppCompatActivity() {
     private fun updateCreatorFields() {
         authorLabel.text = selectedMediaType.creatorLabel
         authorInput.hint = selectedMediaType.creatorHint
+        titleLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "书名 *"
+            MediaType.ANIME -> "番剧名称 *"
+            MediaType.MOVIE -> "影视名称 *"
+            MediaType.GAME -> "游戏名称 *"
+            MediaType.PODCAST -> "播客名称 *"
+        }
+        titleInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "例如：百年孤独、小王子"
+            MediaType.ANIME -> "例如：新世纪福音战士、葬送的芙莉莲"
+            MediaType.MOVIE -> "例如：星际穿越、千与千寻"
+            MediaType.GAME -> "例如：艾尔登法环、黑神话：悟空"
+            MediaType.PODCAST -> "例如：忽左忽右、声东击西"
+        }
+        configureFormMode()
     }
 
     private fun configureFormMode() {
-        if (editingBookId == NO_BOOK_ID) return
-        formTitle.setText(R.string.edit_book_title)
-        formSubtitle.setText(R.string.edit_book_subtitle)
+        if (editingBookId != NO_BOOK_ID) {
+            formTitle.text = when (selectedMediaType) {
+                MediaType.BOOK -> "编辑书籍"
+                MediaType.ANIME -> "编辑番剧"
+                MediaType.MOVIE -> "编辑影视"
+                MediaType.GAME -> "编辑游戏"
+                MediaType.PODCAST -> "编辑播客"
+            }
+            formSubtitle.text = when (selectedMediaType) {
+                MediaType.BOOK -> "让这段阅读记录更接近现在的感受。"
+                MediaType.ANIME -> "让这段追番记录更接近现在的感受。"
+                MediaType.MOVIE -> "让这段观影记录更接近现在的感受。"
+                MediaType.GAME -> "让这段游玩记录更接近现在的感受。"
+                MediaType.PODCAST -> "让这段收听记录更接近现在的感受。"
+            }
+        } else {
+            formTitle.text = when (selectedMediaType) {
+                MediaType.BOOK -> "新增书籍"
+                MediaType.ANIME -> "新增番剧"
+                MediaType.MOVIE -> "新增影视"
+                MediaType.GAME -> "新增游戏"
+                MediaType.PODCAST -> "新增播客"
+            }
+            formSubtitle.text = when (selectedMediaType) {
+                MediaType.BOOK -> "录入一本新书，开启一段心智旅程。"
+                MediaType.ANIME -> "录入一部番剧，记录精彩名场面与声优。"
+                MediaType.MOVIE -> "录入一部光影作品，定格感动瞬间。"
+                MediaType.GAME -> "录入一款游戏，开启通关冒险之旅。"
+                MediaType.PODCAST -> "录入一档播客，记录声音火花与灵感。"
+            }
+        }
     }
 
     private fun loadBookForEditing() {

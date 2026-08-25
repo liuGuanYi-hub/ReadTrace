@@ -252,6 +252,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/titleLabel"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="20dp"
                     android:text="@string/field_title" />
