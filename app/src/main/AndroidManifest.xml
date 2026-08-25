@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Readtrace">
         <activity
+            android:name=".MediaHubActivity"
+            android:exported="false" />
+        <activity
             android:name=".AnimeTimelineScrollActivity"
             android:exported="false" />
         <activity

@@ -6,10 +6,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.util.LruCache
 import android.view.View
 import android.widget.ImageView
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -23,16 +22,27 @@ import kotlin.math.min
 object CoverImageHelper {
 
     private const val COVERS_DIR = "covers"
-    private const val TARGET_MAX_WIDTH = 1080
-    private const val TARGET_MAX_HEIGHT = 1620
-    private const val JPEG_QUALITY = 90
+    private const val TARGET_MAX_WIDTH = 720
+    private const val TARGET_MAX_HEIGHT = 1080
+    private const val THUMB_WIDTH = 300
+    private const val THUMB_HEIGHT = 450
+    private const val JPEG_QUALITY = 85
 
-    private val imageExecutor = Executors.newFixedThreadPool(4)
+    // 分配应用最大可用内存的 1/8 作为 Bitmap LRU 缓存
+    private val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
+    private val cacheSize = (maxMemory / 8).coerceIn(8 * 1024, 32 * 1024)
+
+    private val memoryCache = object : LruCache<String, Bitmap>(cacheSize) {
+        override fun sizeOf(key: String, bitmap: Bitmap): Int {
+            return bitmap.byteCount / 1024
+        }
+    }
+
+    private val imageExecutor = Executors.newFixedThreadPool(3)
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
      * 将用户选择的图片裁剪为 2:3 比例并保存到 App 私有存储目录
-     * @return 保存后的本地文件绝对路径，失败返回 null
      */
     fun cropAndSaveCover(context: Context, sourceUri: Uri): String? {
         return runCatching {
@@ -95,11 +105,9 @@ object CoverImageHelper {
         val targetHeight: Int
 
         if (width * ratioH > height * ratioW) {
-            // 原图比 2:3 更宽，以高度为准裁剪宽度
             targetHeight = height
             targetWidth = (height * ratioW) / ratioH
         } else {
-            // 原图比 2:3 更高，以宽度为准裁剪高度
             targetWidth = width
             targetHeight = (width * ratioH) / ratioW
         }
@@ -123,6 +131,26 @@ object CoverImageHelper {
     }
 
     /**
+     * 安全解码本地文件为下采样缩略图，杜绝 OOM
+     */
+    fun decodeSampledBitmapFromFile(path: String, reqWidth: Int = THUMB_WIDTH, reqHeight: Int = THUMB_HEIGHT): Bitmap? {
+        return runCatching {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(path, options)
+            if (options.outWidth <= 0 || options.outHeight <= 0) return null
+
+            options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+            options.inJustDecodeBounds = false
+            options.inPreferredConfig = Bitmap.Config.RGB_565 // 节省 50% 内存
+
+            BitmapFactory.decodeFile(path, options)
+        }.getOrElse {
+            memoryCache.evictAll()
+            null
+        }
+    }
+
+    /**
      * 安全删除旧封面文件
      */
     fun deleteCoverFile(path: String?) {
@@ -136,7 +164,7 @@ object CoverImageHelper {
     }
 
     /**
-     * 加载封面到 ImageView，支持本地文件路径与 http/https 网络图片，具备自动异步下载与磁盘缓存
+     * 加载封面到 ImageView，支持内存 LRU 缓存、下采样防 OOM、异步下载与自动磁盘缓存
      */
     fun loadCover(imageView: ImageView, path: String?, placeholderView: View? = null) {
         if (path.isNullOrBlank()) {
@@ -147,44 +175,61 @@ object CoverImageHelper {
 
         val trimmed = path.trim()
 
-        // 1. 如果是网络 URL (http/https)
+        // 1. 优先从内存 LRU 缓存命中
+        val cached = memoryCache.get(trimmed)
+        if (cached != null && !cached.isRecycled) {
+            imageView.setImageBitmap(cached)
+            imageView.visibility = View.VISIBLE
+            placeholderView?.visibility = View.GONE
+            return
+        }
+
+        imageView.tag = trimmed
+
+        // 2. 如果是网络 URL (http/https)
         if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
-            val context = imageView.context
+            val context = imageView.context.applicationContext
             val cacheKey = md5(trimmed)
             val cacheDir = File(context.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
             val cacheFile = File(cacheDir, "net_$cacheKey.jpg")
 
             if (cacheFile.exists() && cacheFile.length() > 0) {
-                // 已有缓存
-                val bitmap = BitmapFactory.decodeFile(cacheFile.absolutePath)
-                if (bitmap != null) {
-                    imageView.setImageBitmap(bitmap)
-                    imageView.visibility = View.VISIBLE
-                    placeholderView?.visibility = View.GONE
-                    return
+                imageExecutor.execute {
+                    val bitmap = decodeSampledBitmapFromFile(cacheFile.absolutePath)
+                    if (bitmap != null) {
+                        memoryCache.put(trimmed, bitmap)
+                        mainHandler.post {
+                            if (imageView.tag == trimmed) {
+                                imageView.setImageBitmap(bitmap)
+                                imageView.visibility = View.VISIBLE
+                                placeholderView?.visibility = View.GONE
+                            }
+                        }
+                    }
                 }
+                return
             }
 
-            // 无缓存，先显示占位图，异步下载
+            // 无磁盘缓存，异步下载
             imageView.visibility = View.GONE
             placeholderView?.visibility = View.VISIBLE
-            imageView.tag = trimmed
 
             imageExecutor.execute {
                 runCatching {
                     val url = URL(trimmed)
                     val connection = (url.openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 8000
-                        readTimeout = 8000
+                        connectTimeout = 6000
+                        readTimeout = 6000
                         instanceFollowRedirects = true
-                        setRequestProperty("User-Agent", "ReadTrace/4.4 (Android; AnimePosters)")
+                        setRequestProperty("User-Agent", "ReadTrace/5.3 (Android)")
                     }
                     if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                         val bytes = connection.inputStream.use { it.readBytes() }
                         val savedPath = cropAndSaveCoverFromBytes(context, bytes, "net_$cacheKey.jpg")
                         if (savedPath != null) {
-                            val downloadedBitmap = BitmapFactory.decodeFile(savedPath)
+                            val downloadedBitmap = decodeSampledBitmapFromFile(savedPath)
                             if (downloadedBitmap != null) {
+                                memoryCache.put(trimmed, downloadedBitmap)
                                 mainHandler.post {
                                     if (imageView.tag == trimmed) {
                                         imageView.setImageBitmap(downloadedBitmap)
@@ -195,12 +240,14 @@ object CoverImageHelper {
                             }
                         }
                     }
+                }.onFailure {
+                    // 网络失败静默忽略
                 }
             }
             return
         }
 
-        // 2. 本地文件路径
+        // 3. 本地文件路径
         val file = File(trimmed)
         if (!file.exists() || !file.isFile) {
             imageView.visibility = View.GONE
@@ -208,19 +255,25 @@ object CoverImageHelper {
             return
         }
 
-        runCatching {
-            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+        imageExecutor.execute {
+            val bitmap = decodeSampledBitmapFromFile(file.absolutePath)
             if (bitmap != null) {
-                imageView.setImageBitmap(bitmap)
-                imageView.visibility = View.VISIBLE
-                placeholderView?.visibility = View.GONE
+                memoryCache.put(trimmed, bitmap)
+                mainHandler.post {
+                    if (imageView.tag == trimmed) {
+                        imageView.setImageBitmap(bitmap)
+                        imageView.visibility = View.VISIBLE
+                        placeholderView?.visibility = View.GONE
+                    }
+                }
             } else {
-                imageView.visibility = View.GONE
-                placeholderView?.visibility = View.VISIBLE
+                mainHandler.post {
+                    if (imageView.tag == trimmed) {
+                        imageView.visibility = View.GONE
+                        placeholderView?.visibility = View.VISIBLE
+                    }
+                }
             }
-        }.onFailure {
-            imageView.visibility = View.GONE
-            placeholderView?.visibility = View.VISIBLE
         }
     }
 

@@ -16,9 +16,9 @@
         android:fillViewport="true"
         android:overScrollMode="never"
         android:paddingStart="20dp"
-        android:paddingTop="24dp"
+        android:paddingTop="20dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="28dp"
+        android:paddingBottom="36dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,13 +30,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- 顶部 Header 面板 -->
             <LinearLayout
                 android:id="@+id/headerPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_glass_panel"
                 android:elevation="6dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="18dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -80,6 +82,7 @@
                     android:textColor="@color/readtrace_muted"
                     android:textSize="13sp" />
 
+                <!-- 快速功能操作条 -->
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -163,29 +166,48 @@
                 </HorizontalScrollView>
             </LinearLayout>
 
+            <!-- 总览统计胶囊 -->
             <LinearLayout
                 android:id="@+id/insightPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="6dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans"
-                    android:text="@string/home_insight_title"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="✨ 文化印记总览"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/statAverageValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="均分 ★ 4.9" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <LinearLayout
@@ -200,16 +222,15 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans"
                             android:textColor="@color/readtrace_ink"
-                            android:textSize="24sp"
+                            android:textSize="22sp"
                             android:textStyle="bold"
-                            tools:text="12" />
+                            tools:text="202" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:fontFamily="sans"
-                            android:text="@string/home_stat_total"
+                            android:layout_marginTop="2dp"
+                            android:text="总藏品"
                             android:textColor="@color/readtrace_muted"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -226,16 +247,15 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans"
                             android:textColor="@color/readtrace_ink"
-                            android:textSize="24sp"
+                            android:textSize="22sp"
                             android:textStyle="bold"
-                            tools:text="3" />
+                            tools:text="14" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:fontFamily="sans"
-                            android:text="@string/home_stat_reading"
+                            android:layout_marginTop="2dp"
+                            android:text="进行中"
                             android:textColor="@color/readtrace_muted"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -252,347 +272,470 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans"
                             android:textColor="@color/readtrace_ink"
-                            android:textSize="24sp"
+                            android:textSize="22sp"
                             android:textStyle="bold"
-                            tools:text="8" />
+                            tools:text="170" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:fontFamily="sans"
-                            android:text="@string/home_stat_finished"
-                            android:textColor="@color/readtrace_muted"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/statAverageValue"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans"
-                            android:textColor="@color/readtrace_ink"
-                            android:textSize="24sp"
-                            android:textStyle="bold"
-                            tools:text="8.4" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:fontFamily="sans"
-                            android:text="@string/home_stat_average"
+                            android:layout_marginTop="2dp"
+                            android:text="已完成"
                             android:textColor="@color/readtrace_muted"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- 展馆大板块标题 -->
+            <TextView
+                style="@style/ReadTraceFieldLabel"
+                android:layout_marginTop="24dp"
+                android:text="🏛️ 精神空间与文化展馆"
+                android:textSize="17sp" />
+
+            <!-- 1. 📚 文学书房 (Books Pavilion) -->
             <LinearLayout
-                android:id="@+id/memoryPanel"
+                android:id="@+id/hubCardBook"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:clickable="true"
-                android:elevation="6dp"
-                android:focusable="true"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/memoryTag"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_pill"
-                        android:fontFamily="sans"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:text="@string/home_memory_title"
-                        android:textColor="@color/readtrace_accent"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/memorySubPrompt"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:fontFamily="sans"
-                        android:maxLines="1"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12sp"
-                        tools:text="1 年前的今天，你读完了这本书" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/memoryBookTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:fontFamily="sans"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="17sp"
-                    android:textStyle="bold"
-                    tools:text="《伊豆的舞女》 · 川端康成" />
-
-                <TextView
-                    android:id="@+id/memoryBookQuote"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:ellipsize="end"
-                    android:fontFamily="sans"
-                    android:lineSpacingExtra="3dp"
-                    android:maxLines="2"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="13sp"
-                    tools:text="如同大学般转瞬即逝。" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/monthlyStatPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="6dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans"
-                    android:text="@string/home_monthly_stat_title"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:id="@+id/monthlyChartBarsContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:layout_marginTop="12dp"
-                    android:baselineAligned="false"
-                    android:gravity="bottom"
-                    android:orientation="horizontal"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <TextView
-                    android:id="@+id/monthlyStatEmptyText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:fontFamily="sans"
-                    android:text="@string/home_monthly_stat_empty"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- 🧠 年度全息心智图谱与人格画像卡片 -->
-            <LinearLayout
-                android:id="@+id/annualPersonaPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="6dp"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:fontFamily="sans"
-                        android:text="🧠 年度全息心智人格"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/annualPersonaBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_chip_selected"
-                        android:paddingStart="10dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="10dp"
-                        android:paddingBottom="3dp"
-                        android:textColor="@color/readtrace_accent"
-                        android:textSize="11.5sp"
-                        android:textStyle="bold"
-                        tools:text="🧠 深邃哲思探索者" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/annualPersonaDesc"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:fontFamily="sans"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="12.5sp"
-                    tools:text="沉醉于对世界本质与生命哲理的深度审视，在思想高原上自由漫步。" />
-
-                <com.example.readtrace.widget.MindprintRadarView
-                    android:id="@+id/annualMindprintRadar"
-                    android:layout_width="match_parent"
-                    android:layout_height="210dp"
-                    android:layout_marginTop="8dp" />
-            </LinearLayout>
-
-            <!-- 阅读成就微卡片 -->
-            <LinearLayout
-                android:id="@+id/homeBadgePanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:clickable="true"
-                android:elevation="6dp"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="@drawable/bg_status_pill"
-                    android:gravity="center"
-                    android:text="🎖️"
-                    android:textSize="22sp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans"
-                        android:text="@string/home_badge_title"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/homeBadgeSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="sans"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12sp"
-                        tools:text="已达成 4 / 9 项里程碑" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans"
-                    android:text="@string/home_badge_view_all"
-                    android:textColor="@color/readtrace_accent"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- 🏛️ 3D 私人展厅微卡片 -->
-            <LinearLayout
-                android:id="@+id/homeGalleryPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_glass_panel"
                 android:clickable="true"
-                android:elevation="8dp"
+                android:elevation="6dp"
                 android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:gravity="center"
-                    android:text="🏛️"
-                    android:textSize="24sp" />
+                android:orientation="vertical"
+                android:padding="18dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:fontFamily="sans"
-                        android:text="@string/home_gallery_title"
+                        android:text="📚 文学书房"
                         android:textColor="@color/readtrace_ink"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/homeGallerySummary"
+                        android:id="@+id/hubBookCountBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:background="@drawable/bg_secondary_button"
                         android:fontFamily="sans"
-                        android:text="@string/home_gallery_desc"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12sp" />
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="54 本藏书"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/homeGalleryBadge"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/hubBookSubtitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_primary_button"
+                    android:layout_marginTop="6dp"
                     android:fontFamily="sans"
-                    android:paddingStart="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="4dp"
-                    android:text="3D 漫游"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:text="经典名著 · 哲学思辨 · 3D 拟真翻书阅览"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
+
+                <!-- 微缩封面预览流 -->
+                <LinearLayout
+                    android:id="@+id/hubBookCoversPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal" />
+
+                <!-- 底部操作条 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnEnterBookHub"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_primary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="进入书房专区 →"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickReader3D"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="📖 3D 翻书"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- 🌌 心智认知星系微卡片 -->
+            <!-- 2. 🌸 追番殿堂 (Anime Chamber) -->
+            <LinearLayout
+                android:id="@+id/hubCardAnime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="🌸 追番殿堂"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/hubAnimeCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="70 部番剧"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/hubAnimeSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:text="1995-2024 追番编年史 · 精神入境签证"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
+
+                <!-- 微缩封面预览流 -->
+                <LinearLayout
+                    android:id="@+id/hubAnimeCoversPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal" />
+
+                <!-- 底部操作条 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnEnterAnimeHub"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_primary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="进入追番专区 →"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickAnimeTimeline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="📜 编年画卷"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickAnimePassport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="🛂 巡礼护照"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. 🎬 光影剧场 (Cinema Theatre) -->
+            <LinearLayout
+                android:id="@+id/hubCardMovie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="🎬 光影剧场"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/hubMovieCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="11 部光影"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/hubMovieSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:text="经典影史神作 · 深度影评 · 复古透光票根"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
+
+                <!-- 微缩封面预览流 -->
+                <LinearLayout
+                    android:id="@+id/hubMovieCoversPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal" />
+
+                <!-- 底部操作条 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnEnterMovieHub"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_primary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="进入剧场专区 →"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickMovieTicket"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="🎟️ 透光票根"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 4. 🎮 第九艺术游戏宝库 (Gaming Vault) -->
+            <LinearLayout
+                android:id="@+id/hubCardGame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="🎮 游戏宝库"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/hubGameCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:paddingStart="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="10dp"
+                        android:paddingBottom="3dp"
+                        android:text="67 款神作"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/hubGameSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:text="Steam 收藏库 · 白金全息卡带 · 通关盖章簿"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
+
+                <!-- 微缩封面预览流 -->
+                <LinearLayout
+                    android:id="@+id/hubGameCoversPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal" />
+
+                <!-- 底部操作条 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnEnterGameHub"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_primary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="进入游戏宝库 →"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickGameCartridge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="🕹️ 全息卡带"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnQuickGamePassport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="🛂 通关签证"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 探索与沉淀中心 -->
+            <TextView
+                style="@style/ReadTraceFieldLabel"
+                android:layout_marginTop="28dp"
+                android:text="🌌 跨媒介探索与精神沉淀"
+                android:textSize="17sp" />
+
+            <!-- 心智星系入口卡片 -->
             <LinearLayout
                 android:id="@+id/homeConstellationPanel"
                 android:layout_width="match_parent"
@@ -600,64 +743,97 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_glass_panel"
                 android:clickable="true"
-                android:elevation="8dp"
+                android:elevation="6dp"
                 android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:gravity="center"
-                    android:text="🌌"
-                    android:textSize="24sp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans"
-                        android:text="作品心智星系图谱"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/homeConstellationSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="sans"
-                        android:text="在交互式星空画布中漫游，探索心智星座共鸣"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/homeConstellationBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_primary_button"
                     android:fontFamily="sans"
-                    android:paddingStart="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="4dp"
-                    android:text="星系漫游"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:text="🌌 跨媒介心智星系图谱"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:text="全量书籍、番剧、电影与游戏因精神特质相吸交织的流光星图"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- 🌐 阅痕社区广场微卡片 -->
+            <!-- 3D 展厅与画廊 -->
+            <LinearLayout
+                android:id="@+id/homeGalleryPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:text="🏛️ 3D 私人虚拟书房展厅"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/homeGallerySummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:text="基于 OpenGL 渲染的 360° 环形悬浮立体展台与全息封面流"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- 里程碑成就大厅 -->
+            <LinearLayout
+                android:id="@+id/homeBadgePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="6dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:text="🏅 精神阅痕成就勋章"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/homeBadgeSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp"
+                    tools:text="已解锁 12/18 枚专属荣誉勋章" />
+            </LinearLayout>
+
+            <!-- 精神展览广场 -->
             <LinearLayout
                 android:id="@+id/homeCommunityPanel"
                 android:layout_width="match_parent"
@@ -665,490 +841,128 @@
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_glass_panel"
                 android:clickable="true"
-                android:elevation="8dp"
+                android:elevation="6dp"
                 android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="16dp">
 
                 <TextView
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:gravity="center"
-                    android:text="🌐"
-                    android:textSize="24sp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans"
-                        android:text="🌐 阅痕广场 · 展览社区"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="sans"
-                        android:text="探访书友的 3D 精神展厅，发现共鸣"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_chip_selected"
                     android:fontFamily="sans"
-                    android:paddingStart="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="4dp"
-                    android:text="逛广场"
-                    android:textColor="@color/readtrace_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- 媒介载体切换栏 (全部/书籍/影视/游戏/播客) -->
-            <HorizontalScrollView
-                android:id="@+id/mediaScroller"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/mediaGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/mediaTabAll"
-                        style="@style/ReadTraceStatusChip"
-                        android:background="@drawable/bg_status_chip_selected"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_all"
-                        android:textColor="@color/white" />
-
-                    <TextView
-                        android:id="@+id/mediaTabBook"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_book" />
-
-                    <TextView
-                        android:id="@+id/mediaTabAnime"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_anime" />
-
-                    <TextView
-                        android:id="@+id/mediaTabMovie"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_movie" />
-
-                    <TextView
-                        android:id="@+id/mediaTabGame"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_game" />
-
-                    <TextView
-                        android:id="@+id/mediaTabPodcast"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="8dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_podcast" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- 即时搜索栏 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🔍"
-                    android:textSize="16sp" />
-
-                <EditText
-                    android:id="@+id/searchInput"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:fontFamily="sans"
-                    android:hint="@string/search_hint"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:maxLines="1"
+                    android:text="🌐 阅痕云端展览广场"
                     android:textColor="@color/readtrace_ink"
-                    android:textColorHint="@color/readtrace_muted"
-                    android:textSize="14sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/searchClearButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
+                    android:layout_marginTop="6dp"
                     android:fontFamily="sans"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="10dp"
-                    android:paddingBottom="4dp"
-                    android:text="@string/search_clear"
+                    android:text="漫游探访同频策展人的 3D 虚拟展厅与灵魂长评共鸣"
                     android:textColor="@color/readtrace_muted"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- 状态过滤条 -->
-            <HorizontalScrollView
-                android:id="@+id/statusScroller"
+            <!-- 那年今日回忆卡片 -->
+            <LinearLayout
+                android:id="@+id/memoryPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/statusGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/statusAll"
-                        style="@style/ReadTraceStatusChip"
-                        android:background="@drawable/bg_status_chip_selected"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/status_all"
-                        android:textColor="@color/white" />
-
-                    <TextView
-                        android:id="@+id/statusWishlist"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/status_wishlist" />
-
-                    <TextView
-                        android:id="@+id/statusReading"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/status_reading" />
-
-                    <TextView
-                        android:id="@+id/statusFinished"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/status_finished" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- 动态标签过滤条 -->
-            <HorizontalScrollView
-                android:id="@+id/tagScroller"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:scrollbars="none"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <LinearLayout
-                    android:id="@+id/tagGroup"
+                <TextView
+                    android:id="@+id/memoryTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tagAll"
-                        style="@style/ReadTraceStatusChip"
-                        android:background="@drawable/bg_status_chip_selected"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/tag_all"
-                        android:textColor="@color/white"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <LinearLayout
-                android:id="@+id/shelfHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="@string/home_shelf_section"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="18sp"
+                    android:text="📜 那年今日时光回忆"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/shelfCountText"
+                    android:id="@+id/memoryBookTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="《小王子》· 圣埃克苏佩里" />
+
+                <TextView
+                    android:id="@+id/memoryBookQuote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp"
+                    tools:text="正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。" />
+            </LinearLayout>
+
+            <!-- 年度心智画像 -->
+            <LinearLayout
+                android:id="@+id/annualPersonaPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:text="🧠 年度认知心智画像"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/annualPersonaBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="深邃博学者" />
+
+                <TextView
+                    android:id="@+id/annualPersonaDesc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:fontFamily="sans"
                     android:textColor="@color/readtrace_muted"
                     android:textSize="13sp"
-                    tools:text="共 12 本" />
+                    tools:text="对复杂人性与宏大哲学叙事展现出极高心智共鸣" />
 
-                <TextView
-                    android:id="@+id/btnExportShelfScroll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="📜 长卷"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/btnToggleViewMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🍱 双列"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/btnCoverGallery"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🖼️ 画廊"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/btnAnimeTimeline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🌸 编年画卷"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/btnCulturalPassport"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🛂 巡礼护照"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/btnBatchFetchAnimeCovers"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🌐 抓海报"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
+                <com.example.readtrace.widget.MindprintRadarView
+                    android:id="@+id/annualMindprintRadar"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="10dp" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/booksContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible" />
-
-            <LinearLayout
-                android:id="@+id/emptyPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_glass_panel"
-                android:elevation="4dp"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:paddingTop="28dp"
-                android:paddingBottom="28dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <View
-                    android:id="@+id/bookPlaceholder"
-                    android:layout_width="86dp"
-                    android:layout_height="118dp"
-                    android:background="@drawable/bg_book_placeholder"
-                    android:contentDescription="@string/decorative_book"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/emptyTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:fontFamily="sans"
-                    android:text="@string/empty_shelf_title"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="21sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/emptyBody"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:lineSpacingExtra="4dp"
-                    android:text="@string/empty_shelf_body"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/emptyAction"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="22dp"
-                    android:background="@drawable/bg_primary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:text="@string/empty_shelf_action"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/reflectionPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="6dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/reflectionTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans"
-                    android:text="@string/today_reflection_title"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/reflectionBody"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:fontFamily="sans"
-                    android:lineSpacingExtra="5dp"
-                    android:text="@string/today_reflection_body"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="14sp" />
-            </LinearLayout>
         </LinearLayout>
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
