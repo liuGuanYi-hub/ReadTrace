@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never"
+    android:paddingStart="18dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="96dp">
+
+    <LinearLayout
+        android:id="@+id/memoirContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 顶部 Header 面板 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass_panel"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="🎟️ 纪念创享工坊"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:lineSpacingExtra="3dp"
+                android:text="将每一次阅读、追番、观影与通关化为可触摸的实体感纪念卡片与护照印章"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/ReadTraceFieldLabel"
+            android:layout_marginTop="20dp"
+            android:text="🛂 典藏护照与票根工坊"
+            android:textSize="16.5sp" />
+
+        <!-- 1. 🛂 精神巡礼护照盖章簿 -->
+        <LinearLayout
+            android:id="@+id/cardPassport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🛂 精神巡礼护照盖章簿"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_primary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="打开护照 →"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="深蓝烫金首页 · 70 部番剧入境签证 · 67 款游戏白金通关戳印"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- 2. 🎟️ 复古电影透光票根 -->
+        <LinearLayout
+            android:id="@+id/cardMovieTicket"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🎟️ 复古电影透光票根"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="一键生成"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="16:9 双联撕票打孔票根 · 影史评分 · 经典名台词合璧海报"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- 3. 🕹️ 游戏白金全息卡带 -->
+        <LinearLayout
+            android:id="@+id/cardGameCartridge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🕹️ 游戏白金全息卡带"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="典藏卡带"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="3:4 实体卡带盒 · 赛博光泽与白金印记 · 4 款典藏材质"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- 4. 🎴 跨媒介双生印记微卡 -->
+        <LinearLayout
+            android:id="@+id/cardResonancePoster"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🎴 跨媒介双生印记微卡"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="1:1 合璧"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="《百年孤独》⇋《EVA》等同屏双星六维心智雷达与名台词合璧微卡"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- 5. 📜 1995-2024 追番编年长卷 -->
+        <LinearLayout
+            android:id="@+id/cardAnimeTimeline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="📜 追番编年画卷 (1995-2024)"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="编年长卷"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="纵览 30 年追番史 · 和纸材质 · 1080P 超清全景长图导出"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- 6. 🖼️ 全屏纯净封面画廊 -->
+        <LinearLayout
+            android:id="@+id/cardCoverGallery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🖼️ 全屏纯净封面画廊"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:fontFamily="sans"
+                    android:paddingStart="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="3dp"
+                    android:text="壁纸流"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans"
+                android:text="磁吸滑动封面流 · 动态环境光晕 · 沉浸纯净视觉"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

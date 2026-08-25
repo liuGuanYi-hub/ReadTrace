@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:id="@+id/libraryScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="18dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="96dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/libraryContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 顶部 Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_glass_panel"
+                android:elevation="6dp"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:text="📚 精神藏库"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnLibraryAdd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_primary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:text="+ 记录"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 媒介类型切换胶囊栏 -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/mediaChipAll"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:background="@drawable/bg_status_chip_selected"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp"
+                            android:text="全部 🌌"
+                            android:textColor="@color/white"
+                            android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/mediaChipBook"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="书籍 📖"
+                            android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/mediaChipAnime"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="番剧 🌸"
+                            android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/mediaChipMovie"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="影视 🎬"
+                            android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/mediaChipGame"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="游戏 🎮"
+                            android:textSize="12.5sp" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- 搜索与多维过滤面板 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 搜索框 -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_input_glass">
+
+                    <EditText
+                        android:id="@+id/librarySearchInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toStartOf="@+id/librarySearchClearButton"
+                        android:background="@null"
+                        android:drawableStart="@android:drawable/ic_menu_search"
+                        android:drawablePadding="10dp"
+                        android:fontFamily="sans"
+                        android:hint="搜索书名、番剧、作者、标签..."
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="8dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textColorHint="@color/readtrace_muted"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/librarySearchClearButton"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp"
+                        android:contentDescription="清除搜索"
+                        android:padding="8dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:visibility="gone"
+                        app:tint="@color/readtrace_muted" />
+                </RelativeLayout>
+
+                <!-- 状态过滤胶囊 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/statusChipAll"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_status_chip_selected"
+                        android:text="全部"
+                        android:textColor="@color/white"
+                        android:textSize="12.5sp" />
+
+                    <TextView
+                        android:id="@+id/statusChipReading"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:text="在读/在看"
+                        android:textSize="12.5sp" />
+
+                    <TextView
+                        android:id="@+id/statusChipFinished"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:text="已读/通关"
+                        android:textSize="12.5sp" />
+
+                    <TextView
+                        android:id="@+id/statusChipWishlist"
+                        style="@style/ReadTraceStatusChip"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:text="想读/想看"
+                        android:textSize="12.5sp" />
+                </LinearLayout>
+
+                <!-- 动态标签流 -->
+                <HorizontalScrollView
+                    android:id="@+id/libraryTagScroller"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <LinearLayout
+                        android:id="@+id/libraryTagGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/libraryTagAll"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="30dp"
+                            android:background="@drawable/bg_status_chip_selected"
+                            android:text="全部标签"
+                            android:textColor="@color/white"
+                            android:textSize="11.5sp" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- 统计与模式切换条 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/libraryCountText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13.5sp"
+                    tools:text="共 202 部藏品" />
+
+                <TextView
+                    android:id="@+id/btnLibraryToggleView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="🍱 双列"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnLibraryExportScroll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="📜 导出长卷"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 书籍列表容器 -->
+            <LinearLayout
+                android:id="@+id/libraryBooksContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical" />
+
+            <!-- 空状态面板 -->
+            <LinearLayout
+                android:id="@+id/libraryEmptyPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_panel"
+                android:elevation="2dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="28dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="28dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <View
+                    android:layout_width="80dp"
+                    android:layout_height="110dp"
+                    android:background="@drawable/bg_book_placeholder" />
+
+                <TextView
+                    android:id="@+id/libraryEmptyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:fontFamily="sans"
+                    android:text="暂无匹配藏品"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/libraryEmptyBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:text="换个筛选条件看看，或点击右上角添加新作品"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
