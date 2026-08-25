@@ -53,4 +53,24 @@ object ViewAnimationHelper {
             .setInterpolator(DecelerateInterpolator(1.8f))
             .start()
     }
+
+    /**
+     * 卡片轻微弹跳反馈 (Micro Bounce)
+     */
+    fun playCardBounce(view: View) {
+        view.animate()
+            .scaleX(0.97f)
+            .scaleY(0.97f)
+            .setDuration(100L)
+            .setInterpolator(pressInterpolator)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(220L)
+                    .setInterpolator(releaseInterpolator)
+                    .start()
+            }
+            .start()
+    }
 }

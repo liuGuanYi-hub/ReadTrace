@@ -8,9 +8,9 @@
     android:clipToPadding="false"
     android:fillViewport="true"
     android:overScrollMode="never"
-    android:paddingStart="18dp"
-    android:paddingTop="20dp"
-    android:paddingEnd="18dp"
+    android:paddingStart="16dp"
+    android:paddingTop="18dp"
+    android:paddingEnd="16dp"
     android:paddingBottom="96dp">
 
     <LinearLayout
@@ -40,8 +40,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="sans"
-                    android:letterSpacing="0"
+                    android:fontFamily="serif"
                     android:text="@string/home_title"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="26sp"
@@ -67,9 +66,9 @@
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
                 android:lineSpacingExtra="2dp"
-                android:text="@string/home_subtitle"
+                android:text="美术馆策展空间 · 记录看过的作品，也记录当时的自己"
                 android:textColor="@color/readtrace_muted"
-                android:textSize="13sp" />
+                android:textSize="12.5sp" />
 
             <!-- 快速功能操作条 -->
             <HorizontalScrollView
@@ -155,7 +154,425 @@
             </HorizontalScrollView>
         </LinearLayout>
 
-        <!-- 总览统计胶囊 -->
+        <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase) -->
+        <LinearLayout
+            android:id="@+id/heroCuratorialCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_curatorial_hero_card"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <!-- 策展标徽与推荐标签 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:letterSpacing="0.05"
+                    android:text="🏛️ 今日策展焦点 · 典藏展台"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/heroBadgeMedia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_pill"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    tools:text="📖 经典文学" />
+            </LinearLayout>
+
+            <!-- 封面与核心元数据横向区 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- 3D 浮雕投影封面 -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp">
+
+                    <ImageView
+                        android:id="@+id/heroBookCover"
+                        android:layout_width="76dp"
+                        android:layout_height="112dp"
+                        android:background="@drawable/bg_book_card"
+                        android:clipToOutline="true"
+                        android:elevation="6dp"
+                        android:scaleType="centerCrop" />
+
+                    <TextView
+                        android:id="@+id/heroCoverPlaceholder"
+                        android:layout_width="76dp"
+                        android:layout_height="112dp"
+                        android:background="@drawable/bg_book_card"
+                        android:elevation="6dp"
+                        android:gravity="center"
+                        android:padding="6dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="小王子" />
+                </FrameLayout>
+
+                <!-- 书名、作者与评分 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/heroBookTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="serif"
+                        android:maxLines="2"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="《小王子》" />
+
+                    <TextView
+                        android:id="@+id/heroBookAuthor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:fontFamily="serif"
+                        android:maxLines="1"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="12.5sp"
+                        tools:text="安托万·德·圣-埃克苏佩里" />
+
+                    <TextView
+                        android:id="@+id/heroBookRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_gold_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:textColor="@color/readtrace_gold_accent"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        tools:text="★ 9.8 · 精神珍藏" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 策展金句引言 -->
+            <TextView
+                android:id="@+id/heroBookQuote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:lineSpacingExtra="3dp"
+                android:maxLines="3"
+                android:padding="12dp"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="13sp"
+                android:textStyle="italic"
+                tools:text="“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”" />
+
+            <!-- 双操作按钮 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/heroBtnRead"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:text="📖 3D 沉浸翻阅"
+                    android:textColor="@color/white"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/heroBtnDetail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="sans"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="✦ 检视印记"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 📊 2. 【非对称双副卡区】(Asymmetric Dual Bento Cards) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <!-- 左副卡：在读刻度进度卡 -->
+            <LinearLayout
+                android:id="@+id/bentoCardReading"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_sub_card"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📖 在读刻度"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="➔"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bentoReadingTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:fontFamily="serif"
+                    android:maxLines="1"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="《百年孤独》" />
+
+                <ProgressBar
+                    android:id="@+id/bentoReadingProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp"
+                    android:layout_marginTop="8dp"
+                    android:max="100"
+                    android:progress="68"
+                    android:progressDrawable="@drawable/bg_widget_progress_track" />
+
+                <TextView
+                    android:id="@+id/bentoReadingProgressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="11sp"
+                    tools:text="第 124 页 · 68%" />
+            </LinearLayout>
+
+            <!-- 右副卡：今日专注打卡卡 -->
+            <LinearLayout
+                android:id="@+id/bentoCardTimer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_sub_card"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="⏱️ 今日专注"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/bentoStreakBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_status_pill"
+                        android:paddingStart="6dp"
+                        android:paddingTop="1.5dp"
+                        android:paddingEnd="6dp"
+                        android:paddingBottom="1.5dp"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        tools:text="🔥 7天" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/bentoTimerMinutes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        tools:text="60" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginBottom="3dp"
+                        android:text="min"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="轻点进入计时器 ➔"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 📜 3. 【羊皮纸灵感便签横幅】(Parchment Quote Ribbon) -->
+        <LinearLayout
+            android:id="@+id/parchmentQuoteRibbon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_parchment_ribbon"
+            android:elevation="4dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:letterSpacing="0.03"
+                    android:text="📜 灵感随想 · 羊皮纸笺"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnRefreshParchmentQuote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingStart="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:text="🔄 换一句"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/parchmentQuoteText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:lineSpacingExtra="3.5dp"
+                android:maxLines="3"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="13.5sp"
+                tools:text="“生命中真正重要的不是你遭遇了什么，而是你记住了哪些事，又是如何铭记的。”" />
+
+            <TextView
+                android:id="@+id/parchmentQuoteSource"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="serif"
+                android:gravity="end"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11.5sp"
+                android:textStyle="italic"
+                tools:text="——《百年孤独》· 加西亚·马尔克斯" />
+        </LinearLayout>
+
+        <!-- 📊 4. 总览统计胶囊 -->
         <LinearLayout
             android:id="@+id/insightPanel"
             android:layout_width="match_parent"
@@ -276,11 +693,12 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 展馆大板块标题 -->
+        <!-- 🏛️ 5. 四大媒介精神殿堂 Bento 矩阵 -->
         <TextView
             style="@style/ReadTraceFieldLabel"
             android:layout_marginTop="22dp"
-            android:text="🏛️ 精神空间与文化展馆"
+            android:fontFamily="serif"
+            android:text="🏛️ 媒介精神殿堂 · 分类展区"
             android:textSize="16.5sp" />
 
         <!-- 1. 📚 文学书房 -->
@@ -306,7 +724,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="sans"
+                    android:fontFamily="serif"
                     android:text="📚 文学书房"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="17.5sp"
@@ -349,7 +767,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -357,32 +774,33 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_primary_button"
-                    android:fontFamily="sans"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:text="进入书房专区 →"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:text="进入书房 ➔"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickReader3D"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="📖 3D 翻书"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="12.5sp"
+                    android:text="📖 3D 沉浸翻阅"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 2. 🌸 追番殿堂 -->
+        <!-- 2. 🌸 番组长廊 -->
         <LinearLayout
             android:id="@+id/hubCardAnime"
             android:layout_width="match_parent"
@@ -405,8 +823,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="sans"
-                    android:text="🌸 追番殿堂"
+                    android:fontFamily="serif"
+                    android:text="🌸 番组长廊"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="17.5sp"
                     android:textStyle="bold" />
@@ -421,7 +839,7 @@
                     android:paddingTop="3dp"
                     android:paddingEnd="10dp"
                     android:paddingBottom="3dp"
-                    android:text="70 部番剧"
+                    android:text="48 部动漫"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -433,7 +851,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="1995-2024 追番编年史 · 精神入境签证"
+                android:text="追番足迹 · 编年史画卷 · 二次元文化护照"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
@@ -448,7 +866,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -456,47 +873,48 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_primary_button"
-                    android:fontFamily="sans"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:text="进入追番专区 →"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:text="长廊 ➔"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickAnimeTimeline"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="📜 编年画卷"
+                    android:text="📜 编年卷轴"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickAnimePassport"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🛂 巡礼护照"
-                    android:textColor="@color/readtrace_ink"
+                    android:text="🛂 护照"
+                    android:textColor="@color/white"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 3. 🎬 光影剧场 -->
+        <!-- 3. 🎬 光影放映室 -->
         <LinearLayout
             android:id="@+id/hubCardMovie"
             android:layout_width="match_parent"
@@ -519,8 +937,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="sans"
-                    android:text="🎬 光影剧场"
+                    android:fontFamily="serif"
+                    android:text="🎬 光影放映室"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="17.5sp"
                     android:textStyle="bold" />
@@ -535,7 +953,7 @@
                     android:paddingTop="3dp"
                     android:paddingEnd="10dp"
                     android:paddingBottom="3dp"
-                    android:text="11 部光影"
+                    android:text="50 部佳作"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -547,7 +965,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="经典影史神作 · 深度影评 · 复古透光票根"
+                android:text="银幕叙事 · 镜头美学 · 经典电影实体票根"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
@@ -562,7 +980,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -570,32 +987,33 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_primary_button"
-                    android:fontFamily="sans"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:text="进入剧场专区 →"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:text="放映厅 ➔"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickMovieTicket"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="🎟️ 透光票根"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="12.5sp"
+                    android:text="🎟️ 电影票根海报"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 4. 🎮 游戏宝库 -->
+        <!-- 4. 🎮 游戏游艺厅 -->
         <LinearLayout
             android:id="@+id/hubCardGame"
             android:layout_width="match_parent"
@@ -618,8 +1036,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="sans"
-                    android:text="🎮 游戏宝库"
+                    android:fontFamily="serif"
+                    android:text="🎮 游戏游艺厅"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="17.5sp"
                     android:textStyle="bold" />
@@ -634,7 +1052,7 @@
                     android:paddingTop="3dp"
                     android:paddingEnd="10dp"
                     android:paddingBottom="3dp"
-                    android:text="67 款神作"
+                    android:text="50 款游戏"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -646,7 +1064,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="Steam 收藏库 · 白金全息卡带 · 通关盖章簿"
+                android:text="第九艺术 · 互动叙事 · 复古实体游戏卡带"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
@@ -661,7 +1079,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -669,92 +1086,91 @@
                     android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_primary_button"
-                    android:fontFamily="sans"
+                    android:background="@drawable/bg_secondary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:text="进入游戏宝库 →"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:text="游艺厅 ➔"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickGameCartridge"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🕹️ 全息卡带"
+                    android:text="📼 实体卡带"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/btnQuickGamePassport"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="36dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:gravity="center"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:text="🛂 通关签证"
-                    android:textColor="@color/readtrace_ink"
+                    android:text="🛂 护照"
+                    android:textColor="@color/white"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 那年今日回忆卡片 -->
+        <!-- 时光深处的回响 (Memory Panel) -->
         <LinearLayout
             android:id="@+id/memoryPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_glass_panel_soft"
             android:clickable="true"
             android:elevation="4dp"
             android:focusable="true"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/memoryTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans"
-                android:text="📜 那年今日时光回忆"
+                android:fontFamily="serif"
                 android:textColor="@color/readtrace_accent"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                tools:text="🕰️ 时光深处的印记" />
 
             <TextView
                 android:id="@+id/memoryBookTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="sans"
+                android:layout_marginTop="4dp"
+                android:fontFamily="serif"
                 android:textColor="@color/readtrace_ink"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                tools:text="《小王子》· 圣埃克苏佩里" />
+                tools:text="《百年孤独》" />
 
             <TextView
                 android:id="@+id/memoryBookQuote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:lineSpacingExtra="3dp"
+                android:lineSpacingExtra="2dp"
                 android:textColor="@color/readtrace_muted"
-                android:textSize="13sp"
-                tools:text="正因为你为你的玫瑰花费了时间，这才使你的玫瑰变得如此重要。" />
+                android:textSize="12.5sp"
+                tools:text="“生命中真正重要的不是你遭遇了什么，而是你记住了哪些事，又是如何铭记的。”" />
         </LinearLayout>
 
     </LinearLayout>

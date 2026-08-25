@@ -18,4 +18,8 @@
     <color name="readtrace_book_cover">#EAE2D5</color>
     <color name="readtrace_book_cover_stroke">#20000000</color>
     <color name="readtrace_soft_shadow">#12000000</color>
+    <color name="readtrace_parchment">#F6F1E8</color>
+    <color name="readtrace_parchment_stroke">#268C6E4A</color>
+    <color name="readtrace_gold_accent">#9E7638</color>
+    <color name="readtrace_gold_soft">#1A9E7638</color>
 </resources>

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,11 +24,13 @@ import com.example.readtrace.GameCartridgePosterActivity
 import com.example.readtrace.MediaHubActivity
 import com.example.readtrace.MovieTicketPosterActivity
 import com.example.readtrace.R
+import com.example.readtrace.ReadingTimerActivity
 import com.example.readtrace.TrashActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.reader.Book3DReaderActivity
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ThemeHelper
@@ -39,6 +42,7 @@ class HubFragment : Fragment() {
 
     private lateinit var databaseHelper: BookDatabaseHelper
 
+    // Header
     private lateinit var homeTitle: TextView
     private lateinit var homeSubtitle: TextView
     private lateinit var themeToggleButton: TextView
@@ -47,11 +51,44 @@ class HubFragment : Fragment() {
     private lateinit var backupBtn: TextView
     private lateinit var trashBtn: TextView
 
+    // 🌟 Hero 策展主位
+    private lateinit var heroCuratorialCard: View
+    private lateinit var heroBadgeMedia: TextView
+    private lateinit var heroBookCover: ImageView
+    private lateinit var heroCoverPlaceholder: TextView
+    private lateinit var heroBookTitle: TextView
+    private lateinit var heroBookAuthor: TextView
+    private lateinit var heroBookRating: TextView
+    private lateinit var heroBookQuote: TextView
+    private lateinit var heroBtnRead: TextView
+    private lateinit var heroBtnDetail: TextView
+    private var currentHeroBook: Book? = null
+
+    // 📊 非对称双副卡
+    private lateinit var bentoCardReading: View
+    private lateinit var bentoReadingTitle: TextView
+    private lateinit var bentoReadingProgressBar: ProgressBar
+    private lateinit var bentoReadingProgressText: TextView
+    private var currentReadingBook: Book? = null
+
+    private lateinit var bentoCardTimer: View
+    private lateinit var bentoStreakBadge: TextView
+    private lateinit var bentoTimerMinutes: TextView
+
+    // 📜 羊皮纸便签横幅
+    private lateinit var parchmentQuoteRibbon: View
+    private lateinit var btnRefreshParchmentQuote: TextView
+    private lateinit var parchmentQuoteText: TextView
+    private lateinit var parchmentQuoteSource: TextView
+    private var currentParchmentQuoteText: String? = null
+
+    // 统计胶囊
     private lateinit var statTotalValue: TextView
     private lateinit var statReadingValue: TextView
     private lateinit var statFinishedValue: TextView
     private lateinit var statAverageValue: TextView
 
+    // 四大媒介 Bento 展馆
     private lateinit var hubCardBook: View
     private lateinit var hubBookCountBadge: TextView
     private lateinit var hubBookSubtitle: TextView
@@ -82,6 +119,7 @@ class HubFragment : Fragment() {
     private lateinit var btnQuickGameCartridge: View
     private lateinit var btnQuickGamePassport: View
 
+    // 时光深处的回响
     private lateinit var memoryPanel: View
     private lateinit var memoryTitle: TextView
     private lateinit var memoryBookTitle: TextView
@@ -126,11 +164,41 @@ class HubFragment : Fragment() {
         backupBtn = view.findViewById(R.id.backupButton)
         trashBtn = view.findViewById(R.id.trashButton)
 
+        // 🌟 Hero
+        heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
+        heroBadgeMedia = view.findViewById(R.id.heroBadgeMedia)
+        heroBookCover = view.findViewById(R.id.heroBookCover)
+        heroCoverPlaceholder = view.findViewById(R.id.heroCoverPlaceholder)
+        heroBookTitle = view.findViewById(R.id.heroBookTitle)
+        heroBookAuthor = view.findViewById(R.id.heroBookAuthor)
+        heroBookRating = view.findViewById(R.id.heroBookRating)
+        heroBookQuote = view.findViewById(R.id.heroBookQuote)
+        heroBtnRead = view.findViewById(R.id.heroBtnRead)
+        heroBtnDetail = view.findViewById(R.id.heroBtnDetail)
+
+        // 📊 Bento 副卡
+        bentoCardReading = view.findViewById(R.id.bentoCardReading)
+        bentoReadingTitle = view.findViewById(R.id.bentoReadingTitle)
+        bentoReadingProgressBar = view.findViewById(R.id.bentoReadingProgressBar)
+        bentoReadingProgressText = view.findViewById(R.id.bentoReadingProgressText)
+
+        bentoCardTimer = view.findViewById(R.id.bentoCardTimer)
+        bentoStreakBadge = view.findViewById(R.id.bentoStreakBadge)
+        bentoTimerMinutes = view.findViewById(R.id.bentoTimerMinutes)
+
+        // 📜 羊皮纸便签
+        parchmentQuoteRibbon = view.findViewById(R.id.parchmentQuoteRibbon)
+        btnRefreshParchmentQuote = view.findViewById(R.id.btnRefreshParchmentQuote)
+        parchmentQuoteText = view.findViewById(R.id.parchmentQuoteText)
+        parchmentQuoteSource = view.findViewById(R.id.parchmentQuoteSource)
+
+        // 统计胶囊
         statTotalValue = view.findViewById(R.id.statTotalValue)
         statReadingValue = view.findViewById(R.id.statReadingValue)
         statFinishedValue = view.findViewById(R.id.statFinishedValue)
         statAverageValue = view.findViewById(R.id.statAverageValue)
 
+        // 四大媒介
         hubCardBook = view.findViewById(R.id.hubCardBook)
         hubBookCountBadge = view.findViewById(R.id.hubBookCountBadge)
         hubBookSubtitle = view.findViewById(R.id.hubBookSubtitle)
@@ -161,6 +229,7 @@ class HubFragment : Fragment() {
         btnQuickGameCartridge = view.findViewById(R.id.btnQuickGameCartridge)
         btnQuickGamePassport = view.findViewById(R.id.btnQuickGamePassport)
 
+        // 记忆面板
         memoryPanel = view.findViewById(R.id.memoryPanel)
         memoryTitle = view.findViewById(R.id.memoryTitle)
         memoryBookTitle = view.findViewById(R.id.memoryBookTitle)
@@ -179,13 +248,65 @@ class HubFragment : Fragment() {
         trashBtn.setOnClickListener { startActivity(TrashActivity.createIntent(requireContext())) }
         backupBtn.setOnClickListener { startActivity(Intent(requireContext(), BackupActivity::class.java)) }
 
+        // 🌟 Hero 策展位交互
+        heroBtnRead.setOnClickListener {
+            val book = currentHeroBook
+            if (book != null) {
+                startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+            } else {
+                Toast.makeText(requireContext(), "请先添加或导入藏书", Toast.LENGTH_SHORT).show()
+            }
+        }
+        heroBtnDetail.setOnClickListener {
+            val book = currentHeroBook
+            if (book != null) {
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            }
+        }
+        heroCuratorialCard.setOnClickListener {
+            val book = currentHeroBook
+            if (book != null) {
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            }
+        }
+
+        // 📊 Bento 副卡交互
+        bentoCardReading.setOnClickListener {
+            val book = currentReadingBook ?: currentHeroBook
+            if (book != null) {
+                startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+            } else {
+                startActivity(Intent(requireContext(), AddBookActivity::class.java))
+            }
+        }
+
+        bentoCardTimer.setOnClickListener {
+            val book = currentReadingBook ?: currentHeroBook
+            if (book != null) {
+                startActivity(ReadingTimerActivity.createIntent(requireContext(), book.id, book.title))
+            } else {
+                startActivity(Intent(requireContext(), ReadingTimerActivity::class.java))
+            }
+        }
+
+        // 📜 羊皮纸便签轮播交互
+        btnRefreshParchmentQuote.setOnClickListener {
+            renderParchmentQuote(excludeQuote = currentParchmentQuoteText)
+            ViewAnimationHelper.playCardBounce(parchmentQuoteRibbon)
+        }
+        parchmentQuoteRibbon.setOnClickListener {
+            renderParchmentQuote(excludeQuote = currentParchmentQuoteText)
+            ViewAnimationHelper.playCardBounce(parchmentQuoteRibbon)
+        }
+
+        // 四大媒介交互
         val openBookHub = { startActivity(MediaHubActivity.createIntent(requireContext(), MediaType.BOOK)) }
         hubCardBook.setOnClickListener { openBookHub() }
         btnEnterBookHub.setOnClickListener { openBookHub() }
         btnQuickReader3D.setOnClickListener {
             val firstBook = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.BOOK }
             if (firstBook != null) {
-                startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(requireContext(), firstBook.id))
+                startActivity(Book3DReaderActivity.createIntent(requireContext(), firstBook.id))
             } else {
                 Toast.makeText(requireContext(), "书房暂无藏书，请先添加或导入", Toast.LENGTH_SHORT).show()
             }
@@ -221,21 +342,12 @@ class HubFragment : Fragment() {
             if (firstGame != null) {
                 startActivity(GameCartridgePosterActivity.createIntent(requireContext(), firstGame.id))
             } else {
-                Toast.makeText(requireContext(), "游戏库暂无作品", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "游艺厅暂无游戏记录", Toast.LENGTH_SHORT).show()
             }
         }
         btnQuickGamePassport.setOnClickListener {
             startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.GAME))
         }
-
-        listOfNotNull(
-            themeToggleButton, addBtn, importPresetBtn, backupBtn, trashBtn,
-            hubCardBook, hubCardAnime, hubCardMovie, hubCardGame,
-            btnEnterBookHub, btnQuickReader3D,
-            btnEnterAnimeHub, btnQuickAnimeTimeline, btnQuickAnimePassport,
-            btnEnterMovieHub, btnQuickMovieTicket,
-            btnEnterGameHub, btnQuickGameCartridge, btnQuickGamePassport,
-        ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
     private fun updateThemeToggleIcon() {
@@ -254,6 +366,10 @@ class HubFragment : Fragment() {
         statReadingValue.text = reading.toString()
         statFinishedValue.text = finished.toString()
         statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
+
+        renderHeroCuratorialCard(allBooks)
+        renderBentoSubCards()
+        renderParchmentQuote()
 
         renderHubCard(
             mediaType = MediaType.BOOK,
@@ -289,6 +405,73 @@ class HubFragment : Fragment() {
         )
 
         renderMemoryCard()
+    }
+
+    private fun renderHeroCuratorialCard(allBooks: List<Book>) {
+        val featuredBook = allBooks.firstOrNull { it.status == BookStatus.READING }
+            ?: allBooks.maxByOrNull { it.rating ?: 0.0 }
+            ?: allBooks.firstOrNull()
+
+        currentHeroBook = featuredBook
+        if (featuredBook != null) {
+            heroCuratorialCard.visibility = View.VISIBLE
+            heroBadgeMedia.text = "${featuredBook.mediaType.emoji} ${featuredBook.category ?: featuredBook.mediaType.displayName}"
+            heroBookTitle.text = "《${featuredBook.title}》"
+            heroBookAuthor.text = featuredBook.author?.ifBlank { "未知作者" } ?: "未知作者"
+
+            val rating = featuredBook.rating
+            heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating)} · 精神典藏" else "✦ 重点策展推荐"
+
+            val quote = featuredBook.shortComment?.takeIf { it.isNotBlank() }
+                ?: featuredBook.review?.takeIf { it.isNotBlank() }
+                ?: databaseHelper.getNotes(featuredBook.id).firstOrNull()?.content
+                ?: "“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”"
+            heroBookQuote.text = if (quote.startsWith("“")) quote else "“$quote”"
+
+            if (!featuredBook.coverUrl.isNullOrBlank()) {
+                heroBookCover.visibility = View.VISIBLE
+                heroCoverPlaceholder.visibility = View.GONE
+                CoverImageHelper.loadCover(heroBookCover, featuredBook.coverUrl)
+            } else {
+                heroBookCover.visibility = View.GONE
+                heroCoverPlaceholder.visibility = View.VISIBLE
+                heroCoverPlaceholder.text = "${featuredBook.mediaType.emoji}\n${featuredBook.title.take(4)}"
+            }
+        } else {
+            heroCuratorialCard.visibility = View.GONE
+        }
+    }
+
+    private fun renderBentoSubCards() {
+        val latestReading = databaseHelper.getLatestReadingBook()
+        currentReadingBook = latestReading
+
+        if (latestReading != null) {
+            bentoReadingTitle.text = "《${latestReading.title}》"
+            val page = databaseHelper.getReadingPage(latestReading.id)
+            val displayPage = page + 1
+            val progressPercent = (page * 3).coerceIn(10, 95)
+            bentoReadingProgressBar.progress = progressPercent
+            bentoReadingProgressText.text = "第 $displayPage 页 · $progressPercent%"
+        } else {
+            bentoReadingTitle.text = "暂无在读作品"
+            bentoReadingProgressBar.progress = 0
+            bentoReadingProgressText.text = "轻点开启阅读 ➔"
+        }
+
+        val todayMinutes = databaseHelper.getTodayTotalReadingMinutes()
+        val streakDays = databaseHelper.getConsecutiveReadingDays()
+        bentoTimerMinutes.text = todayMinutes.toString()
+        bentoStreakBadge.text = if (streakDays > 0) "🔥 连胜 ${streakDays}天" else "🌱 开启打卡"
+    }
+
+    private fun renderParchmentQuote(excludeQuote: String? = null) {
+        val (book, quote) = databaseHelper.getRandomOrNextQuote(excludeQuote)
+        currentParchmentQuoteText = quote
+        parchmentQuoteText.text = if (quote.startsWith("“")) quote else "“$quote”"
+        val authorPart = book?.author?.let { " · $it" } ?: ""
+        val titlePart = book?.title?.let { "《$it》" } ?: "《阅痕 ReadTrace》"
+        parchmentQuoteSource.text = "—— $titlePart$authorPart"
     }
 
     private fun renderHubCard(
