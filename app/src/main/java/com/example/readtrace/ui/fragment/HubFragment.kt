@@ -43,6 +43,7 @@ class HubFragment : Fragment() {
     private lateinit var databaseHelper: BookDatabaseHelper
 
     // Header
+    private lateinit var auroraBackgroundView: com.example.readtrace.widget.AuroraFluidBackgroundView
     private lateinit var homeTitle: TextView
     private lateinit var homeSubtitle: TextView
     private lateinit var themeToggleButton: TextView
@@ -164,11 +165,18 @@ class HubFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        auroraBackgroundView.startAnimation()
         updateThemeToggleIcon()
         refreshDashboard()
     }
 
+    override fun onPause() {
+        auroraBackgroundView.stopAnimation()
+        super.onPause()
+    }
+
     private fun initViews(view: View) {
+        auroraBackgroundView = view.findViewById(R.id.auroraBackgroundView)
         homeTitle = view.findViewById(R.id.homeTitle)
         homeSubtitle = view.findViewById(R.id.homeSubtitle)
         themeToggleButton = view.findViewById(R.id.themeToggleButton)
@@ -369,7 +377,11 @@ class HubFragment : Fragment() {
 
     private fun updateThemeToggleIcon() {
         val ctx = context ?: return
-        themeToggleButton.text = if (ThemeHelper.isDarkMode(ctx)) "☀️" else "🌙"
+        val isDark = ThemeHelper.isDarkMode(ctx)
+        themeToggleButton.text = if (isDark) "☀️" else "🌙"
+        if (::auroraBackgroundView.isInitialized) {
+            auroraBackgroundView.updateThemePalette(isDark)
+        }
     }
 
     private fun refreshDashboard() {
