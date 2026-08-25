@@ -624,6 +624,7 @@ class MainActivity : AppCompatActivity() {
 
         if (books.isEmpty()) {
             booksContainer.visibility = View.GONE
+            emptyPanel.clearAnimation()
             emptyPanel.visibility = View.VISIBLE
             val isFiltered = selectedMediaType != null || selectedStatus != null || searchKeyword.isNotEmpty() || selectedTag != null
             emptyTitle.setText(
@@ -638,12 +639,12 @@ class MainActivity : AppCompatActivity() {
             emptyBody.setText(
                 if (isFiltered) R.string.empty_filter_body else R.string.empty_shelf_body,
             )
-            emptyPanel.startAnimation(
-                AnimationUtils.loadAnimation(this, R.anim.card_enter_delayed),
-            )
+            emptyPanel.alpha = 0f
+            emptyPanel.animate().alpha(1f).setDuration(220).start()
             return
         }
 
+        emptyPanel.clearAnimation()
         emptyPanel.visibility = View.GONE
         booksContainer.visibility = View.VISIBLE
 
