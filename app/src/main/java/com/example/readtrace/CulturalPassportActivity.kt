@@ -22,6 +22,8 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.CulturalPassportView
 import com.example.readtrace.widget.MindprintRadarView
@@ -65,6 +67,8 @@ class CulturalPassportActivity : AppCompatActivity() {
         tabPassportGame.setOnClickListener { switchTab(MediaType.GAME) }
 
         culturalPassportView.onStampClickListener = { book ->
+            HapticFeedbackEngine.stampImpact(this)
+            SpatialAudioEngine.playStampThud()
             showStampDetailDialog(book)
         }
 

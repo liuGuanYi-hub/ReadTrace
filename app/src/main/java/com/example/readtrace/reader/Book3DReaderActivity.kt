@@ -122,10 +122,16 @@ class Book3DReaderActivity : AppCompatActivity() {
         viewPager.setCurrentItem(savedPage, false)
         updateProgressDisplay(savedPage)
 
+        var isInitialSetup = true
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 updateProgressDisplay(position)
                 databaseHelper.saveReadingPage(bookId, position)
+                if (!isInitialSetup) {
+                    com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this@Book3DReaderActivity)
+                    com.example.readtrace.util.SpatialAudioEngine.playPageTurn()
+                }
+                isInitialSetup = false
             }
         })
 

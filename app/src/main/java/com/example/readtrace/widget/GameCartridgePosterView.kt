@@ -12,6 +12,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
@@ -367,6 +368,16 @@ class GameCartridgePosterView @JvmOverloads constructor(
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 2f
         canvas.drawPath(dataPath, paint)
+    }
+
+    var onCartridgeClickListener: (() -> Unit)? = null
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            onCartridgeClickListener?.invoke()
+            return true
+        }
+        return super.onTouchEvent(event)
     }
 
     fun create1080pPosterBitmap(): Bitmap {

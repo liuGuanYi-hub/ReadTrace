@@ -18,6 +18,8 @@ import androidx.core.content.FileProvider
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.GameCartridgePosterView
 import java.io.File
@@ -60,6 +62,12 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnCartridgeShareTop).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnShareCartridgeImage).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnSaveCartridgeAlbum).setOnClickListener { saveCartridgeToAlbum() }
+
+        gameCartridgePosterView.onCartridgeClickListener = {
+            HapticFeedbackEngine.cartridgeSnap(this)
+            SpatialAudioEngine.playCartridgeSnap()
+            Toast.makeText(this, "🕹️ 触发白金卡带卡扣插槽震感与清脆声场", Toast.LENGTH_SHORT).show()
+        }
 
         listOfNotNull(
             findViewById(R.id.btnCartridgeBack),

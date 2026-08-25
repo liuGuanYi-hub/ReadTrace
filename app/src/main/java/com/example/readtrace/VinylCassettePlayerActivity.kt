@@ -254,16 +254,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun togglePlayState() {
-        triggerHapticClick()
         isPlaying = !isPlaying
 
         if (isPlaying) {
             tvPlayPauseLabel.text = "⏸ 暂停聆听"
+            if (!isCassetteMode) {
+                com.example.readtrace.util.HapticFeedbackEngine.needleDropCrackle(this)
+                com.example.readtrace.util.SpatialAudioEngine.playNeedleDrop(vinylTurntableView.gyroOffsetX)
+            } else {
+                com.example.readtrace.util.HapticFeedbackEngine.cartridgeSnap(this)
+                com.example.readtrace.util.SpatialAudioEngine.playCartridgeSnap()
+            }
             vinylTurntableView.togglePlay(true)
             cassetteDeckView.togglePlay(true)
             particleBackgroundView.setPlaying(true)
             handler.post(playRunnable)
         } else {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
             tvPlayPauseLabel.text = "▶ 沉浸播放"
             vinylTurntableView.togglePlay(false)
             cassetteDeckView.togglePlay(false)

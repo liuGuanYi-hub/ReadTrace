@@ -60,6 +60,8 @@ class MindprintConstellationActivity : AppCompatActivity() {
         ViewAnimationHelper.attachSpringTouch(goDetailBtn)
 
         constellationCanvas.onStarClickListener = { book, mindprint ->
+            com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
+            com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
             showStarDetailCard(book, mindprint)
         }
 
