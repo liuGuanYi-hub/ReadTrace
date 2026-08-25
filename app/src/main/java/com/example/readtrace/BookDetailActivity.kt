@@ -142,7 +142,7 @@ class BookDetailActivity : AppCompatActivity() {
         val navTimeline = findViewById<TextView>(R.id.navTabTimeline)
         val navCharacters = findViewById<TextView>(R.id.navTabCharacters)
         val navNotes = findViewById<TextView>(R.id.navTabNotes)
-        val mainScrollView = findViewById<android.widget.ScrollView>(R.id.detailContent)
+        val mainScrollView = findViewById<android.widget.ScrollView>(R.id.detailScrollView)
 
         fun updateNavTabs(activeTab: TextView) {
             listOf(navOverview, navTimeline, navCharacters, navNotes).forEach {
