@@ -224,7 +224,8 @@
                             android:background="@drawable/bg_book_card"
                             android:clipToOutline="true"
                             android:elevation="6dp"
-                            android:scaleType="centerCrop" />
+                            android:scaleType="centerCrop"
+                            android:transitionName="transition_book_cover" />
 
                         <TextView
                             android:id="@+id/heroCoverPlaceholder"

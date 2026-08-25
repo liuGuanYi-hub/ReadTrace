@@ -91,7 +91,8 @@
                     android:layout_height="144dp"
                     android:background="@drawable/bg_book_placeholder"
                     android:clipToOutline="true"
-                    android:outlineProvider="background">
+                    android:outlineProvider="background"
+                    android:transitionName="transition_book_cover">
 
                     <ImageView
                         android:id="@+id/detailCoverImage"

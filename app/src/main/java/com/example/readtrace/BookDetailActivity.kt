@@ -48,6 +48,7 @@ class BookDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        com.example.readtrace.util.TransitionHelper.setupActivityTransitions(this)
         setContentView(R.layout.activity_book_detail)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.detailRoot)) { view, insets ->
@@ -70,7 +71,7 @@ class BookDetailActivity : AppCompatActivity() {
             gyroscopeHelper.bindLifecycle(lifecycle)
         }
 
-        findViewById<View>(R.id.detailBackButton).setOnClickListener { finish() }
+        findViewById<View>(R.id.detailBackButton).setOnClickListener { supportFinishAfterTransition() }
         findViewById<View>(R.id.detailRead3DButton).setOnClickListener {
             startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
         }

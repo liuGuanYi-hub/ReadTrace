@@ -271,18 +271,21 @@ class HubFragment : Fragment() {
                 Toast.makeText(requireContext(), "请先添加或导入藏书", Toast.LENGTH_SHORT).show()
             }
         }
-        heroBtnDetail.setOnClickListener {
+        val openHeroDetail = {
             val book = currentHeroBook
+            val act = activity
             if (book != null) {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                val intent = BookDetailActivity.createIntent(requireContext(), book.id)
+                if (act != null) {
+                    val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, heroBookCover)
+                    startActivity(intent, options.toBundle())
+                } else {
+                    startActivity(intent)
+                }
             }
         }
-        heroCuratorialCard.setOnClickListener {
-            val book = currentHeroBook
-            if (book != null) {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
-            }
-        }
+        heroBtnDetail.setOnClickListener { openHeroDetail() }
+        heroCuratorialCard.setOnClickListener { openHeroDetail() }
 
         // 📊 Bento 副卡交互
         bentoCardReading.setOnClickListener {
@@ -536,7 +539,14 @@ class HubFragment : Fragment() {
             CoverImageHelper.loadCover(imageView, book.coverUrl)
 
             cardView.setOnClickListener {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                val act = activity
+                val intent = BookDetailActivity.createIntent(requireContext(), book.id)
+                if (act != null) {
+                    val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, cardView)
+                    startActivity(intent, options.toBundle())
+                } else {
+                    startActivity(intent)
+                }
             }
             coversContainer.addView(cardView)
         }

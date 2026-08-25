@@ -449,7 +449,14 @@ class LibraryFragment : Fragment() {
             }
         }
         card.setOnClickListener {
-            startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            val act = activity
+            val intent = BookDetailActivity.createIntent(requireContext(), book.id)
+            if (act != null) {
+                val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, coverImageView)
+                startActivity(intent, options.toBundle())
+            } else {
+                startActivity(intent)
+            }
         }
         card.setOnLongClickListener {
             showHologramPeekDialog(book)
@@ -487,7 +494,14 @@ class LibraryFragment : Fragment() {
         val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         card.layoutParams = params
         card.setOnClickListener {
-            startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            val act = activity
+            val intent = BookDetailActivity.createIntent(requireContext(), book.id)
+            if (act != null) {
+                val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, coverImg)
+                startActivity(intent, options.toBundle())
+            } else {
+                startActivity(intent)
+            }
         }
         card.setOnLongClickListener {
             showHologramPeekDialog(book)
