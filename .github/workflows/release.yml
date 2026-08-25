@@ -1,0 +1,84 @@
+name: Release & Publish APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag Name (e.g. v3.3.0)'
+        required: true
+        default: 'v3.3.0'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release & Debug APKs
+        run: ./gradlew assembleRelease assembleDebug
+
+      - name: Prepare Release Artifacts
+        id: prepare_artifacts
+        run: |
+          TAG_NAME="${{ github.ref_name }}"
+          if [ -z "$TAG_NAME" ] || [[ "$TAG_NAME" == *"main"* ]] || [[ "$TAG_NAME" == *"master"* ]]; then
+            TAG_NAME="${{ github.event.inputs.tag_name }}"
+          fi
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="v$(date +'%Y%m%d')"
+          fi
+          
+          mkdir -p dist
+          
+          # 复制并规范命名 APK
+          if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
+            cp app/build/outputs/apk/release/app-release.apk "dist/ReadTrace-${TAG_NAME}-universal-release.apk"
+          fi
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk "dist/ReadTrace-${TAG_NAME}-debug.apk"
+          fi
+          
+          # 生成 SHA256 校验和清单
+          cd dist
+          sha256sum ReadTrace-*.apk > sha256sums.txt
+          cat sha256sums.txt
+          cd ..
+          
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release & Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prepare_artifacts.outputs.tag_name }}
+          name: "阅痕 ReadTrace ${{ steps.prepare_artifacts.outputs.tag_name }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            dist/ReadTrace-*.apk
+            dist/sha256sums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,6 +2,11 @@
 
 > **Android 原生开发 · OpenGL ES 3D 展厅 · 3D 拟真翻书阅读 · 精神印记展览社区 · 纯本地数据掌控**
 
+[![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
+[![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
+
 《阅痕 ReadTrace》是一个专为爱书人、影迷与深度思考者打造的 **个人精神文化印记空间与 3D 展览纪念馆**。它将扁平的书籍记录升华为立体艺术展台与思想长廊，支持 3D 私人展厅漫游、经典名著拟真翻阅、多维数据分析与全网展厅互访共鸣。
 
 ---
