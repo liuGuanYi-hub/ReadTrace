@@ -230,4 +230,12 @@
     <string name="reader_excerpt_added_toast">已将本页内容沉淀至阅痕摘录！</string>
     <string name="reader_page_indicator_format">%1$d / %2$d 页 (%3$d%%)</string>
     <string name="action_3d_read">📖 3D 沉浸阅览</string>
+
+    <!-- 桌面小组件 (AppWidgets) -->
+    <string name="widget_daily_quote_name">阅痕 · 每日金句便签</string>
+    <string name="widget_daily_quote_desc">典雅桌面便签，展示金句摘录，支持一键「换一句」轮播与直达作品印记</string>
+    <string name="widget_reading_timer_name">阅痕 · 今日专注打卡</string>
+    <string name="widget_reading_timer_desc">今日专注时长统计与连胜天数，支持桌面一键进入计时器与 +15m 快捷打卡</string>
+    <string name="widget_currently_reading_name">阅痕 · 在读作品进度</string>
+    <string name="widget_currently_reading_desc">展示当前在读书目与进度条，支持一键直达 3D 拟真翻阅</string>
 </resources>

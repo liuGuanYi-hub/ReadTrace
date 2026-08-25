@@ -102,16 +102,42 @@
             </intent-filter>
         </activity>
 
-        <!-- 2x2 灵感金句与打卡小组件 -->
+        <!-- 2x2 每日金句/灵感便签轮播小组件 -->
         <receiver
             android:name=".widget.DailyQuoteWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.readtrace.widget.ACTION_REFRESH_QUOTE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_daily_quote_info" />
+        </receiver>
+
+        <!-- 2x2 今日阅读计时打卡小组件 -->
+        <receiver
+            android:name=".widget.ReadingTimerWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.readtrace.widget.ACTION_QUICK_PUNCH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_reading_timer_info" />
+        </receiver>
+
+        <!-- 4x2 在读作品进度卡片小组件 -->
+        <receiver
+            android:name=".widget.CurrentlyReadingWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_daily_quote_info" />
+                android:resource="@xml/widget_currently_reading_info" />
         </receiver>
 
         <!-- 4x2 全息心智看板小组件 -->

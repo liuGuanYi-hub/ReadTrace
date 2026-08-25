@@ -199,6 +199,9 @@ class ReadingTimerActivity : AppCompatActivity() {
         )
 
         databaseHelper.insertReadingSession(session)
+        com.example.readtrace.widget.ReadingTimerWidgetProvider.refreshWidgets(this)
+        com.example.readtrace.widget.DailyQuoteWidgetProvider.refreshWidgets(this)
+        com.example.readtrace.widget.CurrentlyReadingWidgetProvider.refreshWidgets(this)
         Toast.makeText(this, "🎉 专注打卡成功！已记录本次 $finalMinutes 分钟阅读时光", Toast.LENGTH_SHORT).show()
         finish()
     }

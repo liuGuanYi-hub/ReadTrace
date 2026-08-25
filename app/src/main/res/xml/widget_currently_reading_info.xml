@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:description="@string/widget_daily_quote_desc"
-    android:initialLayout="@layout/widget_daily_quote_2x2"
-    android:minWidth="140dp"
-    android:minHeight="140dp"
+    android:description="@string/widget_currently_reading_desc"
+    android:initialLayout="@layout/widget_currently_reading"
+    android:minWidth="280dp"
+    android:minHeight="110dp"
     android:previewImage="@mipmap/ic_launcher"
     android:resizeMode="horizontal|vertical"
-    android:targetCellWidth="2"
+    android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />

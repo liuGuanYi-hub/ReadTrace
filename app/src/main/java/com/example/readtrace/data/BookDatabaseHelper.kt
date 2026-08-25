@@ -2236,6 +2236,139 @@ class BookDatabaseHelper(val context: Context) :
         )
     }
 
+    // --- 📱 桌面小组件专享数据支持 (AppWidgets Data Providers) ---
+
+    fun getTodayTotalReadingMinutes(): Int {
+        val todayStr = currentTimestamp().substringBefore("T")
+        val cursor = readableDatabase.rawQuery(
+            """
+            SELECT SUM($COLUMN_DURATION_MINUTES) 
+            FROM $TABLE_READING_SESSIONS 
+            WHERE $COLUMN_CREATED_AT LIKE ? AND $COLUMN_IS_DELETED = 0
+            """.trimIndent(),
+            arrayOf("$todayStr%"),
+        )
+        return cursor.use { if (it.moveToFirst() && !it.isNull(0)) it.getInt(0) else 0 }
+    }
+
+    fun getConsecutiveReadingDays(): Int {
+        val cursor = readableDatabase.rawQuery(
+            """
+            SELECT DISTINCT substr($COLUMN_CREATED_AT, 1, 10) as session_date 
+            FROM $TABLE_READING_SESSIONS 
+            WHERE $COLUMN_IS_DELETED = 0 
+            ORDER BY session_date DESC
+            """.trimIndent(),
+            null,
+        )
+        val dates = cursor.use {
+            buildList {
+                while (it.moveToNext()) {
+                    add(it.getString(0))
+                }
+            }
+        }
+        if (dates.isEmpty()) return 0
+
+        val today = LocalDate.now()
+        var streak = 0
+        var checkDate = today
+
+        val latestDateStr = dates.first()
+        val latestDate = runCatching { LocalDate.parse(latestDateStr) }.getOrNull() ?: return 0
+        if (latestDate != today && latestDate != today.minusDays(1)) {
+            return 0
+        }
+        checkDate = latestDate
+
+        for (dateStr in dates) {
+            val d = runCatching { LocalDate.parse(dateStr) }.getOrNull() ?: break
+            if (d == checkDate) {
+                streak++
+                checkDate = checkDate.minusDays(1)
+            } else if (d < checkDate) {
+                break
+            }
+        }
+        return streak
+    }
+
+    fun getRandomOrNextQuote(excludeQuote: String? = null): Pair<Book?, String> {
+        val quotesCursor = readableDatabase.rawQuery(
+            """
+            SELECT b.$COLUMN_ID, b.$COLUMN_TITLE, b.$COLUMN_AUTHOR, b.$COLUMN_COVER_URL, b.$COLUMN_MEDIA_TYPE,
+                   n.$COLUMN_CONTENT
+            FROM $TABLE_NOTES n
+            JOIN $TABLE_BOOKS b ON n.$COLUMN_BOOK_ID = b.$COLUMN_ID
+            WHERE n.$COLUMN_IS_DELETED = 0 AND b.$COLUMN_IS_DELETED = 0
+            ORDER BY RANDOM()
+            LIMIT 10
+            """.trimIndent(),
+            null,
+        )
+        val quotes = quotesCursor.use { c ->
+            buildList {
+                while (c.moveToNext()) {
+                    val book = Book(
+                        id = c.getLong(0),
+                        title = c.getString(1),
+                        author = c.getString(2),
+                        coverUrl = c.getString(3),
+                        mediaType = MediaType.fromDatabaseValue(c.getString(4)),
+                        status = BookStatus.READING,
+                    )
+                    val content = c.getString(5)
+                    add(book to content)
+                }
+            }
+        }
+
+        val selected = quotes.firstOrNull { it.second != excludeQuote } ?: quotes.firstOrNull()
+        if (selected != null) {
+            return selected
+        }
+
+        val books = getBooks()
+        val commentBooks = books.filter { !it.shortComment.isNullOrBlank() || !it.review.isNullOrBlank() }
+        val randomCommentBook = commentBooks.shuffled().firstOrNull()
+        if (randomCommentBook != null) {
+            val quote = randomCommentBook.shortComment?.takeIf { it.isNotBlank() }
+                ?: randomCommentBook.review?.takeIf { it.isNotBlank() }
+                ?: "每一道心智印记，都是灵魂与文字的永恒交汇。"
+            return randomCommentBook to quote
+        }
+
+        val defaultQuotes = listOf(
+            "生命中真正重要的不是你遭遇了什么，而是你记住了哪些事，又是如何铭记的。",
+            "给岁月以文明，而不是给文明以岁月。",
+            "世界上只有一种真正的英雄主义，那就是认清生活的真相后依然热爱生活。",
+            "一个人并不是生来要给打败的，你尽可以把他消灭掉，可就是打不败他。",
+            "你所热爱的，就是你的生活；你所铭记的，就是你的痕迹。",
+        )
+        val defaultBook = books.firstOrNull()
+        val quote = defaultQuotes.filter { it != excludeQuote }.randomOrNull() ?: defaultQuotes.first()
+        return defaultBook to quote
+    }
+
+    fun getLatestReadingBook(): Book? {
+        val books = getBooks(status = BookStatus.READING)
+        if (books.isNotEmpty()) {
+            return books.maxByOrNull { it.updatedAt } ?: books.first()
+        }
+        val allBooks = getBooks()
+        return allBooks.firstOrNull()
+    }
+
+    fun quickRecordReadingSession(bookId: Long, minutes: Int = 15): Long {
+        val session = ReadingSession(
+            bookId = bookId,
+            durationMinutes = minutes,
+            thought = "⚡ 桌面小组件快捷打卡 +${minutes}min",
+            createdAt = currentTimestamp(),
+        )
+        return insertReadingSession(session)
+    }
+
     private fun Cursor.toBook(): Book =
         Book(
             id = getLong(getColumnIndexOrThrow(COLUMN_ID)),

@@ -218,6 +218,7 @@ class Book3DReaderActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        com.example.readtrace.widget.CurrentlyReadingWidgetProvider.refreshWidgets(this)
         databaseHelper.close()
         super.onDestroy()
     }
