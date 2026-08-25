@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#05070B">
+
+    <!-- 1. 3D 情绪拓扑与等高线主画布 -->
+    <com.example.readtrace.widget.MindprintTopologyView
+        android:id="@+id/mindprintTopologyView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 2. HUD 交互与控制层 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingTop="36dp">
+
+        <!-- 顶栏导航与模式切换 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="10dp">
+
+            <ImageButton
+                android:id="@+id/btnTopologyBack"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:contentDescription="返回"
+                android:src="@android:drawable/ic_menu_revert" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTopologyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:text="🗺️ 3D 情绪等高线地形图"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTopologySubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="心智大陆 · 1024 km² · 单指俯仰旋转"
+                    android:textColor="#4DEEEA"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btnTopologyModeToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_pill_button"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="🌌 3D 等高线"
+                android:textColor="#FFE700"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 3. 精神海拔等高切片推杆 (Elevation Slicer) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_glass_panel_soft"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp">
+
+            <TextView
+                android:id="@+id/tvSliceLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏔️ 精神海拔切片: 0m"
+                android:textColor="#D5DFEE"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <SeekBar
+                android:id="@+id/seekBarSlice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="0" />
+
+            <TextView
+                android:id="@+id/btnResetView"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_pill_button"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="🎯 复位"
+                android:textColor="#4DEEEA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- 4. 底部心智大陆全息数据看板 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/bg_bento_sub_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvStatHighestPeak"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="serif"
+                        android:maxLines="1"
+                        android:text="8848m"
+                        android:textColor="#FFE700"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="精神最高海拔峰"
+                        android:textColor="#8F9CAE"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="#22FFFFFF" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvStatBeaconCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="16 座"
+                        android:textColor="#74EE15"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="心智地标信标"
+                        android:textColor="#8F9CAE"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="#22FFFFFF" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvStatDominantDomain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="浪漫与哲思"
+                        android:textColor="#4DEEEA"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主导情绪大陆"
+                        android:textColor="#8F9CAE"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

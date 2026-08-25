@@ -89,6 +89,11 @@ class ConstellationFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        val btnConstellationTopology = view?.findViewById<View>(R.id.btnConstellationTopology)
+        btnConstellationTopology?.setOnClickListener {
+            startActivity(android.content.Intent(requireContext(), com.example.readtrace.MindprintTopologyActivity::class.java))
+        }
+
         btnConstellationFullscreen.setOnClickListener {
             startActivity(MindprintConstellationActivity.createIntent(requireContext()))
         }
@@ -107,7 +112,7 @@ class ConstellationFragment : Fragment() {
         }
 
         listOfNotNull(
-            btnConstellationFullscreen, btnNodeDetail,
+            btnConstellationTopology, btnConstellationFullscreen, btnNodeDetail,
             filterAll, filterBook, filterAnime, filterMovie, filterGame, filterResonance,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
