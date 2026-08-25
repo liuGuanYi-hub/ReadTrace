@@ -87,6 +87,9 @@
             android:name=".BookDetailActivity"
             android:exported="false" />
         <activity
+            android:name=".VinylCassettePlayerActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddNoteActivity"
             android:exported="false" />
         <activity

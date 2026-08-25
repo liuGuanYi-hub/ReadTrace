@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0C10">
+
+    <!-- 1. 背景流光与律动粒子层 -->
+    <com.example.readtrace.widget.AudioVisualizerParticleView
+        android:id="@+id/particleBackgroundView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 主布局内容容器 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingTop="36dp"
+        android:paddingBottom="24dp">
+
+        <!-- 2. 顶栏操作与模式切换 -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="12dp">
+
+            <ImageButton
+                android:id="@+id/btnPlayerBack"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_glass_panel_soft"
+                android:contentDescription="返回"
+                android:src="@android:drawable/ic_menu_revert" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvPlayerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:text="💽 拟真黑胶唱机"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPlayerSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="33 1/3 RPM · Hi-Res 模拟声场"
+                    android:textColor="#8F9CAE"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btnToggleMode"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/bg_pill_button"
+                android:gravity="center"
+                android:paddingHorizontal="14dp"
+                android:text="📼 切换磁带"
+                android:textColor="#4DEEEA"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <!-- 3. 中央实体交互展示区 (黑胶唱机 vs 磁带卡座) -->
+        <FrameLayout
+            android:id="@+id/stageContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- 黑胶唱机视图 -->
+            <com.example.readtrace.widget.VinylTurntableView
+                android:id="@+id/vinylTurntableView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible" />
+
+            <!-- 复古磁带卡座视图 -->
+            <com.example.readtrace.widget.CassetteDeckView
+                android:id="@+id/cassetteDeckView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- 4. 浮动金句歌词与灵感卡片 -->
+        <LinearLayout
+            android:id="@+id/quoteLyricsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_parchment_ribbon"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="14dp">
+
+            <TextView
+                android:id="@+id/tvQuoteLyrics"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:lineSpacingMultiplier="1.25"
+                android:maxLines="3"
+                android:text="“向着蔚蓝的晴空挥手作别，那滴落在手心的泪水，终会化为滋润大地的春雨。”"
+                android:textColor="#3D3020"
+                android:textSize="14sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/tvTrackArtistInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="6dp"
+                android:text="—— ヨルシカ 《晴る》"
+                android:textColor="#8C6E40"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 5. 底部音乐控制中枢与进度条 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:background="@drawable/bg_bento_sub_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 进度滑动与时间显示 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvCurrentTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="01:24"
+                    android:textColor="#8F9CAE"
+                    android:textSize="11sp" />
+
+                <SeekBar
+                    android:id="@+id/playerSeekBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progress="35" />
+
+                <TextView
+                    android:id="@+id/tvTotalTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="03:52"
+                    android:textColor="#8F9CAE"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- 核心播放控制按键行 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnSpeedToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="33 RPM"
+                    android:textColor="#8F9CAE"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnPrevTrack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="上一曲"
+                    android:src="@android:drawable/ic_media_previous" />
+
+                <!-- 核心播放/暂停大胶囊按键 -->
+                <LinearLayout
+                    android:id="@+id/btnPlayPausePill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp">
+
+                    <TextView
+                        android:id="@+id/tvPlayPauseLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▶ 沉浸播放"
+                        android:textColor="#0B130E"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btnNextTrack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="下一曲"
+                    android:src="@android:drawable/ic_media_next" />
+
+                <TextView
+                    android:id="@+id/btnAmbientSound"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="🌧️ 雨夜"
+                    android:textColor="#74EE15"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

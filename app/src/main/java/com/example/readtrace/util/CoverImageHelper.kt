@@ -277,6 +277,50 @@ object CoverImageHelper {
         }
     }
 
+    /**
+     * 异步加载封面 Bitmap（优先读内存缓存，其次读文件与网络）
+     */
+    fun loadCoverBitmap(path: String?, onLoaded: (Bitmap?) -> Unit) {
+        val trimmed = path?.trim()
+        if (trimmed.isNullOrEmpty()) {
+            onLoaded(null)
+            return
+        }
+
+        val cached = memoryCache.get(trimmed)
+        if (cached != null) {
+            onLoaded(cached)
+            return
+        }
+
+        imageExecutor.execute {
+            val bitmap = if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+                runCatching {
+                    val url = URL(trimmed)
+                    val conn = (url.openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 5000
+                        readTimeout = 5000
+                        instanceFollowRedirects = true
+                    }
+                    val bytes = conn.inputStream.use { it.readBytes() }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                }.getOrNull()
+            } else {
+                val file = File(trimmed)
+                if (file.exists() && file.isFile) {
+                    decodeSampledBitmapFromFile(file.absolutePath, 300, 300)
+                } else null
+            }
+
+            if (bitmap != null) {
+                memoryCache.put(trimmed, bitmap)
+            }
+            mainHandler.post {
+                onLoaded(bitmap)
+            }
+        }
+    }
+
     private fun md5(input: String): String {
         val md = MessageDigest.getInstance("MD5")
         val digest = md.digest(input.toByteArray())

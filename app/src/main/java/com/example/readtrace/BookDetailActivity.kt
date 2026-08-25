@@ -1231,26 +1231,28 @@ class BookDetailActivity : AppCompatActivity() {
                 navTabNotes.text = "💬 战报心得"
             }
             MediaType.PODCAST -> {
-                headerTitle.text = "播客详情"
-                headerSubtitle.text = "倾听思维碰撞与声音印记。"
-                read3DBtn.text = "🎴 跨媒介双生印记微卡"
+                headerTitle.text = "播客与声音详情"
+                headerSubtitle.text = "倾听思维碰撞、声音印记与黑胶旋律。"
+                read3DBtn.text = "💽 3D 拟真黑胶唱机"
                 read3DBtn.visibility = View.VISIBLE
                 read3DBtn.setOnClickListener {
-                    startActivity(Intent(this, ResonancePosterActivity::class.java))
+                    startActivity(VinylCassettePlayerActivity.createIntent(this, book.id))
                 }
                 importTxtBtn.visibility = View.GONE
-                quotePosterBtn.text = "🎨 播客灵感金句海报"
-                quotePosterBtn.setOnClickListener { openQuotePoster(book) }
-                sectionIdentityTitle.text = "关于这档播客"
-                labelCategory.text = "播客类别"
+                quotePosterBtn.text = "🎴 跨媒介双生微卡"
+                quotePosterBtn.setOnClickListener {
+                    startActivity(Intent(this, ResonancePosterActivity::class.java))
+                }
+                sectionIdentityTitle.text = "关于这档作品"
+                labelCategory.text = "曲目 / 类别"
                 sectionReadingTitle.text = "收听印记"
                 sectionThoughtsTitle.text = "听后感悟"
-                shortCommentLabel.text = "灵感金句"
+                shortCommentLabel.text = "灵感歌词 / 金句"
                 reviewLabel.text = "深度听感"
                 sectionNotesTitle.text = "灵感火花与速记"
                 sectionTimerTitle.text = "⏱️ 聆听专注时光与打卡"
                 collectionTitle.text = "💰 实体唱片与录音带"
-                sectionCharTitle.text = "🎙️ 主播与嘉宾谱"
+                sectionCharTitle.text = "🎙️ 创作者与声乐谱"
                 navTabNotes.text = "💬 灵感速记"
             }
         }

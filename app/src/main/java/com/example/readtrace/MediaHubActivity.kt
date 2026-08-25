@@ -228,11 +228,16 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusFinished.text = "已听完"
                 hubStatusWishlist.text = "想听"
                 btnHubSpecialFeature.visibility = View.VISIBLE
-                btnHubSpecialFeature.text = "🎴 共鸣双生微卡"
+                btnHubSpecialFeature.text = "💽 拟真黑胶唱机"
                 btnHubSpecialFeature.setOnClickListener {
+                    val firstPodcast = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.PODCAST }
+                    startActivity(VinylCassettePlayerActivity.createIntent(this, firstPodcast?.id ?: -1L))
+                }
+                btnHubPassport.visibility = View.VISIBLE
+                btnHubPassport.text = "🎴 双生微卡"
+                btnHubPassport.setOnClickListener {
                     startActivity(Intent(this, ResonancePosterActivity::class.java))
                 }
-                btnHubPassport.visibility = View.GONE
             }
         }
 
