@@ -957,6 +957,23 @@
                         android:textSize="18sp" />
 
                     <TextView
+                        android:id="@+id/detailTopologyLocateBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_pill_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:text="🗺️ 3D 地形"
+                        android:textColor="#4DEEEA"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
                         android:id="@+id/detailExportWidgetBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="34dp"

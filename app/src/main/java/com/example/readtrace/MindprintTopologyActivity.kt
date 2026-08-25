@@ -112,6 +112,11 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
 
         mindprintTopologyView.setData(allBooks, mindprintMap)
 
+        val focusId = intent.getLongExtra(EXTRA_FOCUS_BOOK_ID, -1L)
+        if (focusId != -1L) {
+            mindprintTopologyView.focusBook(focusId)
+        }
+
         val peakTitle = highestBook?.title ?: "百年孤独"
         tvStatHighestPeak.text = "8848m 《$peakTitle》"
         tvStatBeaconCount.text = "${minOf(16, allBooks.size)} 座"
@@ -153,11 +158,39 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "3D 地形视角与切片已复位", Toast.LENGTH_SHORT).show()
         }
 
+        // 导出 1080P 拓扑图谱海报
+        findViewById<View>(R.id.btnTopologyShare)?.setOnClickListener {
+            exportAndShareTopologyPoster()
+        }
+
         // 点击水晶地标信标
         mindprintTopologyView.onBeaconClickListener = { book, mindprint ->
             HapticFeedbackEngine.celestialResonancePulse(this)
             SpatialAudioEngine.playCelestialTone()
             showBeaconDetailDialog(book, mindprint)
+        }
+    }
+
+    private fun exportAndShareTopologyPoster() {
+        runCatching {
+            Toast.makeText(this, "正在生成 1080P 心智拓扑图谱海报...", Toast.LENGTH_SHORT).show()
+            val bitmap = mindprintTopologyView.create1080pPosterBitmap()
+            val cacheFile = java.io.File(cacheDir, "readtrace_topology_${System.currentTimeMillis()}.png")
+            java.io.FileOutputStream(cacheFile).use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            }
+
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", cacheFile)
+            val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "《阅痕》3D 情绪等高线地形图谱")
+                putExtra(android.content.Intent.EXTRA_TEXT, "🗺️ 阅痕心智大陆 · 1024 km² 精神海拔拓扑全景图")
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(android.content.Intent.createChooser(shareIntent, "分享心智拓扑图谱"))
+        }.onFailure {
+            Toast.makeText(this, "生成海报失败: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -234,4 +267,16 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    companion object {
+        const val EXTRA_FOCUS_BOOK_ID = "extra_focus_book_id"
+
+        fun createIntent(context: Context, focusBookId: Long = -1L): android.content.Intent {
+            return android.content.Intent(context, MindprintTopologyActivity::class.java).apply {
+                if (focusBookId != -1L) {
+                    putExtra(EXTRA_FOCUS_BOOK_ID, focusBookId)
+                }
+            }
+        }
+    }
 }

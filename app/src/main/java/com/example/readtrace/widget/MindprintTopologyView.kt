@@ -421,6 +421,55 @@ class MindprintTopologyView @JvmOverloads constructor(
         }
     }
 
+    fun focusBook(bookId: Long) {
+        val target = beacons.firstOrNull { it.book.id == bookId } ?: return
+        selectedBeacon = target
+        zoomScale = 1.35f
+        invalidate()
+    }
+
+    fun create1080pPosterBitmap(): android.graphics.Bitmap {
+        val targetW = 1080
+        val targetH = 1440
+        val bmp = android.graphics.Bitmap.createBitmap(targetW, targetH, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+
+        // 1. 背景
+        paint.shader = LinearGradient(0f, 0f, 0f, targetH.toFloat(), Color.parseColor("#05070B"), Color.parseColor("#0C111C"), Shader.TileMode.CLAMP)
+        paint.style = Paint.Style.FILL
+        canvas.drawRect(0f, 0f, targetW.toFloat(), targetH.toFloat(), paint)
+        paint.shader = null
+
+        val cx = targetW * 0.5f
+        val cy = targetH * 0.46f
+        val cellW = targetW * 0.024f * 1.25f
+        val cellH = targetW * 0.024f * 1.25f
+        val elevationScale = 180f
+
+        drawContourLayers(canvas, cx, cy, cellW, cellH, elevationScale)
+        drawLandmarkBeacons(canvas, cx, cy, cellW, cellH, elevationScale)
+
+        // 2. 顶部典藏标题
+        textPaint.color = Color.WHITE
+        textPaint.textSize = 40f
+        textPaint.isFakeBoldText = true
+        textPaint.textAlign = Paint.Align.CENTER
+        canvas.drawText("🗺️ READTRACE 3D MINDPRINT TOPOLOGY", cx, 90f, textPaint)
+
+        textPaint.color = Color.parseColor("#4DEEEA")
+        textPaint.textSize = 22f
+        textPaint.isFakeBoldText = false
+        canvas.drawText("心智等高线地貌 · 精神大陆三维拓扑图谱", cx, 132f, textPaint)
+
+        // 3. 底部图例
+        textPaint.color = Color.parseColor("#8F9CAE")
+        textPaint.textSize = 18f
+        canvas.drawText("深海蓝 < 2000m · 翠绿平原 < 4500m · 金黄高地 < 6500m · 紫晶山脉 < 8000m · 雪白巅顶 ≥ 8000m", cx, targetH - 60f, textPaint)
+        textPaint.textAlign = Paint.Align.LEFT
+
+        return bmp
+    }
+
     private fun getElevationColor(elevation: Float, alpha: Int = 220): Int {
         return when {
             elevation < 0.25f -> Color.argb(alpha, 14, 116, 238) // 深海蓝

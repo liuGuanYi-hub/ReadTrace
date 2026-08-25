@@ -164,6 +164,9 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailTimelineExportBtn).setOnClickListener {
             exportTimelineAsLongImage()
         }
+        findViewById<View>(R.id.detailTopologyLocateBtn)?.setOnClickListener {
+            startActivity(MindprintTopologyActivity.createIntent(this, bookId))
+        }
         findViewById<View>(R.id.detailCompareMindprintBtn).setOnClickListener {
             showCompareMindprintDialog()
         }
@@ -183,6 +186,7 @@ class BookDetailActivity : AppCompatActivity() {
             findViewById(R.id.detailAddCharButton),
             findViewById(R.id.detailAddOutlineButton),
             findViewById(R.id.detailAddLocationBtn),
+            findViewById(R.id.detailTopologyLocateBtn),
             findViewById(R.id.detailEditMindprintBtn),
             findViewById(R.id.detailCompareMindprintBtn),
             findViewById(R.id.detailExportWidgetBtn),
