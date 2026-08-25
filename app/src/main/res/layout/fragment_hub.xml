@@ -154,192 +154,207 @@
             </HorizontalScrollView>
         </LinearLayout>
 
-        <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase) -->
-        <LinearLayout
-            android:id="@+id/heroCuratorialCard"
+        <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase with Gyroscope & Specular Glare) -->
+        <FrameLayout
+            android:id="@+id/heroCuratorialContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_curatorial_hero_card"
-            android:elevation="8dp"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:layout_marginTop="16dp">
 
-            <!-- 策展标徽与推荐标签 -->
             <LinearLayout
+                android:id="@+id/heroCuratorialCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:background="@drawable/bg_curatorial_hero_card"
+                android:elevation="8dp"
+                android:orientation="vertical"
+                android:padding="18dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="sans"
-                    android:letterSpacing="0.05"
-                    android:text="🏛️ 今日策展焦点 · 典藏展台"
-                    android:textColor="@color/readtrace_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/heroBadgeMedia"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_pill"
-                    android:paddingStart="8dp"
-                    android:paddingTop="2dp"
-                    android:paddingEnd="8dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/readtrace_accent"
-                    android:textSize="10.5sp"
-                    android:textStyle="bold"
-                    tools:text="📖 经典文学" />
-            </LinearLayout>
-
-            <!-- 封面与核心元数据横向区 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <!-- 3D 浮雕投影封面 -->
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp">
-
-                    <ImageView
-                        android:id="@+id/heroBookCover"
-                        android:layout_width="76dp"
-                        android:layout_height="112dp"
-                        android:background="@drawable/bg_book_card"
-                        android:clipToOutline="true"
-                        android:elevation="6dp"
-                        android:scaleType="centerCrop" />
-
-                    <TextView
-                        android:id="@+id/heroCoverPlaceholder"
-                        android:layout_width="76dp"
-                        android:layout_height="112dp"
-                        android:background="@drawable/bg_book_card"
-                        android:elevation="6dp"
-                        android:gravity="center"
-                        android:padding="6dp"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        tools:text="小王子" />
-                </FrameLayout>
-
-                <!-- 书名、作者与评分 -->
+                <!-- 策展标徽与推荐标签 -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/heroBookTitle"
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:fontFamily="serif"
-                        android:maxLines="2"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        tools:text="《小王子》" />
+                        android:layout_weight="1"
+                        android:fontFamily="sans"
+                        android:letterSpacing="0.05"
+                        android:text="🏛️ 今日策展焦点 · 典藏展台"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/heroBookAuthor"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:ellipsize="end"
-                        android:fontFamily="serif"
-                        android:maxLines="1"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="12.5sp"
-                        tools:text="安托万·德·圣-埃克苏佩里" />
-
-                    <TextView
-                        android:id="@+id/heroBookRating"
+                        android:id="@+id/heroBadgeMedia"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/bg_gold_badge"
+                        android:background="@drawable/bg_status_pill"
                         android:paddingStart="8dp"
                         android:paddingTop="2dp"
                         android:paddingEnd="8dp"
                         android:paddingBottom="2dp"
-                        android:textColor="@color/readtrace_gold_accent"
-                        android:textSize="11sp"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="10.5sp"
                         android:textStyle="bold"
-                        tools:text="★ 9.8 · 精神珍藏" />
+                        tools:text="📖 经典文学" />
+                </LinearLayout>
+
+                <!-- 封面与核心元数据横向区 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- 3D 浮雕投影封面 -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp">
+
+                        <ImageView
+                            android:id="@+id/heroBookCover"
+                            android:layout_width="76dp"
+                            android:layout_height="112dp"
+                            android:background="@drawable/bg_book_card"
+                            android:clipToOutline="true"
+                            android:elevation="6dp"
+                            android:scaleType="centerCrop" />
+
+                        <TextView
+                            android:id="@+id/heroCoverPlaceholder"
+                            android:layout_width="76dp"
+                            android:layout_height="112dp"
+                            android:background="@drawable/bg_book_card"
+                            android:elevation="6dp"
+                            android:gravity="center"
+                            android:padding="6dp"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            tools:text="小王子" />
+                    </FrameLayout>
+
+                    <!-- 书名、作者与评分 -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/heroBookTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="serif"
+                            android:maxLines="2"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:text="《小王子》" />
+
+                        <TextView
+                            android:id="@+id/heroBookAuthor"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="end"
+                            android:fontFamily="serif"
+                            android:maxLines="1"
+                            android:textColor="@color/readtrace_muted"
+                            android:textSize="12.5sp"
+                            tools:text="安托万·德·圣-埃克苏佩里" />
+
+                        <TextView
+                            android:id="@+id/heroBookRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_gold_badge"
+                            android:paddingStart="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="2dp"
+                            android:textColor="@color/readtrace_gold_accent"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            tools:text="★ 9.8 · 精神珍藏" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 策展金句引言 -->
+                <TextView
+                    android:id="@+id/heroBookQuote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_glass_panel_soft"
+                    android:ellipsize="end"
+                    android:fontFamily="serif"
+                    android:lineSpacingExtra="3dp"
+                    android:maxLines="3"
+                    android:padding="12dp"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="13sp"
+                    android:textStyle="italic"
+                    tools:text="“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”" />
+
+                <!-- 双操作按钮 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/heroBtnRead"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_primary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:text="📖 3D 沉浸翻阅"
+                        android:textColor="@color/white"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/heroBtnDetail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_secondary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:text="✦ 检视印记"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 策展金句引言 -->
-            <TextView
-                android:id="@+id/heroBookQuote"
+            <!-- 全息烫金高光漫反射层 -->
+            <com.example.readtrace.widget.HolographicSpecularOverlayView
+                android:id="@+id/heroSpecularOverlay"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:ellipsize="end"
-                android:fontFamily="serif"
-                android:lineSpacingExtra="3dp"
-                android:maxLines="3"
-                android:padding="12dp"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="13sp"
-                android:textStyle="italic"
-                tools:text="“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”" />
-
-            <!-- 双操作按钮 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/heroBtnRead"
-                    android:layout_width="0dp"
-                    android:layout_height="38dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_primary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:text="📖 3D 沉浸翻阅"
-                    android:textColor="@color/white"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/heroBtnDetail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:text="✦ 检视印记"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:elevation="9dp"
+                android:focusable="false" />
+        </FrameLayout>
 
         <!-- 📊 2. 【非对称双副卡区】(Asymmetric Dual Bento Cards) -->
         <LinearLayout

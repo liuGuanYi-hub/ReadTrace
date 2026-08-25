@@ -47,6 +47,10 @@ class CulturalPassportActivity : AppCompatActivity() {
 
         initViews()
         loadData()
+
+        val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
+        gyroscopeHelper.bind3DParallax(culturalPassportView, maxRotation = 10f, maxTranslation = 14f)
+        gyroscopeHelper.bindLifecycle(lifecycle)
     }
 
     private fun initViews() {

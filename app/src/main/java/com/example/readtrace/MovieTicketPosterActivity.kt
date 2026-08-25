@@ -45,6 +45,10 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         initViews()
         loadData()
         buildThemeChips()
+
+        val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
+        gyroscopeHelper.bind3DParallax(movieTicketPosterView, maxRotation = 12f, maxTranslation = 16f)
+        gyroscopeHelper.bindLifecycle(lifecycle)
     }
 
     private fun initViews() {

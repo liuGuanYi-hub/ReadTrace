@@ -53,6 +53,7 @@ class HubFragment : Fragment() {
 
     // 🌟 Hero 策展主位
     private lateinit var heroCuratorialCard: View
+    private lateinit var heroSpecularOverlay: com.example.readtrace.widget.HolographicSpecularOverlayView
     private lateinit var heroBadgeMedia: TextView
     private lateinit var heroBookCover: ImageView
     private lateinit var heroCoverPlaceholder: TextView
@@ -63,6 +64,8 @@ class HubFragment : Fragment() {
     private lateinit var heroBtnRead: TextView
     private lateinit var heroBtnDetail: TextView
     private var currentHeroBook: Book? = null
+
+    private lateinit var gyroscopeHelper: com.example.readtrace.util.GyroscopeParallaxHelper
 
     // 📊 非对称双副卡
     private lateinit var bentoCardReading: View
@@ -147,6 +150,16 @@ class HubFragment : Fragment() {
 
         initViews(view)
         setupListeners()
+        setupGyroscopeParallax()
+    }
+
+    private fun setupGyroscopeParallax() {
+        gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(requireContext())
+        gyroscopeHelper.bind3DParallax(heroCuratorialCard, maxRotation = 8f, maxTranslation = 12f)
+        gyroscopeHelper.bind3DParallax(heroBookCover, maxRotation = 14f, maxTranslation = 16f)
+        gyroscopeHelper.bindHolographicSpecular(heroSpecularOverlay)
+        gyroscopeHelper.bind3DParallax(parchmentQuoteRibbon, maxRotation = 5f, maxTranslation = 8f)
+        gyroscopeHelper.bindLifecycle(viewLifecycleOwner.lifecycle)
     }
 
     override fun onResume() {
@@ -166,6 +179,7 @@ class HubFragment : Fragment() {
 
         // 🌟 Hero
         heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
+        heroSpecularOverlay = view.findViewById(R.id.heroSpecularOverlay)
         heroBadgeMedia = view.findViewById(R.id.heroBadgeMedia)
         heroBookCover = view.findViewById(R.id.heroBookCover)
         heroCoverPlaceholder = view.findViewById(R.id.heroCoverPlaceholder)

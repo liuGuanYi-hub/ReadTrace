@@ -63,6 +63,13 @@ class BookDetailActivity : AppCompatActivity() {
             return
         }
 
+        val coverContainer = findViewById<View>(R.id.detailCoverContainer)
+        if (coverContainer != null) {
+            val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
+            gyroscopeHelper.bind3DParallax(coverContainer, maxRotation = 14f, maxTranslation = 18f)
+            gyroscopeHelper.bindLifecycle(lifecycle)
+        }
+
         findViewById<View>(R.id.detailBackButton).setOnClickListener { finish() }
         findViewById<View>(R.id.detailRead3DButton).setOnClickListener {
             startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
