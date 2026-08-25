@@ -22,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
@@ -34,6 +36,14 @@ import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
+    private val importExternalCsvLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            importExternalCsvFile(uri)
+        }
+    }
+
     private lateinit var databaseHelper: BookDatabaseHelper
     private lateinit var booksContainer: LinearLayout
     private lateinit var emptyPanel: View
@@ -248,25 +258,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun confirmImportPresetBooks() {
+        val options = arrayOf(
+            "📚 经典文学名著 (54 本 · preset_books.csv)",
+            "🌸 经典追番编年史 (70 部 · preset_anime.csv)",
+            "🎬 经典影视光影 (11 部 · preset_movies.csv)",
+            "🎮 Steam 游戏宝库 (67 款 · preset_games.csv)",
+            "✨ 一键全量导入 (202 部文化印记)",
+            "📁 选择手机本地 CSV 文件导入..."
+        )
+
         AlertDialog.Builder(this)
-            .setTitle(R.string.import_preset_confirm_title)
-            .setMessage(R.string.import_preset_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.home_import_preset) { _, _ ->
-                importPresetBooks()
+            .setTitle("📥 批量导入文化资产 (CSV)")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> importPresetAssetCsv("preset_books.csv", MediaType.BOOK, "经典文学名著")
+                    1 -> importPresetAssetCsv("preset_anime.csv", MediaType.ANIME, "经典追番编年史")
+                    2 -> importPresetAssetCsv("preset_movies.csv", MediaType.MOVIE, "经典影视光影")
+                    3 -> importPresetAssetCsv("preset_games.csv", MediaType.GAME, "Steam 游戏宝库")
+                    4 -> importAllPresetAssets()
+                    5 -> {
+                        runCatching {
+                            importExternalCsvLauncher.launch(arrayOf("text/comma-separated-values", "text/csv", "application/csv", "*/*"))
+                        }.onFailure {
+                            Toast.makeText(this, "无法启动文件选择器: ${it.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             }
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 
-    private fun importPresetBooks() {
+    private fun importPresetAssetCsv(assetName: String, defaultMediaType: MediaType, label: String) {
         runCatching {
-            assets.open("preset_books.csv").use { inputStream ->
-                val books = BookCsvParser.parse(inputStream)
-                val count = databaseHelper.importBooks(books)
+            assets.open(assetName).use { inputStream ->
+                val records = BookCsvParser.parseRecords(inputStream, defaultMediaType)
+                val count = databaseHelper.importParsedRecords(records)
                 if (count > 0) {
                     Toast.makeText(
                         this,
-                        getString(R.string.import_success_format, count),
+                        "✨ 成功导入/更新 $count 条 $label！",
                         Toast.LENGTH_SHORT,
                     ).show()
                     refreshBooks()
@@ -275,7 +306,60 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }.onFailure {
-            Toast.makeText(this, R.string.import_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "导入 $label 失败: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun importAllPresetAssets() {
+        runCatching {
+            var totalCount = 0
+            listOf(
+                "preset_books.csv" to MediaType.BOOK,
+                "preset_anime.csv" to MediaType.ANIME,
+                "preset_movies.csv" to MediaType.MOVIE,
+                "preset_games.csv" to MediaType.GAME,
+            ).forEach { (assetName, mediaType) ->
+                assets.open(assetName).use { inputStream ->
+                    val records = BookCsvParser.parseRecords(inputStream, mediaType)
+                    totalCount += databaseHelper.importParsedRecords(records)
+                }
+            }
+
+            if (totalCount > 0) {
+                Toast.makeText(
+                    this,
+                    "🌟 成功全量导入/更新 $totalCount 部文化印记（名著/番剧/电影/游戏）！",
+                    Toast.LENGTH_LONG,
+                ).show()
+                refreshBooks()
+            } else {
+                Toast.makeText(this, R.string.import_no_new_books, Toast.LENGTH_SHORT).show()
+            }
+        }.onFailure {
+            Toast.makeText(this, "全量导入失败: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun importExternalCsvFile(uri: Uri) {
+        runCatching {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                val records = BookCsvParser.parseRecords(inputStream, selectedMediaType ?: MediaType.BOOK)
+                val count = databaseHelper.importParsedRecords(records)
+                if (count > 0) {
+                    Toast.makeText(
+                        this,
+                        "📂 成功从 CSV 导入/更新 $count 条作品记录！",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    refreshBooks()
+                } else {
+                    Toast.makeText(this, R.string.import_no_new_books, Toast.LENGTH_SHORT).show()
+                }
+            } ?: run {
+                Toast.makeText(this, "无法读取所选 CSV 文件", Toast.LENGTH_SHORT).show()
+            }
+        }.onFailure {
+            Toast.makeText(this, "解析外部 CSV 失败: ${it.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

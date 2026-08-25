@@ -1395,23 +1395,59 @@ class BookDatabaseHelper(val context: Context) :
         }
 
     /**
-     * 批量导入书籍，利用事务提升性能，并检查标题和作者去重
-     * @return 实际成功插入的新书籍数量
+     * 批量导入多维度 CSV 解析记录（包含作品属性与六维心智模型）。
+     * 若已存在同名作品，则智能补充完善其评分、短评、长评、封面与六维心智；若不存在则新增插入。
      */
-    fun importBooks(books: List<Book>): Int {
-        if (books.isEmpty()) return 0
+    fun importParsedRecords(records: List<com.example.readtrace.util.BookCsvParser.ParsedBookRecord>): Int {
+        if (records.isEmpty()) return 0
         val db = writableDatabase
-        var insertedCount = 0
+        var affectedCount = 0
         db.beginTransaction()
         try {
             val now = currentTimestamp()
-            for (book in books) {
+            for (record in records) {
+                val book = record.book
                 val cleanTitle = book.title.trim()
                 if (cleanTitle.isEmpty()) continue
 
-                // 查重：同名且同作者（未归档）则跳过
-                val exists = isBookExists(db, cleanTitle, book.author?.trim())
-                if (!exists) {
+                val cursor = if (book.author.isNullOrEmpty()) {
+                    db.query(
+                        TABLE_BOOKS,
+                        arrayOf(COLUMN_ID),
+                        "$COLUMN_TITLE = ? AND ($COLUMN_AUTHOR IS NULL OR $COLUMN_AUTHOR = '') AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(cleanTitle),
+                        null, null, null, "1"
+                    )
+                } else {
+                    db.query(
+                        TABLE_BOOKS,
+                        arrayOf(COLUMN_ID),
+                        "$COLUMN_TITLE = ? AND $COLUMN_AUTHOR = ? AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(cleanTitle, book.author.trim()),
+                        null, null, null, "1"
+                    )
+                }
+
+                val existingId = cursor.use {
+                    if (it.moveToFirst()) it.getLong(0) else null
+                }
+
+                val targetBookId: Long
+                if (existingId != null) {
+                    targetBookId = existingId
+                    val updateCv = ContentValues().apply {
+                        if (!book.coverUrl.isNullOrBlank()) put(COLUMN_COVER_URL, book.coverUrl)
+                        if (!book.category.isNullOrBlank()) put(COLUMN_CATEGORY, book.category)
+                        if (book.rating != null) put(COLUMN_RATING, book.rating)
+                        if (book.tags.isNotEmpty()) put(COLUMN_TAGS, org.json.JSONArray(book.tags).toString())
+                        if (!book.shortComment.isNullOrBlank()) put(COLUMN_SHORT_COMMENT, book.shortComment)
+                        if (!book.review.isNullOrBlank()) put(COLUMN_REVIEW, book.review)
+                        put(COLUMN_MEDIA_TYPE, book.mediaType.databaseValue)
+                        put(COLUMN_UPDATED_AT, now)
+                    }
+                    db.update(TABLE_BOOKS, updateCv, "$COLUMN_ID = ?", arrayOf(targetBookId.toString()))
+                    affectedCount++
+                } else {
                     val values = book.toContentValues().apply {
                         put(COLUMN_TITLE, cleanTitle)
                         put(COLUMN_CREATED_AT, book.createdAt.ifBlank { now })
@@ -1421,15 +1457,43 @@ class BookDatabaseHelper(val context: Context) :
                     }
                     val rowId = db.insert(TABLE_BOOKS, null, values)
                     if (rowId > 0) {
-                        insertedCount++
+                        targetBookId = rowId
+                        affectedCount++
+                    } else {
+                        targetBookId = -1L
                     }
+                }
+
+                // 写入或更新六维心智雷达
+                if (targetBookId > 0 && record.mindprint != null) {
+                    val mp = record.mindprint
+                    val mpCv = ContentValues().apply {
+                        put(COLUMN_BOOK_ID, targetBookId)
+                        put(COLUMN_DEPTH_SCORE, mp.depthScore)
+                        put(COLUMN_ARTISTRY_SCORE, mp.artistryScore)
+                        put(COLUMN_EMOTION_SCORE, mp.emotionScore)
+                        put(COLUMN_LOGIC_SCORE, mp.logicScore)
+                        put(COLUMN_DIFFICULTY_SCORE, mp.difficultyScore)
+                        put(COLUMN_HEALING_SCORE, mp.healingScore)
+                        put(COLUMN_UPDATED_AT, now)
+                    }
+                    db.insertWithOnConflict(TABLE_BOOK_MINDPRINTS, null, mpCv, SQLiteDatabase.CONFLICT_REPLACE)
                 }
             }
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
         }
-        return insertedCount
+        return affectedCount
+    }
+
+    /**
+     * 批量导入书籍列表（用于旧版兼容与快速文本导入）。
+     */
+    fun importBooks(books: List<Book>): Int {
+        if (books.isEmpty()) return 0
+        val records = books.map { com.example.readtrace.util.BookCsvParser.ParsedBookRecord(it, null) }
+        return importParsedRecords(records)
     }
 
     private fun isBookExists(db: SQLiteDatabase, title: String, author: String?): Boolean {

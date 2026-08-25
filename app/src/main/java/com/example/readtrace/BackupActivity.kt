@@ -48,6 +48,12 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
+    private val openCsvLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) {
+            importCsvFromFile(uri)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -81,6 +87,10 @@ class BackupActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.importJsonCard).setOnClickListener {
             openJsonLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+        }
+
+        findViewById<View>(R.id.importCsvCard).setOnClickListener {
+            openCsvLauncher.launch(arrayOf("text/comma-separated-values", "text/csv", "application/csv", "*/*"))
         }
 
         refreshStats()
@@ -143,6 +153,37 @@ class BackupActivity : AppCompatActivity() {
                 .show()
         }.onFailure {
             Toast.makeText(this, R.string.backup_import_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun importCsvFromFile(uri: Uri) {
+        runCatching {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                val records = com.example.readtrace.util.BookCsvParser.parseRecords(inputStream)
+                if (records.isEmpty()) {
+                    Toast.makeText(this, "未能从 CSV 解析出有效记录", Toast.LENGTH_SHORT).show()
+                    return
+                }
+
+                AlertDialog.Builder(this)
+                    .setTitle("确认导入 CSV 清单？")
+                    .setMessage("检测到 CSV 清单包含 ${records.size} 部作品记录（含评分、金句与心智模型）。\n\n导入将自动匹配合并现有作品，是否继续？")
+                    .setPositiveButton("立即导入") { _, _ ->
+                        val count = databaseHelper.importParsedRecords(records)
+                        refreshStats()
+                        AlertDialog.Builder(this)
+                            .setTitle("🎉 导入完成")
+                            .setMessage("成功合入/更新 $count 部作品记录！")
+                            .setPositiveButton("确定", null)
+                            .show()
+                    }
+                    .setNegativeButton("取消", null)
+                    .show()
+            } ?: run {
+                Toast.makeText(this, "无法读取 CSV 文件", Toast.LENGTH_SHORT).show()
+            }
+        }.onFailure {
+            Toast.makeText(this, "解析 CSV 失败: ${it.message}", Toast.LENGTH_LONG).show()
         }
     }
 

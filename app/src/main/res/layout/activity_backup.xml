@@ -266,13 +266,12 @@
             android:text="@string/backup_section_import"
             android:textSize="16sp" />
 
-        <!-- 导入卡片 -->
+        <!-- 导入 JSON 卡片 -->
         <LinearLayout
             android:id="@+id/importJsonCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="32dp"
             android:background="@drawable/bg_glass_panel"
             android:clickable="true"
             android:elevation="6dp"
@@ -295,6 +294,39 @@
                 android:layout_marginTop="8dp"
                 android:fontFamily="sans"
                 android:text="@string/backup_import_hint"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 导入 CSV 卡片 -->
+        <LinearLayout
+            android:id="@+id/importCsvCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="📊 导入 CSV 表格清单 (.csv)"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans"
+                android:text="支持名著、番剧、电影、游戏及自定义 CSV，自动识别评分、标签与六维心智。"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="13sp" />
         </LinearLayout>
