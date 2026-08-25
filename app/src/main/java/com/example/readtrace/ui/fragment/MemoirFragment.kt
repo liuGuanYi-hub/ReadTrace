@@ -34,12 +34,17 @@ class MemoirFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         databaseHelper = BookDatabaseHelper(requireContext())
 
+        val cardTimeWarpTunnel = view.findViewById<View>(R.id.cardTimeWarpTunnel)
         val cardPassport = view.findViewById<View>(R.id.cardPassport)
         val cardMovieTicket = view.findViewById<View>(R.id.cardMovieTicket)
         val cardGameCartridge = view.findViewById<View>(R.id.cardGameCartridge)
         val cardResonancePoster = view.findViewById<View>(R.id.cardResonancePoster)
         val cardAnimeTimeline = view.findViewById<View>(R.id.cardAnimeTimeline)
         val cardCoverGallery = view.findViewById<View>(R.id.cardCoverGallery)
+
+        cardTimeWarpTunnel?.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.readtrace.TimeWarpTunnelActivity::class.java))
+        }
 
         cardPassport.setOnClickListener {
             startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
@@ -91,7 +96,7 @@ class MemoirFragment : Fragment() {
         }
 
         listOfNotNull(
-            cardPassport, cardMovieTicket, cardGameCartridge,
+            cardTimeWarpTunnel, cardPassport, cardMovieTicket, cardGameCartridge,
             cardResonancePoster, cardAnimeTimeline, cardCoverGallery,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }

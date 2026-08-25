@@ -47,6 +47,57 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- 🌟 先锋创新：🌌 3D 时空穿梭隧道与心智流光胶囊 -->
+        <LinearLayout
+            android:id="@+id/cardTimeWarpTunnel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_curatorial_hero_card"
+            android:clickable="true"
+            android:elevation="8dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="🌌 3D 时空穿梭隧道"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_gold_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="曲速虫洞"
+                    android:textColor="#0B130E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="3dp"
+                android:text="突破扁平历史，在无限延伸的 3D 虫洞中曲速回溯你的心智流光记忆胶囊"
+                android:textColor="#A8B2C1"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <TextView
             style="@style/ReadTraceFieldLabel"
             android:layout_marginTop="20dp"
