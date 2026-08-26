@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#07090E">
+
+    <!-- 🌌 背景极光流体层 -->
+    <com.example.readtrace.widget.AuroraFluidBackgroundView
+        android:id="@+id/cosmicAuroraBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 🎞️ 35mm 胶片感光微噪点 -->
+    <com.example.readtrace.widget.FilmGrainOverlayView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 🪐 跨媒介认知引力星系物理视图 -->
+    <com.example.readtrace.widget.CosmicGravityGraphView
+        android:id="@+id/cosmicGravityGraphView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 顶部导航栏与控制面板 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnGalaxyBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_secondary_button"
+                android:contentDescription="返回"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="#FFFFFF" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:text="🪐 跨媒介认知引力星系"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvGalaxySubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="monospace"
+                    android:text="528Hz 治愈引力波 · 拖拽节点触发展开"
+                    android:textColor="#88FFFFFF"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <com.example.readtrace.widget.EditorialBadgeView
+                android:id="@+id/galaxyBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- 媒介分类胶囊过滤条 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnFilterAll"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="🌌 全媒介共鸣"
+                    android:textColor="#4DEEEA"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnFilterPodcast"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="💽 声音·夜鹿"
+                    android:textColor="#CCCCCC"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnFilterAnime"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="🌸 番剧·芙莉莲"
+                    android:textColor="#CCCCCC"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btnFilterLiterature"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="📖 哲学文学"
+                    android:textColor="#CCCCCC"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+</FrameLayout>

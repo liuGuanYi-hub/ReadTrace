@@ -160,6 +160,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_mindprint_dashboard_info" />
         </receiver>
+
+        <!-- 🪐 跨媒介认知引力星系展厅 -->
+        <activity
+            android:name=".CosmicGalaxyActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

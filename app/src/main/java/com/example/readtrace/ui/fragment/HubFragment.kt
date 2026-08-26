@@ -256,6 +256,15 @@ class HubFragment : Fragment() {
         btnQuickGameCartridge = view.findViewById(R.id.btnQuickGameCartridge)
         btnQuickGamePassport = view.findViewById(R.id.btnQuickGamePassport)
 
+        // 🪐 跨媒介引力星系
+        view.findViewById<com.example.readtrace.widget.EditorialBadgeView>(R.id.badgeCosmicGravity)?.setBadgeContent("COSMOS", "#4DEEEA")
+        val openGalaxy = {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
+            startActivity(Intent(requireContext(), com.example.readtrace.CosmicGalaxyActivity::class.java))
+        }
+        view.findViewById<View>(R.id.hubCardCosmicGalaxy)?.setOnClickListener { openGalaxy() }
+        view.findViewById<View>(R.id.btnEnterCosmicGalaxy)?.setOnClickListener { openGalaxy() }
+
         // 记忆面板
         memoryPanel = view.findViewById(R.id.memoryPanel)
         memoryTitle = view.findViewById(R.id.memoryTitle)

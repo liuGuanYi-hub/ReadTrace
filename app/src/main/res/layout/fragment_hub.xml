@@ -1171,6 +1171,65 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- 🪐 5. 跨媒介认知引力星系 (Cosmic Galaxy Card) -->
+        <LinearLayout
+            android:id="@+id/hubCardCosmicGalaxy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="🪐 跨媒介引力星系"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="17.5sp"
+                    android:textStyle="bold" />
+
+                <com.example.readtrace.widget.EditorialBadgeView
+                    android:id="@+id/badgeCosmicGravity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans"
+                android:text="夜鹿·芙莉莲·时间的秩序 · 528Hz 弹性引力波拓扑"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+
+            <TextView
+                android:id="@+id/btnEnterCosmicGalaxy"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_primary_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:text="🌌 漫游心智引力星系 ➔"
+                android:textColor="@color/white"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
         <!-- 时光深处的回响 (Memory Panel) -->
         <LinearLayout
             android:id="@+id/memoryPanel"
