@@ -47,7 +47,8 @@ class DropCapTextView @JvmOverloads constructor(
         val density = resources.displayMetrics.scaledDensity
         dropCapSize = textSize * 2.8f
         dropCapPaint.textSize = dropCapSize
-        dropCapShadowPaint.textSize = dropCapSize * 1.35f
+        // 水印控制在首字尺寸内，避免巨幅光晕遮盖正文导致"显示不全"
+        dropCapShadowPaint.textSize = dropCapSize * 1.12f
         dropCapMargin = (dropCapSize * 0.92f).toInt()
         letterSpacing = 0.03f
         setLineSpacing(4f * resources.displayMetrics.density, 1.15f)
@@ -61,7 +62,7 @@ class DropCapTextView @JvmOverloads constructor(
 
         this.dropCapLines = linesSpan
         dropCapPaint.color = dropCapColor
-        dropCapShadowPaint.color = Color.argb(30, Color.red(dropCapColor), Color.green(dropCapColor), Color.blue(dropCapColor))
+        dropCapShadowPaint.color = Color.argb(22, Color.red(dropCapColor), Color.green(dropCapColor), Color.blue(dropCapColor))
 
         val trimmed = fullText.trim()
         val firstChar = trimmed.substring(0, 1)
@@ -69,7 +70,8 @@ class DropCapTextView @JvmOverloads constructor(
 
         this.dropChar = firstChar
         dropCapPaint.getTextBounds(firstChar, 0, 1, textBounds)
-        dropCapMargin = (textBounds.width() + 14 * resources.displayMetrics.density).toInt()
+        // 首字与正文间预留更多空隙，避免正文贴着首字造成遮挡观感
+        dropCapMargin = (textBounds.width() + 18 * resources.displayMetrics.density).toInt()
 
         val spannable = SpannableString(remainingText)
         spannable.setSpan(
@@ -90,11 +92,11 @@ class DropCapTextView @JvmOverloads constructor(
             val padLeft = paddingLeft.toFloat()
             val padTop = paddingTop.toFloat()
 
-            // 1. 绘制底层巨幅微弱水印
+            // 1. 绘制底层微弱水印（向左上偏移，控制在水印自身尺寸内不侵入正文区）
             canvas.drawText(
                 dropChar,
-                padLeft - 4f,
-                padTop + textBounds.height() * 1.15f,
+                padLeft - 8f,
+                padTop + textBounds.height() * 1.08f,
                 dropCapShadowPaint,
             )
 
