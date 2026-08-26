@@ -246,16 +246,19 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-            val rotMatrix = FloatArray(9)
-            SensorManager.getRotationMatrixFromVector(rotMatrix, event.values)
-            val orientation = FloatArray(3)
-            SensorManager.getOrientation(rotMatrix, orientation)
-            val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
-            val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
+        // 部分机型传感器数据异常（如 values 长度不足）会使 getRotationMatrixFromVector 抛出异常，统一兜底避免闪退
+        runCatching {
+            if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                val rotMatrix = FloatArray(9)
+                SensorManager.getRotationMatrixFromVector(rotMatrix, event.values)
+                val orientation = FloatArray(3)
+                SensorManager.getOrientation(rotMatrix, orientation)
+                val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
 
-            mindprintTopologyView.gyroOffsetX = (roll / 45f).coerceIn(-1f, 1f)
-            mindprintTopologyView.gyroOffsetY = (pitch / 45f).coerceIn(-1f, 1f)
+                mindprintTopologyView.gyroOffsetX = (roll / 45f).coerceIn(-1f, 1f)
+                mindprintTopologyView.gyroOffsetY = (pitch / 45f).coerceIn(-1f, 1f)
+            }
         }
     }
 

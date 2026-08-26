@@ -91,35 +91,38 @@ class GyroscopeParallaxHelper(context: Context) : SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || !isRunning) return
 
-        var rawPitch = 0f
-        var rawRoll = 0f
+        // 部分机型传感器数据异常（如 values 长度不足）会使 getRotationMatrixFromVector 抛出异常，统一兜底避免闪退
+        runCatching {
+            var rawPitch = 0f
+            var rawRoll = 0f
 
-        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-            val rotationMatrix = FloatArray(9)
-            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-            val orientation = FloatArray(3)
-            SensorManager.getOrientation(rotationMatrix, orientation)
+            if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                val rotationMatrix = FloatArray(9)
+                SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                val orientation = FloatArray(3)
+                SensorManager.getOrientation(rotationMatrix, orientation)
 
-            // orientation[1] = pitch (x 轴), orientation[2] = roll (y 轴)
-            rawPitch = orientation[1] // 弧度
-            rawRoll = orientation[2]  // 弧度
-        } else if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val x = event.values[0]
-            val y = event.values[1]
-            val z = event.values[2]
-            rawRoll = atan2(x.toDouble(), sqrt((y * y + z * z).toDouble())).toFloat()
-            rawPitch = atan2(-y.toDouble(), sqrt((x * x + z * z).toDouble())).toFloat()
+                // orientation[1] = pitch (x 轴), orientation[2] = roll (y 轴)
+                rawPitch = orientation[1] // 弧度
+                rawRoll = orientation[2]  // 弧度
+            } else if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                val x = event.values.getOrNull(0) ?: return@runCatching
+                val y = event.values.getOrNull(1) ?: return@runCatching
+                val z = event.values.getOrNull(2) ?: return@runCatching
+                rawRoll = atan2(x.toDouble(), sqrt((y * y + z * z).toDouble())).toFloat()
+                rawPitch = atan2(-y.toDouble(), sqrt((x * x + z * z).toDouble())).toFloat()
+            }
+
+            // 归一化到 [-1.0, 1.0]，默认按仰角 45 度为握持中心基准
+            val targetPitch = (rawPitch.coerceIn(-1.0f, 1.0f))
+            val targetRoll = (rawRoll.coerceIn(-1.0f, 1.0f))
+
+            // 指数平滑滤波
+            smoothedPitch += (targetPitch - smoothedPitch) * smoothingFactor
+            smoothedRoll += (targetRoll - smoothedRoll) * smoothingFactor
+
+            applyTransform(smoothedPitch, smoothedRoll)
         }
-
-        // 归一化到 [-1.0, 1.0]，默认按仰角 45 度为握持中心基准
-        val targetPitch = (rawPitch.coerceIn(-1.0f, 1.0f))
-        val targetRoll = (rawRoll.coerceIn(-1.0f, 1.0f))
-
-        // 指数平滑滤波
-        smoothedPitch += (targetPitch - smoothedPitch) * smoothingFactor
-        smoothedRoll += (targetRoll - smoothedRoll) * smoothingFactor
-
-        applyTransform(smoothedPitch, smoothedRoll)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
