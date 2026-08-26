@@ -1261,6 +1261,11 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<TextView>(R.id.detailExLibrisButton)?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            startActivity(com.example.readtrace.ExLibrisStudioActivity.createIntent(this, book.id))
+        }
+
         findViewById<com.example.readtrace.widget.EditorialBadgeView>(R.id.detailEditorialBadge)?.setBadgeContent(
             "NO." + (1000 + (book.id % 9000)),
             book.mediaType.name

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0C10"
+    android:orientation="vertical">
+
+    <!-- 顶部导航栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageButton
+            android:id="@+id/btnStudioBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_secondary_button"
+            android:contentDescription="返回"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="#FFFFFF" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:text="📜 典藏藏书票工坊"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="monospace"
+                android:text="EX-LIBRIS // 瑞士网格生成式艺术"
+                android:textColor="#88FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <com.example.readtrace.widget.EditorialBadgeView
+            android:id="@+id/studioBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="24dp">
+
+            <!-- 🔮 空间标本盒包裹藏书票 (带 2.5D 深度视差) -->
+            <com.example.readtrace.widget.DioramaBoxView
+                android:id="@+id/dioramaStampContainer"
+                android:layout_width="280dp"
+                android:layout_height="420dp"
+                android:layout_marginTop="12dp">
+
+                <!-- 藏书票渲染视图 -->
+                <com.example.readtrace.widget.ExLibrisStampView
+                    android:id="@+id/exLibrisStampView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- 光学玻璃折射透镜层 -->
+                <com.example.readtrace.widget.GlassRefractionOverlay
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </com.example.readtrace.widget.DioramaBoxView>
+
+            <!-- 滤镜/主题切换栏 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="serif"
+                android:text="🎨 典藏版画色系"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnThemeParchment"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_weight="1"
+                    android:text="📜 羊皮纸"
+                    android:textColor="#FFE6AA"
+                    android:textSize="11.5sp" />
+
+                <Button
+                    android:id="@+id/btnThemeMidnight"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="🌌 子夜"
+                    android:textColor="#4DEEEA"
+                    android:textSize="11.5sp" />
+
+                <Button
+                    android:id="@+id/btnThemeWoodcut"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="🏛️ 木刻"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11.5sp" />
+
+                <Button
+                    android:id="@+id/btnThemeCyber"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="⚡ 赛博"
+                    android:textColor="#00FF88"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <!-- 金句与箴言编辑输入 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="serif"
+                android:text="✍️ 藏票金句印记"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCustomQuote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_secondary_button"
+                android:hint="输入铭刻在此藏书票上的专属金句…"
+                android:padding="12dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#66FFFFFF"
+                android:textSize="13sp" />
+
+            <!-- 导出分享大按钮 -->
+            <Button
+                android:id="@+id/btnExportExLibrisPoster"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_primary_button"
+                android:fontFamily="serif"
+                android:text="🎴 导出 4K 瑞士网格藏书票海报"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

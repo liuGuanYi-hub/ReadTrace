@@ -165,6 +165,11 @@
         <activity
             android:name=".CosmicGalaxyActivity"
             android:exported="false" />
+
+        <!-- 📜 典藏藏书票与生成式艺术工坊 -->
+        <activity
+            android:name=".ExLibrisStudioActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
