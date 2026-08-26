@@ -1140,3 +1140,75 @@ drama
 | **Phase 3** | 💫 空间破壁转场 | 3D 书盒展开破壁转场动画 + Spring 弹簧曲线过渡至 3D 翻页阅读器 | 体验无缝空间穿梭，消灭硬切跳转 |
 | **Phase 4** | 🌌 流体着色器与粒子 | 接入 AGSL / GLSL 流体呼吸着色器与星空粒子力场交互 | 深色模式与星图页面视觉震撼升维 |
 
+---
+
+## 24. P6 殿堂级先锋美学与策展体验系统开发计划 (Awwwards / Siteinspire / Land-book Aesthetic System)
+
+### 24.1 核心设计理念与灵感来源
+结合 **GitHub 上数万 Star 的顶尖开源作品（Raycast, Linear, Stripe UI, Vercel Geist）** 与 **Awwwards / Siteinspire / Land-book / Landing.love** 的年度大奖获奖范式，为《阅痕 ReadTrace》构建独一无二的“数字艺术博物馆”美学资产体系，彻底消除传统数码 UI 的生硬与千篇一律感。
+
+---
+
+### 24.2 核心强化模块矩阵
+
+```mermaid
+graph TD
+    A[P6 殿堂级先锋美学与策展体验系统] --> B[1. 🏛️ Editorial Craft 典藏排版]
+    A --> C[2. 🎞️ Atmospheric Texture 胶片光影]
+    A --> D[3. 🌅 Circadian Rhythm 四时光感]
+    A --> E[4. 🎛️ Tactile Mechanics 物理阻尼]
+
+    B --> B1[DropCapTextView 典藏手稿首字下沉]
+    B --> B2[EditorialBadgeView 极客等宽防伪标签]
+    B --> B3[OverlappingBentoCard 突破刚性网格破壁层叠]
+
+    C --> C1[FilmGrainOverlayView 35mm 胶片感光微噪点]
+    C --> C2[PrismaticChromaticView 0.6px 全息微棱镜色散]
+
+    D --> D1[CircadianLightingEngine 24h 四时晨昏自适应呼吸光晕]
+    E --> E1[HapticTickSlider 磁吸刻度感物理阻尼推杆]
+```
+
+---
+
+### 24.3 四大先锋美学技术细节
+
+#### 1. 📜 典藏手稿首字下沉排版 (`DropCapTextView`)
+- **设计原理**：采用中世纪古籍手稿与国家地理杂志排版规则，段落首字符放大 3.5 倍（采用优雅衬线体），垂直嵌入前 3 行文字之中；
+- **视觉增强**：首字背后带有透明度 4% 的巨大水印阴影，首段正文字距微调为 0.05em，极富文学艺术质感。
+
+#### 2. 🏷️ 高密极客等宽防伪元标签 (`EditorialBadgeView`)
+- **设计原理**：参考 Raycast / Linear 极客美学，构建高密度等宽字排版：
+  `[ARCHIVE_ID: #RT-0924 // ELV: 8848M // RES: 98.6% // LAT: 34.05°N]`
+- **视觉规范**：10sp 等宽英文字体（Monospace / JetBrains Mono）、宽字距（0.12）、1px 极细虚线描边边框与微光底色，赋予每件藏品国家档案馆级防伪质感。
+
+#### 3. 🎞️ 35mm 胶片感光颗粒着色器 (`FilmGrainOverlayView`)
+- **设计原理**：在背景流体层之上叠加一层透明度仅 2.5% 的 **35mm 胶片物理感光噪点（Film Grain Noise）**；
+- **效果表现**：消除屏幕色彩渐变断层（Banding），带来王家卫电影胶片般的有机颗粒呼吸感。
+
+#### 4. 💎 1px 极细内倒角光与全息微棱镜色散 (`PrismaticChromaticView`)
+- **设计原理**：在卡片边缘渲染 1px 极细高光反射（Top-left Light），并在手机微倾斜时在边缘分离出 0.6px 的极微弱 RGB 棱镜色散（Chromatic Aberration）；
+- **效果表现**：如同高定光学透镜或纯水晶切面的奢华折射。
+
+#### 5. 🌅 24h 昼夜四时自适应自然光色温系统 (`CircadianLightingEngine`)
+- **设计原理**：根据当地自然时间自适应平滑漫射四时环境光晕：
+  - **🌅 清晨 (06:00 ~ 09:00)**：晨曦金与淡水蓝漫射（唤醒感）；
+  - **☀️ 正午 (09:00 ~ 17:00)**：高透纯白与莫兰迪灰青（通透理智）；
+  - **🌆 暮色 (17:00 ~ 20:00)**：紫霞暮色与落日橙金（沉浸浪漫）；
+  - **🌌 子夜 (20:00 ~ 06:00)**：深邃曜黑、夜鹿靛青与极光流光（暗夜漫想）。
+
+#### 6. 🎛️ 磁吸刻度感物理阻尼推杆 (`HapticTickSlider`)
+- **设计原理**：将海拔切片推杆与阅读进度条升级为带物理机械段落感的推杆。每次滑过关键刻度点，触发 8ms 线性马达微弹力与阻尼减速。
+
+---
+
+### 24.4 落地实施分阶段路线图 (Phases)
+
+| 阶段 | 核心任务 | 交付组件与模块 | 验收标准 |
+|:---|:---|:---|:---|
+| **Phase 1** | **典藏手稿排版与极客标签** | `DropCapTextView.kt`<br>`EditorialBadgeView.kt` | 首页金句与长评首字下沉排版渲染，藏品档案极客等宽微标签生效 |
+| **Phase 2** | **35mm 胶片感光噪点与棱镜色散** | `FilmGrainOverlayView.kt`<br>`PrismaticChromaticView.kt` | 全局背景消除数码断层，卡片边缘具备 0.6px 全息水晶棱镜色散 |
+| **Phase 3** | **昼夜四时自然光感系统** | `CircadianLightingEngine.kt` | 24小时四时晨昏自适应光晕与低频色温平滑渐变 |
+| **Phase 4** | **磁吸刻度阻尼推杆** | `HapticTickSlider.kt` | 3D 地形图海拔切片与进度滑块具备真实机械齿轮段落触感 |
+
+
