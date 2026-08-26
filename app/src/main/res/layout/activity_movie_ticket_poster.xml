@@ -78,9 +78,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="🎟️ 典藏打孔票根 · 1080P 超清光影纪念"
+                android:text="🎟️ 典藏打孔票根 · 点击票根中缝体验裂变撕票"
                 android:textColor="#A89F91"
                 android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnToggleTicketTear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_pill_button"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="9dp"
+                android:text="🎟️ 模拟撕票入场"
+                android:textColor="#FFFFFF"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </ScrollView>
 

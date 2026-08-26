@@ -1,5 +1,6 @@
 package com.example.readtrace.widget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,6 +16,8 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import java.io.File
@@ -23,12 +26,40 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 
+/**
+ * 🎟️ 复古电影票根海报视图 (MovieTicketPosterView)
+ *
+ * P5 阶段二升级：
+ * 1. 撕票物理裂变动效（Ticket Tear & Fission Dynamic Motion）：0.0f -> 1.0f 连续撕裂插值；
+ * 2. 锯齿撕裂纸质边缘（Jagged Paper Fibers Tear Path）：程序化不规则纸张纤维撕痕；
+ * 3. 副票 3D 偏移与倾角脱落（Physics Offset & Tilt）：向右下偏移 dx=+45dp, dy=+22dp, rotate=-5.8°；
+ * 4. 裂变流光能量缝隙（Fission Glow & Sparks）：中缝产生全息激光流光与自发光跳动脉冲微粒。
+ */
 class MovieTicketPosterView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
+
+    private class FissionSpark(
+        var x: Float,
+        var y: Float,
+        var vx: Float,
+        var vy: Float,
+        val color: Int,
+        val radius: Float,
+        var alpha: Float = 1.0f,
+    ) {
+        fun update(dt: Float) {
+            x += vx * dt
+            y += vy * dt
+            vx *= 0.92f
+            vy *= 0.92f
+            alpha = (alpha - 1.5f * dt).coerceAtLeast(0f)
+        }
+    }
 
     enum class TicketTheme(
         val displayName: String,
@@ -100,6 +131,17 @@ class MovieTicketPosterView @JvmOverloads constructor(
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val fissionPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // 撕票裂变状态
+    var isTorn: Boolean = false
+        private set
+    var tearProgress: Float = 0f
+        private set
+    private var tearAnimator: ValueAnimator? = null
+    private val fissionSparks = mutableListOf<FissionSpark>()
+
+    var onTicketTearListener: ((isTorn: Boolean, seamScreenX: Float, seamScreenY: Float) -> Unit)? = null
 
     fun setData(
         movie: Book,
@@ -120,6 +162,69 @@ class MovieTicketPosterView @JvmOverloads constructor(
     }
 
     fun getTheme(): TicketTheme = currentTheme
+
+    fun toggleTear(animate: Boolean = true) {
+        isTorn = !isTorn
+        val target = if (isTorn) 1.0f else 0.0f
+
+        val (sx, sy) = getSeamScreenCoordinates()
+
+        if (isTorn) {
+            // 产生裂变火花
+            spawnFissionSparks()
+        }
+
+        onTicketTearListener?.invoke(isTorn, sx, sy)
+
+        if (!animate) {
+            tearProgress = target
+            invalidate()
+            return
+        }
+
+        tearAnimator?.cancel()
+        tearAnimator = ValueAnimator.ofFloat(tearProgress, target).apply {
+            duration = if (isTorn) 520L else 380L
+            interpolator = if (isTorn) OvershootInterpolator(1.15f) else DecelerateInterpolator(1.2f)
+            addUpdateListener { va ->
+                tearProgress = va.animatedValue as Float
+                fissionSparks.forEach { it.update(0.016f) }
+                invalidate()
+            }
+        }
+        tearAnimator?.start()
+    }
+
+    private fun spawnFissionSparks() {
+        fissionSparks.clear()
+        val pad = width * 0.04f
+        val ticketLeft = pad
+        val ticketRight = width - pad
+        val splitX = ticketLeft + (ticketRight - ticketLeft) * 0.72f
+        val top = height * 0.08f
+        val bottom = height - height * 0.08f
+
+        val rand = Random(System.currentTimeMillis())
+        for (i in 0 until 24) {
+            val py = top + rand.nextFloat() * (bottom - top)
+            val angle = rand.nextDouble(-Math.PI * 0.5, Math.PI * 0.5) // 向右喷射
+            val speed = rand.nextFloat() * 260f + 120f
+            val vx = (cos(angle) * speed).toFloat()
+            val vy = (sin(angle) * speed).toFloat()
+            val sz = rand.nextFloat() * 4f + 2f
+            val col = if (i % 2 == 0) currentTheme.accentColor else Color.WHITE
+            fissionSparks.add(FissionSpark(splitX, py, vx, vy, col, sz))
+        }
+    }
+
+    fun getSeamScreenCoordinates(): Pair<Float, Float> {
+        val location = IntArray(2)
+        getLocationOnScreen(location)
+        val pad = width * 0.04f
+        val splitX = pad + (width - pad * 2) * 0.72f
+        val cy = height * 0.5f
+        return Pair(location[0] + splitX, location[1] + cy)
+    }
 
     private fun loadCoverBitmap(url: String) {
         if (url.isBlank()) {
@@ -151,10 +256,10 @@ class MovieTicketPosterView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        drawTicket(canvas, width.toFloat(), height.toFloat())
+        drawTicket(canvas, width.toFloat(), height.toFloat(), isExport = false)
     }
 
-    private fun drawTicket(canvas: Canvas, w: Float, h: Float) {
+    private fun drawTicket(canvas: Canvas, w: Float, h: Float, isExport: Boolean = false) {
         // 1. 绘制背景渐变
         val bgShader = LinearGradient(0f, 0f, w, h, currentTheme.bgColors, null, Shader.TileMode.CLAMP)
         paint.shader = bgShader
@@ -178,34 +283,49 @@ class MovieTicketPosterView @JvmOverloads constructor(
         val cornerRadius = ticketH * 0.04f
         val notchRadius = ticketH * 0.05f
 
-        // 3. 构建票根双联裁切路径 (带上下缺口打孔)
+        val effectiveTear = if (isExport) (if (isTorn) 1.0f else 0.0f) else tearProgress
+
+        if (effectiveTear <= 0.001f) {
+            // 未撕票状态：整体绘制
+            drawIntactTicket(canvas, movieItem, ticketLeft, ticketTop, ticketRight, ticketBottom, splitX, cornerRadius, notchRadius, ticketW, ticketH)
+        } else {
+            // 裂变撕票状态：左右两联分离渲染
+            drawTornTicketFission(canvas, movieItem, ticketLeft, ticketTop, ticketRight, ticketBottom, splitX, cornerRadius, notchRadius, ticketW, ticketH, effectiveTear, isExport)
+        }
+    }
+
+    private fun drawIntactTicket(
+        canvas: Canvas,
+        movieItem: Book,
+        ticketLeft: Float,
+        ticketTop: Float,
+        ticketRight: Float,
+        ticketBottom: Float,
+        splitX: Float,
+        cornerRadius: Float,
+        notchRadius: Float,
+        ticketW: Float,
+        ticketH: Float,
+    ) {
+        // 构建完整双联裁切路径
         val ticketPath = Path().apply {
-            // 从左上角开始
             moveTo(ticketLeft + cornerRadius, ticketTop)
-            // 顶边至缺口
             lineTo(splitX - notchRadius, ticketTop)
-            // 顶部打孔半圆缺口
             arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 180f, -180f, false)
-            // 顶边至右上角
             lineTo(ticketRight - cornerRadius, ticketTop)
             arcTo(ticketRight - cornerRadius * 2, ticketTop, ticketRight, ticketTop + cornerRadius * 2, 270f, 90f, false)
-            // 右边
             lineTo(ticketRight, ticketBottom - cornerRadius)
             arcTo(ticketRight - cornerRadius * 2, ticketBottom - cornerRadius * 2, ticketRight, ticketBottom, 0f, 90f, false)
-            // 底边至缺口
             lineTo(splitX + notchRadius, ticketBottom)
-            // 底部打孔半圆缺口
             arcTo(splitX - notchRadius, ticketBottom - notchRadius, splitX + notchRadius, ticketBottom + notchRadius, 0f, -180f, false)
-            // 底边至左下角
             lineTo(ticketLeft + cornerRadius, ticketBottom)
             arcTo(ticketLeft, ticketBottom - cornerRadius * 2, ticketLeft + cornerRadius * 2, ticketBottom, 90f, 90f, false)
-            // 左边
             lineTo(ticketLeft, ticketTop + cornerRadius)
             arcTo(ticketLeft, ticketTop, ticketLeft + cornerRadius * 2, ticketTop + cornerRadius * 2, 180f, 90f, false)
             close()
         }
 
-        // 绘制主票阴影 / 辉光
+        // 辉光边框
         paint.color = currentTheme.borderGlowColor
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 3f
@@ -216,7 +336,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
         paint.style = Paint.Style.FILL
         canvas.drawPath(ticketPath, paint)
 
-        // 填充副票背景 (略微更暗/深色)
+        // 填充副票背景
         val stubPath = Path().apply {
             moveTo(splitX, ticketTop)
             arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 180f, -180f, false)
@@ -232,7 +352,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
         paint.color = currentTheme.stubBgColor
         canvas.drawPath(stubPath, paint)
 
-        // 绘制中缝虚线 (撕票线)
+        // 绘制中缝虚线
         paint.color = currentTheme.perforationColor
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 2.5f
@@ -240,11 +360,128 @@ class MovieTicketPosterView @JvmOverloads constructor(
         canvas.drawLine(splitX, ticketTop + notchRadius, splitX, ticketBottom - notchRadius, paint)
         paint.pathEffect = null
 
-        // 4. 绘制左侧主票内容
+        drawMainTicketContent(canvas, movieItem, ticketLeft, ticketTop, splitX - ticketLeft, ticketH)
+        drawStubTicketContent(canvas, movieItem, splitX, ticketTop, ticketRight - splitX, ticketH)
+    }
+
+    private fun drawTornTicketFission(
+        canvas: Canvas,
+        movieItem: Book,
+        ticketLeft: Float,
+        ticketTop: Float,
+        ticketRight: Float,
+        ticketBottom: Float,
+        splitX: Float,
+        cornerRadius: Float,
+        notchRadius: Float,
+        ticketW: Float,
+        ticketH: Float,
+        tear: Float,
+        isExport: Boolean,
+    ) {
+        val toothAmp = ticketW * 0.008f
+        val segments = 22
+
+        // A. 绘制左侧主票 (带中缝撕裂毛边)
+        val mainPath = Path().apply {
+            moveTo(ticketLeft + cornerRadius, ticketTop)
+            lineTo(splitX - notchRadius, ticketTop)
+            arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 180f, -90f, false)
+
+            val startY = ticketTop + notchRadius
+            val endY = ticketBottom - notchRadius
+            val stepY = (endY - startY) / segments
+            for (i in 1..segments) {
+                val y = startY + i * stepY
+                val sign = if (i % 2 == 1) -1f else 1f
+                val x = if (i == segments) splitX else splitX + sign * toothAmp
+                lineTo(x, y)
+            }
+
+            arcTo(splitX - notchRadius, ticketBottom - notchRadius, splitX + notchRadius, ticketBottom + notchRadius, 90f, -90f, false)
+            lineTo(ticketLeft + cornerRadius, ticketBottom)
+            arcTo(ticketLeft, ticketBottom - cornerRadius * 2, ticketLeft + cornerRadius * 2, ticketBottom, 90f, 90f, false)
+            lineTo(ticketLeft, ticketTop + cornerRadius)
+            arcTo(ticketLeft, ticketTop, ticketLeft + cornerRadius * 2, ticketTop + cornerRadius * 2, 180f, 90f, false)
+            close()
+        }
+
+        // 主票阴影与边框
+        paint.color = currentTheme.borderGlowColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+        canvas.drawPath(mainPath, paint)
+
+        paint.color = currentTheme.ticketBgColor
+        paint.style = Paint.Style.FILL
+        canvas.drawPath(mainPath, paint)
+
+        // 绘制主票内容
         drawMainTicketContent(canvas, movieItem, ticketLeft, ticketTop, splitX - ticketLeft, ticketH)
 
-        // 5. 绘制右侧副票内容
+        // B. 绘制右侧副票 (带物理脱离位移与角度偏转)
+        val stubDx = tear * ticketW * 0.085f
+        val stubDy = tear * ticketH * 0.045f
+        val stubRot = -tear * 5.8f
+
+        canvas.save()
+        val stubPivotX = splitX + (ticketRight - splitX) * 0.5f
+        val stubPivotY = ticketTop + ticketH * 0.5f
+        canvas.translate(stubDx, stubDy)
+        canvas.rotate(stubRot, stubPivotX, stubPivotY)
+
+        val stubPath = Path().apply {
+            moveTo(splitX, ticketTop + notchRadius)
+            arcTo(splitX - notchRadius, ticketTop - notchRadius, splitX + notchRadius, ticketTop + notchRadius, 90f, -90f, false)
+            lineTo(ticketRight - cornerRadius, ticketTop)
+            arcTo(ticketRight - cornerRadius * 2, ticketTop, ticketRight, ticketTop + cornerRadius * 2, 270f, 90f, false)
+            lineTo(ticketRight, ticketBottom - cornerRadius)
+            arcTo(ticketRight - cornerRadius * 2, ticketBottom - cornerRadius * 2, ticketRight, ticketBottom, 0f, 90f, false)
+            lineTo(splitX + notchRadius, ticketBottom)
+            arcTo(splitX - notchRadius, ticketBottom - notchRadius, splitX + notchRadius, ticketBottom + notchRadius, 0f, -90f, false)
+
+            val startY = ticketBottom - notchRadius
+            val endY = ticketTop + notchRadius
+            val stepY = (endY - startY) / segments
+            for (i in 1..segments) {
+                val y = startY + i * stepY
+                val sign = if (i % 2 == 1) 1f else -1f
+                val x = if (i == segments) splitX else splitX + sign * toothAmp
+                lineTo(x, y)
+            }
+            close()
+        }
+
+        // 副票脱落发光边框
+        paint.color = currentTheme.borderGlowColor
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+        canvas.drawPath(stubPath, paint)
+
+        paint.color = currentTheme.stubBgColor
+        paint.style = Paint.Style.FILL
+        canvas.drawPath(stubPath, paint)
+
         drawStubTicketContent(canvas, movieItem, splitX, ticketTop, ticketRight - splitX, ticketH)
+        canvas.restore()
+
+        // C. 绘制中缝裂变能量流光与自发光粒子
+        if (!isExport && tear in 0.01f..0.999f) {
+            val beamAlpha = (sin(tear * Math.PI.toFloat()) * 230).toInt()
+            fissionPaint.color = currentTheme.accentColor
+            fissionPaint.alpha = beamAlpha
+            fissionPaint.strokeWidth = 3.5f
+            fissionPaint.style = Paint.Style.STROKE
+            canvas.drawLine(splitX + stubDx * 0.2f, ticketTop + notchRadius, splitX + stubDx * 0.4f, ticketBottom - notchRadius, fissionPaint)
+
+            // 绘制裂变火花
+            fissionSparks.forEach { sp ->
+                fissionPaint.style = Paint.Style.FILL
+                fissionPaint.color = sp.color
+                fissionPaint.alpha = (sp.alpha * 255).toInt()
+                canvas.drawCircle(sp.x, sp.y, sp.radius * sp.alpha, fissionPaint)
+            }
+        }
     }
 
     private fun drawMainTicketContent(canvas: Canvas, movie: Book, left: Float, top: Float, w: Float, h: Float) {
@@ -499,22 +736,29 @@ class MovieTicketPosterView @JvmOverloads constructor(
         canvas.drawPath(dataPath, paint)
     }
 
-    var onTicketTearListener: (() -> Unit)? = null
-
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_DOWN) {
-            onTicketTearListener?.invoke()
+            toggleTear(animate = true)
             return true
         }
         return super.onTouchEvent(event)
     }
 
-    fun create1080pPosterBitmap(): Bitmap {
+    fun create1080pPosterBitmap(exportTorn: Boolean = isTorn): Bitmap {
         val targetW = 1080
         val targetH = 540 // 2:1 经典电影双联票根比例
         val bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
-        drawTicket(canvas, targetW.toFloat(), targetH.toFloat())
+        val prevProgress = tearProgress
+        tearProgress = if (exportTorn) 1.0f else 0.0f
+        drawTicket(canvas, targetW.toFloat(), targetH.toFloat(), isExport = true)
+        tearProgress = prevProgress
         return bmp
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        tearAnimator?.cancel()
+        fissionSparks.clear()
     }
 }

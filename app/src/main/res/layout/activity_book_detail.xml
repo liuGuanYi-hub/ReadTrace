@@ -79,174 +79,185 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <LinearLayout
+            <com.example.readtrace.widget.BorderBeamFrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:background="@drawable/bg_glass_panel"
-                android:elevation="10dp"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
-
-                <FrameLayout
-                    android:id="@+id/detailCoverContainer"
-                    android:layout_width="96dp"
-                    android:layout_height="144dp"
-                    android:background="@drawable/bg_book_placeholder"
-                    android:clipToOutline="true"
-                    android:outlineProvider="background"
-                    android:transitionName="transition_book_cover">
-
-                    <ImageView
-                        android:id="@+id/detailCoverImage"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-                </FrameLayout>
-
-                <TextView
-                    android:id="@+id/detailMediaBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_secondary_button"
-                    android:fontFamily="sans"
-                    android:paddingStart="12dp"
-                    android:paddingTop="3dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="3dp"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    tools:text="🎬 影视" />
-
-                <TextView
-                    android:id="@+id/detailBookTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="23sp"
-                    android:textStyle="bold"
-                    tools:text="海边的卡夫卡" />
-
-                <TextView
-                    android:id="@+id/detailBookAuthor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="15sp"
-                    tools:text="村上春树" />
-
-                <TextView
-                    android:id="@+id/detailHeroMeta"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_status_pill"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:textColor="@color/readtrace_accent"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    tools:text="在读 · 8.5 / 10 · 小说" />
-
-                <TextView
-                    android:id="@+id/detailRead3DButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/bg_primary_button"
-                    android:clickable="true"
-                    android:elevation="4dp"
-                    android:focusable="true"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:text="@string/action_3d_read"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                android:layout_marginTop="22dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="horizontal">
+                    android:background="@drawable/bg_glass_panel"
+                    android:elevation="10dp"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:id="@+id/detailCoverContainer"
+                        android:layout_width="96dp"
+                        android:layout_height="144dp"
+                        android:background="@drawable/bg_book_placeholder"
+                        android:clipToOutline="true"
+                        android:outlineProvider="background"
+                        android:transitionName="transition_book_cover">
+
+                        <ImageView
+                            android:id="@+id/detailCoverImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+                    </FrameLayout>
 
                     <TextView
-                        android:id="@+id/detailImportTxtButton"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
+                        android:id="@+id/detailMediaBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:background="@drawable/bg_secondary_button"
+                        android:fontFamily="sans"
+                        android:paddingStart="12dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="🎬 影视" />
+
+                    <com.example.readtrace.widget.ScrambleTextView
+                        android:id="@+id/detailBookTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="23sp"
+                        android:textStyle="bold"
+                        tools:text="海边的卡夫卡" />
+
+                    <TextView
+                        android:id="@+id/detailBookAuthor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="15sp"
+                        tools:text="村上春树" />
+
+                    <com.example.readtrace.widget.HolographicRatingView
+                        android:id="@+id/detailHolographicRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="10dp" />
+
+                    <TextView
+                        android:id="@+id/detailHeroMeta"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_status_pill"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="在读 · 8.5 / 10 · 小说" />
+
+                    <TextView
+                        android:id="@+id/detailRead3DButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/bg_primary_button"
                         android:clickable="true"
+                        android:elevation="4dp"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:text="📂 导入TXT"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="13sp"
+                        android:text="@string/action_3d_read"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/detailEditButton"
-                        android:layout_width="0dp"
-                        android:layout_height="44dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_secondary_button"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:fontFamily="sans"
-                        android:gravity="center"
-                        android:text="@string/action_edit"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/detailImportTxtButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_secondary_button"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="sans"
+                            android:gravity="center"
+                            android:text="📂 导入TXT"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/detailEditButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_secondary_button"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="sans"
+                            android:gravity="center"
+                            android:text="@string/action_edit"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/detailArchiveButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_danger_button"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="sans"
+                            android:gravity="center"
+                            android:text="@string/action_archive"
+                            android:textColor="@color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/detailArchiveButton"
-                        android:layout_width="0dp"
+                        android:id="@+id/detailQuotePosterButton"
+                        android:layout_width="match_parent"
                         android:layout_height="44dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_danger_button"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_status_chip_selected"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:text="@string/action_archive"
+                        android:text="🎨 生成金句印记海报"
                         android:textColor="@color/white"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/detailQuotePosterButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_status_chip_selected"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:fontFamily="sans"
-                    android:gravity="center"
-                    android:text="🎨 生成金句印记海报"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            </com.example.readtrace.widget.BorderBeamFrameLayout>
 
             <!-- 📑 轻量组件化多板块快捷导航条 -->
             <HorizontalScrollView
@@ -391,9 +402,16 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/detail_rating" />
 
+                <com.example.readtrace.widget.HolographicRatingView
+                    android:id="@+id/detailRatingHolo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="4dp" />
+
                 <TextView
                     android:id="@+id/detailRating"
                     style="@style/ReadTraceDetailValue"
+                    android:visibility="gone"
                     tools:text="8.5 / 10" />
 
                 <TextView

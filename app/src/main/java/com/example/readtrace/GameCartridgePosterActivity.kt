@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.util.ConfettiBurstHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
@@ -66,7 +67,8 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         gameCartridgePosterView.onCartridgeClickListener = {
             HapticFeedbackEngine.cartridgeSnap(this)
             SpatialAudioEngine.playCartridgeSnap()
-            Toast.makeText(this, "🕹️ 触发白金卡带卡扣插槽震感与清脆声场", Toast.LENGTH_SHORT).show()
+            ConfettiBurstHelper.burstCenter(this)
+            Toast.makeText(this, "🕹️ 触发白金卡带插槽物理反馈与微粒迸发", Toast.LENGTH_SHORT).show()
         }
 
         listOfNotNull(

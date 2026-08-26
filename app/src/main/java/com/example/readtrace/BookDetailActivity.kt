@@ -1262,8 +1262,20 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
-        findViewById<TextView>(R.id.detailBookTitle).text = book.title
+        val titleScrambleView = findViewById<com.example.readtrace.widget.ScrambleTextView>(R.id.detailBookTitle)
+        if (titleScrambleView != null) {
+            titleScrambleView.setScrambleText(book.title)
+            titleScrambleView.setOnClickListener {
+                com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this)
+                titleScrambleView.triggerScramble()
+            }
+        } else {
+            findViewById<TextView>(R.id.detailBookTitle).text = book.title
+        }
+
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
+        findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailHolographicRating)?.setRating(book.rating, animate = true)
+        findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailRatingHolo)?.setRating(book.rating, animate = true)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         findViewById<TextView>(R.id.detailCoverUrl).text = valueOrFallback(book.coverUrl)

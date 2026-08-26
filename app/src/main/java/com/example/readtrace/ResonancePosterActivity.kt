@@ -38,10 +38,19 @@ class ResonancePosterActivity : AppCompatActivity() {
 
         initViews()
         loadData()
+
+        val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
+        gyroscopeHelper.bind3DParallax(resonancePosterView, maxRotation = 10f, maxTranslation = 14f)
+        gyroscopeHelper.bindLifecycle(lifecycle)
     }
 
     private fun initViews() {
         resonancePosterView = findViewById(R.id.resonancePosterView)
+        resonancePosterView.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
+            com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
+            com.example.readtrace.util.ConfettiBurstHelper.burstCenter(this)
+        }
 
         val btnBack = findViewById<TextView>(R.id.btnPosterBack)
         btnBack.setOnClickListener { finish() }

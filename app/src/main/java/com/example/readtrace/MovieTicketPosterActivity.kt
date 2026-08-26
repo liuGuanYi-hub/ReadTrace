@@ -18,6 +18,7 @@ import androidx.core.content.FileProvider
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.util.ConfettiBurstHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
@@ -32,6 +33,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
     private lateinit var movieTicketPosterView: MovieTicketPosterView
     private lateinit var layoutTicketThemeChips: LinearLayout
     private lateinit var tvTicketSummary: TextView
+    private lateinit var btnToggleTicketTear: TextView
 
     private var movieId: Long = -1
     private var currentMovie: Book? = null
@@ -57,16 +59,30 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         movieTicketPosterView = findViewById(R.id.movieTicketPosterView)
         layoutTicketThemeChips = findViewById(R.id.layoutTicketThemeChips)
         tvTicketSummary = findViewById(R.id.tvTicketSummary)
+        btnToggleTicketTear = findViewById(R.id.btnToggleTicketTear)
 
         findViewById<View>(R.id.btnTicketBack).setOnClickListener { finish() }
         findViewById<View>(R.id.btnTicketShareTop).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnShareTicketImage).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnSaveTicketAlbum).setOnClickListener { saveTicketToAlbum() }
 
-        movieTicketPosterView.onTicketTearListener = {
-            HapticFeedbackEngine.ticketTearRipped(this)
-            SpatialAudioEngine.playTicketTear()
-            Toast.makeText(this, "🎟️ 触发打孔撕票触感与声场回响", Toast.LENGTH_SHORT).show()
+        btnToggleTicketTear.setOnClickListener {
+            movieTicketPosterView.toggleTear(animate = true)
+        }
+
+        movieTicketPosterView.onTicketTearListener = { isTorn, seamX, seamY ->
+            if (isTorn) {
+                HapticFeedbackEngine.ticketTearRipped(this)
+                SpatialAudioEngine.playTicketTear()
+                ConfettiBurstHelper.burst(this, seamX, seamY)
+                btnToggleTicketTear.text = "✨ 磁吸复原票根"
+                Toast.makeText(this, "🎟️ 已完成撕票入场 · 齿轮顿挫与微粒裂变", Toast.LENGTH_SHORT).show()
+            } else {
+                HapticFeedbackEngine.cartridgeSnap(this)
+                SpatialAudioEngine.playCartridgeSnap()
+                btnToggleTicketTear.text = "🎟️ 模拟撕票入场"
+                Toast.makeText(this, "✨ 票根已磁吸复原完整", Toast.LENGTH_SHORT).show()
+            }
         }
 
         listOfNotNull(
@@ -74,6 +90,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             findViewById(R.id.btnTicketShareTop),
             findViewById(R.id.btnShareTicketImage),
             findViewById(R.id.btnSaveTicketAlbum),
+            btnToggleTicketTear,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 

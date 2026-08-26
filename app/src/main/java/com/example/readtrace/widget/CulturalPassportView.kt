@@ -1,5 +1,6 @@
 package com.example.readtrace.widget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -13,15 +14,22 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
+import kotlin.random.Random
 
+/**
+ * 🛂 精神宇宙巡礼护照视图 (CulturalPassportView)
+ *
+ * P5 阶段二升级：
+ * 1. 盖印物理下压与回弹冲击（Ink Squash & Recoil）：点击印章产生 1.0 -> 0.82 -> 1.15 -> 1.0 弹性形变；
+ * 2. 印泥同心震荡冲击环（Ink Shockwave Ring）：朱砂/霁蓝墨色光环自中心扩散淡出；
+ * 3. 墨迹微粒放射喷溅（Radial Ink Sparks）：自印章外轮廓呈 360° 喷射 16 颗自发光墨滴微粒；
+ * 4. 绝对屏幕坐标回传，精准协同全屏 Confetti 物理彩屑礼花。
+ */
 class CulturalPassportView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -31,16 +39,50 @@ class CulturalPassportView @JvmOverloads constructor(
     data class StampTouchTarget(
         val rect: RectF,
         val item: Book,
+        val index: Int,
+        val cx: Float,
+        val cy: Float,
+        val radius: Float,
     )
+
+    private class InkSpark(
+        var x: Float,
+        var y: Float,
+        var vx: Float,
+        var vy: Float,
+        val color: Int,
+        val radius: Float,
+        var alpha: Float = 1.0f,
+    ) {
+        fun update(dt: Float) {
+            x += vx * dt
+            y += vy * dt
+            vx *= 0.94f
+            vy *= 0.94f
+            alpha = (alpha - 1.8f * dt).coerceAtLeast(0f)
+        }
+    }
 
     private var items: List<Book> = emptyList()
     private var currentTab: MediaType = MediaType.ANIME // 🌸 番剧 或 🎮 游戏
 
     private val touchTargets = mutableListOf<StampTouchTarget>()
-    var onStampClickListener: ((Book) -> Unit)? = null
+    var onStampClickListener: ((item: Book, screenX: Float, screenY: Float) -> Unit)? = null
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val shockwavePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val sparkPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // 盖印激荡动画状态
+    private var activeImpactIndex: Int = -1
+    private var impactProgress: Float = 0f
+    private var impactCx: Float = 0f
+    private var impactCy: Float = 0f
+    private var impactRadius: Float = 0f
+    private var impactColor: Int = Color.RED
+    private val sparks = mutableListOf<InkSpark>()
+    private var impactAnimator: ValueAnimator? = null
 
     private val stampColors = intArrayOf(
         Color.parseColor("#C84B31"), // 朱砂红
@@ -75,13 +117,55 @@ class CulturalPassportView @JvmOverloads constructor(
         setMeasuredDimension(w, totalH.coerceAtLeast(600))
     }
 
+    fun triggerStampImpact(index: Int, cx: Float, cy: Float, radius: Float, color: Int) {
+        activeImpactIndex = index
+        impactCx = cx
+        impactCy = cy
+        impactRadius = radius
+        impactColor = color
+        sparks.clear()
+
+        val rand = Random(System.currentTimeMillis())
+        for (i in 0 until 18) {
+            val angle = rand.nextDouble(0.0, Math.PI * 2.0)
+            val speed = rand.nextFloat() * 320f + 160f
+            val vx = (cos(angle) * speed).toFloat()
+            val vy = (sin(angle) * speed).toFloat()
+            val startX = cx + (cos(angle) * radius * 0.85f).toFloat()
+            val startY = cy + (sin(angle) * radius * 0.85f).toFloat()
+            val sz = rand.nextFloat() * 4.5f + 2.5f
+            sparks.add(InkSpark(startX, startY, vx, vy, color, sz))
+        }
+
+        impactAnimator?.cancel()
+        impactAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 550L
+            interpolator = DecelerateInterpolator(1.2f)
+            addUpdateListener { va ->
+                impactProgress = va.animatedValue as Float
+                sparks.forEach { it.update(0.016f) }
+                invalidate()
+            }
+        }
+        impactAnimator?.start()
+    }
+
+    fun getStampScreenCoordinates(cx: Float, cy: Float): Pair<Float, Float> {
+        val location = IntArray(2)
+        getLocationOnScreen(location)
+        return Pair(location[0] + cx, location[1] + cy)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_UP) {
             val x = event.x
             val y = event.y
             val hit = touchTargets.firstOrNull { it.rect.contains(x, y) }
             if (hit != null) {
-                onStampClickListener?.invoke(hit.item)
+                val color = stampColors[hit.index % stampColors.size]
+                triggerStampImpact(hit.index, hit.cx, hit.cy, hit.radius, color)
+                val (sx, sy) = getStampScreenCoordinates(hit.cx, hit.cy)
+                onStampClickListener?.invoke(hit.item, sx, sy)
                 return true
             }
         }
@@ -185,29 +269,60 @@ class CulturalPassportView @JvmOverloads constructor(
 
             val stampRect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
             if (!isExport) {
-                touchTargets.add(StampTouchTarget(stampRect, item))
+                touchTargets.add(StampTouchTarget(stampRect, item, idx, cx, cy, radius))
             }
 
-            drawSingleVisaStamp(canvas, item, cx, cy, radius, idx)
+            drawSingleVisaStamp(canvas, item, cx, cy, radius, idx, isExport)
+        }
+
+        // 4. 绘制盖印墨迹震荡同心冲击环与放射微粒 (动态图层)
+        if (!isExport && activeImpactIndex >= 0 && impactProgress in 0.001f..0.999f) {
+            val shockR = impactRadius * (1.0f + impactProgress * 0.85f)
+            val shockAlpha = ((1f - impactProgress) * 200).toInt()
+            shockwavePaint.style = Paint.Style.STROKE
+            shockwavePaint.strokeWidth = (1f - impactProgress) * 6f + 1.5f
+            shockwavePaint.color = impactColor
+            shockwavePaint.alpha = shockAlpha
+            canvas.drawCircle(impactCx, impactCy, shockR, shockwavePaint)
+
+            val innerR = impactRadius * (0.8f + impactProgress * 0.5f)
+            val innerAlpha = ((1f - impactProgress) * 140).toInt()
+            shockwavePaint.strokeWidth = 2f
+            shockwavePaint.alpha = innerAlpha
+            canvas.drawCircle(impactCx, impactCy, innerR, shockwavePaint)
+
+            sparks.forEach { sp ->
+                sparkPaint.style = Paint.Style.FILL
+                sparkPaint.color = sp.color
+                sparkPaint.alpha = (sp.alpha * 255).toInt()
+                canvas.drawCircle(sp.x, sp.y, sp.radius * sp.alpha, sparkPaint)
+            }
         }
     }
 
-    private fun drawSingleVisaStamp(canvas: Canvas, item: Book, cx: Float, cy: Float, radius: Float, index: Int) {
+    private fun drawSingleVisaStamp(canvas: Canvas, item: Book, cx: Float, cy: Float, radius: Float, index: Int, isExport: Boolean) {
         val color = stampColors[index % stampColors.size]
         val hash = item.title.hashCode()
-        // 自然手盖倾斜角 (-10° 到 +10°)
         val tiltAngle = ((hash % 21) - 10).toFloat()
 
         canvas.save()
+
+        if (!isExport && index == activeImpactIndex && impactProgress in 0.001f..0.999f) {
+            val scale = if (impactProgress < 0.35f) {
+                1.0f - (impactProgress / 0.35f) * 0.16f
+            } else {
+                val p = (impactProgress - 0.35f) / 0.65f
+                0.84f + (1.12f - 0.84f) * sin(p * Math.PI.toFloat())
+            }
+            canvas.scale(scale, scale, cx, cy)
+        }
+
         canvas.rotate(tiltAngle, cx, cy)
 
         val isGame = item.mediaType == MediaType.GAME
-
         if (isGame) {
-            // 游戏：八边形 / 盾牌通关印章
             drawOctagonStamp(canvas, item, cx, cy, radius, color)
         } else {
-            // 番剧：双环圆形入境印章
             drawCircularVisaStamp(canvas, item, cx, cy, radius, color)
         }
 
@@ -302,5 +417,11 @@ class CulturalPassportView @JvmOverloads constructor(
         val canvas = Canvas(bmp)
         drawPassport(canvas, targetW.toFloat(), targetH.toFloat(), isExport = true)
         return bmp
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        impactAnimator?.cancel()
+        sparks.clear()
     }
 }

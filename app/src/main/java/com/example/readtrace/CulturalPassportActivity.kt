@@ -21,6 +21,7 @@ import androidx.core.content.FileProvider
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.ConfettiBurstHelper
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
@@ -66,10 +67,15 @@ class CulturalPassportActivity : AppCompatActivity() {
         tabPassportAnime.setOnClickListener { switchTab(MediaType.ANIME) }
         tabPassportGame.setOnClickListener { switchTab(MediaType.GAME) }
 
-        culturalPassportView.onStampClickListener = { book ->
+        culturalPassportView.onStampClickListener = { book, screenX, screenY ->
             HapticFeedbackEngine.stampImpact(this)
             SpatialAudioEngine.playStampThud()
-            showStampDetailDialog(book)
+            ConfettiBurstHelper.burst(this, screenX, screenY)
+            window.decorView.postDelayed({
+                if (!isFinishing && !isDestroyed) {
+                    showStampDetailDialog(book)
+                }
+            }, 260L)
         }
 
         listOfNotNull(
