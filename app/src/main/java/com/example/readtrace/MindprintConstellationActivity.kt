@@ -137,7 +137,8 @@ class MindprintConstellationActivity : AppCompatActivity() {
 
     private fun loadConstellationData() {
         val books = databaseHelper.getBooks()
-        constellationCanvas.setBooksData(books, databaseHelper)
+        val mindprints = databaseHelper.getAllMindprints()
+        constellationCanvas.setBooksData(books, mindprints)
         findViewById<TextView>(R.id.constellationSubTitle).text =
             "共汇聚 ${books.size} 颗心智星辰 · 拖拽漫游星空"
     }

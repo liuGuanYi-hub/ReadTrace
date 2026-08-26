@@ -297,8 +297,11 @@ class TimeWarpTunnelView @JvmOverloads constructor(
     }
 
     private fun drawMemoryCapsules(canvas: Canvas, cx: Float, cy: Float) {
-        // 过滤并按 Z 深度从远到近排序
-        val renderList = filteredCapsules.mapNotNull { item ->
+        // 过滤并按 Z 深度从远到近排序 (线程安全防御)
+        val snapshot = synchronized(filteredCapsules) {
+            filteredCapsules.toList()
+        }
+        val renderList = snapshot.mapNotNull { item ->
             val relZ = item.zPos - cameraZ
             if (relZ in nearPlane..farPlane) {
                 Pair(item, relZ)

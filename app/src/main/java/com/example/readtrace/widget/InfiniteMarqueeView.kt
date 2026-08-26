@@ -31,14 +31,17 @@ class InfiniteMarqueeView @JvmOverloads constructor(
     var itemSpacing: Float = 48f
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#4DEEEA")
         textSize = 34f
         typeface = Typeface.DEFAULT_BOLD
     }
 
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(40, 77, 238, 234)
         style = Paint.Style.FILL
+    }
+
+    private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
     }
 
     private var items = listOf(
@@ -55,7 +58,22 @@ class InfiniteMarqueeView @JvmOverloads constructor(
     private var animator: ValueAnimator? = null
 
     init {
+        applyThemeColors()
         recalculateWidths()
+    }
+
+    fun applyThemeColors() {
+        val isDark = com.example.readtrace.util.ThemeHelper.isDarkMode(context)
+        if (isDark) {
+            textPaint.color = Color.parseColor("#4DEEEA")
+            badgePaint.color = Color.argb(40, 77, 238, 234)
+            strokePaint.color = Color.argb(60, 77, 238, 234)
+        } else {
+            textPaint.color = Color.parseColor("#144A38")
+            badgePaint.color = Color.parseColor("#E0F2E9")
+            strokePaint.color = Color.parseColor("#BCE3D1")
+        }
+        invalidate()
     }
 
     fun setItems(newItems: List<String>) {
@@ -90,6 +108,7 @@ class InfiniteMarqueeView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        applyThemeColors()
         startAnimation()
     }
 
@@ -150,11 +169,14 @@ class InfiniteMarqueeView @JvmOverloads constructor(
                 textPaint.getTextBounds(item, 0, item.length, bounds)
                 val itemW = bounds.width().toFloat()
 
-                // 绘制轻微圆角胶囊背景
+                // 绘制轻微圆角胶囊背景与高对比描边
                 val rectLeft = drawX
                 val rectRight = drawX + itemW + 24f
                 if (rectRight > 0 && rectLeft < width) {
-                    canvas.drawRoundRect(rectLeft, baseline + fontMetrics.ascent - 6, rectRight, baseline + fontMetrics.descent + 6, 16f, 16f, badgePaint)
+                    val rectTop = baseline + fontMetrics.ascent - 6
+                    val rectBottom = baseline + fontMetrics.descent + 6
+                    canvas.drawRoundRect(rectLeft, rectTop, rectRight, rectBottom, 16f, 16f, badgePaint)
+                    canvas.drawRoundRect(rectLeft, rectTop, rectRight, rectBottom, 16f, 16f, strokePaint)
                     canvas.drawText(item, drawX + 12f, baseline, textPaint)
                 }
 

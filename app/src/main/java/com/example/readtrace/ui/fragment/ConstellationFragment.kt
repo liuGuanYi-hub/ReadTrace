@@ -141,8 +141,9 @@ class ConstellationFragment : Fragment() {
 
     private fun loadConstellationData() {
         val books = databaseHelper.getBooks()
+        val mindprints = databaseHelper.getAllMindprints()
         constellationSubtitle.text = "共聚联 ${books.size} 颗精神星辰 · 极光脉冲交织"
-        constellationCanvas.setBooksData(books, databaseHelper)
+        constellationCanvas.setBooksData(books, mindprints)
     }
 
     private fun showNodeCard(book: Book, mindprint: BookMindprint) {

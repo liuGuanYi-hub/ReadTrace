@@ -168,8 +168,13 @@ object CoverImageHelper {
      */
     fun loadCover(imageView: ImageView, path: String?, placeholderView: View? = null) {
         if (path.isNullOrBlank()) {
-            imageView.visibility = View.GONE
-            placeholderView?.visibility = View.VISIBLE
+            if (placeholderView != null) {
+                imageView.visibility = View.GONE
+                placeholderView.visibility = View.VISIBLE
+            } else {
+                imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+                imageView.visibility = View.VISIBLE
+            }
             return
         }
 
@@ -210,18 +215,23 @@ object CoverImageHelper {
                 return
             }
 
-            // 无磁盘缓存，异步下载
-            imageView.visibility = View.GONE
-            placeholderView?.visibility = View.VISIBLE
+            // 无磁盘缓存，在下载期间显示占位底色或 placeholderView
+            if (placeholderView != null) {
+                imageView.visibility = View.GONE
+                placeholderView.visibility = View.VISIBLE
+            } else {
+                imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+                imageView.visibility = View.VISIBLE
+            }
 
             imageExecutor.execute {
                 runCatching {
                     val url = URL(trimmed)
                     val connection = (url.openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 6000
-                        readTimeout = 6000
+                        connectTimeout = 8000
+                        readTimeout = 8000
                         instanceFollowRedirects = true
-                        setRequestProperty("User-Agent", "ReadTrace/5.3 (Android)")
+                        setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
                     }
                     if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                         val bytes = connection.inputStream.use { it.readBytes() }
@@ -241,7 +251,13 @@ object CoverImageHelper {
                         }
                     }
                 }.onFailure {
-                    // 网络失败静默忽略
+                    // 网络失败时保证不会残留空白
+                    mainHandler.post {
+                        if (imageView.tag == trimmed && placeholderView == null) {
+                            imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+                            imageView.visibility = View.VISIBLE
+                        }
+                    }
                 }
             }
             return
@@ -250,8 +266,13 @@ object CoverImageHelper {
         // 3. 本地文件路径
         val file = File(trimmed)
         if (!file.exists() || !file.isFile) {
-            imageView.visibility = View.GONE
-            placeholderView?.visibility = View.VISIBLE
+            if (placeholderView != null) {
+                imageView.visibility = View.GONE
+                placeholderView.visibility = View.VISIBLE
+            } else {
+                imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+                imageView.visibility = View.VISIBLE
+            }
             return
         }
 
@@ -269,8 +290,13 @@ object CoverImageHelper {
             } else {
                 mainHandler.post {
                     if (imageView.tag == trimmed) {
-                        imageView.visibility = View.GONE
-                        placeholderView?.visibility = View.VISIBLE
+                        if (placeholderView != null) {
+                            imageView.visibility = View.GONE
+                            placeholderView.visibility = View.VISIBLE
+                        } else {
+                            imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+                            imageView.visibility = View.VISIBLE
+                        }
                     }
                 }
             }

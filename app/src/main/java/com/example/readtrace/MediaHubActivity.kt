@@ -259,7 +259,7 @@ class MediaHubActivity : AppCompatActivity() {
                 if (searchKeyword != query) {
                     searchKeyword = query
                     hubSearchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-                    refreshShelfOnly()
+                    refreshData()
                 }
             }
             override fun afterTextChanged(s: Editable?) {}
@@ -281,7 +281,7 @@ class MediaHubActivity : AppCompatActivity() {
         if (selectedStatus == status) return
         selectedStatus = status
         updateStatusChips()
-        refreshShelfOnly()
+        refreshData()
     }
 
     private fun updateStatusChips() {
@@ -312,18 +312,31 @@ class MediaHubActivity : AppCompatActivity() {
         val wishlist = allTargetBooks.count { it.status == BookStatus.WISHLIST }
 
         hubSubtitle.text = "收录 $total 部作品 · $finished 部已完成 · $reading 部进行中 · $wishlist 部在愿望单"
-        renderDynamicTags(allTargetBooks)
-        refreshShelfOnly()
+
+        val baseFilteredBooks = allTargetBooks.filter { book ->
+            val matchesStatus = selectedStatus == null || book.status == selectedStatus
+            val matchesKeyword = searchKeyword.isEmpty() ||
+                book.title.contains(searchKeyword, ignoreCase = true) ||
+                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
+                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+            matchesStatus && matchesKeyword
+        }
+        renderDynamicTags(baseFilteredBooks)
+        refreshShelfOnly(baseFilteredBooks)
     }
 
-    private fun renderDynamicTags(allTargetBooks: List<Book>) {
+    private fun renderDynamicTags(filteredBooks: List<Book>) {
         val tagCounts = mutableMapOf<String, Int>()
-        allTargetBooks.forEach { book ->
+        filteredBooks.forEach { book ->
             book.tags.forEach { tag ->
                 tagCounts[tag] = (tagCounts[tag] ?: 0) + 1
             }
         }
-        val tagList = tagCounts.toList().sortedByDescending { it.second }
+        val tagList = tagCounts.filter { it.value > 0 }.toList().sortedByDescending { it.second }
+
+        if (selectedTag != null && (tagCounts[selectedTag] ?: 0) == 0) {
+            selectedTag = null
+        }
 
         if (tagList.isEmpty()) {
             hubTagScroller.visibility = View.GONE
@@ -369,17 +382,23 @@ class MediaHubActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshShelfOnly() {
-        val allBooks = databaseHelper.getBooks().filter { it.mediaType == targetMediaType }
-        val books = allBooks.filter { book ->
-            val matchesStatus = selectedStatus == null || book.status == selectedStatus
-            val matchesKeyword = searchKeyword.isEmpty() ||
-                book.title.contains(searchKeyword, ignoreCase = true) ||
-                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
-                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
-            val matchesTag = selectedTag == null || book.tags.contains(selectedTag)
+    private fun refreshShelfOnly(baseBooks: List<Book>? = null) {
+        val candidates = baseBooks ?: run {
+            val allBooks = databaseHelper.getBooks().filter { it.mediaType == targetMediaType }
+            allBooks.filter { book ->
+                val matchesStatus = selectedStatus == null || book.status == selectedStatus
+                val matchesKeyword = searchKeyword.isEmpty() ||
+                    book.title.contains(searchKeyword, ignoreCase = true) ||
+                    (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
+                    (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+                matchesStatus && matchesKeyword
+            }
+        }
 
-            matchesStatus && matchesKeyword && matchesTag
+        val books = if (selectedTag != null) {
+            candidates.filter { it.tags.contains(selectedTag) }
+        } else {
+            candidates
         }
 
         hubCountText.text = "共 ${books.size} 部"

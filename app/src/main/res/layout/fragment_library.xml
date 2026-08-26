@@ -198,9 +198,11 @@
                         android:layout_height="34dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_status_chip_selected"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:text="全部"
                         android:textColor="@color/white"
-                        android:textSize="12.5sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/statusChipReading"
@@ -209,8 +211,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="在读/在看"
-                        android:textSize="12.5sp" />
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="在读"
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/statusChipFinished"
@@ -219,8 +223,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="已读/通关"
-                        android:textSize="12.5sp" />
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="已读"
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/statusChipWishlist"
@@ -229,8 +235,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:text="想读/想看"
-                        android:textSize="12.5sp" />
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="想读"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <!-- 动态标签流 -->
@@ -238,7 +246,7 @@
                     android:id="@+id/libraryTagScroller"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="14dp"
                     android:overScrollMode="never"
                     android:scrollbars="none"
                     android:visibility="gone"

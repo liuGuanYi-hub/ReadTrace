@@ -284,6 +284,10 @@ class MindprintConstellationView @JvmOverloads constructor(
      * 3. 严格控制骨干连线与跨媒介极光流光弦密度
      */
     fun setBooksData(books: List<Book>, databaseHelper: BookDatabaseHelper) {
+        setBooksData(books, databaseHelper.getAllMindprints())
+    }
+
+    fun setBooksData(books: List<Book>, mindprintMap: Map<Long, BookMindprint>) {
         stars.clear()
         edges.clear()
         if (books.isEmpty()) {
@@ -316,7 +320,7 @@ class MindprintConstellationView @JvmOverloads constructor(
             val baseColor = mediaPalette[mediaType] ?: Color.parseColor("#E07A5F")
 
             list.forEachIndexed { index, book ->
-                val mp = databaseHelper.getMindprint(book.id)
+                val mp = mindprintMap[book.id] ?: BookMindprint(bookId = book.id)
 
                 // 黄金角散落算法：按索引平滑扩展半径，彻底消除重叠
                 val goldenAngle = 2.399963f // 137.5 度

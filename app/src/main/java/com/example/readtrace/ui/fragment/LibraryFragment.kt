@@ -146,7 +146,7 @@ class LibraryFragment : Fragment() {
                     searchKeyword = query
                     currentDisplayLimit = 24
                     librarySearchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-                    refreshShelfOnly()
+                    refreshLibrary()
                 }
             }
             override fun afterTextChanged(s: Editable?) {}
@@ -183,6 +183,7 @@ class LibraryFragment : Fragment() {
         selectedMediaType = type
         currentDisplayLimit = 24
         updateMediaChips()
+        updateStatusChips()
         refreshLibrary()
     }
 
@@ -206,10 +207,23 @@ class LibraryFragment : Fragment() {
         selectedStatus = status
         currentDisplayLimit = 24
         updateStatusChips()
-        refreshShelfOnly()
+        refreshLibrary()
     }
 
     private fun updateStatusChips() {
+        val (readingText, finishedText, wishlistText) = when (selectedMediaType) {
+            MediaType.BOOK -> Triple("在读", "已读", "想读")
+            MediaType.ANIME -> Triple("追番中", "补完", "想追")
+            MediaType.MOVIE -> Triple("在看", "已看", "想看")
+            MediaType.GAME -> Triple("游玩中", "通关", "想玩")
+            MediaType.PODCAST -> Triple("收听中", "听完", "想听")
+            null -> Triple("进行中", "已完成", "愿望单")
+        }
+        statusChipAll.text = "全部"
+        statusChipReading.text = readingText
+        statusChipFinished.text = finishedText
+        statusChipWishlist.text = wishlistText
+
         val chips = listOf(
             statusChipAll to (selectedStatus == null),
             statusChipReading to (selectedStatus == BookStatus.READING),
@@ -233,13 +247,17 @@ class LibraryFragment : Fragment() {
 
     private fun refreshLibrary() {
         val allBooks = databaseHelper.getBooks()
-        val filteredByMedia = if (selectedMediaType != null) {
-            allBooks.filter { it.mediaType == selectedMediaType }
-        } else {
-            allBooks
+        val baseFilteredBooks = allBooks.filter { book ->
+            val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
+            val matchesStatus = selectedStatus == null || book.status == selectedStatus
+            val matchesKeyword = searchKeyword.isEmpty() ||
+                book.title.contains(searchKeyword, ignoreCase = true) ||
+                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
+                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+            matchesMedia && matchesStatus && matchesKeyword
         }
-        renderDynamicTags(filteredByMedia)
-        refreshShelfOnly()
+        renderDynamicTags(baseFilteredBooks)
+        refreshShelfOnly(baseFilteredBooks)
     }
 
     private fun renderDynamicTags(filteredBooks: List<Book>) {
@@ -249,7 +267,11 @@ class LibraryFragment : Fragment() {
                 tagCounts[tag] = (tagCounts[tag] ?: 0) + 1
             }
         }
-        val tagList = tagCounts.toList().sortedByDescending { it.second }
+        val tagList = tagCounts.filter { it.value > 0 }.toList().sortedByDescending { it.second }
+
+        if (selectedTag != null && (tagCounts[selectedTag] ?: 0) == 0) {
+            selectedTag = null
+        }
 
         if (tagList.isEmpty()) {
             libraryTagScroller.visibility = View.GONE
@@ -297,18 +319,24 @@ class LibraryFragment : Fragment() {
         }
     }
 
-    private fun refreshShelfOnly() {
-        val allBooks = databaseHelper.getBooks()
-        val books = allBooks.filter { book ->
-            val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
-            val matchesStatus = selectedStatus == null || book.status == selectedStatus
-            val matchesKeyword = searchKeyword.isEmpty() ||
-                book.title.contains(searchKeyword, ignoreCase = true) ||
-                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
-                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
-            val matchesTag = selectedTag == null || book.tags.contains(selectedTag)
+    private fun refreshShelfOnly(baseBooks: List<Book>? = null) {
+        val candidates = baseBooks ?: run {
+            val allBooks = databaseHelper.getBooks()
+            allBooks.filter { book ->
+                val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
+                val matchesStatus = selectedStatus == null || book.status == selectedStatus
+                val matchesKeyword = searchKeyword.isEmpty() ||
+                    book.title.contains(searchKeyword, ignoreCase = true) ||
+                    (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
+                    (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+                matchesMedia && matchesStatus && matchesKeyword
+            }
+        }
 
-            matchesMedia && matchesStatus && matchesKeyword && matchesTag
+        val books = if (selectedTag != null) {
+            candidates.filter { it.tags.contains(selectedTag) }
+        } else {
+            candidates
         }
 
         libraryCountText.text = "共 ${books.size} 部藏品"

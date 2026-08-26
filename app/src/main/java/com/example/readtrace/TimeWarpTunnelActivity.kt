@@ -2,6 +2,7 @@ package com.example.readtrace
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
@@ -107,12 +108,7 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
 
     private fun loadTunnelData() {
         val allBooks = databaseHelper.getBooks()
-        val mindprintMap = mutableMapOf<Long, BookMindprint>()
-        allBooks.forEach { book ->
-            databaseHelper.getMindprint(book.id)?.let { mp ->
-                mindprintMap[book.id] = mp
-            }
-        }
+        val mindprintMap = databaseHelper.getAllMindprints()
 
         timeWarpTunnelView.setData(allBooks, mindprintMap)
 
@@ -148,8 +144,8 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
                 setOnClickListener {
                     HapticFeedbackEngine.lightClick(context)
                     currentFilter = tab.type
-                    timeWarpTunnelView.applyFilter(tab.type)
                     buildFilterChips()
+                    timeWarpTunnelView.applyFilter(tab.type)
                 }
             }
             ViewAnimationHelper.attachSpringTouch(chip)
@@ -240,7 +236,10 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
         btnDetail.text = "✦ 穿梭进入作品"
         btnDetail.setOnClickListener {
             dialog.dismiss()
-            startActivity(BookDetailActivity.createIntent(this, book.id))
+            val intent = Intent(this, BookDetailActivity::class.java).apply {
+                putExtra("extra_book_id", book.id)
+            }
+            startActivity(intent)
         }
 
         view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
@@ -267,16 +266,26 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-            val rotMatrix = FloatArray(9)
-            SensorManager.getRotationMatrixFromVector(rotMatrix, event.values)
-            val orientation = FloatArray(3)
-            SensorManager.getOrientation(rotMatrix, orientation)
-            val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
-            val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
+        runCatching {
+            if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                val rotMatrix = FloatArray(9)
+                SensorManager.getRotationMatrixFromVector(rotMatrix, event.values)
+                val orientation = FloatArray(3)
+                SensorManager.getOrientation(rotMatrix, orientation)
+                val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
 
-            timeWarpTunnelView.gyroOffsetX = (roll / 45f).coerceIn(-1f, 1f)
-            timeWarpTunnelView.gyroOffsetY = (pitch / 45f).coerceIn(-1f, 1f)
+                timeWarpTunnelView.gyroOffsetX = (roll / 45f).coerceIn(-1f, 1f)
+                timeWarpTunnelView.gyroOffsetY = (pitch / 45f).coerceIn(-1f, 1f)
+            } else if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                val ax = event.values.getOrNull(0) ?: 0f
+                val ay = event.values.getOrNull(1) ?: 0f
+                val az = event.values.getOrNull(2) ?: 9.8f
+                val roll = Math.toDegrees(kotlin.math.atan2(ax.toDouble(), kotlin.math.sqrt((ay * ay + az * az).toDouble()))).toFloat()
+                val pitch = Math.toDegrees(kotlin.math.atan2(ay.toDouble(), kotlin.math.sqrt((ax * ax + az * az).toDouble()))).toFloat()
+                timeWarpTunnelView.gyroOffsetX = (roll / 45f).coerceIn(-1f, 1f)
+                timeWarpTunnelView.gyroOffsetY = (pitch / 45f).coerceIn(-1f, 1f)
+            }
         }
     }
 

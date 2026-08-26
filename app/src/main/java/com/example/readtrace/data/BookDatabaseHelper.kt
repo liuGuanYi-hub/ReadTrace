@@ -242,6 +242,7 @@ class BookDatabaseHelper(val context: Context) :
         seedUserGameList(db)
         seedUserPodcastMusicList(db)
         seedCuratedBookCovers(db)
+        autoFillMissingCovers(db)
     }
 
     private fun seedCuratedBookCovers(db: SQLiteDatabase) {
@@ -336,6 +337,164 @@ class BookDatabaseHelper(val context: Context) :
                     }
                     db.insert(TABLE_BOOKS, null, cv)
                 }
+            }
+        }
+    }
+
+    private fun autoFillMissingCovers(db: SQLiteDatabase) {
+        runCatching {
+            val defaultCoverMap = mapOf(
+                // 经典文学 / 书籍
+                "1984" to "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600",
+                "鼠疫" to "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600",
+                "动物农场" to "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+                "诡计博物馆" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "霍乱时期的爱情" to "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?w=600",
+                "悲惨世界" to "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600",
+                "四世同堂" to "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600",
+                "西西弗神话" to "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600",
+                "挪威的森林" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "老人与海" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "上帝掷骰子吗" to "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=600",
+                "全员嫌疑人" to "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600",
+                "绝叫" to "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600",
+                "人类简史" to "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600",
+                "时间简史" to "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                "经济学原理" to "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600",
+                "廊桥遗梦" to "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=600",
+                "社会心理学" to "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600",
+                "在细雨中呼喊" to "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=600",
+                "白夜行" to "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?w=600",
+                "局外人" to "https://images.unsplash.com/photo-1507842229451-79b1be8868c2?w=600",
+                "许三观卖血记" to "https://images.unsplash.com/photo-1509021436665-8f07dbf5bf1d?w=600",
+                "解忧杂货店" to "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600",
+                "无人生还" to "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600",
+                "蛇结" to "https://images.unsplash.com/photo-1528722828814-77b9b83aafb2?w=600",
+                "我是猫" to "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "罗生门" to "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600",
+                "活着" to "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600",
+                "月亮与六便士" to "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=600",
+                "罪与罚" to "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600",
+                "消失的十三级台阶" to "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600",
+                "同名同姓受害者协会" to "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=600",
+                "呼啸山庄" to "https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=600",
+                "蛤蟆先生去看心理医生" to "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600",
+                "帷幕" to "https://images.unsplash.com/photo-1499209974431-9dac3ada0047?w=600",
+                "一个叫欧维的男人决定去死" to "https://images.unsplash.com/photo-1499209974431-9dac3ada0047?w=600",
+                "傲慢与偏见" to "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=600",
+                "恶意" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "边城" to "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600",
+                "斜阳" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "基督山伯爵" to "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600",
+                "人间失格" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "ABC谋杀案" to "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600",
+                "春雪" to "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600",
+                "追风筝的人" to "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600",
+                "战争与和平" to "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600",
+                "生死疲劳" to "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600",
+                "谋杀启事" to "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600",
+                "雾都孤儿" to "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600",
+                "人间椅子" to "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600",
+                "雪国" to "https://images.unsplash.com/photo-1517824806704-9040b037703b?w=600",
+                "伊豆的舞女" to "https://images.unsplash.com/photo-1528164344705-475426879c0d?w=600",
+
+                // 经典番剧
+                "EVA" to "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                "新世纪福音战士" to "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                "浪客剑心" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "夏目友人帐" to "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
+                "轻音少女" to "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "怪盗基德" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "魔术快斗" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "Angel Beats" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "JOJO" to "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600",
+                "我的青春恋爱物语果然有问题" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "约会大作战" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "月刊少女野崎君" to "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+                "Charlotte" to "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                "夏洛特" to "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                "路人女主" to "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600",
+                "齐木楠雄" to "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600",
+                "在下坂本" to "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600",
+                "灵能百分百" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "来自深渊" to "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600",
+                "笨女孩" to "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600",
+                "实力至上主义教室" to "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600",
+                "青春猪头少年" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "紫罗兰永恒花园" to "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600",
+                "碧蓝之海" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "强风吹拂" to "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=600",
+                "文豪野犬" to "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600",
+                "魔女之旅" to "https://images.unsplash.com/photo-1528164344705-475426879c0d?w=600",
+                "从零开始的异世界生活" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "国王排名" to "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600",
+                "转生成蜘蛛" to "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600",
+                "间谍过家家" to "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=600",
+                "夏日重现" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "孤独摇滚" to "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
+                "蓝色监狱" to "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600",
+                "我独自升级" to "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600",
+                "鬼灭之刃" to "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                "魔法少女小圆" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "咒术回战" to "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600",
+                "魔都精兵" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "我推的孩子" to "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+                "玉子市场" to "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "超电磁炮" to "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                "凉宫春日" to "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                "中二病" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "冰菓" to "https://images.unsplash.com/photo-1517824806704-9040b037703b?w=600",
+                "野良神" to "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                "点兔" to "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "请问您今天要来点兔子吗" to "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600",
+                "小埋" to "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600",
+                "逆转裁判" to "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600",
+                "杀戮天使" to "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600",
+                "多罗罗" to "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                "葬送的芙莉莲" to "https://images.unsplash.com/photo-1463320726281-696a485928c7?w=600",
+                "超时空要塞" to "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                "辉夜大小姐" to "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+            )
+
+            // 查询所有 cover_url 为空或 null 的作品
+            val cursor = db.query(
+                TABLE_BOOKS,
+                arrayOf(COLUMN_ID, COLUMN_TITLE, COLUMN_MEDIA_TYPE),
+                "($COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '') AND $COLUMN_IS_DELETED = 0",
+                null, null, null, null,
+            )
+
+            val missingList = mutableListOf<Triple<Long, String, String>>()
+            cursor.use {
+                while (it.moveToNext()) {
+                    missingList.add(Triple(it.getLong(0), it.getString(1), it.getString(2) ?: "book"))
+                }
+            }
+
+            val now = currentTimestamp()
+            for ((id, title, mediaType) in missingList) {
+                var matchedUrl: String? = null
+                for ((key, url) in defaultCoverMap) {
+                    if (title.contains(key, ignoreCase = true)) {
+                        matchedUrl = url
+                        break
+                    }
+                }
+                if (matchedUrl == null) {
+                    matchedUrl = when (mediaType) {
+                        "anime" -> "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600"
+                        "movie" -> "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600"
+                        "game" -> "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600"
+                        "podcast" -> "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=600"
+                        else -> "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600"
+                    }
+                }
+
+                val cv = ContentValues().apply {
+                    put(COLUMN_COVER_URL, matchedUrl)
+                    put(COLUMN_UPDATED_AT, now)
+                }
+                db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(id.toString()))
             }
         }
     }
@@ -2485,6 +2644,27 @@ class BookDatabaseHelper(val context: Context) :
         ).use { cursor ->
             if (cursor.moveToFirst()) cursor.toBookMindprint() else BookMindprint(bookId = bookId)
         }
+
+    fun getAllMindprints(): Map<Long, BookMindprint> {
+        val map = mutableMapOf<Long, BookMindprint>()
+        runCatching {
+            readableDatabase.query(
+                TABLE_BOOK_MINDPRINTS,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val mp = cursor.toBookMindprint()
+                    map[mp.bookId] = mp
+                }
+            }
+        }
+        return map
+    }
 
     fun getAnnualMindprintPersona(): com.example.readtrace.model.ReadingPersona? {
         val finishedBooks = getBooks(BookStatus.FINISHED)

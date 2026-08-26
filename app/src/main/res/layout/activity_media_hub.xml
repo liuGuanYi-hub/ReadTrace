@@ -240,9 +240,11 @@
                         android:layout_height="34dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_status_chip_selected"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:text="全部"
                         android:textColor="@color/white"
-                        android:textSize="12.5sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/hubStatusReading"
@@ -251,8 +253,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:text="进行中"
-                        android:textSize="12.5sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/hubStatusFinished"
@@ -261,8 +265,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:text="已完成"
-                        android:textSize="12.5sp" />
+                        android:textSize="12sp" />
 
                     <TextView
                         android:id="@+id/hubStatusWishlist"
@@ -271,8 +277,10 @@
                         android:layout_height="34dp"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
                         android:text="愿望单"
-                        android:textSize="12.5sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <!-- 标签过滤条 -->
@@ -280,7 +288,7 @@
                     android:id="@+id/hubTagScroller"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="14dp"
                     android:overScrollMode="never"
                     android:scrollbars="none"
                     android:visibility="gone"

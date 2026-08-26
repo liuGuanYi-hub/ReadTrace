@@ -49,9 +49,23 @@ class MainActivity : AppCompatActivity() {
         initTabs()
         setupBackPressHandler()
 
-        if (savedInstanceState == null) {
+        if (savedInstanceState != null) {
+            currentTabIndex = savedInstanceState.getInt(KEY_TAB_INDEX, TAB_HUB)
+            for (i in 0..4) {
+                val f = supportFragmentManager.findFragmentByTag("tag_tab_$i")
+                if (f != null) {
+                    fragments[i] = f
+                }
+            }
+            selectTab(currentTabIndex)
+        } else {
             selectTab(TAB_HUB)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_TAB_INDEX, currentTabIndex)
     }
 
     private fun initTabs() {
@@ -79,23 +93,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(index: Int) {
-        if (currentTabIndex == index && fragments[index]?.isAdded == true) return
-
         val transaction = supportFragmentManager.beginTransaction()
 
-        // 隐藏上一个 Fragment
-        fragments[currentTabIndex]?.let {
-            if (it.isAdded) transaction.hide(it)
+        // 1. 隐藏所有非目标 Tab Fragment，杜绝任何页面穿透叠影
+        for (i in 0..4) {
+            val f = fragments[i] ?: supportFragmentManager.findFragmentByTag("tag_tab_$i")
+            if (f != null && i != index && f.isAdded) {
+                transaction.hide(f)
+            }
         }
 
-        // 显示或添加当前 Fragment
-        var targetFragment = fragments[index]
+        // 2. 获取或创建目标 Fragment 并显示
+        var targetFragment = fragments[index] ?: supportFragmentManager.findFragmentByTag("tag_tab_$index")
         if (targetFragment == null) {
             targetFragment = createFragment(index)
             fragments[index] = targetFragment
             transaction.add(R.id.fragmentContainer, targetFragment, "tag_tab_$index")
         } else {
-            transaction.show(targetFragment)
+            fragments[index] = targetFragment
+            if (!targetFragment.isAdded) {
+                transaction.add(R.id.fragmentContainer, targetFragment, "tag_tab_$index")
+            } else {
+                transaction.show(targetFragment)
+            }
         }
 
         transaction.commitAllowingStateLoss()
@@ -150,6 +170,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val KEY_TAB_INDEX = "key_current_tab_index"
         const val TAB_HUB = 0
         const val TAB_LIBRARY = 1
         const val TAB_GALAXY = 2
