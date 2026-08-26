@@ -145,7 +145,7 @@ class MediaHubActivity : AppCompatActivity() {
             refreshShelfOnly()
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.btnHubBack),
             btnHubAdd,
             btnHubToggleViewMode,

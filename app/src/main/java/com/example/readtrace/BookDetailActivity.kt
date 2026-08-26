@@ -175,7 +175,7 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         // 注入 iOS 级 Q 弹手势触觉反馈
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.detailBackButton),
             findViewById(R.id.detailEditButton),
             findViewById(R.id.detailArchiveButton),

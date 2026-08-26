@@ -111,7 +111,7 @@ class ConstellationFragment : Fragment() {
             }
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             btnConstellationTopology, btnConstellationFullscreen, btnNodeDetail,
             filterAll, filterBook, filterAnime, filterMovie, filterGame, filterResonance,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

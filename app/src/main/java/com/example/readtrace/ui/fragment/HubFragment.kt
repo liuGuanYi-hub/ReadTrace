@@ -400,7 +400,7 @@ class HubFragment : Fragment() {
     private fun updateThemeToggleIcon() {
         val ctx = context ?: return
         val isDark = ThemeHelper.isDarkMode(ctx)
-        themeToggleButton.text = if (isDark) "☀️" else "🌙"
+        themeToggleButton.text = if (isDark) "🌙" else "☀️"
         if (::auroraBackgroundView.isInitialized) {
             auroraBackgroundView.updateThemePalette(isDark)
         }

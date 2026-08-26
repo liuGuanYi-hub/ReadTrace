@@ -78,7 +78,7 @@ class CulturalPassportActivity : AppCompatActivity() {
             }, 260L)
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.btnPassportBack),
             findViewById(R.id.btnPassportExportTop),
             tabPassportAnime,

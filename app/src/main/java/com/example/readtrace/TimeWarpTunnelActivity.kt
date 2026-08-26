@@ -88,12 +88,13 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
         btnToggleCruise = findViewById(R.id.btnToggleCruise)
         btnHyperspaceJump = findViewById(R.id.btnHyperspaceJump)
 
-        findViewById<View>(R.id.btnTunnelBack).setOnClickListener {
+        val btnTunnelBack = findViewById<View>(R.id.btnTunnelBack)
+        btnTunnelBack.setOnClickListener {
             finish()
         }
 
-        listOfNotNull(
-            findViewById(R.id.btnTunnelBack),
+        listOfNotNull<View>(
+            btnTunnelBack,
             btnWarpSpeedToggle,
             btnToggleCruise,
             btnHyperspaceJump,

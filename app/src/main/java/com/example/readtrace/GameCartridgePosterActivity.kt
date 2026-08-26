@@ -72,7 +72,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             Toast.makeText(this, "🕹️ 触发白金卡带插槽物理反馈与微粒迸发", Toast.LENGTH_SHORT).show()
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.btnCartridgeBack),
             findViewById(R.id.btnCartridgeShareTop),
             findViewById(R.id.btnShareCartridgeImage),

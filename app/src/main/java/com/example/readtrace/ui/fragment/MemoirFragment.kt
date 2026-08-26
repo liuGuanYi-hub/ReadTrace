@@ -95,7 +95,7 @@ class MemoirFragment : Fragment() {
             startActivity(Intent(requireContext(), CoverGalleryActivity::class.java))
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             cardTimeWarpTunnel, cardPassport, cardMovieTicket, cardGameCartridge,
             cardResonancePoster, cardAnimeTimeline, cardCoverGallery,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

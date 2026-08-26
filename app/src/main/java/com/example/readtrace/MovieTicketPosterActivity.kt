@@ -86,7 +86,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             }
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.btnTicketBack),
             findViewById(R.id.btnTicketShareTop),
             findViewById(R.id.btnShareTicketImage),

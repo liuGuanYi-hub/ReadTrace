@@ -168,7 +168,7 @@ class LibraryFragment : Fragment() {
             Toast.makeText(requireContext(), "正在生成全息藏书长卷...", Toast.LENGTH_SHORT).show()
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             btnLibraryAdd, btnLibraryToggleView, btnLibraryExportScroll,
             mediaChipAll, mediaChipBook, mediaChipAnime, mediaChipMovie, mediaChipGame,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

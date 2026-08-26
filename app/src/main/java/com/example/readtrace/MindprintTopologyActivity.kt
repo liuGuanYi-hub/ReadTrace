@@ -82,7 +82,7 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
             finish()
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             findViewById(R.id.btnTopologyBack),
             btnTopologyModeToggle,
             btnResetView,

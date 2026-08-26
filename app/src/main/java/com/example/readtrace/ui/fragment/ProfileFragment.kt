@@ -94,7 +94,7 @@ class ProfileFragment : Fragment() {
             startActivity(TrashActivity.createIntent(requireContext()))
         }
 
-        listOfNotNull(
+        listOfNotNull<View>(
             profileGalleryPanel, profileCommunityPanel,
             profileBadgePanel, profileBackupPanel, profileTrashPanel,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

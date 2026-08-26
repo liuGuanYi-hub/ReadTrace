@@ -71,7 +71,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="🌙"
+                    android:text="☀️"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="15sp" />
             </LinearLayout>
