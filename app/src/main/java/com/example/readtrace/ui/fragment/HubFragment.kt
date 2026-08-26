@@ -408,6 +408,16 @@ class HubFragment : Fragment() {
         statFinishedValue.text = finished.toString()
         statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
 
+        val phase = com.example.readtrace.util.CircadianLightingEngine.getCurrentPhase()
+        if (::heroCuratorialBadge.isInitialized) {
+            heroCuratorialBadge.setBadgeContent("NO. 01 · ${phase.displayName}", "CURATED")
+        }
+        if (::auroraBackgroundView.isInitialized) {
+            val ctx = context
+            val isDark = if (ctx != null) ThemeHelper.isDarkMode(ctx) else true
+            auroraBackgroundView.setCircadianPhase(phase, darkMode = isDark)
+        }
+
         renderHeroCuratorialCard(allBooks)
         renderBentoSubCards()
         renderParchmentQuote()

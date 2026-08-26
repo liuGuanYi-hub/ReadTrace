@@ -37,6 +37,8 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
         get() = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
 
+    private var audioScale: Float = 1.0f
+
     init {
         setWillNotDraw(false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -49,21 +51,20 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     }
 
     fun updateThemePalette(darkMode: Boolean = isDarkTheme) {
-        colors = if (darkMode) {
-            intArrayOf(
-                Color.parseColor("#5A1D4E33"), // 沉静幽绿
-                Color.parseColor("#5A3E3159"), // 星云幻紫
-                Color.parseColor("#5A1A3A5C"), // 深邃海蓝
-                Color.parseColor("#404E3524"), // 古木暖棕
-            )
-        } else {
-            intArrayOf(
-                Color.parseColor("#5290B59B"), // 柔和草木绿
-                Color.parseColor("#52E2D6B5"), // 晨曦浅金
-                Color.parseColor("#52A0BBD8"), // 薄雾霁蓝
-                Color.parseColor("#40E2BAC6"), // 浅粉霞光
-            )
-        }
+        colors = com.example.readtrace.util.CircadianLightingEngine.getCircadianColors(isDark = darkMode)
+        invalidate()
+    }
+
+    fun setCircadianPhase(phase: com.example.readtrace.util.CircadianLightingEngine.CircadianPhase, darkMode: Boolean = isDarkTheme) {
+        colors = com.example.readtrace.util.CircadianLightingEngine.getCircadianColors(phase, isDark = darkMode)
+        invalidate()
+    }
+
+    /**
+     * 🎵 音频低频反应式光斑脉冲 (Audio-Reactive Pulse)
+     */
+    fun applyAudioPulse(bassLevel: Float) {
+        audioScale = (1.0f + bassLevel.coerceIn(0f, 0.6f)).coerceIn(1.0f, 1.6f)
         invalidate()
     }
 
@@ -111,11 +112,12 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
 
-        // 绘制 4 个按多维正弦流体轨迹运动的交融光斑
-        drawOrb(canvas, 0, w * 0.3f + sin(time) * w * 0.25f, h * 0.25f + cos(time * 0.8f) * h * 0.15f, w * 0.55f)
-        drawOrb(canvas, 1, w * 0.7f + cos(time * 1.1f) * w * 0.22f, h * 0.40f + sin(time * 0.9f) * h * 0.20f, w * 0.60f)
-        drawOrb(canvas, 2, w * 0.4f + cos(time * 0.7f) * w * 0.28f, h * 0.70f + sin(time * 1.2f) * h * 0.18f, w * 0.58f)
-        drawOrb(canvas, 3, w * 0.8f + sin(time * 1.3f) * w * 0.20f, h * 0.85f + cos(time) * h * 0.15f, w * 0.50f)
+        // 绘制 4 个按多维正弦流体轨迹运动的交融光斑，受音频脉冲缩放驱动
+        val scale = audioScale
+        drawOrb(canvas, 0, w * 0.3f + sin(time) * w * 0.25f, h * 0.25f + cos(time * 0.8f) * h * 0.15f, w * 0.55f * scale)
+        drawOrb(canvas, 1, w * 0.7f + cos(time * 1.1f) * w * 0.22f, h * 0.40f + sin(time * 0.9f) * h * 0.20f, w * 0.60f * scale)
+        drawOrb(canvas, 2, w * 0.4f + cos(time * 0.7f) * w * 0.28f, h * 0.70f + sin(time * 1.2f) * h * 0.18f, w * 0.58f * scale)
+        drawOrb(canvas, 3, w * 0.8f + sin(time * 1.3f) * w * 0.20f, h * 0.85f + cos(time) * h * 0.15f, w * 0.50f * scale)
     }
 
     private fun drawOrb(canvas: Canvas, colorIndex: Int, cx: Float, cy: Float, radius: Float) {
