@@ -168,6 +168,7 @@ class HubFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         auroraBackgroundView.startAnimation()
+        homeSubtitle.text = com.example.readtrace.util.CircadianLightingEngine.getCircadianSummary()
         updateThemeToggleIcon()
         refreshDashboard()
     }
