@@ -19,6 +19,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.util.ConfettiBurstHelper
+import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
