@@ -46,7 +46,7 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.example.readtrace.widget.ScrambleTextView
                     android:id="@+id/homeTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -165,12 +165,19 @@
             </HorizontalScrollView>
         </LinearLayout>
 
+        <!-- 🌊 0. 【先锋无限流光跑马灯】(60fps Infinite Marquee Stream) -->
+        <com.example.readtrace.widget.InfiniteMarqueeView
+            android:id="@+id/hubInfiniteMarquee"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="14dp" />
+
         <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase with Gyroscope & Specular Glare) -->
         <FrameLayout
             android:id="@+id/heroCuratorialContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="14dp">
 
             <LinearLayout
                 android:id="@+id/heroCuratorialCard"
@@ -259,7 +266,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
-                        <TextView
+                        <com.example.readtrace.widget.ScrambleTextView
                             android:id="@+id/heroBookTitle"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

@@ -264,6 +264,8 @@ class HubFragment : Fragment() {
             val ctx = requireContext()
             ThemeHelper.toggleDarkMode(ctx)
             updateThemeToggleIcon()
+            com.example.readtrace.util.ConfettiBurstHelper.burstCenter(requireActivity())
+            com.example.readtrace.util.HapticFeedbackEngine.stampImpact(ctx)
         }
 
         addBtn.setOnClickListener { startActivity(Intent(requireContext(), AddBookActivity::class.java)) }
@@ -452,7 +454,8 @@ class HubFragment : Fragment() {
         if (featuredBook != null) {
             heroCuratorialCard.visibility = View.VISIBLE
             heroBadgeMedia.text = "${featuredBook.mediaType.emoji} ${featuredBook.category ?: featuredBook.mediaType.displayName}"
-            heroBookTitle.text = "《${featuredBook.title}》"
+            (heroBookTitle as? com.example.readtrace.widget.ScrambleTextView)?.setScrambleText("《${featuredBook.title}》")
+                ?: run { heroBookTitle.text = "《${featuredBook.title}》" }
             heroBookAuthor.text = featuredBook.author?.ifBlank { "未知作者" } ?: "未知作者"
             heroBtnRead.text = when (featuredBook.mediaType) {
                 MediaType.BOOK -> "📖 3D 沉浸翻阅"
