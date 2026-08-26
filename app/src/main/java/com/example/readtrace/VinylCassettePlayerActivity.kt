@@ -268,13 +268,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             vinylTurntableView.togglePlay(true)
             cassetteDeckView.togglePlay(true)
             particleBackgroundView.setPlaying(true)
+            com.example.readtrace.util.AudioReactiveAuroraEngine.startAudioSync()
             handler.post(playRunnable)
         } else {
             com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
-            tvPlayPauseLabel.text = "▶ 沉浸播放"
+            tvPlayPauseLabel.text = "▶ 开始放唱"
             vinylTurntableView.togglePlay(false)
             cassetteDeckView.togglePlay(false)
             particleBackgroundView.setPlaying(false)
+            com.example.readtrace.util.AudioReactiveAuroraEngine.stopAudioSync()
             handler.removeCallbacks(playRunnable)
         }
     }
