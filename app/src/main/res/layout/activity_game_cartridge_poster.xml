@@ -67,11 +67,22 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <com.example.readtrace.widget.GameCartridgePosterView
-                android:id="@+id/gameCartridgePosterView"
+            <FrameLayout
                 android:layout_width="280dp"
-                android:layout_height="370dp"
-                android:elevation="14dp" />
+                android:layout_height="370dp">
+
+                <com.example.readtrace.widget.GameCartridgePosterView
+                    android:id="@+id/gameCartridgePosterView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:elevation="14dp" />
+
+                <!-- 🌈 全息棱镜微色散光环 (Prismatic Chromatic Dispersion) -->
+                <com.example.readtrace.widget.PrismaticChromaticView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:elevation="16dp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tvCartridgeSummary"

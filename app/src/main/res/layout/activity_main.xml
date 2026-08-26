@@ -184,4 +184,15 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- 🎞️ 模拟胶片感光颗粒与抗断层噪点层 (FilmGrainOverlayView) -->
+    <com.example.readtrace.widget.FilmGrainOverlayView
+        android:id="@+id/mainFilmGrainOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:elevation="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
