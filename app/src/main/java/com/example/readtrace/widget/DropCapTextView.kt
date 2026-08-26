@@ -92,19 +92,24 @@ class DropCapTextView @JvmOverloads constructor(
             val padLeft = paddingLeft.toFloat()
             val padTop = paddingTop.toFloat()
 
+            // 基线按首字实际字号的 FontMetrics 计算（textBounds 不含 ascent 顶部留白，
+            // 直接用 textBounds.height() 会把字形顶部顶出视图边界被裁剪，只剩半截字）
+            val metrics = dropCapPaint.fontMetrics
+            val baseline = padTop - metrics.ascent
+
             // 1. 绘制底层微弱水印（向左上偏移，控制在水印自身尺寸内不侵入正文区）
             canvas.drawText(
                 dropChar,
                 padLeft - 8f,
-                padTop + textBounds.height() * 1.08f,
+                baseline,
                 dropCapShadowPaint,
             )
 
-            // 2. 绘制主体典雅下沉首字
+            // 2. 绘制主体典雅下沉首字（下沉首行文字基线处，覆盖约两行高度）
             canvas.drawText(
                 dropChar,
                 padLeft + 2f,
-                padTop + textBounds.height() * 1.02f,
+                baseline,
                 dropCapPaint,
             )
         }

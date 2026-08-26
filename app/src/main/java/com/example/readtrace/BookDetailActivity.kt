@@ -873,17 +873,20 @@ class BookDetailActivity : AppCompatActivity() {
             MediaType.PODCAST -> "🌟 终章 · 全季听完复盘"
         }
 
-        // 1. 初读起点
+        // 1. 初读起点（日期为占位文本如「待整理」时不再拼接时间后缀）
         if (!book.startDate.isNullOrBlank()) {
+            val startDate = book.startDate.trim()
+            val startValid = TIMELINE_DATE_PATTERN.matches(startDate)
             events.add(
                 com.example.readtrace.model.TimelineEvent(
                     id = "start_${book.id}",
                     type = com.example.readtrace.model.TimelineEventType.START_READING,
-                    timestamp = book.startDate + "T08:00:00",
+                    timestamp = if (startValid) startDate + "T08:00:00" else book.createdAt,
                     title = startTitle,
                     subtitle = "当前状态：${book.mediaType.getStatusLabel(book.status)} · 载体：${book.mediaType.displayName}",
                     content = startContent,
                     extraMeta = book.category?.let { "分类：$it" },
+                    pendingTime = !startValid,
                 ),
             )
         }
@@ -906,10 +909,7 @@ class BookDetailActivity : AppCompatActivity() {
 
         // 3. 灵感与高光摘录
         notes.forEach { note ->
-            val positionMeta = listOfNotNull(
-                note.chapter?.trim()?.takeIf { it.isNotEmpty() },
-                note.page?.trim()?.takeIf { it.isNotEmpty() }?.let { "P.$it" },
-            ).joinToString(" · ")
+            val positionMeta = notePositionLabel(note.page, note.chapter, book.mediaType)
 
             events.add(
                 com.example.readtrace.model.TimelineEvent(
@@ -957,17 +957,20 @@ class BookDetailActivity : AppCompatActivity() {
             )
         }
 
-        // 6. 完读与深度复盘
+        // 6. 完读与深度复盘（日期为占位文本时退回更新时间排序，并标记待整理）
         if (!book.finishDate.isNullOrBlank() || book.status == BookStatus.FINISHED) {
+            val finishDate = book.finishDate?.trim()
+            val finishValid = finishDate != null && TIMELINE_DATE_PATTERN.matches(finishDate)
             events.add(
                 com.example.readtrace.model.TimelineEvent(
                     id = "finish_${book.id}",
                     type = com.example.readtrace.model.TimelineEventType.FINISH_REVIEW,
-                    timestamp = (book.finishDate ?: book.updatedAt) + "T23:59:59",
+                    timestamp = if (finishValid) finishDate + "T23:59:59" else book.updatedAt,
                     title = finishTitle,
                     subtitle = book.rating?.let { "个人评分：★ $it / 5.0" } ?: book.mediaType.finishedLabel,
                     content = book.review?.takeIf { it.isNotBlank() } ?: book.shortComment,
                     extraMeta = "精神沉淀与思想烙印",
+                    pendingTime = book.finishDate != null && !finishValid,
                 ),
             )
         }
@@ -994,7 +997,8 @@ class BookDetailActivity : AppCompatActivity() {
             val item = layoutInflater.inflate(R.layout.item_timeline_node, container, false)
             item.findViewById<TextView>(R.id.timelineNodeIcon).text = event.type.icon
             item.findViewById<TextView>(R.id.timelineTitle).text = event.title
-            item.findViewById<TextView>(R.id.timelineTimeText).text = formatTimestamp(event.timestamp)
+            item.findViewById<TextView>(R.id.timelineTimeText).text =
+                if (event.pendingTime) "时间待整理" else formatTimestamp(event.timestamp)
 
             if (index == 0) {
                 item.findViewById<View>(R.id.timelineTopLine).visibility = View.INVISIBLE
@@ -1144,7 +1148,7 @@ class BookDetailActivity : AppCompatActivity() {
                 else -> "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
             }
         val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
-            listOfNotNull(notes.first().chapter, notes.first().page?.let { "P.$it" }).joinToString(" · ")
+            notePositionLabel(notes.first().page, notes.first().chapter, book.mediaType)
         } else when (book.mediaType) {
             MediaType.MOVIE -> "🎬 光影名台词"
             MediaType.ANIME -> "🌸 高光台词"
@@ -1415,12 +1419,11 @@ class BookDetailActivity : AppCompatActivity() {
             }
             item.findViewById<TextView>(R.id.noteCreatedAt).text = formatTimestamp(note.createdAt)
             item.findViewById<TextView>(R.id.noteContent).text = note.content
-            val positionMeta = buildList {
-                note.page?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                    add(getString(R.string.note_page_format, it))
-                }
-                note.chapter?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            }.joinToString(" · ")
+            val positionMeta = notePositionLabel(
+                note.page,
+                note.chapter,
+                currentBook?.mediaType ?: MediaType.BOOK,
+            )
             item.findViewById<TextView>(R.id.notePositionMeta).apply {
                 text = positionMeta
                 visibility = if (positionMeta.isEmpty()) View.GONE else View.VISIBLE
@@ -1435,7 +1438,7 @@ class BookDetailActivity : AppCompatActivity() {
                         when (which) {
                             0 -> {
                                 currentBook?.let { book ->
-                                    val source = listOfNotNull(note.chapter, note.page?.let { "P.$it" }).joinToString(" · ")
+                                    val source = notePositionLabel(note.page, note.chapter, book.mediaType)
                                     startActivity(
                                         QuotePosterActivity.createIntent(
                                             this,
@@ -1513,6 +1516,29 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun valueOrFallback(value: String?): String =
         value?.trim()?.takeIf { it.isNotEmpty() } ?: getString(R.string.not_recorded)
+
+    /**
+     * 笔记/台词定位文案：不同媒介不再统一标「第 X 页」（不同出版社页数不统一），
+     * 数字页码按媒介转换为章/集；非数字内容（如出处角色名）原样展示。
+     */
+    private fun notePositionLabel(page: String?, chapter: String?, mediaType: MediaType): String =
+        buildList {
+            val pageText = page?.trim()
+            if (!pageText.isNullOrEmpty()) {
+                val pageNum = pageText.toIntOrNull()
+                if (pageNum != null) {
+                    when (mediaType) {
+                        MediaType.BOOK -> add("第 $pageNum 章")
+                        MediaType.ANIME -> add("第 $pageNum 集")
+                        else -> Unit // 影视/游戏/播客等不标记定位刻度
+                    }
+                } else {
+                    add(pageText)
+                }
+            }
+            val chapterText = chapter?.trim()
+            if (!chapterText.isNullOrEmpty()) add(chapterText)
+        }.joinToString(" · ")
 
     private fun buildHeroMeta(book: Book): String {
         val ratingLabel = book.rating?.let {
@@ -1813,6 +1839,7 @@ class BookDetailActivity : AppCompatActivity() {
         const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"
         private const val NO_BOOK_ID = -1L
         private val RATING_FORMAT = DecimalFormat("0.#")
+        private val TIMELINE_DATE_PATTERN = Regex("\\d{4}-\\d{2}-\\d{2}")
         private val DISPLAY_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
         fun createIntent(context: Context, bookId: Long): Intent =
