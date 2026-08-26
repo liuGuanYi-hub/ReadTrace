@@ -232,6 +232,10 @@ object CoverImageHelper {
                         readTimeout = 8000
                         instanceFollowRedirects = true
                         setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
+                        // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
+                        if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
+                            setRequestProperty("Referer", "https://book.douban.com/")
+                        }
                     }
                     if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                         val bytes = connection.inputStream.use { it.readBytes() }
@@ -327,6 +331,10 @@ object CoverImageHelper {
                         connectTimeout = 5000
                         readTimeout = 5000
                         instanceFollowRedirects = true
+                        // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
+                        if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
+                            setRequestProperty("Referer", "https://book.douban.com/")
+                        }
                     }
                     val bytes = conn.inputStream.use { it.readBytes() }
                     BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
