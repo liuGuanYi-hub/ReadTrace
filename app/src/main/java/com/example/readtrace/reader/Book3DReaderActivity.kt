@@ -104,7 +104,13 @@ class Book3DReaderActivity : AppCompatActivity() {
 
     private fun loadBookContent() {
         currentBook = databaseHelper.getBook(bookId)
-        val book = currentBook ?: return
+        val book = currentBook
+        if (book == null) {
+            // 社区展览等入口可能传入本地不存在或已删除的书籍，提示后退出，避免空白页与后续 lateinit 崩溃
+            Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         bookTitleText.text = book.title
         authorNameText.text = book.author ?: "未知创作者"

@@ -85,6 +85,10 @@ class Gallery3DActivity : AppCompatActivity() {
         if (featuredBooks.isEmpty()) {
             gallerySurfaceView.visibility = View.GONE
             focusCard.visibility = View.GONE
+            // 空书架时 renderer 未初始化，同步隐藏主题按钮避免点击触发 lateinit 未初始化崩溃
+            themeMidnight.visibility = View.GONE
+            themeWarm.visibility = View.GONE
+            themeZen.visibility = View.GONE
             galleryEmptyPanel.visibility = View.VISIBLE
             return
         }
@@ -156,8 +160,11 @@ class Gallery3DActivity : AppCompatActivity() {
 
         themes.forEach { (view, theme) ->
             view.setOnClickListener {
-                renderer.currentTheme = theme
-                updateThemeChips(theme)
+                // 守卫未初始化的 renderer，防止极端路径下 lateinit 访问崩溃
+                if (::renderer.isInitialized) {
+                    renderer.currentTheme = theme
+                    updateThemeChips(theme)
+                }
             }
         }
     }
