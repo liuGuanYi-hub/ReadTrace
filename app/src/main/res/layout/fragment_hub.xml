@@ -195,13 +195,19 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
+                    <com.example.readtrace.widget.EditorialBadgeView
+                        android:id="@+id/heroCuratorialBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:fontFamily="sans"
+                        android:fontFamily="serif"
                         android:letterSpacing="0.05"
-                        android:text="🏛️ 今日策展焦点 · 典藏展台"
+                        android:text="🏛️ 策展主位"
                         android:textColor="@color/readtrace_accent"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -580,15 +586,11 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <TextView
+            <com.example.readtrace.widget.DropCapTextView
                 android:id="@+id/parchmentQuoteText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:fontFamily="serif"
-                android:lineSpacingExtra="3.5dp"
-                android:maxLines="3"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="13.5sp"
                 tools:text="“生命中真正重要的不是你遭遇了什么，而是你记住了哪些事，又是如何铭记的。”" />

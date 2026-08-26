@@ -1261,6 +1261,10 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<com.example.readtrace.widget.EditorialBadgeView>(R.id.detailEditorialBadge)?.setBadgeContent(
+            "NO." + (1000 + (book.id % 9000)),
+            book.mediaType.name
+        )
         findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
         val titleScrambleView = findViewById<com.example.readtrace.widget.ScrambleTextView>(R.id.detailBookTitle)
         if (titleScrambleView != null) {
@@ -1291,9 +1295,15 @@ class BookDetailActivity : AppCompatActivity() {
             }
         findViewById<TextView>(R.id.detailStartDate).text = valueOrFallback(book.startDate)
         findViewById<TextView>(R.id.detailFinishDate).text = valueOrFallback(book.finishDate)
-        findViewById<TextView>(R.id.detailShortComment).text =
-            valueOrFallback(book.shortComment)
-        findViewById<TextView>(R.id.detailReview).text = valueOrFallback(book.review)
+
+        val shortCommentText = valueOrFallback(book.shortComment)
+        (findViewById<com.example.readtrace.widget.DropCapTextView>(R.id.detailShortComment))?.setEditorialText(shortCommentText)
+            ?: run { findViewById<TextView>(R.id.detailShortComment).text = shortCommentText }
+
+        val reviewText = valueOrFallback(book.review)
+        (findViewById<com.example.readtrace.widget.DropCapTextView>(R.id.detailReview))?.setEditorialText(reviewText)
+            ?: run { findViewById<TextView>(R.id.detailReview).text = reviewText }
+
         findViewById<TextView>(R.id.detailCreatedAt).text = formatTimestamp(book.createdAt)
         findViewById<TextView>(R.id.detailUpdatedAt).text = formatTimestamp(book.updatedAt)
     }

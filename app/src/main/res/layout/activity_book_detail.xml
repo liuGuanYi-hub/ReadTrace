@@ -110,21 +110,34 @@
                             tools:visibility="visible" />
                     </FrameLayout>
 
-                    <TextView
-                        android:id="@+id/detailMediaBadge"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:background="@drawable/bg_secondary_button"
-                        android:fontFamily="sans"
-                        android:paddingStart="12dp"
-                        android:paddingTop="3dp"
-                        android:paddingEnd="12dp"
-                        android:paddingBottom="3dp"
-                        android:textColor="@color/readtrace_ink"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        tools:text="🎬 影视" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.example.readtrace.widget.EditorialBadgeView
+                            android:id="@+id/detailEditorialBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:id="@+id/detailMediaBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_secondary_button"
+                            android:fontFamily="sans"
+                            android:paddingStart="12dp"
+                            android:paddingTop="3dp"
+                            android:paddingEnd="12dp"
+                            android:paddingBottom="3dp"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            tools:text="🎬 影视" />
+                    </LinearLayout>
 
                     <com.example.readtrace.widget.ScrambleTextView
                         android:id="@+id/detailBookTitle"
@@ -465,10 +478,11 @@
                     android:layout_marginTop="18dp"
                     android:text="@string/detail_short_comment" />
 
-                <TextView
+                <com.example.readtrace.widget.DropCapTextView
                     android:id="@+id/detailShortComment"
                     style="@style/ReadTraceDetailValue"
-                    tools:text="像潮水一样缓慢地留下来。" />
+                    android:layout_marginTop="6dp"
+                    tools:text="“像潮水一样缓慢地留下来。”" />
 
                 <TextView
                     android:id="@+id/detailReviewLabel"
@@ -476,10 +490,11 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/detail_review" />
 
-                <TextView
+                <com.example.readtrace.widget.DropCapTextView
                     android:id="@+id/detailReview"
                     style="@style/ReadTraceDetailValue"
-                    tools:text="读完后仍然会想起其中的海风和沉默。" />
+                    android:layout_marginTop="6dp"
+                    tools:text="“读完后仍然会想起其中的海风和沉默。”" />
             </LinearLayout>
 
             <LinearLayout

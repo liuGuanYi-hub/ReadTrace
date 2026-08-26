@@ -83,9 +83,10 @@ class HubFragment : Fragment() {
     // 📜 羊皮纸便签横幅
     private lateinit var parchmentQuoteRibbon: View
     private lateinit var btnRefreshParchmentQuote: TextView
-    private lateinit var parchmentQuoteText: TextView
+    private lateinit var parchmentQuoteText: com.example.readtrace.widget.DropCapTextView
     private lateinit var parchmentQuoteSource: TextView
     private var currentParchmentQuoteText: String? = null
+    private lateinit var heroCuratorialBadge: com.example.readtrace.widget.EditorialBadgeView
 
     // 统计胶囊
     private lateinit var statTotalValue: TextView
@@ -189,6 +190,8 @@ class HubFragment : Fragment() {
         // 🌟 Hero
         heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
         heroSpecularOverlay = view.findViewById(R.id.heroSpecularOverlay)
+        heroCuratorialBadge = view.findViewById(R.id.heroCuratorialBadge)
+        heroCuratorialBadge.setBadgeContent("NO. 01", "CURATED")
         heroBadgeMedia = view.findViewById(R.id.heroBadgeMedia)
         heroBookCover = view.findViewById(R.id.heroBookCover)
         heroCoverPlaceholder = view.findViewById(R.id.heroCoverPlaceholder)
@@ -514,7 +517,8 @@ class HubFragment : Fragment() {
     private fun renderParchmentQuote(excludeQuote: String? = null) {
         val (book, quote) = databaseHelper.getRandomOrNextQuote(excludeQuote)
         currentParchmentQuoteText = quote
-        parchmentQuoteText.text = if (quote.startsWith("“")) quote else "“$quote”"
+        val formattedQuote = if (quote.startsWith("“")) quote else "“$quote”"
+        parchmentQuoteText.setEditorialText(formattedQuote)
         val authorPart = book?.author?.let { " · $it" } ?: ""
         val titlePart = book?.title?.let { "《$it》" } ?: "《阅痕 ReadTrace》"
         parchmentQuoteSource.text = "—— $titlePart$authorPart"
