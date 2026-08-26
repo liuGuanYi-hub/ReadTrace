@@ -73,6 +73,15 @@ class DropCapTextView @JvmOverloads constructor(
         // 首字与正文间预留更多空隙，避免正文贴着首字造成遮挡观感
         dropCapMargin = (textBounds.width() + 18 * resources.displayMetrics.density).toInt()
 
+        // 首字下沉跨约两行正文，字形下半（基线以下）可能超出短正文的视图高度被裁剪，
+        // 用含水印在内的较大字号度量出完整字形高度作为视图最小高度
+        val shadowMetrics = dropCapShadowPaint.fontMetrics
+        minimumHeight = (
+            paddingTop + paddingBottom +
+                (-shadowMetrics.ascent + shadowMetrics.descent) +
+                6 * resources.displayMetrics.density
+            ).toInt()
+
         val spannable = SpannableString(remainingText)
         spannable.setSpan(
             DropCapMarginSpan(dropCapLines, dropCapMargin),
