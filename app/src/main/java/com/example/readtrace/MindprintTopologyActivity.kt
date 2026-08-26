@@ -42,7 +42,7 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var btnTopologyModeToggle: TextView
     private lateinit var tvSliceLabel: TextView
-    private lateinit var seekBarSlice: SeekBar
+    private lateinit var sliderAltitudeSlice: com.example.readtrace.widget.HapticTickSlider
     private lateinit var btnResetView: TextView
     private lateinit var tvStatHighestPeak: TextView
     private lateinit var tvStatBeaconCount: TextView
@@ -71,7 +71,8 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
         mindprintTopologyView = findViewById(R.id.mindprintTopologyView)
         btnTopologyModeToggle = findViewById(R.id.btnTopologyModeToggle)
         tvSliceLabel = findViewById(R.id.tvSliceLabel)
-        seekBarSlice = findViewById(R.id.seekBarSlice)
+        sliderAltitudeSlice = findViewById(R.id.sliderAltitudeSlice)
+        sliderAltitudeSlice.progress = 0f
         btnResetView = findViewById(R.id.btnResetView)
         tvStatHighestPeak = findViewById(R.id.tvStatHighestPeak)
         tvStatBeaconCount = findViewById(R.id.tvStatBeaconCount)
@@ -135,26 +136,18 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "地貌渲染模式切换至：${targetMode.displayName}", Toast.LENGTH_SHORT).show()
         }
 
-        // 海拔切片推杆 (Elevation Slicer)
-        seekBarSlice.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val threshold = progress / 100f
-                mindprintTopologyView.sliceThreshold = threshold
-                val meters = (threshold * 8848).toInt()
-                tvSliceLabel.text = "🏔️ 精神海拔切片: ${meters}m"
-                if (fromUser) {
-                    HapticFeedbackEngine.pageTurnRustle(this@MindprintTopologyActivity)
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
+        // 精神海拔等高切片磁吸阻尼推杆 (Elevation Slicer)
+        sliderAltitudeSlice.onProgressChanged = { threshold ->
+            mindprintTopologyView.sliceThreshold = threshold
+            val meters = (threshold * 8848).toInt()
+            tvSliceLabel.text = "🏔️ 精神海拔切片: ${meters}m"
+        }
 
         // 视角复位
         btnResetView.setOnClickListener {
             HapticFeedbackEngine.lightClick(this)
             mindprintTopologyView.sliceThreshold = 0f
-            seekBarSlice.progress = 0
+            sliderAltitudeSlice.progress = 0f
             Toast.makeText(this, "3D 地形视角与切片已复位", Toast.LENGTH_SHORT).show()
         }
 

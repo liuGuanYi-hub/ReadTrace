@@ -119,13 +119,11 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
-            <SeekBar
-                android:id="@+id/seekBarSlice"
+            <com.example.readtrace.widget.HapticTickSlider
+                android:id="@+id/sliderAltitudeSlice"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="100"
-                android:progress="0" />
+                android:layout_height="48dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/btnResetView"

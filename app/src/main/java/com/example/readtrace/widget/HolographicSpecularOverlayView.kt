@@ -67,11 +67,10 @@ class HolographicSpecularOverlayView @JvmOverloads constructor(
         val w = width.toFloat()
         val h = height.toFloat()
 
-        // 依据倾斜角动态计算高光带的中心位置偏移
-        val centerOffsetX = currentRoll * (w * 0.8f)
-        val centerOffsetY = -currentPitch * (h * 0.8f)
+        // 1. 正向全息彩虹扫光
+        val centerOffsetX = currentRoll * (w * 0.85f)
+        val centerOffsetY = -currentPitch * (h * 0.85f)
 
-        // 45 度斜角光带基线
         val startX = -w * 0.4f + centerOffsetX
         val startY = -h * 0.4f + centerOffsetY
         val endX = w * 1.4f + centerOffsetX
@@ -86,8 +85,23 @@ class HolographicSpecularOverlayView @JvmOverloads constructor(
             colorPositions,
             Shader.TileMode.CLAMP,
         )
-
         canvas.drawRect(bounds, paint)
+
+        // 2. 反向差速全息烫金高光层（裸眼 3D 浮雕深层反光）
+        val reverseOffsetX = -currentRoll * (w * 0.45f)
+        val reverseOffsetY = currentPitch * (h * 0.45f)
+
+        paint.shader = LinearGradient(
+            w * 0.2f + reverseOffsetX,
+            -h * 0.2f + reverseOffsetY,
+            w * 0.8f + reverseOffsetX,
+            h * 1.2f + reverseOffsetY,
+            intArrayOf(Color.TRANSPARENT, Color.parseColor("#18E0A96D"), Color.parseColor("#30FFFFFF"), Color.TRANSPARENT),
+            floatArrayOf(0f, 0.45f, 0.55f, 1f),
+            Shader.TileMode.CLAMP
+        )
+        canvas.drawRect(bounds, paint)
+
         canvas.restore()
     }
 }
