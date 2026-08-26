@@ -1,123 +1,93 @@
 package com.example.readtrace.widget
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import android.util.AttributeSet
-import android.view.View
-import android.view.animation.LinearInterpolator
-import kotlin.math.sin
+import android.widget.FrameLayout
 
 /**
- * 🌈 全息棱镜色散与折射光斑视图 (PrismaticChromaticView)
- *
- * P6 阶段三核心组件：
- * 1. 光学色散位移（Prismatic Chromatic Aberration）：在卡片/徽章边缘产生 0.6px~1.2px 的青/品红亚像素色散分层；
- * 2. 模拟真实透镜折射（Optical Refraction）：自发光呼吸与微动色差，呈现奢侈品级全息镭射质感；
- * 3. 硬件加速优化与内存安全。
+ * 💎 1px 极细内倒角高光与全息微棱镜色散 (Prismatic Chromatic Inset & Aberration)
+ * 对标 Apple Pro Display 与 Awwwards 顶奢数字展厅：
+ * - 在卡片左上边缘绘制 1px 极细白金内倒角反射光（Top-left Inset Light）；
+ * - 在边缘极其微弱地分离出 0.6px 的 RGB 棱镜色散光晕（Red/Cyan 分离），呈现纯水晶与高定光学镜头的奢华折射感。
  */
 class PrismaticChromaticView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : View(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
 
-    var cornerRadiusDp: Float = 16f
-        set(value) {
-            field = value
-            invalidate()
-        }
+    private val cornerRadius = 18f * resources.displayMetrics.density
 
-    var chromaticOffsetPx: Float = 2.5f
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    private val cyanPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2.0f
-        color = Color.parseColor("#4400F5D4") // 极光青半透
-    }
-
-    private val magentaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2.0f
-        color = Color.parseColor("#44FF007F") // 全息洋红半透
-    }
-
-    private val goldPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val insetLightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = 1.5f
-        color = Color.parseColor("#66E0A96D") // 浅金曜
     }
 
-    private val rectCyan = RectF()
-    private val rectMagenta = RectF()
-    private val rectCenter = RectF()
+    private val redAberrationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.2f
+        color = Color.argb(45, 255, 60, 60) // 0.6px 红光微散
+    }
 
-    private var phase: Float = 0f
-    private var chromaticAnimator: ValueAnimator? = null
+    private val cyanAberrationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1.2f
+        color = Color.argb(45, 0, 240, 255) // 0.6px 青光微散
+    }
+
+    private val cardPath = Path()
+    private val redPath = Path()
+    private val cyanPath = Path()
+    private val bounds = RectF()
 
     init {
-        isClickable = false
-        isFocusable = false
-        startChromaticBreathing()
+        setWillNotDraw(false)
     }
 
-    private fun startChromaticBreathing() {
-        chromaticAnimator?.cancel()
-        chromaticAnimator = ValueAnimator.ofFloat(0f, (Math.PI * 2).toFloat()).apply {
-            duration = 4200
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-            addUpdateListener {
-                phase = it.animatedValue as Float
-                invalidate()
-            }
-            start()
-        }
-    }
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        bounds.set(1f, 1f, w - 1f, h - 1f)
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
+        cardPath.reset()
+        cardPath.addRoundRect(bounds, cornerRadius, cornerRadius, Path.Direction.CW)
 
-        val density = resources.displayMetrics.density
-        val r = cornerRadiusDp * density
-        val w = width.toFloat()
-        val h = height.toFloat()
+        // 构造微偏移色散路径
+        val redBounds = RectF(0.4f, 0.4f, w - 1.6f, h - 1.6f)
+        redPath.reset()
+        redPath.addRoundRect(redBounds, cornerRadius, cornerRadius, Path.Direction.CW)
 
-        val dynamicOffset = chromaticOffsetPx * (0.8f + 0.3f * sin(phase))
+        val cyanBounds = RectF(1.6f, 1.6f, w - 0.4f, h - 0.4f)
+        cyanPath.reset()
+        cyanPath.addRoundRect(cyanBounds, cornerRadius, cornerRadius, Path.Direction.CW)
 
-        // 1. 青色通道向左上方微偏移
-        rectCyan.set(
-            1f - dynamicOffset,
-            1f - dynamicOffset,
-            w - 1f - dynamicOffset,
-            h - 1f - dynamicOffset
+        // 1px 极细顶角渐变白光
+        insetLightPaint.shader = LinearGradient(
+            0f, 0f, w * 0.7f, h * 0.7f,
+            intArrayOf(
+                Color.argb(160, 255, 255, 255),
+                Color.argb(50, 77, 238, 234),
+                Color.TRANSPARENT,
+            ),
+            floatArrayOf(0f, 0.35f, 1f),
+            Shader.TileMode.CLAMP,
         )
-        canvas.drawRoundRect(rectCyan, r, r, cyanPaint)
-
-        // 2. 洋红色通道向右下方微偏移
-        rectMagenta.set(
-            1f + dynamicOffset,
-            1f + dynamicOffset,
-            w - 1f + dynamicOffset,
-            h - 1f + dynamicOffset
-        )
-        canvas.drawRoundRect(rectMagenta, r, r, magentaPaint)
-
-        // 3. 中心主色倒角
-        rectCenter.set(1f, 1f, w - 1f, h - 1f)
-        canvas.drawRoundRect(rectCenter, r, r, goldPaint)
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        chromaticAnimator?.cancel()
-        chromaticAnimator = null
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+
+        // 1. 绘制 0.6px RGB 棱镜微色散
+        canvas.drawPath(redPath, redAberrationPaint)
+        canvas.drawPath(cyanPath, cyanAberrationPaint)
+
+        // 2. 绘制 1px 白金内倒角高光
+        canvas.drawPath(cardPath, insetLightPaint)
     }
 }

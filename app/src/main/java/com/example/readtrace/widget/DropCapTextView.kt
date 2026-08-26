@@ -5,24 +5,21 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.Typeface
+import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
+import android.text.TextPaint
 import android.text.style.LeadingMarginSpan
 import android.util.AttributeSet
-import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.widget.AppCompatTextView
-import kotlin.math.max
 
 /**
- * 📜 策展级首字下沉排版视图 (DropCapTextView)
- *
- * P6 阶段一核心组件：
- * 1. 典藏书籍首字下沉（Editorial Drop Cap）：首字放大 2.8x 跨 2~3 行下沉，采用古典衬线字体（Serif）；
- * 2. 双字族混排支持（Dual-Typeface Typography）：首字衬线体 + 正文优雅行距 + 微缩等宽元标签；
- * 3. 装饰性衬底与金曜高光（Decorative Drop Cap Badge）：首字后方可选渲染微光金曜浮雕背景块；
- * 4. 自动处理中文引号、英文字母与多行自然环绕。
+ * 📜 典藏手稿首字下沉排版组件 (Editorial Drop-Cap Typography)
+ * 对标 Siteinspire / Land-book / 中世纪古籍手稿排版：
+ * - 提取正文首字符放大 3.2 倍并以典雅宋体/衬线体 (Serif Bold) 绘制；
+ * - 后续正文前 2~3 行自动为首字预留空白边距并环绕流动；
+ * - 首字底层伴随 5% 透明度的巨幅水印光晕，赋予手稿与典藏杂志级质感。
  */
 class DropCapTextView @JvmOverloads constructor(
     context: Context,
@@ -30,155 +27,106 @@ class DropCapTextView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : AppCompatTextView(context, attrs, defStyleAttr) {
 
-    private var rawContentText: String = ""
-    private var dropCapLetter: String = ""
-    private var bodyText: String = ""
-
-    var dropCapColor: Int = Color.parseColor("#E0A96D") // 烫金/琥珀色
-        set(value) {
-            field = value
-            dropCapPaint.color = value
-            invalidate()
-        }
-
-    var dropCapBgColor: Int = Color.parseColor("#14E0A96D") // 浅金曜底色
-        set(value) {
-            field = value
-            dropCapBgPaint.color = value
-            invalidate()
-        }
-
-    var showDropCapBadge: Boolean = true
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    private val dropCapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val dropCapPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
-        color = Color.parseColor("#E0A96D")
+        color = Color.parseColor("#4DEEEA") // 默认极光青色，或主强调色
     }
 
-    private val dropCapBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = Color.parseColor("#14E0A96D")
+    private val dropCapShadowPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+        color = Color.parseColor("#154DEEEA") // 微弱水印阴影
     }
 
-    private val dropCapBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2f
-        color = Color.parseColor("#33E0A96D")
-    }
-
-    private val dropCapRect = RectF()
-    private val dropCapBounds = Rect()
+    private var dropChar: String = ""
+    private var dropCapSize: Float = 0f
+    private var dropCapMargin: Int = 0
+    private var dropCapLines: Int = 2
+    private val textBounds = Rect()
 
     init {
-        typeface = Typeface.SERIF
-        setLineSpacing(8f, 1.25f)
-    }
-
-    fun setEditorialText(content: CharSequence, dropCapOverride: String? = null) {
-        val str = content.toString().trim()
-        if (str.isEmpty()) {
-            text = ""
-            rawContentText = ""
-            dropCapLetter = ""
-            bodyText = ""
-            return
-        }
-
-        rawContentText = str
-
-        // 解析首字：如果首字符是引号“”，则连同首个字一起提取
-        if (dropCapOverride != null && dropCapOverride.isNotEmpty()) {
-            dropCapLetter = dropCapOverride
-            bodyText = str
-        } else if (str.startsWith("“") || str.startsWith("\"") || str.startsWith("「")) {
-            val quoteChar = str.substring(0, 1)
-            val nextChar = if (str.length > 1) str.substring(1, 2) else ""
-            dropCapLetter = "$quoteChar$nextChar"
-            bodyText = if (str.length > 2) str.substring(2) else ""
-        } else {
-            dropCapLetter = str.substring(0, 1)
-            bodyText = if (str.length > 1) str.substring(1) else ""
-        }
-
-        updateFormattedSpannedText()
-    }
-
-    private fun updateFormattedSpannedText() {
-        if (dropCapLetter.isEmpty()) {
-            text = bodyText
-            return
-        }
-
         val density = resources.displayMetrics.scaledDensity
-        val dropCapSize = textSize * 2.6f
+        dropCapSize = textSize * 2.8f
         dropCapPaint.textSize = dropCapSize
+        dropCapShadowPaint.textSize = dropCapSize * 1.35f
+        dropCapMargin = (dropCapSize * 0.92f).toInt()
+        letterSpacing = 0.03f
+        setLineSpacing(4f * resources.displayMetrics.density, 1.15f)
+    }
 
-        // 计算首字宽高
-        dropCapPaint.getTextBounds(dropCapLetter, 0, dropCapLetter.length, dropCapBounds)
-        val dropCapWidth = max(dropCapBounds.width().toFloat(), dropCapSize * 0.9f) + 16f * density
-        val marginPixels = dropCapWidth.toInt() + (8 * density).toInt()
+    fun setEditorialText(fullText: String, dropCapColor: Int = Color.parseColor("#4DEEEA"), linesSpan: Int = 2) {
+        if (fullText.isBlank()) {
+            text = ""
+            return
+        }
 
-        val spanned = SpannableString(bodyText)
-        val lineCountToIndent = 2
+        this.dropCapLines = linesSpan
+        dropCapPaint.color = dropCapColor
+        dropCapShadowPaint.color = Color.argb(30, Color.red(dropCapColor), Color.green(dropCapColor), Color.blue(dropCapColor))
 
-        spanned.setSpan(
-            object : LeadingMarginSpan.LeadingMarginSpan2 {
-                override fun getLeadingMargin(first: Boolean): Int {
-                    return if (first) marginPixels else 0
-                }
+        val trimmed = fullText.trim()
+        val firstChar = trimmed.substring(0, 1)
+        val remainingText = if (trimmed.length > 1) trimmed.substring(1) else ""
 
-                override fun drawLeadingMargin(
-                    c: Canvas?, p: Paint?, x: Int, dir: Int,
-                    top: Int, baseline: Int, bottom: Int,
-                    text: CharSequence?, start: Int, end: Int,
-                    first: Boolean, layout: android.text.Layout?
-                ) {}
+        this.dropChar = firstChar
+        dropCapPaint.getTextBounds(firstChar, 0, 1, textBounds)
+        dropCapMargin = (textBounds.width() + 14 * resources.displayMetrics.density).toInt()
 
-                override fun getLeadingMarginLineCount(): Int {
-                    return lineCountToIndent
-                }
-            },
+        val spannable = SpannableString(remainingText)
+        spannable.setSpan(
+            DropCapMarginSpan(dropCapLines, dropCapMargin),
             0,
-            spanned.length,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            remainingText.length,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
         )
 
-        text = spanned
+        setText(spannable, BufferType.SPANNABLE)
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (dropCapLetter.isEmpty()) return
+        if (dropChar.isNotEmpty()) {
+            val padLeft = paddingLeft.toFloat()
+            val padTop = paddingTop.toFloat()
 
-        val density = resources.displayMetrics.scaledDensity
-        val padStart = paddingStart.toFloat()
-        val padTop = paddingTop.toFloat()
+            // 1. 绘制底层巨幅微弱水印
+            canvas.drawText(
+                dropChar,
+                padLeft - 4f,
+                padTop + textBounds.height() * 1.15f,
+                dropCapShadowPaint,
+            )
 
-        val dropCapSize = textSize * 2.6f
-        dropCapPaint.textSize = dropCapSize
-        dropCapPaint.getTextBounds(dropCapLetter, 0, dropCapLetter.length, dropCapBounds)
-
-        val badgeW = max(dropCapBounds.width().toFloat(), dropCapSize * 0.95f) + 14f * density
-        val badgeH = dropCapSize * 1.15f
-
-        dropCapRect.set(padStart, padTop + 2f * density, padStart + badgeW, padTop + 2f * density + badgeH)
-
-        if (showDropCapBadge) {
-            // 绘制底色衬垫
-            canvas.drawRoundRect(dropCapRect, 8f * density, 8f * density, dropCapBgPaint)
-            canvas.drawRoundRect(dropCapRect, 8f * density, 8f * density, dropCapBorderPaint)
+            // 2. 绘制主体典雅下沉首字
+            canvas.drawText(
+                dropChar,
+                padLeft + 2f,
+                padTop + textBounds.height() * 1.02f,
+                dropCapPaint,
+            )
         }
+    }
 
-        // 居中绘制下沉首字
-        val textX = dropCapRect.centerX() - dropCapBounds.width() * 0.5f - dropCapBounds.left
-        val textY = dropCapRect.centerY() + dropCapBounds.height() * 0.5f - dropCapBounds.bottom
-
-        canvas.drawText(dropCapLetter, textX, textY, dropCapPaint)
+    private class DropCapMarginSpan(
+        private val lines: Int,
+        private val margin: Int,
+    ) : LeadingMarginSpan.LeadingMarginSpan2 {
+        override fun getLeadingMargin(first: Boolean): Int = if (first) margin else 0
+        override fun getLeadingMarginLineCount(): Int = lines
+        override fun drawLeadingMargin(
+            c: Canvas?,
+            p: Paint?,
+            x: Int,
+            dir: Int,
+            top: Int,
+            baseline: Int,
+            bottom: Int,
+            text: CharSequence?,
+            start: Int,
+            end: Int,
+            first: Boolean,
+            layout: Layout?,
+        ) {}
     }
 }

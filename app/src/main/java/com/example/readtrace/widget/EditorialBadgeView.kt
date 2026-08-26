@@ -3,6 +3,7 @@ package com.example.readtrace.widget
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -10,13 +11,12 @@ import android.util.AttributeSet
 import android.view.View
 
 /**
- * 🏷️ 策展级等宽防伪元标签控件 (EditorialBadgeView)
- *
- * P6 阶段一核心组件：
- * 1. 极客等宽字型（Monospace Typography）：采用等宽字体展示编号、时间戳、ISBN、策展版号；
- * 2. 宽字距呼吸感（Tracked Letter-Spacing）：字间距扩展至 +0.16em，营造奢侈品与典藏档案的精致感；
- * 3. 动态状态光点（Pulsing Status Indicator）：左侧点缀极光青/金曜黄自发光微缩信标；
- * 4. 极简描边与双重高光背板。
+ * 🏷️ 高密极客等宽防伪元标签 (Editorial Monospaced Archive Badge)
+ * 对标 Raycast / Linear / Stripe 极客与博物馆档案美学：
+ * - 10sp 极客等宽字体 (Typeface.MONOSPACE)；
+ * - 宽字距 (Letter Spacing 0.12f)；
+ * - 1px 极细微光虚线边框与半透明墨黑底色；
+ * - 格式示例：[ARCHIVE_ID: #RT-0924 // ELV: 8848M // CLASS: S+]
  */
 class EditorialBadgeView @JvmOverloads constructor(
     context: Context,
@@ -24,104 +24,105 @@ class EditorialBadgeView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
-    var badgeText: String = "ARCHIVE NO. 01 · EDITION 2026"
-        set(value) {
-            field = value.uppercase()
-            requestLayout()
-            invalidate()
-        }
-
-    var accentColor: Int = Color.parseColor("#4DEEEA") // 极光青
-        set(value) {
-            field = value
-            dotPaint.color = value
-            borderPaint.color = Color.argb(60, Color.red(value), Color.green(value), Color.blue(value))
-            invalidate()
-        }
-
-    var showDot: Boolean = true
-        set(value) {
-            field = value
-            requestLayout()
-            invalidate()
-        }
-
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        letterSpacing = 0.16f
-        color = Color.parseColor("#E8E2D9")
-    }
-
-    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = Color.parseColor("#4DEEEA")
-    }
+    private var badgeContent: String = "[ARCHIVE_ID: #RT-0924 // STATUS: CURATED]"
+    private var accentColor: Int = Color.parseColor("#4DEEEA") // 极光青
 
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.parseColor("#1C1E24")
+        color = Color.parseColor("#1A0A0F1A")
     }
 
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2f
-        color = Color.parseColor("#334DEEEA")
+        strokeWidth = 1.5f
+        pathEffect = DashPathEffect(floatArrayOf(8f, 5f), 0f)
     }
 
-    private val bgRect = RectF()
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = Typeface.MONOSPACE
+        letterSpacing = 0.10f
+        textSize = 10.5f * resources.displayMetrics.scaledDensity
+    }
+
+    private val rectF = RectF()
 
     init {
-        val density = resources.displayMetrics.scaledDensity
-        textPaint.textSize = 10f * density
+        updateColors()
     }
 
-    fun setBadgeContent(code: String, meta: String = "READTRACE") {
-        badgeText = "$meta // $code".uppercase()
+    fun setBadgeContent(content: String, colorHex: String? = null) {
+        if (colorHex != null) {
+            try {
+                accentColor = Color.parseColor(colorHex)
+            } catch (_: Exception) {}
+        }
+        badgeContent = if (content.startsWith("[") && content.endsWith("]")) content else "[$content]"
+        updateColors()
+        requestLayout()
+        invalidate()
+    }
+
+    fun setBadgeData(archiveId: String, metrics: String? = null, tag: String? = null, colorHex: String? = null) {
+        if (colorHex != null) {
+            try {
+                accentColor = Color.parseColor(colorHex)
+            } catch (_: Exception) {}
+        }
+        val builder = StringBuilder("[ARCHIVE: #$archiveId")
+        if (!metrics.isNullOrBlank()) {
+            builder.append(" // $metrics")
+        }
+        if (!tag.isNullOrBlank()) {
+            builder.append(" // $tag")
+        }
+        builder.append("]")
+        badgeContent = builder.toString()
+        updateColors()
+        requestLayout()
+        invalidate()
+    }
+
+    private fun updateColors() {
+        borderPaint.color = Color.argb(120, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
+        textPaint.color = accentColor
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val density = resources.displayMetrics.density
-        val textW = textPaint.measureText(badgeText)
-        val dotW = if (showDot) 16f * density else 0f
-        val padH = 20f * density
-        val padV = 10f * density
+        val textWidth = textPaint.measureText(badgeContent)
+        val fontMetrics = textPaint.fontMetrics
+        val textHeight = fontMetrics.descent - fontMetrics.ascent
 
-        val desiredW = (textW + dotW + padH).toInt()
-        val desiredH = (textPaint.textSize + padV + 6f * density).toInt()
+        val padH = 20 * resources.displayMetrics.density
+        val padV = 8 * resources.displayMetrics.density
+
+        val desiredWidth = (textWidth + padH).toInt()
+        val desiredHeight = (textHeight + padV).toInt()
 
         setMeasuredDimension(
-            resolveSize(desiredW, widthMeasureSpec),
-            resolveSize(desiredH, heightMeasureSpec)
+            resolveSize(desiredWidth, widthMeasureSpec),
+            resolveSize(desiredHeight, heightMeasureSpec),
         )
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
-        val density = resources.displayMetrics.density
         val w = width.toFloat()
         val h = height.toFloat()
+        val r = 6f * resources.displayMetrics.density
 
-        bgRect.set(1f, 1f, w - 1f, h - 1f)
-        val cornerRadius = h * 0.40f
+        rectF.set(2f, 2f, w - 2f, h - 2f)
 
-        // 绘制背板与描边
-        canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, bgPaint)
-        canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, borderPaint)
+        // 1. 绘制半透明胶囊底色
+        canvas.drawRoundRect(rectF, r, r, bgPaint)
 
-        val centerY = h * 0.5f
-        var startX = 10f * density
+        // 2. 绘制 1px 极客微光虚线边框
+        canvas.drawRoundRect(rectF, r, r, borderPaint)
 
-        if (showDot) {
-            // 绘制自发光光点
-            val dotRadius = 3f * density
-            canvas.drawCircle(startX + dotRadius, centerY, dotRadius, dotPaint)
-            startX += dotRadius * 2 + 6f * density
-        }
-
-        // 绘制等宽文本
+        // 3. 居中绘制等宽防伪文本
         val fontMetrics = textPaint.fontMetrics
-        val textY = centerY - (fontMetrics.ascent + fontMetrics.descent) * 0.5f
-        canvas.drawText(badgeText, startX, textY, textPaint)
+        val textY = (h - fontMetrics.descent - fontMetrics.ascent) / 2f
+        val textX = (w - textPaint.measureText(badgeContent)) / 2f
+
+        canvas.drawText(badgeContent, textX, textY, textPaint)
     }
 }

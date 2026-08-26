@@ -8,6 +8,11 @@
     android:background="@drawable/bg_readtrace_home"
     tools:context=".BookDetailActivity">
 
+    <!-- 🎞️ 35mm 胶片感光颗粒微着色器 (35mm Analog Film Grain Overlay) -->
+    <com.example.readtrace.widget.FilmGrainOverlayView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <ScrollView
         android:id="@+id/detailScrollView"
         android:layout_width="0dp"

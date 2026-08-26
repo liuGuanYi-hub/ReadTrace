@@ -11,6 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 🎞️ 35mm 胶片感光颗粒微着色器 (35mm Analog Film Grain Overlay) -->
+    <com.example.readtrace.widget.FilmGrainOverlayView
+        android:id="@+id/hubFilmGrainOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <ScrollView
         android:id="@+id/hubScroll"
         android:layout_width="match_parent"
