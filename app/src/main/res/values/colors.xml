@@ -22,4 +22,6 @@
     <color name="readtrace_parchment_stroke">#268C6E4A</color>
     <color name="readtrace_gold_accent">#9E7638</color>
     <color name="readtrace_gold_soft">#1A9E7638</color>
+    <!-- 主页竖向滚动条滑块（日间：苔绿半透明，与极光背景形成对比） -->
+    <color name="readtrace_scrollbar_thumb">#803A6348</color>
 </resources>

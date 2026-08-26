@@ -28,7 +28,9 @@
         android:paddingStart="16dp"
         android:paddingTop="18dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="96dp">
+        android:paddingBottom="96dp"
+        android:scrollbarSize="4dp"
+        android:scrollbarThumbVertical="@drawable/bg_scrollbar_thumb">
 
         <LinearLayout
             android:id="@+id/hubContent"

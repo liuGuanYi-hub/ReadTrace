@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主页竖向滚动条滑块：圆角胶囊造型，颜色随日夜主题自动切换 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/readtrace_scrollbar_thumb" />
+    <corners android:radius="4dp" />
+</shape>
