@@ -237,12 +237,113 @@ class BookDatabaseHelper(val context: Context) :
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
         populatePresetBookRichData(db)
+        populatePresetRichContent(db)
         seedUserAnimeList(db)
         seedUserMovieList(db)
         seedUserGameList(db)
         seedUserPodcastMusicList(db)
         seedCuratedBookCovers(db)
         autoFillMissingCovers(db)
+    }
+
+    /**
+     * 批量补充全部预设作品的「登场角色」与「经典台词」。
+     * 数据来自 assets 下的 rich_content_*.json，每次开库幂等执行：
+     * 仅当该作品尚无角色/笔记数据时才写入，不会覆盖用户已有内容。
+     */
+    private fun populatePresetRichContent(db: SQLiteDatabase) {
+        runCatching {
+            val assetFiles = listOf(
+                "rich_content_anime.json",
+                "rich_content_books.json",
+                "rich_content_games.json",
+                "rich_content_movies_podcasts.json",
+            )
+            assetFiles.forEach { fileName ->
+                val jsonText = runCatching {
+                    context.assets.open(fileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
+                }.getOrNull() ?: return@forEach
+                val entries = JSONArray(jsonText)
+                for (i in 0 until entries.length()) {
+                    val entry = entries.getJSONObject(i)
+                    val title = entry.optString("title")
+                    if (title.isBlank()) continue
+                    // 同名作品可能同时存在多条（如重复导入），全部补齐。
+                    var bookIds = db.query(
+                        TABLE_BOOKS, arrayOf(COLUMN_ID),
+                        "$COLUMN_TITLE = ? AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(title), null, null, null,
+                    ).use { c ->
+                        buildList { while (c.moveToNext()) add(c.getLong(0)) }
+                    }
+                    if (bookIds.isEmpty()) {
+                        // 短标题作 LIKE 匹配时易被长标题误中（如 Ib ⊂ ASTLIBRA），
+                        // 因此限定为「以标题开头」，且要求匹配到的标题长度相近。
+                        bookIds = db.query(
+                            TABLE_BOOKS, arrayOf(COLUMN_ID, COLUMN_TITLE),
+                            "$COLUMN_TITLE LIKE ? AND $COLUMN_IS_DELETED = 0",
+                            arrayOf("$title%"), null, null, null,
+                        ).use { c ->
+                            buildList {
+                                while (c.moveToNext()) {
+                                    if (c.getString(1).length <= title.length + 4) add(c.getLong(0))
+                                }
+                            }
+                        }
+                    }
+                    if (bookIds.isEmpty()) continue
+                    val now = currentTimestamp()
+
+                    val charCount = db.query(
+                        TABLE_BOOK_CHARACTERS, arrayOf("COUNT(*)"),
+                        "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(bookIds.first().toString()), null, null, null,
+                    ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                    if (charCount == 0) {
+                        val chars = entry.optJSONArray("characters") ?: JSONArray()
+                        for (ci in 0 until chars.length()) {
+                            val ch = chars.getJSONObject(ci)
+                            bookIds.forEach { bookId ->
+                                val cv = ContentValues().apply {
+                                    put(COLUMN_BOOK_ID, bookId)
+                                    put(COLUMN_NAME, ch.optString("name"))
+                                    put(COLUMN_ROLE_TITLE, ch.optString("role"))
+                                    put(COLUMN_AVATAR_EMOJI, ch.optString("emoji", "👤"))
+                                    put(COLUMN_DESCRIPTION, ch.optString("desc"))
+                                    put(COLUMN_CREATED_AT, now)
+                                    put(COLUMN_IS_DELETED, 0)
+                                }
+                                db.insert(TABLE_BOOK_CHARACTERS, null, cv)
+                            }
+                        }
+                    }
+
+                    val noteCount = db.query(
+                        TABLE_NOTES, arrayOf("COUNT(*)"),
+                        "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(bookIds.first().toString()), null, null, null,
+                    ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                    if (noteCount == 0) {
+                        val quotes = entry.optJSONArray("quotes") ?: JSONArray()
+                        for (qi in 0 until quotes.length()) {
+                            val q = quotes.getJSONObject(qi)
+                            bookIds.forEach { bookId ->
+                                val cv = ContentValues().apply {
+                                    put(COLUMN_BOOK_ID, bookId)
+                                    put(COLUMN_CONTENT, q.optString("content"))
+                                    put(COLUMN_NOTE_TYPE, "quote")
+                                    put(COLUMN_PAGE, q.optString("source"))
+                                    put(COLUMN_CREATED_AT, now)
+                                    put(COLUMN_UPDATED_AT, now)
+                                    put(COLUMN_IS_DELETED, 0)
+                                }
+                                db.insert(TABLE_NOTES, null, cv)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun seedCuratedBookCovers(db: SQLiteDatabase) {
