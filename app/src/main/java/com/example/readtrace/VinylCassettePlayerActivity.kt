@@ -6,13 +6,9 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -64,10 +60,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var btnSpeedToggle: TextView
     private lateinit var btnAmbientSound: TextView
 
-    // 传感器与震动
+    // 传感器
     private var sensorManager: SensorManager? = null
     private var rotationSensor: Sensor? = null
-    private var vibrator: Vibrator? = null
 
     // 模拟播放时间循环
     private val handler = Handler(Looper.getMainLooper())
@@ -93,7 +88,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
         databaseHelper = BookDatabaseHelper(this)
         initViews()
-        initSensorsAndVibrator()
+        initSensors()
         loadPlaylist()
         setupListeners()
     }
@@ -122,18 +117,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun initSensorsAndVibrator() {
+    private fun initSensors() {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         rotationSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
             ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            vm?.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
     }
 
     private fun loadPlaylist() {
@@ -292,12 +279,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun triggerHapticClick() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(25L)
-        }
+        com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
     }
 
     override fun onResume() {
