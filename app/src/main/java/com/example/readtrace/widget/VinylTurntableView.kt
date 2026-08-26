@@ -153,9 +153,9 @@ class VinylTurntableView @JvmOverloads constructor(
         if (w <= 0f || h <= 0f) return
 
         val size = min(w, h)
-        val discRadius = size * 0.40f
-        val discCenterX = w * 0.44f
-        val discCenterY = h * 0.48f
+        val discRadius = size * 0.42f
+        val discCenterX = w * 0.50f
+        val discCenterY = h * 0.52f
 
         discRect.set(
             discCenterX - discRadius,
@@ -171,13 +171,13 @@ class VinylTurntableView @JvmOverloads constructor(
         canvas.save()
         canvas.rotate(discRotationAngle, discCenterX, discCenterY)
         drawVinylDisc(canvas, discCenterX, discCenterY, discRadius)
-        drawCenterLabel(canvas, discCenterX, discCenterY, discRadius * 0.38f)
+        drawCenterLabel(canvas, discCenterX, discCenterY, discRadius * 0.62f)
         canvas.restore()
 
         // 3. 绘制不随唱片自旋但受环境光影响的径向各向异性高光层
         drawAnisotropicSpecularHighlight(canvas, discCenterX, discCenterY, discRadius)
 
-        // 4. 绘制唱臂与唱针系统 (Tonearm & Stylus)
+        // 4. 绘制网易云级顶部旋转唱臂与唱针系统 (Top Tonearm & Stylus)
         drawTonearmSystem(canvas, w, h, discCenterX, discCenterY, discRadius)
     }
 
@@ -212,21 +212,21 @@ class VinylTurntableView @JvmOverloads constructor(
         discPaint.shader = RadialGradient(
             cx, cy, radius,
             intArrayOf(
-                Color.parseColor("#15161A"),
-                Color.parseColor("#0D0E12"),
+                Color.parseColor("#18191E"),
+                Color.parseColor("#0F1014"),
                 Color.parseColor("#08090C"),
             ),
-            floatArrayOf(0.3f, 0.8f, 1.0f),
+            floatArrayOf(0.4f, 0.85f, 1.0f),
             Shader.TileMode.CLAMP,
         )
         canvas.drawCircle(cx, cy, radius, discPaint)
 
         // 绘制密集微沟槽（Micro-grooves）
-        val labelRadius = radius * 0.38f
-        val step = (radius - labelRadius) / 22f
-        for (i in 1..21) {
+        val labelRadius = radius * 0.62f
+        val step = (radius - labelRadius) / 16f
+        for (i in 1..15) {
             val r = labelRadius + i * step
-            groovePaint.color = if (i % 4 == 0) Color.parseColor("#222730") else Color.parseColor("#16181F")
+            groovePaint.color = if (i % 4 == 0) Color.parseColor("#252A34") else Color.parseColor("#14161C")
             groovePaint.strokeWidth = if (i % 4 == 0) 1.5f else 0.8f
             canvas.drawCircle(cx, cy, r, groovePaint)
         }
@@ -238,53 +238,53 @@ class VinylTurntableView @JvmOverloads constructor(
     }
 
     /**
-     * 绘制中心唱片 Label
+     * 绘制中心唱片 Label (大封面圆盘)
      */
     private fun drawCenterLabel(canvas: Canvas, cx: Float, cy: Float, labelRadius: Float) {
         labelRect.set(cx - labelRadius, cy - labelRadius, cx + labelRadius, cy + labelRadius)
 
-        // 唱片中心复古酒红/琥珀金 Label 渐变
-        labelPaint.shader = RadialGradient(
-            cx, cy, labelRadius,
-            intArrayOf(
-                Color.parseColor("#4A1521"),
-                Color.parseColor("#2B0C13"),
-                Color.parseColor("#1A070B"),
-            ),
-            floatArrayOf(0f, 0.85f, 1.0f),
-            Shader.TileMode.CLAMP,
-        )
-        canvas.drawCircle(cx, cy, labelRadius, labelPaint)
-
-        // 中心封面图片（若有）
-        coverBitmap?.let { bmp ->
+        // 唱片中心专属 Label 艺术封面
+        val bmp = coverBitmap
+        if (bmp != null) {
             canvas.save()
             val clipPath = Path().apply {
-                addCircle(cx, cy, labelRadius * 0.72f, Path.Direction.CW)
+                addCircle(cx, cy, labelRadius * 0.96f, Path.Direction.CW)
             }
             canvas.clipPath(clipPath)
             val srcRect = android.graphics.Rect(0, 0, bmp.width, bmp.height)
             val dstRect = RectF(
-                cx - labelRadius * 0.72f,
-                cy - labelRadius * 0.72f,
-                cx + labelRadius * 0.72f,
-                cy + labelRadius * 0.72f,
+                cx - labelRadius * 0.96f,
+                cy - labelRadius * 0.96f,
+                cx + labelRadius * 0.96f,
+                cy + labelRadius * 0.96f,
             )
             canvas.drawBitmap(bmp, srcRect, dstRect, null)
             canvas.restore()
+        } else {
+            labelPaint.shader = RadialGradient(
+                cx, cy, labelRadius,
+                intArrayOf(
+                    Color.parseColor("#4A1521"),
+                    Color.parseColor("#2D0D14"),
+                    Color.parseColor("#1A070B"),
+                ),
+                floatArrayOf(0f, 0.7f, 1f),
+                Shader.TileMode.CLAMP,
+            )
+            canvas.drawCircle(cx, cy, labelRadius * 0.96f, labelPaint)
         }
 
-        // Label 装饰金圈与文字
+        // Label 装饰内金圈
         groovePaint.color = Color.parseColor("#C8A265")
-        groovePaint.strokeWidth = 1.2f
-        canvas.drawCircle(cx, cy, labelRadius * 0.72f, groovePaint)
+        groovePaint.strokeWidth = 1.5f
+        canvas.drawCircle(cx, cy, labelRadius * 0.96f, groovePaint)
 
         // 中心转轴圆孔 (Spindle hole)
         discPaint.shader = null
-        discPaint.color = Color.parseColor("#CCCCCC")
-        canvas.drawCircle(cx, cy, labelRadius * 0.12f, discPaint)
-        discPaint.color = Color.parseColor("#050505")
-        canvas.drawCircle(cx, cy, labelRadius * 0.08f, discPaint)
+        discPaint.color = Color.parseColor("#D0D5DD")
+        canvas.drawCircle(cx, cy, labelRadius * 0.14f, discPaint)
+        discPaint.color = Color.parseColor("#0A0A0A")
+        canvas.drawCircle(cx, cy, labelRadius * 0.09f, discPaint)
     }
 
     /**
@@ -301,16 +301,15 @@ class VinylTurntableView @JvmOverloads constructor(
             cx, cy,
             intArrayOf(
                 Color.TRANSPARENT,
-                Color.argb(55, 255, 255, 255),
+                Color.argb(45, 255, 255, 255),
                 Color.TRANSPARENT,
                 Color.TRANSPARENT,
-                Color.argb(55, 255, 255, 255),
+                Color.argb(45, 255, 255, 255),
                 Color.TRANSPARENT,
             ),
             floatArrayOf(0f, 0.25f, 0.5f, 0.5f, 0.75f, 1.0f),
         )
 
-        val labelRadius = radius * 0.38f
         val clipPath = Path().apply {
             addCircle(cx, cy, radius * 0.98f, Path.Direction.CW)
         }
@@ -320,76 +319,67 @@ class VinylTurntableView @JvmOverloads constructor(
     }
 
     /**
-     * 绘制金属唱臂与唱针系统 (Tonearm System)
+     * 绘制网易云经典顶部唱臂与唱针系统 (Top Tonearm & Stylus)
      */
     private fun drawTonearmSystem(canvas: Canvas, w: Float, h: Float, discCx: Float, discCy: Float, discRadius: Float) {
-        // 唱臂基座位于右上方
-        val pivotX = w * 0.84f
-        val pivotY = h * 0.22f
-        val armLength = min(w, h) * 0.44f
+        // 网易云音乐风格：唱臂基座位于屏幕顶部正中央略偏右
+        val pivotX = w * 0.50f
+        val pivotY = -12f * resources.displayMetrics.density
+        val armLength = min(w, h) * 0.40f
 
         canvas.save()
-        // 以轴承基座为原点旋转
+        // 以顶部轴承为原点旋转
         canvas.rotate(tonearmAngle, pivotX, pivotY)
 
-        // 唱臂轴承基座
+        // 唱臂顶部轴承圆盘 (Top Bearing)
         armPaint.shader = RadialGradient(
-            pivotX, pivotY, 36f,
+            pivotX, pivotY + 28f, 32f,
             intArrayOf(
-                Color.parseColor("#D0D5DD"),
-                Color.parseColor("#475467"),
+                Color.parseColor("#E4E7EC"),
+                Color.parseColor("#667085"),
                 Color.parseColor("#1D2939"),
             ),
-            floatArrayOf(0f, 0.7f, 1f),
+            floatArrayOf(0f, 0.6f, 1f),
             Shader.TileMode.CLAMP,
         )
-        canvas.drawCircle(pivotX, pivotY, 32f, armPaint)
+        canvas.drawCircle(pivotX, pivotY + 28f, 26f, armPaint)
 
-        // 配重铊 (Counterweight)
-        armPaint.color = Color.parseColor("#344054")
-        armPaint.shader = null
-        canvas.drawRoundRect(
-            pivotX - 18f, pivotY - 55f,
-            pivotX + 18f, pivotY - 20f,
-            6f, 6f, armPaint,
-        )
-
-        // 金属唱杆 (Tonearm Tube)
+        // 金属唱杆 (Tonearm Rod)
         armPaint.shader = LinearGradient(
-            pivotX - 5f, pivotY,
-            pivotX + 5f, pivotY + armLength,
-            Color.parseColor("#F2F4F7"),
+            pivotX, pivotY + 28f,
+            pivotX - 20f, pivotY + armLength,
+            Color.parseColor("#F9FAFB"),
             Color.parseColor("#98A2B3"),
             Shader.TileMode.CLAMP,
         )
-        armPaint.strokeWidth = 7f
+        armPaint.strokeWidth = 8f
         armPaint.style = Paint.Style.STROKE
         armPaint.strokeCap = Paint.Cap.ROUND
 
-        // 经典 S 型弯曲唱杆
+        // 优雅微弧形唱杆
         armPath.reset()
-        armPath.moveTo(pivotX, pivotY)
+        armPath.moveTo(pivotX, pivotY + 28f)
         armPath.cubicTo(
-            pivotX - 12f, pivotY + armLength * 0.35f,
-            pivotX + 18f, pivotY + armLength * 0.70f,
-            pivotX, pivotY + armLength,
+            pivotX - 10f, pivotY + armLength * 0.4f,
+            pivotX - 25f, pivotY + armLength * 0.75f,
+            pivotX - 18f, pivotY + armLength,
         )
         canvas.drawPath(armPath, armPaint)
 
-        // 唱头外壳与触针 (Cartridge & Stylus)
-        val tipX = pivotX
+        // 唱头外壳 (Cartridge)
+        val tipX = pivotX - 18f
         val tipY = pivotY + armLength
 
         armPaint.style = Paint.Style.FILL
         armPaint.shader = null
         armPaint.color = Color.parseColor("#1D2939")
         canvas.drawRoundRect(
-            tipX - 12f, tipY - 5f,
-            tipX + 12f, tipY + 32f,
+            tipX - 12f, tipY - 4f,
+            tipX + 12f, tipY + 30f,
             4f, 4f, armPaint,
         )
 
-        // 唱头金色品牌标线
+        // 唱头金色腰线
         armPaint.color = Color.parseColor("#E6B800")
         canvas.drawRect(tipX - 8f, tipY + 20f, tipX + 8f, tipY + 24f, armPaint)
 

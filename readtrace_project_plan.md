@@ -1211,4 +1211,58 @@ graph TD
 | **Phase 3** | **昼夜四时自然光感系统** | `CircadianLightingEngine.kt` | 24小时四时晨昏自适应光晕与低频色温平滑渐变 |
 | **Phase 4** | **磁吸刻度阻尼推杆** | `HapticTickSlider.kt` | 3D 地形图海拔切片与进度滑块具备真实机械齿轮段落触感 |
 
+---
+
+## 25. P7 ~ P10 空间计算与全感官先锋进化系统开发计划
+
+### 25.1 模块规划概览
+
+```mermaid
+graph TD
+    A[空间计算与全感官先锋系统] --> B[P7 🔮 空间立体标本盒与折射透镜: visionOS / Awwwards]
+    A --> C[P8 🔊 声光反应式脉冲与 ASMR 拟音: Landing.love / Teenage Engineering]
+    A --> D[P9 🪐 跨媒介认知引力星系: Cosmos.so / Siteinspire]
+    A --> E[P10 📜 典藏藏书票与生成式工坊: Land-book / One Page Love]
+
+    B --> B1[DioramaBoxView 多层 2.5D 深度视差]
+    B --> B2[GlassRefractionOverlay 物理折射率透镜]
+
+    C --> C1[AudioReactiveAuroraEngine 低频声光脉冲]
+    C --> C2[SonicHapticMatrix 羊皮纸/火漆印 ASMR 拟音]
+
+    D --> D1[CosmicGravityGraphView 引力力导向星轨]
+    E --> E1[ExLibrisStudioActivity 版画藏书票生成]
+```
+
+---
+
+### 25.2 核心技术与体验规格
+
+#### 1. P7 🔮 空间立体标本盒与折射透镜 (`DioramaBoxView` & `GlassRefractionOverlay`)
+- **4 层 2.5D 深度视差悬浮**：
+  - Layer 0 (Back): 环境毛玻璃与背景底板 (`z = -30dp`, 视差系数 0.3x)；
+  - Layer 1 (Mid-Back): 等宽极客元数据标签与正文金句 (`z = 0dp`, 视差系数 0.6x)；
+  - Layer 2 (Foreground): 3D 浮雕封面画作 (`z = +25dp`, 视差系数 1.2x, 空间倾角)；
+  - Layer 3 (Top): 全息玻璃折射与火漆印章 (`z = +45dp`, 视差系数 1.8x, 高光掠影)；
+- **真实光学折射率透镜**：在卡片倾斜时动态弯曲后方环境光流体。
+
+#### 2. P8 🔊 声光反应式脉冲与 ASMR 拟音 (`AudioReactiveAuroraEngine` & `SonicHapticMatrix`)
+- **网易云级 33 RPM 黑胶唱片强化**：
+  - 经典黑色同心圆微沟槽盘体，中心大画幅高清单曲 Label 旋转；
+  - 真实机械金属唱臂自顶部精准落针（23° 物理落针回弹），暂停时优雅抬起复位；
+- **声光反应式极光脉冲**：
+  - 播放夜鹿/真夜中曲目时，背景极光随着 Bass 低频与鼓点瞬态有机律动；
+- **全场景 ASMR 拟音矩阵**：
+  - 翻页羊皮纸沙沙声、盖印章火漆沉击音、撕开票根高频裂变音。
+
+#### 3. P9 🪐 跨媒介认知引力星系 (`CosmicGravityGraphView`)
+- **跨媒介引力拓扑**：
+  - 音乐（夜鹿《晴る》）➔ 番剧（《葬送的芙莉莲》）➔ 文学（《时间的秩序》）引力星轨；
+  - 手指拖拽节点呈现弹性力导向丝绸形变与引力波阻尼震荡。
+
+#### 4. P10 📜 典藏藏书票与生成式工坊 (`ExLibrisStudioActivity`)
+- **个人专属 Ex-Libris 藏书票**：
+  - 每部读完作品生成中世纪铜版画藏书票，一键导出 4K 极简瑞士网格海报分享。
+
+
 
