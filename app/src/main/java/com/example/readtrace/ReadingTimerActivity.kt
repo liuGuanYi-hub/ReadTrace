@@ -72,7 +72,9 @@ class ReadingTimerActivity : AppCompatActivity() {
             insets
         }
 
-        bookId = intent.getLongExtra(EXTRA_BOOK_ID, 0L)
+        // 裸 Intent 启动（如桌面小组件）不会携带书籍 extra，将无效 ID 归一为 -1 表示独立专注模式，不再依赖查询返回 null 的隐式行为
+        val rawBookId = intent.getLongExtra(EXTRA_BOOK_ID, -1L)
+        bookId = if (rawBookId > 0) rawBookId else -1L
         bookTitle = intent.getStringExtra(EXTRA_BOOK_TITLE).orEmpty()
         databaseHelper = BookDatabaseHelper(this)
 
@@ -97,7 +99,7 @@ class ReadingTimerActivity : AppCompatActivity() {
         ambienceForestBtn = findViewById(R.id.ambienceForest)
         ambienceOceanBtn = findViewById(R.id.ambienceOcean)
 
-        val book = databaseHelper.getBook(bookId)
+        val book = if (bookId > 0) databaseHelper.getBook(bookId) else null
         val mediaType = book?.mediaType ?: com.example.readtrace.model.MediaType.BOOK
         titleView.text = if (bookTitle.isNotBlank()) {
             when (mediaType) {

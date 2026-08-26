@@ -2457,6 +2457,24 @@ class BookDatabaseHelper(val context: Context) :
         return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
     }
 
+    // 一次查询返回全部未删除的阅读记录，供 Widget 等场景批量统计使用，避免逐书 N+1 查询
+    fun getAllReadingSessions(): List<ReadingSession> =
+        readableDatabase.query(
+            TABLE_READING_SESSIONS,
+            null,
+            "$COLUMN_IS_DELETED = 0",
+            null,
+            null,
+            null,
+            "$COLUMN_CREATED_AT DESC, $COLUMN_ID DESC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toReadingSession())
+                }
+            }
+        }
+
     fun deleteReadingSession(sessionId: Long): Boolean {
         val values = ContentValues().apply {
             put(COLUMN_IS_DELETED, 1)

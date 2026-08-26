@@ -231,7 +231,12 @@ class MediaHubActivity : AppCompatActivity() {
                 btnHubSpecialFeature.text = "💽 拟真黑胶唱机"
                 btnHubSpecialFeature.setOnClickListener {
                     val firstPodcast = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.PODCAST }
-                    startActivity(VinylCassettePlayerActivity.createIntent(this, firstPodcast?.id ?: -1L))
+                    if (firstPodcast != null) {
+                        startActivity(VinylCassettePlayerActivity.createIntent(this, firstPodcast.id))
+                    } else {
+                        // 无播客时不再传递 -1L 哨兵值，避免黑胶页退化为混杂媒体列表的隐式行为
+                        Toast.makeText(this, "播客宇宙暂无收藏", Toast.LENGTH_SHORT).show()
+                    }
                 }
                 btnHubPassport.visibility = View.VISIBLE
                 btnHubPassport.text = "🎴 双生微卡"

@@ -61,7 +61,7 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
 
         val dateStr = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date())
         val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val allSessions = allBooks.flatMap { databaseHelper.getReadingSessions(it.id) }
+        val allSessions = databaseHelper.getAllReadingSessions()
         val todayMinutes = allSessions
             .filter { it.createdAt.startsWith(todayStr) }
             .sumOf { it.durationMinutes }
