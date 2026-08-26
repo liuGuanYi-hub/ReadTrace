@@ -18,6 +18,8 @@ data class TimelineEvent(
     val content: String? = null,
     val extraMeta: String? = null,
     val rawId: Long = 0L,
+    // 日期字段为占位文本（如「待整理」）时置位，展示层用友好文案代替原始时间戳
+    val pendingTime: Boolean = false,
 ) : Comparable<TimelineEvent> {
     override fun compareTo(other: TimelineEvent): Int {
         // 时间倒序或正序

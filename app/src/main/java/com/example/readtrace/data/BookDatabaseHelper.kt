@@ -717,8 +717,10 @@ class BookDatabaseHelper(val context: Context) :
                         put(COLUMN_TAGS, JSONArray(anime.tags).toString())
                         put(COLUMN_SHORT_COMMENT, anime.shortComment)
                         put(COLUMN_REVIEW, if (anime.status == "finished") "已完成追番 · 留存在《阅痕》的珍贵青春印记" else "加入个人待看追番清单")
-                        put(COLUMN_START_DATE, if (anime.status == "finished") "${anime.yearTag}-01-01" else null)
-                        put(COLUMN_FINISH_DATE, if (anime.status == "finished") "${anime.yearTag}-12-31" else null)
+                        // yearTag 为占位文案（如「待整理」）时不写入日期字段，避免时间轴出现原始占位日期
+                        val seedYear = anime.yearTag.takeIf { Regex("\\d{4}").matches(it) }
+                        put(COLUMN_START_DATE, if (anime.status == "finished" && seedYear != null) "$seedYear-01-01" else null)
+                        put(COLUMN_FINISH_DATE, if (anime.status == "finished" && seedYear != null) "$seedYear-12-31" else null)
                         put(COLUMN_BUY_CHANNEL, "Bilibili / 官方正版番剧")
                         put(COLUMN_SHELF_LOCATION, "展厅第3层 · 经典番剧回廊")
                         put(COLUMN_BINDING_TYPE, "TV / 剧场版动画")
