@@ -51,11 +51,7 @@ class EditorialBadgeView @JvmOverloads constructor(
     }
 
     fun setBadgeContent(content: String, colorHex: String? = null) {
-        if (colorHex != null) {
-            try {
-                accentColor = Color.parseColor(colorHex)
-            } catch (_: Exception) {}
-        }
+        accentColor = parseAccentOrThemeDefault(colorHex)
         badgeContent = if (content.startsWith("[") && content.endsWith("]")) content else "[$content]"
         updateColors()
         requestLayout()
@@ -63,11 +59,7 @@ class EditorialBadgeView @JvmOverloads constructor(
     }
 
     fun setBadgeData(archiveId: String, metrics: String? = null, tag: String? = null, colorHex: String? = null) {
-        if (colorHex != null) {
-            try {
-                accentColor = Color.parseColor(colorHex)
-            } catch (_: Exception) {}
-        }
+        accentColor = parseAccentOrThemeDefault(colorHex)
         val builder = StringBuilder("[ARCHIVE: #$archiveId")
         if (!metrics.isNullOrBlank()) {
             builder.append(" // $metrics")
@@ -80,6 +72,21 @@ class EditorialBadgeView @JvmOverloads constructor(
         updateColors()
         requestLayout()
         invalidate()
+    }
+
+    /**
+     * 解析强调色；非合法色值（如误传标签名）时回退到随主题的高对比默认色，
+     * 避免浅色主题下淡青文字看不清：日间→墨青，夜间→极光青。
+     */
+    private fun parseAccentOrThemeDefault(colorHex: String?): Int {
+        if (colorHex != null) {
+            try {
+                return Color.parseColor(colorHex)
+            } catch (_: Exception) {}
+        }
+        val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        return if (isDark) Color.parseColor("#4DEEEA") else Color.parseColor("#2F5D52")
     }
 
     private fun updateColors() {
@@ -112,7 +119,10 @@ class EditorialBadgeView @JvmOverloads constructor(
 
         rectF.set(2f, 2f, w - 2f, h - 2f)
 
-        // 1. 绘制半透明胶囊底色
+        // 1. 绘制半透明胶囊底色（日间加深一档，衬托文字对比度）
+        val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        bgPaint.color = if (isDark) Color.parseColor("#1A0A0F1A") else Color.parseColor("#260A0F1A")
         canvas.drawRoundRect(rectF, r, r, bgPaint)
 
         // 2. 绘制 1px 极客微光虚线边框
