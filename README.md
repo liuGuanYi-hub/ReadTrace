@@ -34,6 +34,11 @@
 |:---:|:---:|:---:|:---:|
 | ![](docs/screenshots/05_3d_reader_page1.png) | ![](docs/screenshots/07_3d_reader_night_theme.png) | ![](docs/screenshots/11_community_square.png) | ![](docs/screenshots/14_community_publish.png) |
 
+### 5. 🏛️ P5 & P6 殿堂级先锋美学与微动效大成 (Awwwards / Landing.love / 21st.dev)
+| 🏛️ 3D 封面破壁层叠与首字下沉 | 🎚️ 磁吸刻度阻尼切片推杆 | 🕹️ 0.6px 全息棱镜微色散 | 📖 矩阵解密与全息流光评分 |
+|:---:|:---:|:---:|:---:|
+| ![](docs/screenshots/19_curatorial_bento_dark.png) | ![](docs/screenshots/30_mindprint_topology_3d.png) | ![](docs/screenshots/27_game_cartridge_poster.png) | ![](docs/screenshots/20_book_detail_holographic.png) |
+
 ---
 
 ## ✨ 核心先锋特性矩阵
@@ -65,17 +70,26 @@
 - **精神海拔等高切片推杆 (Elevation Slicer)**：0m ~ 8848m 实时地貌剖面切片分析。
 - **巅峰水晶方尖碑信标与 1080P Ultra-HD 图谱海报**：高光山峰树立自发光信标，支持从任意作品详情一键「🗺️ 3D 地形」直达聚焦，并一键生成 1080x1440 典藏拓扑图谱海报分享。
 
-### 5. 🎨 美术馆策展级 Bento Grid 与极光流体光影
-- **美术馆策展级 Bento Grid 布局**：26sp 衬线大标、今日焦点大画幅浮雕展位、在读/专注非对称双副卡与羊皮纸灵感金句横幅。
-- **陀螺仪重力感应全息高光掠影 (Gyroscope Hologram)**：基于 `Sensor.TYPE_ROTATION_VECTOR` 融合算法与低通滤波，实现倾斜手机时 3D 空间倾角透视与紫霞/冰蓝/纯白/金曜全息彩虹漫反射。
-- **硬件加速极光流体着色器背景 (Dynamic Liquid Aurora Mesh)**：多核心正弦液体轨迹与 Android 12+ `RenderEffect.createBlurEffect` 深度交融。
+### 5. ✨ 先锋动效与微交互大一统体系 (P5)
+- **极光流光边框环绕 (`BorderBeamFrameLayout`)**：硬件加速角位移插值计算，精准环绕卡片边缘游走发光。
+- **黑客矩阵字符解密过渡 (`ScrambleTextView`)**：动态字符池洗牌递进收敛，带来仪式感爆棚的解密动画。
+- **物理弹簧阻尼数字滚轮 (`RollingNumberTextView`)**：百位/十位/个位独立立柱物理阻尼平滑上滚。
+- **全息流光评分与星级解密 (`HolographicRatingView`)**：彩色全息光晕与星级进度动态解密。
+- **纪念工坊全物理动效**：文化护照盖印激荡彩屑微粒礼花（`ConfettiBurstHelper`）与电影票打孔 3D 锯齿撕票裂变（`MovieTicketPosterView`）。
 
-### 6. 📱 Glance 桌面微缩视窗小部件
+### 6. 🏛️ 殿堂级先锋美学与策展体验系统 (P6)
+- **策展级双字族排版与首字下沉 (`DropCapTextView` + `EditorialBadgeView`)**：2.6x 跨行衬线古典大字下沉 + 金曜浮雕衬底 + 等宽极客防伪标徽与 `+0.16em` 呼吸光点。
+- **建筑学破壁层叠与非对称网格 (`OverlappingBentoCard`)**：`clipChildren = false` 突破刚性视口边界，3D 浮雕封面向上越界 `-10dp` 悬浮层叠，1px 厚亚克力内发光倒角勾边与弥散彩色落影。
+- **微物理表面质感与光学材质 (`FilmGrainOverlayView` + `PrismaticChromaticView`)**：全局覆盖 3.5% 高频 35mm 感光胶片颗粒消灭渐变断层色带，搭配 0.6px~1.2px 青/洋红全息棱镜亚像素色散与折射微光。
+- **昼夜节律四时环境光与声光共鸣 (`CircadianLightingEngine`)**：24 小时晨曦（薄雾青金）、晴午（透白翡绿）、暮霞（落日暮紫）、极夜（曜石星蓝）四时色温演化，动态驱动主页背景流体极光与策展标徽，并在播放黑胶/播客时产生低频流光呼吸（`applyAudioPulse`）。
+- **收藏家级仪式交互与全息追踪 (`HapticTickSlider` + 裸眼 3D 反向全息视差)**：磁吸刻度感物理阻尼推杆（跨越 10% 步长触发段落马达微震 + 弹簧吸附），搭配陀螺仪正反双向差速全息烫金层。
+
+### 7. 📱 Glance 桌面微缩视窗小部件
 - **⏱️「今日阅读计时打卡」组件**：实时统计今日阅读分钟数与连胜天数，支持桌面一键「▶ 开始专注」。
 - **📜「每日金句/灵感摘录」桌面便签**：羊皮纸拟真纹理，支持桌面「🔄 换一句」即时换签。
 - **📖「在读作品进度」直达卡片**：直观展示书籍封面、阅读百分比与页码刻度，轻触直达阅读器。
 
-### 7. 🏛️ OpenGL ES 3D 私人展厅 & 3D 翻书阅读器
+### 8. 🏛️ OpenGL ES 3D 私人展厅 & 3D 翻书阅读器
 - 原生 OpenGL ES 3.0/2.0 构建，零臃肿依赖、内存占用 <20MB、稳定 60fps/120fps 高刷。
 - 内置 11 部经典名著纯净文本库（《小王子》《活着》《月亮与六便士》《1984》等），支持 3D 纸张卷曲光影动画与三大质感主题。
 
@@ -90,15 +104,17 @@ graph TD
     A --> D[P2: Haptic Vibration & Spatial Audio Engine]
     A --> E[P3: 3D Time Warp Tunnel & Memory Capsules]
     A --> F[P4: 3D Mindprint Topology & Iso-Contour Map]
-    A --> G[Render Engine: OpenGL ES 3.0 / GLSL / Custom Canvas]
-    A --> H[Motion Engine: GyroscopeParallax / AuroraFluid / SharedElement]
-    A --> I[Desktop Widgets: AndroidX Glance / AppWidgets]
-    A --> J[Data Layer: SQLite DB v3 / SAF Multi-Format Export]
+    A --> G[P5: Pioneer Micro-Motion & Matrix Decryption]
+    A --> H[P6: Museum-Grade Curatorial Aesthetics & Circadian Optics]
+    A --> I[Render Engine: OpenGL ES 3.0 / GLSL / Custom Canvas]
+    A --> J[Motion & Sensor: GyroscopeParallax / CircadianLighting / FilmGrain]
+    A --> K[Desktop Widgets: AndroidX Glance / AppWidgets]
+    A --> L[Data Layer: SQLite DB v3 / SAF Multi-Format Export]
 ```
 
 - **UI 架构**：AndroidX ViewPager2 + OpenGL ES 3.0 + Glance AppWidgets + Material & Glassmorphism Design
-- **核心先锋引擎**：`MindprintTopologyView` + `TimeWarpTunnelView` + `VinylTurntableView` + `CassetteDeckView` + `HapticFeedbackEngine` + `SpatialAudioEngine`
-- **动效引擎**：`GyroscopeParallaxHelper` + `HolographicSpecularOverlayView` + `AuroraFluidBackgroundView` + `TransitionHelper`
+- **核心先锋引擎**：`CircadianLightingEngine` + `MindprintTopologyView` + `TimeWarpTunnelView` + `VinylTurntableView` + `CassetteDeckView` + `HapticFeedbackEngine` + `SpatialAudioEngine`
+- **殿堂级动效与组件库**：`OverlappingBentoCard` + `DropCapTextView` + `EditorialBadgeView` + `FilmGrainOverlayView` + `PrismaticChromaticView` + `HapticTickSlider` + `BorderBeamFrameLayout` + `ScrambleTextView` + `HolographicRatingView` + `AuroraFluidBackgroundView`
 - **数据存储**：Android SQLite 数据库 (DB v3) + SAF 存储访问框架
 - **开发语言**：Kotlin 100%
 - **构建系统**：Android Gradle Plugin 9.1.1 + Gradle 9.3.1 (compileSdk: 37 / minSdk: 31)
