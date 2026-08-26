@@ -62,7 +62,7 @@ class HubFragment : Fragment() {
     private lateinit var heroBookTitle: TextView
     private lateinit var heroBookAuthor: TextView
     private lateinit var heroBookRating: TextView
-    private lateinit var heroBookQuote: TextView
+    private lateinit var heroBookQuote: com.example.readtrace.widget.DropCapTextView
     private lateinit var heroBtnRead: TextView
     private lateinit var heroBtnDetail: TextView
     private var currentHeroBook: Book? = null
@@ -475,7 +475,8 @@ class HubFragment : Fragment() {
                 ?: featuredBook.review?.takeIf { it.isNotBlank() }
                 ?: databaseHelper.getNotes(featuredBook.id).firstOrNull()?.content
                 ?: "“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”"
-            heroBookQuote.text = if (quote.startsWith("“")) quote else "“$quote”"
+            val formattedQuote = if (quote.startsWith("“")) quote else "“$quote”"
+            heroBookQuote.setEditorialText(formattedQuote)
 
             if (!featuredBook.coverUrl.isNullOrBlank()) {
                 heroBookCover.visibility = View.VISIBLE

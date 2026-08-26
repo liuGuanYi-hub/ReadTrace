@@ -173,17 +173,20 @@
             android:layout_marginTop="14dp" />
 
         <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase with Gyroscope & Specular Glare) -->
-        <FrameLayout
+        <!-- 🌟 1. 【今日焦点 · 建筑学破壁策展主位】(Hero Curatorial Showcase with Overlapping 3D Cover) -->
+        <com.example.readtrace.widget.OverlappingBentoCard
             android:id="@+id/heroCuratorialContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp">
+            android:layout_marginTop="16dp">
 
             <LinearLayout
                 android:id="@+id/heroCuratorialCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_curatorial_hero_card"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:elevation="8dp"
                 android:orientation="vertical"
                 android:padding="18dp">
@@ -227,36 +230,40 @@
                         tools:text="📖 经典文学" />
                 </LinearLayout>
 
-                <!-- 封面与核心元数据横向区 -->
+                <!-- 封面与核心元数据横向区（破壁层叠 3D 封面） -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="14dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- 3D 浮雕投影封面 -->
+                    <!-- 3D 浮雕破壁投影封面 -->
                     <FrameLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="16dp">
+                        android:layout_marginTop="-10dp"
+                        android:layout_marginEnd="16dp"
+                        android:clipChildren="false">
 
                         <ImageView
                             android:id="@+id/heroBookCover"
-                            android:layout_width="76dp"
-                            android:layout_height="112dp"
+                            android:layout_width="78dp"
+                            android:layout_height="116dp"
                             android:background="@drawable/bg_book_card"
                             android:clipToOutline="true"
-                            android:elevation="6dp"
+                            android:elevation="10dp"
                             android:scaleType="centerCrop"
                             android:transitionName="transition_book_cover" />
 
                         <TextView
                             android:id="@+id/heroCoverPlaceholder"
-                            android:layout_width="76dp"
-                            android:layout_height="112dp"
+                            android:layout_width="78dp"
+                            android:layout_height="116dp"
                             android:background="@drawable/bg_book_card"
-                            android:elevation="6dp"
+                            android:elevation="10dp"
                             android:gravity="center"
                             android:padding="6dp"
                             android:textColor="@color/readtrace_ink"
@@ -313,21 +320,16 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 策展金句引言 -->
-                <TextView
+                <!-- 策展金句引言（首字下沉排版） -->
+                <com.example.readtrace.widget.DropCapTextView
                     android:id="@+id/heroBookQuote"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:background="@drawable/bg_glass_panel_soft"
-                    android:ellipsize="end"
-                    android:fontFamily="serif"
-                    android:lineSpacingExtra="3dp"
-                    android:maxLines="3"
                     android:padding="12dp"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="13sp"
-                    android:textStyle="italic"
                     tools:text="“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”" />
 
                 <!-- 双操作按钮 -->
@@ -379,7 +381,7 @@
                 android:clickable="false"
                 android:elevation="9dp"
                 android:focusable="false" />
-        </FrameLayout>
+        </com.example.readtrace.widget.OverlappingBentoCard>
 
         <!-- 📊 2. 【非对称双副卡区】(Asymmetric Dual Bento Cards) -->
         <LinearLayout
