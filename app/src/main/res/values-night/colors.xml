@@ -18,6 +18,6 @@
     <color name="readtrace_book_cover">#2A3028</color>
     <color name="readtrace_book_cover_stroke">#33FFFFFF</color>
     <color name="readtrace_soft_shadow">#66000000</color>
-    <!-- 主页竖向滚动条滑块（夜间：暖白半透明，在深色背景上清晰可见） -->
-    <color name="readtrace_scrollbar_thumb">#80D8D4C8</color>
+    <!-- 主页竖向滚动条滑块（夜间：暖白高不透明，常驻显示，在深色背景上清晰可见） -->
+    <color name="readtrace_scrollbar_thumb">#CCD8D4C8</color>
 </resources>
