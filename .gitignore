@@ -24,3 +24,8 @@ backend/readtrace.db
 
 .env
 .env.local
+
+# Keystore & Signing
+*.jks
+*.keystore
+keystore.properties
