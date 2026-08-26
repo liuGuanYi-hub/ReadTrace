@@ -117,23 +117,35 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
+        // 计算目标视图相对滚动内容根布局的绝对纵向偏移（跨越任意嵌套层级与横向滚动容器）
+        val scrollContentRoot = mainScrollView.getChildAt(0)
+        fun View.offsetTopToRoot(): Int {
+            var offset = 0
+            var current: View? = this
+            while (current != null && current !== scrollContentRoot) {
+                offset += current.top
+                current = current.parent as? View
+            }
+            return offset
+        }
+
         navOverview.setOnClickListener {
             updateNavTabs(navOverview)
             mainScrollView.smoothScrollTo(0, 0)
         }
         navTimeline.setOnClickListener {
             updateNavTabs(navTimeline)
-            val y = findViewById<View>(R.id.detailTimelineSection).top
+            val y = findViewById<View>(R.id.detailTimelineSection).offsetTopToRoot()
             mainScrollView.smoothScrollTo(0, y)
         }
         navCharacters.setOnClickListener {
             updateNavTabs(navCharacters)
-            val y = findViewById<View>(R.id.detailCharsContainer).parent?.let { (it as View).top } ?: 0
+            val y = findViewById<View>(R.id.detailSectionCharTitle).offsetTopToRoot()
             mainScrollView.smoothScrollTo(0, y)
         }
         navNotes.setOnClickListener {
             updateNavTabs(navNotes)
-            val y = findViewById<View>(R.id.detailNotesContainer).parent?.let { (it as View).top } ?: 0
+            val y = findViewById<View>(R.id.detailSectionNotesTitle).offsetTopToRoot()
             mainScrollView.smoothScrollTo(0, y)
         }
 
@@ -809,6 +821,58 @@ class BookDetailActivity : AppCompatActivity() {
 
         val events = mutableListOf<com.example.readtrace.model.TimelineEvent>()
 
+        // 媒介适配文案：番剧/影视/游戏/播客不再使用"全书/阅读"类书籍字眼
+        val startTitle = when (book.mediaType) {
+            MediaType.BOOK -> "🏁 启程 · 翻开扉页"
+            MediaType.ANIME -> "🏁 启程 · 点开第一话"
+            MediaType.MOVIE -> "🏁 启程 · 熄灯开场"
+            MediaType.GAME -> "🏁 启程 · 开机启程"
+            MediaType.PODCAST -> "🏁 启程 · 戴上耳机开听"
+        }
+        val startContent = when (book.mediaType) {
+            MediaType.BOOK -> "初读期待与相遇"
+            MediaType.ANIME -> "初看期待与相遇"
+            MediaType.MOVIE -> "初看期待与相遇"
+            MediaType.GAME -> "初玩期待与相遇"
+            MediaType.PODCAST -> "初听期待与相遇"
+        }
+        val focusVerb = when (book.mediaType) {
+            MediaType.BOOK -> "阅读"
+            MediaType.ANIME -> "追番"
+            MediaType.MOVIE -> "观影"
+            MediaType.GAME -> "游玩"
+            MediaType.PODCAST -> "聆听"
+        }
+        val progressPrefix = if (book.mediaType == MediaType.BOOK) "读至" else "进度"
+        val outlineIcon = when (book.mediaType) {
+            MediaType.BOOK -> "📖"
+            MediaType.ANIME -> "🌸"
+            MediaType.MOVIE -> "🎬"
+            MediaType.GAME -> "🎮"
+            MediaType.PODCAST -> "🎙️"
+        }
+        val outlineUnit = when (book.mediaType) {
+            MediaType.BOOK -> "章"
+            MediaType.ANIME -> "话"
+            MediaType.MOVIE -> "幕"
+            MediaType.GAME -> "章"
+            MediaType.PODCAST -> "期"
+        }
+        val outlineSubtitle = when (book.mediaType) {
+            MediaType.BOOK -> "全书大纲脉络"
+            MediaType.ANIME -> "全剧集脉络"
+            MediaType.MOVIE -> "全片脉络"
+            MediaType.GAME -> "全程流程脉络"
+            MediaType.PODCAST -> "全期节目脉络"
+        }
+        val finishTitle = when (book.mediaType) {
+            MediaType.BOOK -> "🌟 终章 · 全书完读复盘"
+            MediaType.ANIME -> "🌟 终章 · 全剧补完复盘"
+            MediaType.MOVIE -> "🌟 落幕 · 观影终章复盘"
+            MediaType.GAME -> "🌟 终章 · 全作通关复盘"
+            MediaType.PODCAST -> "🌟 终章 · 全季听完复盘"
+        }
+
         // 1. 初读起点
         if (!book.startDate.isNullOrBlank()) {
             events.add(
@@ -816,9 +880,9 @@ class BookDetailActivity : AppCompatActivity() {
                     id = "start_${book.id}",
                     type = com.example.readtrace.model.TimelineEventType.START_READING,
                     timestamp = book.startDate + "T08:00:00",
-                    title = "🏁 启程 · 翻开扉页",
-                    subtitle = "当前状态：${book.status.displayName} · 载体：${book.mediaType.displayName}",
-                    content = "初读期待与相遇",
+                    title = startTitle,
+                    subtitle = "当前状态：${book.mediaType.getStatusLabel(book.status)} · 载体：${book.mediaType.displayName}",
+                    content = startContent,
                     extraMeta = book.category?.let { "分类：$it" },
                 ),
             )
@@ -831,8 +895,8 @@ class BookDetailActivity : AppCompatActivity() {
                     id = "session_${session.id}",
                     type = com.example.readtrace.model.TimelineEventType.READING_SESSION,
                     timestamp = session.createdAt,
-                    title = "⏱️ 专注阅读 ${session.durationMinutes} 分钟",
-                    subtitle = session.pagesRead?.takeIf { it.isNotBlank() }?.let { "读至：$it" },
+                    title = "⏱️ 专注$focusVerb ${session.durationMinutes} 分钟",
+                    subtitle = session.pagesRead?.takeIf { it.isNotBlank() }?.let { "$progressPrefix：$it" },
                     content = session.thought,
                     extraMeta = "打卡印记",
                     rawId = session.id,
@@ -884,8 +948,8 @@ class BookDetailActivity : AppCompatActivity() {
                     id = "outline_${outline.id}",
                     type = com.example.readtrace.model.TimelineEventType.OUTLINE_CHAPTER,
                     timestamp = outline.createdAt,
-                    title = "📖 第 ${outline.chapterOrder} 章：${outline.title}",
-                    subtitle = "全书大纲脉络",
+                    title = "$outlineIcon 第 ${outline.chapterOrder} $outlineUnit：${outline.title}",
+                    subtitle = outlineSubtitle,
                     content = outline.summary,
                     extraMeta = outline.keyTakeaways?.let { "💡 思想精髓：$it" },
                     rawId = outline.id,
@@ -900,8 +964,8 @@ class BookDetailActivity : AppCompatActivity() {
                     id = "finish_${book.id}",
                     type = com.example.readtrace.model.TimelineEventType.FINISH_REVIEW,
                     timestamp = (book.finishDate ?: book.updatedAt) + "T23:59:59",
-                    title = "🌟 终章 · 全书完读复盘",
-                    subtitle = book.rating?.let { "个人评分：★ $it / 5.0" } ?: "已读完",
+                    title = finishTitle,
+                    subtitle = book.rating?.let { "个人评分：★ $it / 5.0" } ?: book.mediaType.finishedLabel,
                     content = book.review?.takeIf { it.isNotBlank() } ?: book.shortComment,
                     extraMeta = "精神沉淀与思想烙印",
                 ),

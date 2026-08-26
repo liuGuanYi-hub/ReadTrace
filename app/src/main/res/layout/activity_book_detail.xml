@@ -875,7 +875,7 @@
                     android:id="@+id/detailOutlinesEmpty"
                     style="@style/ReadTraceDetailValue"
                     android:layout_marginTop="12dp"
-                    android:text="暂无章节大纲，点击右上角梳理全书情节脉络与脑图要点。" />
+                    android:text="暂无章节大纲，点击右上角梳理作品情节脉络与脑图要点。" />
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
