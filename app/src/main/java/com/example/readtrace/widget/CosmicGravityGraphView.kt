@@ -22,7 +22,6 @@ import com.example.readtrace.util.SpatialAudioEngine
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
-import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -78,6 +77,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
     private companion object {
         /** 单个天体允许的最大连线数，防止星轨过密 */
         const val MAX_NODE_DEGREE = 4
+
+        /** 渲染天体数的防御性上限，正常数量由调用方控制 */
+        const val MAX_RENDER_NODES = 40
     }
 
     private val nodes = mutableListOf<CosmicNode>()
@@ -161,8 +163,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
 
         // 1. 构建天体节点
-        books.take(16).forEachIndexed { i, book ->
-            val angle = (i.toFloat() / min(16, books.size)) * 2f * Math.PI.toFloat()
+        val renderBooks = books.take(MAX_RENDER_NODES)
+        renderBooks.forEachIndexed { i, book ->
+            val angle = (i.toFloat() / renderBooks.size) * 2f * Math.PI.toFloat()
             val dist = 120f * density + random.nextFloat() * 100f * density
             val nx = cx + cos(angle) * dist
             val ny = cy + sin(angle) * dist
