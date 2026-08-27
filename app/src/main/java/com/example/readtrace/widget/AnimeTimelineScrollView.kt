@@ -2,6 +2,9 @@ package com.example.readtrace.widget
 
 import android.content.Context
 import android.graphics.*
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import com.example.readtrace.model.Book
@@ -33,6 +36,21 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val quotePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+
+    companion object {
+        /** 无短评时卡片的基础高度 */
+        private const val BASE_CARD_HEIGHT = 112f
+
+        /** 短评区顶部相对卡片顶部的偏移 */
+        private const val QUOTE_TOP_OFFSET = 88f
+
+        /** 短评最多显示的行数，超出截断加省略号 */
+        private const val QUOTE_MAX_LINES = 3
+
+        /** 卡片之间的垂直间距 */
+        private const val CARD_GAP = 12f
+    }
 
     fun setAnimeData(list: List<Book>) {
         this.animeList = list.filter { it.mediaType == MediaType.ANIME }
@@ -70,6 +88,47 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         return "经典追番"
     }
 
+    /** 短评金句在卡片内的最大可绘宽度（右侧预留评分标签区域） */
+    private fun quoteMaxWidth(canvasWidth: Float): Float =
+        (canvasWidth - 45f) - (90f + 24f) - 18f - 130f
+
+    /**
+     * 为某部番剧构建短评金句的多行 [StaticLayout]。
+     * 超过 [QUOTE_MAX_LINES] 行时截断并以省略号结尾，避免卡片被超长短评撑高。
+     */
+    private fun quoteLayoutFor(book: Book, canvasWidth: Float): StaticLayout? {
+        val comment = book.shortComment?.trim()
+        if (comment.isNullOrEmpty()) return null
+        val quote = "“$comment”"
+
+        quotePaint.textSize = canvasWidth * 0.024f
+        val maxWidth = quoteMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
+
+        fun build(text: String): StaticLayout =
+            StaticLayout.Builder.obtain(text, 0, text.length, quotePaint, maxWidth)
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setLineSpacing(4f, 1f)
+                .build()
+
+        val layout = build(quote)
+        if (layout.lineCount <= QUOTE_MAX_LINES) return layout
+
+        // 超出最大行数：截取前 QUOTE_MAX_LINES 行末尾并追加省略号
+        val end = layout.getLineEnd(QUOTE_MAX_LINES - 1).coerceAtMost(quote.length)
+        val truncated = quote.substring(0, end).trimEnd().trimEnd('”') + "…”"
+        return build(truncated)
+    }
+
+    /**
+     * 某部番剧卡片应绘制的总高度：
+     * 无短评为基础高度；有短评按实际行数动态扩展。
+     * [calculateContentHeight] 与 [drawScrollContent] 共用，保证测量与绘制一致。
+     */
+    private fun cardHeightFor(book: Book, canvasWidth: Float): Float {
+        val layout = quoteLayoutFor(book, canvasWidth) ?: return BASE_CARD_HEIGHT
+        return QUOTE_TOP_OFFSET + layout.height + 16f
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec).takeIf { it > 0 } ?: 1080
         val calculatedHeight = calculateContentHeight(width.toFloat())
@@ -80,8 +139,8 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         var y = 280f // 头部标题与印章区域
         groupedByYear.forEach { (_, books) ->
             y += 70f // 年份标题与轴节点
-            books.forEach { _ ->
-                y += 105f // 每部番剧卡片高度与间距
+            books.forEach { book ->
+                y += cardHeightFor(book, canvasWidth) + CARD_GAP
             }
             y += 30f // 年份组底部留白
         }
@@ -166,7 +225,8 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 val cardLeft = axisX + 24f
                 val cardRight = canvasWidth - 45f
                 val cardTop = currentY
-                val cardBottom = cardTop + 90f
+                val cardHeight = cardHeightFor(book, canvasWidth)
+                val cardBottom = cardTop + cardHeight
 
                 // 卡片底色
                 cardPaint.style = Paint.Style.FILL
@@ -184,24 +244,22 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 textPaint.isFakeBoldText = true
                 textPaint.textSize = canvasWidth * 0.032f
                 textPaint.color = primaryText
-                canvas.drawText(book.title, cardLeft + 18f, cardTop + 32f, textPaint)
+                canvas.drawText(book.title, cardLeft + 18f, cardTop + 36f, textPaint)
 
                 // 监督与制作社 / 分类
                 textPaint.isFakeBoldText = false
                 textPaint.textSize = canvasWidth * 0.024f
                 textPaint.color = secondaryText
                 val metaStr = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
-                canvas.drawText(metaStr, cardLeft + 18f, cardTop + 56f, textPaint)
+                canvas.drawText(metaStr, cardLeft + 18f, cardTop + 64f, textPaint)
 
-                // 短评金句
-                if (!book.shortComment.isNullOrBlank()) {
-                    textPaint.color = if (dark) Color.parseColor("#C8B8A6") else Color.parseColor("#5A4E45")
-                    val quote = "“${book.shortComment}”"
-                    val maxQuoteW = cardRight - cardLeft - 130f
-                    val displayQuote = if (textPaint.measureText(quote) > maxQuoteW) {
-                        quote.take(28) + "..."
-                    } else quote
-                    canvas.drawText(displayQuote, cardLeft + 18f, cardTop + 76f, textPaint)
+                // 短评金句（StaticLayout 多行自动换行，最多 3 行）
+                quoteLayoutFor(book, canvasWidth)?.let { layout ->
+                    quotePaint.color = if (dark) Color.parseColor("#C8B8A6") else Color.parseColor("#5A4E45")
+                    canvas.save()
+                    canvas.translate(cardLeft + 18f, cardTop + QUOTE_TOP_OFFSET)
+                    layout.draw(canvas)
+                    canvas.restore()
                 }
 
                 // 状态标签或评分
@@ -212,9 +270,9 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                     "🌟 想追"
                 }
                 val badgeColor = if (isFinished) sakuraColor else accentGold
-                drawSmallTag(canvas, cardRight - 85f, cardTop + 24f, badgeText, badgeColor, dark)
+                drawSmallTag(canvas, cardRight - 85f, cardTop + 28f, badgeText, badgeColor, dark)
 
-                currentY += 102f
+                currentY += cardHeight + CARD_GAP
             }
             currentY += 25f
         }
@@ -238,7 +296,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         textPaint.isFakeBoldText = false
         textPaint.textSize = canvasWidth * 0.025f
         textPaint.color = secondaryText
-        val dateStr = SimpleDateFormat("yyyy 年 MM 月 dd 日 · 生成于《阅痕 ReadTrace》", Locale.CHINA).format(Date())
+        val dateStr = SimpleDateFormat("yyyy' 年 'MM' 月 'dd' 日 · 生成于《阅痕 ReadTrace》'", Locale.CHINA).format(Date())
         canvas.drawText(dateStr, canvasWidth / 2f, currentY, textPaint)
 
         // 底部居中印章
