@@ -13,10 +13,11 @@
 
     <!-- 2. HUD 驾驶舱全息抬头显示与控制层 -->
     <LinearLayout
+        android:id="@+id/timeWarpHudRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingTop="36dp">
+        android:paddingTop="12dp">
 
         <!-- 顶栏导航与曲速控制 -->
         <RelativeLayout

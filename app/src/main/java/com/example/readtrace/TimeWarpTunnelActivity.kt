@@ -16,7 +16,11 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
@@ -69,7 +73,20 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
         setContentView(R.layout.activity_time_warp_tunnel)
+
+        // 系统栏避让统一由 HUD 层按 WindowInsets 处理，不再写死顶栏 paddingTop；背景隧道保持全屏沉浸
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.timeWarpHudRoot)) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom + view.paddingBottom)
+            insets
+        }
 
         databaseHelper = BookDatabaseHelper(this)
         initViews()
