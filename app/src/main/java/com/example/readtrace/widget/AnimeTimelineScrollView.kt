@@ -37,6 +37,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val quotePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private val titlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     companion object {
         /** 无短评时卡片的基础高度 */
@@ -50,6 +51,15 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
 
         /** 卡片之间的垂直间距 */
         private const val CARD_GAP = 12f
+
+        /** 标题区顶部相对卡片顶部的偏移（StaticLayout 绘制原点） */
+        private const val TITLE_TOP_OFFSET = 6f
+
+        /** 标题最多显示的行数，超出截断加省略号 */
+        private const val TITLE_MAX_LINES = 2
+
+        /** 标题 StaticLayout 的行间距附加值 */
+        private const val TITLE_LINE_SPACING = 5f
     }
 
     fun setAnimeData(list: List<Book>) {
@@ -92,6 +102,9 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     private fun quoteMaxWidth(canvasWidth: Float): Float =
         (canvasWidth - 45f) - (90f + 24f) - 18f - 130f
 
+    /** 番剧标题在卡片内的最大可绘宽度（右侧同样预留评分标签区域） */
+    private fun titleMaxWidth(canvasWidth: Float): Float = quoteMaxWidth(canvasWidth)
+
     /**
      * 为某部番剧构建短评金句的多行 [StaticLayout]。
      * 超过 [QUOTE_MAX_LINES] 行时截断并以省略号结尾，避免卡片被超长短评撑高。
@@ -120,13 +133,59 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     }
 
     /**
-     * 某部番剧卡片应绘制的总高度：
-     * 无短评为基础高度；有短评按实际行数动态扩展。
-     * [calculateContentHeight] 与 [drawScrollContent] 共用，保证测量与绘制一致。
+     * 为某部番剧构建标题的多行 [StaticLayout]（加粗）。
+     * 超过 [TITLE_MAX_LINES] 行时截断并以省略号结尾。
      */
-    private fun cardHeightFor(book: Book, canvasWidth: Float): Float {
-        val layout = quoteLayoutFor(book, canvasWidth) ?: return BASE_CARD_HEIGHT
-        return QUOTE_TOP_OFFSET + layout.height + 16f
+    private fun titleLayoutFor(book: Book, canvasWidth: Float): StaticLayout {
+        titlePaint.textSize = canvasWidth * 0.032f
+        titlePaint.isFakeBoldText = true
+        val maxWidth = titleMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
+
+        fun build(text: String): StaticLayout =
+            StaticLayout.Builder.obtain(text, 0, text.length, titlePaint, maxWidth)
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setLineSpacing(TITLE_LINE_SPACING, 1f)
+                .build()
+
+        val layout = build(book.title)
+        if (layout.lineCount <= TITLE_MAX_LINES) return layout
+
+        val end = layout.getLineEnd(TITLE_MAX_LINES - 1).coerceAtMost(book.title.length)
+        val truncated = book.title.substring(0, end).trimEnd() + "…"
+        return build(truncated)
+    }
+
+    /**
+     * 单张卡片的完整布局结果（坐标均相对卡片顶部）。
+     * [calculateContentHeight] 与 [drawScrollContent] 共用，保证测量与绘制一致。
+     *
+     * 单行标题时各坐标与既有已验证布局完全一致；标题换到第二行时，
+     * meta / 短评 / 卡片高度整体联动下移，评分标签固定在首行右侧不受影响。
+     */
+    private class CardLayout(
+        val titleLayout: StaticLayout,
+        val quoteLayout: StaticLayout?,
+        val metaBaseline: Float,
+        val quoteTop: Float,
+        val height: Float,
+    )
+
+    private fun cardLayoutFor(book: Book, canvasWidth: Float): CardLayout {
+        val titleLayout = titleLayoutFor(book, canvasWidth)
+        val quoteLayout = quoteLayoutFor(book, canvasWidth)
+
+        // 标题超出单行时，其多出的高度逐级下推 meta 与短评
+        val singleTitleHeight = titlePaint.fontSpacing + TITLE_LINE_SPACING
+        val extraTitleHeight = max(0f, titleLayout.height - singleTitleHeight)
+
+        val metaBaseline = 64f + extraTitleHeight
+        val quoteTop = QUOTE_TOP_OFFSET + extraTitleHeight
+        val height = if (quoteLayout != null) {
+            quoteTop + quoteLayout.height + 16f
+        } else {
+            BASE_CARD_HEIGHT + extraTitleHeight
+        }
+        return CardLayout(titleLayout, quoteLayout, metaBaseline, quoteTop, height)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -140,7 +199,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         groupedByYear.forEach { (_, books) ->
             y += 70f // 年份标题与轴节点
             books.forEach { book ->
-                y += cardHeightFor(book, canvasWidth) + CARD_GAP
+                y += cardLayoutFor(book, canvasWidth).height + CARD_GAP
             }
             y += 30f // 年份组底部留白
         }
@@ -222,10 +281,11 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
 
             // 绘制该年份下的番剧卡片
             books.forEach { book ->
+                val cardLayout = cardLayoutFor(book, canvasWidth)
                 val cardLeft = axisX + 24f
                 val cardRight = canvasWidth - 45f
                 val cardTop = currentY
-                val cardHeight = cardHeightFor(book, canvasWidth)
+                val cardHeight = cardLayout.height
                 val cardBottom = cardTop + cardHeight
 
                 // 卡片底色
@@ -240,24 +300,25 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 cardPaint.color = if (dark) Color.parseColor("#3D342E") else Color.parseColor("#E8E2D9")
                 canvas.drawRoundRect(RectF(cardLeft, cardTop, cardRight, cardBottom), 14f, 14f, cardPaint)
 
-                // 番剧标题
-                textPaint.isFakeBoldText = true
-                textPaint.textSize = canvasWidth * 0.032f
-                textPaint.color = primaryText
-                canvas.drawText(book.title, cardLeft + 18f, cardTop + 36f, textPaint)
+                // 番剧标题（StaticLayout 多行自动换行，最多 2 行）
+                titlePaint.color = primaryText
+                canvas.save()
+                canvas.translate(cardLeft + 18f, cardTop + TITLE_TOP_OFFSET)
+                cardLayout.titleLayout.draw(canvas)
+                canvas.restore()
 
                 // 监督与制作社 / 分类
                 textPaint.isFakeBoldText = false
                 textPaint.textSize = canvasWidth * 0.024f
                 textPaint.color = secondaryText
                 val metaStr = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
-                canvas.drawText(metaStr, cardLeft + 18f, cardTop + 64f, textPaint)
+                canvas.drawText(metaStr, cardLeft + 18f, cardTop + cardLayout.metaBaseline, textPaint)
 
                 // 短评金句（StaticLayout 多行自动换行，最多 3 行）
-                quoteLayoutFor(book, canvasWidth)?.let { layout ->
+                cardLayout.quoteLayout?.let { layout ->
                     quotePaint.color = if (dark) Color.parseColor("#C8B8A6") else Color.parseColor("#5A4E45")
                     canvas.save()
-                    canvas.translate(cardLeft + 18f, cardTop + QUOTE_TOP_OFFSET)
+                    canvas.translate(cardLeft + 18f, cardTop + cardLayout.quoteTop)
                     layout.draw(canvas)
                     canvas.restore()
                 }
