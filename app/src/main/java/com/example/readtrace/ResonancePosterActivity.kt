@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.ResonancePosterView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 
@@ -52,9 +53,7 @@ class ResonancePosterActivity : AppCompatActivity() {
             com.example.readtrace.util.ConfettiBurstHelper.burstCenter(this)
         }
 
-        val btnBack = findViewById<TextView>(R.id.btnPosterBack)
-        btnBack.setOnClickListener { finish() }
-        ViewAnimationHelper.attachSpringTouch(btnBack)
+        FloatingBack.install(this)
 
         val btnShareTop = findViewById<TextView>(R.id.btnPosterShareTop)
         btnShareTop.setOnClickListener { exportAndSharePoster() }

@@ -21,6 +21,7 @@ import com.example.readtrace.util.SonicHapticMatrix
 import com.example.readtrace.widget.DioramaBoxView
 import com.example.readtrace.widget.EditorialBadgeView
 import com.example.readtrace.widget.ExLibrisStampView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 
@@ -55,10 +56,7 @@ class ExLibrisStudioActivity : AppCompatActivity() {
 
         studioBadge.setBadgeContent("EX-LIBRIS", "#C8A265")
 
-        findViewById<ImageButton>(R.id.btnStudioBack).setOnClickListener {
-            HapticFeedbackEngine.lightClick(this)
-            finish()
-        }
+        FloatingBack.install(this)
 
         // 主题滤镜切换
         findViewById<Button>(R.id.btnThemeParchment).setOnClickListener {

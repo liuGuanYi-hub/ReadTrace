@@ -15,6 +15,7 @@ import com.example.readtrace.R
 import com.example.readtrace.community.repository.CommunityRepository
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
+import com.example.readtrace.util.FloatingBack
 
 class PublishExhibitionActivity : AppCompatActivity() {
 
@@ -58,7 +59,7 @@ class PublishExhibitionActivity : AppCompatActivity() {
         booksContainer = findViewById(R.id.publishBooksContainer)
         submitBtn = findViewById(R.id.publishSubmitBtn)
 
-        findViewById<View>(R.id.publishBackBtn).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         avatarSelect.setOnClickListener {
             avatarIndex = (avatarIndex + 1) % avatars.size

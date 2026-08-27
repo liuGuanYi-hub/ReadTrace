@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.FloatingBack
 
 class AddNoteActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -153,7 +154,7 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     private fun configureActions() {
-        findViewById<View>(R.id.backButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
         saveButton.setOnClickListener { saveNote() }
         archiveButton.setOnClickListener { confirmArchive() }
     }

@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.BackupHelper
+import com.example.readtrace.util.FloatingBack
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -68,7 +69,7 @@ class BackupActivity : AppCompatActivity() {
         databaseHelper = BookDatabaseHelper(this)
         backupStatSummary = findViewById(R.id.backupStatSummary)
 
-        findViewById<View>(R.id.backButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         findViewById<View>(R.id.exportJsonCard).setOnClickListener {
             val fileName = "readtrace_backup_${getTimestampForFile()}.json"

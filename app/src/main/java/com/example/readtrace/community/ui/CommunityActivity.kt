@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.R
 import com.example.readtrace.community.model.CommunityExhibition
 import com.example.readtrace.community.repository.CommunityRepository
+import com.example.readtrace.util.FloatingBack
 
 class CommunityActivity : AppCompatActivity() {
 
@@ -63,7 +64,7 @@ class CommunityActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        findViewById<View>(R.id.communityBackButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.communityRefreshBtn).setOnClickListener { refreshData() }
         findViewById<View>(R.id.publishFab).setOnClickListener {
             startActivity(Intent(this, PublishExhibitionActivity::class.java))

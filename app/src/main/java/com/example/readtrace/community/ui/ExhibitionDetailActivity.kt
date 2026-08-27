@@ -17,6 +17,7 @@ import com.example.readtrace.R
 import com.example.readtrace.community.model.CommunityExhibition
 import com.example.readtrace.community.repository.CommunityRepository
 import com.example.readtrace.reader.Book3DReaderActivity
+import com.example.readtrace.util.FloatingBack
 
 class ExhibitionDetailActivity : AppCompatActivity() {
 
@@ -70,7 +71,7 @@ class ExhibitionDetailActivity : AppCompatActivity() {
         commentInput = findViewById(R.id.commentInput)
         commentSendBtn = findViewById(R.id.commentSendBtn)
 
-        findViewById<View>(R.id.detailBackBtn).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         findViewById<View>(R.id.detail3DExploreBtn).setOnClickListener {
             startActivity(CommunityGalleryActivity.createIntent(this, exhibition!!.id))

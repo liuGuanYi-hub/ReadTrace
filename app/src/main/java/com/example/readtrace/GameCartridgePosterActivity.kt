@@ -24,6 +24,7 @@ import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.GameCartridgePosterView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -60,7 +61,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         layoutCartridgeThemeChips = findViewById(R.id.layoutCartridgeThemeChips)
         tvCartridgeSummary = findViewById(R.id.tvCartridgeSummary)
 
-        findViewById<View>(R.id.btnCartridgeBack).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.btnCartridgeShareTop).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnShareCartridgeImage).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnSaveCartridgeAlbum).setOnClickListener { saveCartridgeToAlbum() }
@@ -73,7 +74,6 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
-            findViewById(R.id.btnCartridgeBack),
             findViewById(R.id.btnCartridgeShareTop),
             findViewById(R.id.btnShareCartridgeImage),
             findViewById(R.id.btnSaveCartridgeAlbum),

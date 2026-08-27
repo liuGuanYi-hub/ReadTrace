@@ -19,6 +19,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.FloatingBack
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -50,7 +51,7 @@ class TrashActivity : AppCompatActivity() {
         notesContainer = findViewById(R.id.trashNotesContainer)
         emptyText = findViewById(R.id.trashEmptyText)
 
-        findViewById<View>(R.id.trashBackButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.trashClearAllButton).setOnClickListener { confirmClearAllTrash() }
 
         tabBooks.setOnClickListener { switchTab(true) }

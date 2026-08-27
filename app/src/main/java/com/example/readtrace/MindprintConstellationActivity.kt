@@ -17,6 +17,7 @@ import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintConstellationView
+import com.example.readtrace.util.FloatingBack
 import java.util.Locale
 
 class MindprintConstellationActivity : AppCompatActivity() {
@@ -41,9 +42,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
         constellationCanvas = findViewById(R.id.constellationCanvas)
         constellationDetailCard = findViewById(R.id.constellationDetailCard)
 
-        val backBtn = findViewById<TextView>(R.id.constellationBackBtn)
-        backBtn.setOnClickListener { finish() }
-        ViewAnimationHelper.attachSpringTouch(backBtn)
+        FloatingBack.install(this)
 
         val closeCardBtn = findViewById<TextView>(R.id.starCardCloseBtn)
         closeCardBtn.setOnClickListener {

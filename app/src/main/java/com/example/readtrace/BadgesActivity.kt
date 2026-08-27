@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.MilestoneBadge
 import com.example.readtrace.util.MilestoneBadgeHelper
+import com.example.readtrace.util.FloatingBack
 
 class BadgesActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -42,7 +43,7 @@ class BadgesActivity : AppCompatActivity() {
         badgeOverallPrompt = findViewById(R.id.badgeOverallPrompt)
         badgesContainer = findViewById(R.id.badgesContainer)
 
-        findViewById<View>(R.id.badgesBackButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         renderBadges()
 

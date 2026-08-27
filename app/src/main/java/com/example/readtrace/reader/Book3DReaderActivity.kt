@@ -23,6 +23,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.ui.BookFlipPageTransformer
+import com.example.readtrace.util.FloatingBack
 
 class Book3DReaderActivity : AppCompatActivity() {
 
@@ -89,7 +90,7 @@ class Book3DReaderActivity : AppCompatActivity() {
         themeMint = findViewById(R.id.themeMint)
         themeNight = findViewById(R.id.themeNight)
 
-        findViewById<View>(R.id.readerBackButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         findViewById<View>(R.id.readerImportTxtButton).setOnClickListener {
             importTxtLauncher.launch(arrayOf("text/plain", "*/*"))

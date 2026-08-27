@@ -22,6 +22,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.FloatingBack
 import java.text.DecimalFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -71,7 +72,7 @@ class BookDetailActivity : AppCompatActivity() {
             gyroscopeHelper.bindLifecycle(lifecycle)
         }
 
-        findViewById<View>(R.id.detailBackButton).setOnClickListener { supportFinishAfterTransition() }
+        FloatingBack.install(this) { supportFinishAfterTransition() }
         findViewById<View>(R.id.detailImportTxtButton).setOnClickListener {
             importTxtLauncher.launch(arrayOf("text/plain", "*/*"))
         }
@@ -188,7 +189,6 @@ class BookDetailActivity : AppCompatActivity() {
 
         // 注入 iOS 级 Q 弹手势触觉反馈
         listOfNotNull<View>(
-            findViewById(R.id.detailBackButton),
             findViewById(R.id.detailEditButton),
             findViewById(R.id.detailArchiveButton),
             findViewById(R.id.detailStartTimerButton),

@@ -21,18 +21,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/backButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_secondary_button"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center"
-                android:text="←"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="18sp" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

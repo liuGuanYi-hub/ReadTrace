@@ -13,6 +13,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.ThemeHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.AnimeTimelineScrollView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 
@@ -30,15 +31,13 @@ class AnimeTimelineScrollActivity : AppCompatActivity() {
         timelineScrollView = findViewById(R.id.animeTimelineScrollView)
         scrollSubTitle = findViewById(R.id.scrollSubTitle)
 
-        val btnBack = findViewById<TextView>(R.id.btnBack)
         val btnToggleScrollTheme = findViewById<TextView>(R.id.btnToggleScrollTheme)
         val btnShareScroll = findViewById<TextView>(R.id.btnShareScroll)
 
-        ViewAnimationHelper.attachSpringTouch(btnBack)
         ViewAnimationHelper.attachSpringTouch(btnToggleScrollTheme)
         ViewAnimationHelper.attachSpringTouch(btnShareScroll)
 
-        btnBack.setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         // 同步暗黑模式
         timelineScrollView.isDarkMode = ThemeHelper.isDarkMode(this)

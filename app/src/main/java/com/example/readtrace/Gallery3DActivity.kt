@@ -17,6 +17,7 @@ import com.example.readtrace.gallery3d.Gallery3DRenderer
 import com.example.readtrace.gallery3d.GalleryTouchHandler
 import com.example.readtrace.model.Book
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.FloatingBack
 
 class Gallery3DActivity : AppCompatActivity() {
 
@@ -58,7 +59,7 @@ class Gallery3DActivity : AppCompatActivity() {
         init3DGallery()
         configureThemes()
 
-        findViewById<View>(R.id.backButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
     }
 
     private fun bindViews() {

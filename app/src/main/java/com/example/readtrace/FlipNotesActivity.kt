@@ -16,6 +16,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.Note
 import com.example.readtrace.ui.BookFlipPageTransformer
 import com.example.readtrace.ui.FlipNotesAdapter
+import com.example.readtrace.util.FloatingBack
 
 class FlipNotesActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
@@ -55,7 +56,7 @@ class FlipNotesActivity : AppCompatActivity() {
         bookTitleText = findViewById(R.id.flipBookTitle)
         emptyText = findViewById(R.id.flipEmptyText)
 
-        findViewById<View>(R.id.flipBackButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         loadDataAndSetup()
     }

@@ -27,6 +27,7 @@ import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 import com.example.readtrace.widget.TimeWarpTunnelView
+import com.example.readtrace.util.FloatingBack
 
 /**
  * 🌌 3D 时空穿梭隧道与心智流光胶囊交互系统 (TimeWarpTunnelActivity)
@@ -88,13 +89,9 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
         btnToggleCruise = findViewById(R.id.btnToggleCruise)
         btnHyperspaceJump = findViewById(R.id.btnHyperspaceJump)
 
-        val btnTunnelBack = findViewById<View>(R.id.btnTunnelBack)
-        btnTunnelBack.setOnClickListener {
-            finish()
-        }
+        FloatingBack.install(this)
 
         listOfNotNull<View>(
-            btnTunnelBack,
             btnWarpSpeedToggle,
             btnToggleCruise,
             btnHyperspaceJump,

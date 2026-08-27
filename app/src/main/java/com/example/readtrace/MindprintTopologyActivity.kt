@@ -25,6 +25,7 @@ import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 import com.example.readtrace.widget.MindprintTopologyView
+import com.example.readtrace.util.FloatingBack
 
 /**
  * 🗺️ 3D 情绪拓扑与等高线心智地形图系统 (MindprintTopologyActivity)
@@ -78,12 +79,7 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
         tvStatBeaconCount = findViewById(R.id.tvStatBeaconCount)
         tvStatDominantDomain = findViewById(R.id.tvStatDominantDomain)
 
-        findViewById<View>(R.id.btnTopologyBack).setOnClickListener {
-            finish()
-        }
-
         listOfNotNull<View>(
-            findViewById(R.id.btnTopologyBack),
             btnTopologyModeToggle,
             btnResetView,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

@@ -18,6 +18,7 @@ import com.example.readtrace.gallery3d.Gallery3DRenderer
 import com.example.readtrace.gallery3d.GalleryTouchHandler
 import com.example.readtrace.model.Book
 import com.example.readtrace.reader.Book3DReaderActivity
+import com.example.readtrace.util.FloatingBack
 
 class CommunityGalleryActivity : AppCompatActivity() {
 
@@ -77,7 +78,7 @@ class CommunityGalleryActivity : AppCompatActivity() {
         galleryTitle.text = exhibition!!.title
         galleryAuthor.text = "策展人：${exhibition!!.authorName} ${exhibition!!.authorAvatar}"
 
-        findViewById<View>(R.id.communityGalleryBackBtn).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         val themeBtn = findViewById<TextView>(R.id.communityGalleryThemeBtn)
         themeBtn.setOnClickListener {

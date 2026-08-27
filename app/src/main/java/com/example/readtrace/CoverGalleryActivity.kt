@@ -23,6 +23,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ViewAnimationHelper
+import com.example.readtrace.util.FloatingBack
 import kotlin.random.Random
 
 class CoverGalleryActivity : AppCompatActivity() {
@@ -61,9 +62,7 @@ class CoverGalleryActivity : AppCompatActivity() {
         btnGalleryOpenDetail = findViewById(R.id.btnGalleryOpenDetail)
         rvCoverGallery = findViewById(R.id.rvCoverGallery)
 
-        val btnBack = findViewById<TextView>(R.id.btnGalleryBack)
-        btnBack.setOnClickListener { finish() }
-        ViewAnimationHelper.attachSpringTouch(btnBack)
+        FloatingBack.install(this)
 
         val btnRandom = findViewById<TextView>(R.id.btnGalleryRandom)
         btnRandom.setOnClickListener {

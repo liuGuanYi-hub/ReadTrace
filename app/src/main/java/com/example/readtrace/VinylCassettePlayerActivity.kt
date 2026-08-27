@@ -22,6 +22,7 @@ import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
 import com.example.readtrace.widget.VinylTurntableView
+import com.example.readtrace.util.FloatingBack
 
 /**
  * 💽 3D 拟真黑胶唱机与磁带卡座播放系统 (VinylCassettePlayerActivity)
@@ -112,9 +113,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
         btnAmbientSound = findViewById(R.id.btnAmbientSound)
 
-        findViewById<View>(R.id.btnPlayerBack).setOnClickListener {
-            finish()
-        }
+        FloatingBack.install(this)
     }
 
     private fun initSensors() {

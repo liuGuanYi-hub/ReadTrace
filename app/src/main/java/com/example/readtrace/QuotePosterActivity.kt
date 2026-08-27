@@ -23,6 +23,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -104,7 +105,7 @@ class QuotePosterActivity : AppCompatActivity() {
         themeJadeBtn = findViewById(R.id.themeJade)
         themeGraphiteBtn = findViewById(R.id.themeGraphite)
 
-        findViewById<View>(R.id.posterBackBtn).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.posterSaveBtn).setOnClickListener { savePosterToGallery() }
         findViewById<View>(R.id.posterShareBtn).setOnClickListener { sharePoster() }
 

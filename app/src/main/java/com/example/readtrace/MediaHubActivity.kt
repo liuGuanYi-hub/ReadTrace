@@ -30,6 +30,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
+import com.example.readtrace.util.FloatingBack
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
@@ -126,7 +127,7 @@ class MediaHubActivity : AppCompatActivity() {
         hubEmptyTitle = findViewById(R.id.hubEmptyTitle)
         hubEmptyBody = findViewById(R.id.hubEmptyBody)
 
-        findViewById<View>(R.id.btnHubBack).setOnClickListener { finish() }
+        FloatingBack.install(this)
 
         btnHubAdd.setOnClickListener {
             val intent = Intent(this, AddBookActivity::class.java).apply {
@@ -146,7 +147,6 @@ class MediaHubActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
-            findViewById(R.id.btnHubBack),
             btnHubAdd,
             btnHubToggleViewMode,
             btnHubSpecialFeature,

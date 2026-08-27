@@ -14,6 +14,7 @@ import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.widget.AuroraFluidBackgroundView
 import com.example.readtrace.widget.CosmicGravityGraphView
 import com.example.readtrace.widget.EditorialBadgeView
+import com.example.readtrace.util.FloatingBack
 
 /**
  * 🪐 跨媒介认知引力星系展厅 Activity (Cosmic Galaxy Activity)
@@ -46,10 +47,7 @@ class CosmicGalaxyActivity : AppCompatActivity() {
 
         galaxyBadge.setBadgeContent("COSMOS", "#4DEEEA")
 
-        findViewById<ImageButton>(R.id.btnGalaxyBack).setOnClickListener {
-            HapticFeedbackEngine.lightClick(this)
-            finish()
-        }
+        FloatingBack.install(this)
 
         // 节点点击跳转详情
         cosmicGravityGraphView.onNodeClickListener = { book ->

@@ -28,6 +28,7 @@ import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.CulturalPassportView
 import com.example.readtrace.widget.MindprintRadarView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -61,7 +62,7 @@ class CulturalPassportActivity : AppCompatActivity() {
         tabPassportAnime = findViewById(R.id.tabPassportAnime)
         tabPassportGame = findViewById(R.id.tabPassportGame)
 
-        findViewById<View>(R.id.btnPassportBack).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.btnPassportExportTop).setOnClickListener { exportAndSharePassport() }
 
         tabPassportAnime.setOnClickListener { switchTab(MediaType.ANIME) }
@@ -79,7 +80,6 @@ class CulturalPassportActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
-            findViewById(R.id.btnPassportBack),
             findViewById(R.id.btnPassportExportTop),
             tabPassportAnime,
             tabPassportGame,

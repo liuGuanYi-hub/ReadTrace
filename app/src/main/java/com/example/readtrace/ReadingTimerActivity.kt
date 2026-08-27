@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.ReadingSession
+import com.example.readtrace.util.FloatingBack
 import java.util.Locale
 
 class ReadingTimerActivity : AppCompatActivity() {
@@ -127,7 +128,7 @@ class ReadingTimerActivity : AppCompatActivity() {
             com.example.readtrace.model.MediaType.PODCAST -> "随手记下本期灵感与观点..."
         }
 
-        findViewById<View>(R.id.timerBackBtn).setOnClickListener {
+        FloatingBack.install(this) {
             if (isRunning) {
                 Toast.makeText(this, "计时仍在后台运行，可随时返回继续", Toast.LENGTH_SHORT).show()
             }

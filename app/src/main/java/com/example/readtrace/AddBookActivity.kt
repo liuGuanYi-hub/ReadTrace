@@ -24,6 +24,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.FloatingBack
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -302,7 +303,7 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     private fun configureActions() {
-        findViewById<View>(R.id.backButton).setOnClickListener { finish() }
+        FloatingBack.install(this)
         mediaTypeBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
         mediaTypeAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         mediaTypeMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }

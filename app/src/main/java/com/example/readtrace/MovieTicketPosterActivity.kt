@@ -24,6 +24,7 @@ import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MovieTicketPosterView
+import com.example.readtrace.util.FloatingBack
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -62,7 +63,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         tvTicketSummary = findViewById(R.id.tvTicketSummary)
         btnToggleTicketTear = findViewById(R.id.btnToggleTicketTear)
 
-        findViewById<View>(R.id.btnTicketBack).setOnClickListener { finish() }
+        FloatingBack.install(this)
         findViewById<View>(R.id.btnTicketShareTop).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnShareTicketImage).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnSaveTicketAlbum).setOnClickListener { saveTicketToAlbum() }
@@ -87,7 +88,6 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
-            findViewById(R.id.btnTicketBack),
             findViewById(R.id.btnTicketShareTop),
             findViewById(R.id.btnShareTicketImage),
             findViewById(R.id.btnSaveTicketAlbum),
