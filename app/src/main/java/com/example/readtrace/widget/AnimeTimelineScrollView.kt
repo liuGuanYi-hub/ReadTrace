@@ -5,6 +5,7 @@ import android.graphics.*
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import com.example.readtrace.model.Book
@@ -38,6 +39,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val quotePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val titlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private val metaPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     companion object {
         /** 无短评时卡片的基础高度 */
@@ -105,6 +107,10 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     /** 番剧标题在卡片内的最大可绘宽度（右侧同样预留评分标签区域） */
     private fun titleMaxWidth(canvasWidth: Float): Float = quoteMaxWidth(canvasWidth)
 
+    /** meta 行最大可绘宽度（与评分标签不同水平区，仅减去左右内边距） */
+    private fun metaMaxWidth(canvasWidth: Float): Float =
+        (canvasWidth - 45f) - (90f + 24f) - 18f - 18f
+
     /**
      * 为某部番剧构建短评金句的多行 [StaticLayout]。
      * 超过 [QUOTE_MAX_LINES] 行时截断并以省略号结尾，避免卡片被超长短评撑高。
@@ -156,6 +162,23 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     }
 
     /**
+     * 为某部番剧构建 meta 行（分类 · 作者）的单行 [StaticLayout]。
+     * 超宽自动末尾省略号（[TextUtils.TruncateAt.END]）——meta 是次要信息，
+     * 单行截断而非换行，避免撑高卡片。
+     */
+    private fun metaLayoutFor(book: Book, canvasWidth: Float): StaticLayout {
+        metaPaint.textSize = canvasWidth * 0.024f
+        val text = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
+        val maxWidth = metaMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
+        return StaticLayout.Builder.obtain(text, 0, text.length, metaPaint, maxWidth)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(4f, 1f)
+            .setEllipsize(TextUtils.TruncateAt.END)
+            .setMaxLines(1)
+            .build()
+    }
+
+    /**
      * 单张卡片的完整布局结果（坐标均相对卡片顶部）。
      * [calculateContentHeight] 与 [drawScrollContent] 共用，保证测量与绘制一致。
      *
@@ -164,28 +187,31 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
      */
     private class CardLayout(
         val titleLayout: StaticLayout,
+        val metaLayout: StaticLayout,
         val quoteLayout: StaticLayout?,
-        val metaBaseline: Float,
+        val metaTop: Float,
         val quoteTop: Float,
         val height: Float,
     )
 
     private fun cardLayoutFor(book: Book, canvasWidth: Float): CardLayout {
         val titleLayout = titleLayoutFor(book, canvasWidth)
+        val metaLayout = metaLayoutFor(book, canvasWidth)
         val quoteLayout = quoteLayoutFor(book, canvasWidth)
 
         // 标题超出单行时，其多出的高度逐级下推 meta 与短评
         val singleTitleHeight = titlePaint.fontSpacing + TITLE_LINE_SPACING
         val extraTitleHeight = max(0f, titleLayout.height - singleTitleHeight)
 
-        val metaBaseline = 64f + extraTitleHeight
+        // meta 原 drawText 基线为 64f；StaticLayout 顶部 = 基线 + ascent（ascent 为负）
+        val metaTop = 64f + metaPaint.ascent() + extraTitleHeight
         val quoteTop = QUOTE_TOP_OFFSET + extraTitleHeight
         val height = if (quoteLayout != null) {
             quoteTop + quoteLayout.height + 16f
         } else {
             BASE_CARD_HEIGHT + extraTitleHeight
         }
-        return CardLayout(titleLayout, quoteLayout, metaBaseline, quoteTop, height)
+        return CardLayout(titleLayout, metaLayout, quoteLayout, metaTop, quoteTop, height)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -307,12 +333,12 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 cardLayout.titleLayout.draw(canvas)
                 canvas.restore()
 
-                // 监督与制作社 / 分类
-                textPaint.isFakeBoldText = false
-                textPaint.textSize = canvasWidth * 0.024f
-                textPaint.color = secondaryText
-                val metaStr = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
-                canvas.drawText(metaStr, cardLeft + 18f, cardTop + cardLayout.metaBaseline, textPaint)
+                // 监督与制作社 / 分类（单行 StaticLayout，超宽自动省略号）
+                metaPaint.color = secondaryText
+                canvas.save()
+                canvas.translate(cardLeft + 18f, cardTop + cardLayout.metaTop)
+                cardLayout.metaLayout.draw(canvas)
+                canvas.restore()
 
                 // 短评金句（StaticLayout 多行自动换行，最多 3 行）
                 cardLayout.quoteLayout?.let { layout ->
