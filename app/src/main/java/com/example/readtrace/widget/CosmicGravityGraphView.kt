@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
-import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RadialGradient
@@ -49,6 +48,10 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         var radius: Float = 26f,
         val color: Int = Color.parseColor("#4DEEEA"),
         var isSelected: Boolean = false,
+        // 球体/光晕着色器以节点为原点缓存，绘制时仅平移画布，避免每帧重建
+        var bodyShader: RadialGradient? = null,
+        var haloShader: RadialGradient? = null,
+        var displayTitle: String = "",
     )
 
     data class CosmicEdge(
@@ -57,6 +60,8 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         val strength: Float = 1.0f,
         val relationship: String = "共鸣引力",
         val crossMedia: Boolean = false,
+        // 两端颜色的预混合色，绘制时直接使用，避免每帧创建渐变着色器
+        val blendedColor: Int = Color.WHITE,
     )
 
     /** 候选连线：记录两端节点下标、共振权重与是否跨媒介 */
@@ -83,6 +88,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
     private var isSimulating = false
     private var physicsAnimator: ValueAnimator? = null
     private var pulsePhase = 0f
+    private var isWindowVisible = false
 
     // 拖拽起点与上一帧位置，用于区分点击/拖拽并产生抛掷惯性
     private var touchDownX = 0f
@@ -119,7 +125,6 @@ class CosmicGravityGraphView @JvmOverloads constructor(
     init {
         setWillNotDraw(false)
         initStardust()
-        setupPhysicsLoop()
     }
 
     private fun initStardust() {
@@ -181,6 +186,25 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             )
         }
 
+        // 预生成节点着色器与展示标题，供绘制阶段缓存复用
+        nodes.forEach { node ->
+            val r = node.radius
+            node.bodyShader = RadialGradient(
+                -r * 0.3f, -r * 0.3f, r,
+                intArrayOf(Color.WHITE, node.color, Color.parseColor("#0A0F1A")),
+                floatArrayOf(0f, 0.65f, 1.0f),
+                Shader.TileMode.CLAMP,
+            )
+            node.haloShader = RadialGradient(
+                0f, 0f, r,
+                intArrayOf(node.color, Color.TRANSPARENT),
+                floatArrayOf(0.4f, 1.0f),
+                Shader.TileMode.CLAMP,
+            )
+            node.displayTitle =
+                if (node.book.title.length > 6) node.book.title.substring(0, 5) + "…" else node.book.title
+        }
+
         // 2. 构建跨媒介共鸣星轨：按分类/作者/标签共振生成候选连线，跨媒介连线加权优先，
         //    并限制单节点度数，避免同类型节点两两全连造成视觉噪声
         val candidates = mutableListOf<CandidateEdge>()
@@ -211,6 +235,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                     strength = if (candidate.crossMedia) 1.0f else 0.7f,
                     relationship = if (candidate.crossMedia) "跨媒介共鸣" else "同域引力",
                     crossMedia = candidate.crossMedia,
+                    blendedColor = blendColors(nodes[candidate.a].color, nodes[candidate.b].color),
                 )
             )
             degree[candidate.a]++
@@ -231,7 +256,15 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                 }
             }
             if (nearest >= 0) {
-                edges.add(CosmicEdge(nodes[i], nodes[nearest], strength = 0.5f, relationship = "同域引力"))
+                edges.add(
+                    CosmicEdge(
+                        nodes[i],
+                        nodes[nearest],
+                        strength = 0.5f,
+                        relationship = "同域引力",
+                        blendedColor = blendColors(nodes[i].color, nodes[nearest].color),
+                    )
+                )
                 degree[i]++
                 degree[nearest]++
             }
@@ -240,18 +273,42 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun setupPhysicsLoop() {
-        physicsAnimator?.cancel()
-        physicsAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 16L
-            repeatCount = ValueAnimator.INFINITE
-            addUpdateListener {
-                pulsePhase = (pulsePhase + 0.04f) % (2f * Math.PI.toFloat())
-                updatePhysicsStep()
-                updateStardust()
-                invalidate()
+    /** 取两端天体颜色的算术混合色，用于连线纯色绘制 */
+    private fun blendColors(c1: Int, c2: Int): Int = Color.rgb(
+        (Color.red(c1) + Color.red(c2)) / 2,
+        (Color.green(c1) + Color.green(c2)) / 2,
+        (Color.blue(c1) + Color.blue(c2)) / 2,
+    )
+
+    private fun startSimulation() {
+        if (physicsAnimator == null) {
+            physicsAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 16L
+                repeatCount = ValueAnimator.INFINITE
+                addUpdateListener {
+                    pulsePhase = (pulsePhase + 0.04f) % (2f * Math.PI.toFloat())
+                    updatePhysicsStep()
+                    updateStardust()
+                    invalidate()
+                }
             }
-            start()
+        }
+        if (physicsAnimator?.isRunning != true) physicsAnimator?.start()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // 动画循环在挂载后才启动，窗口不可见时自动暂停，避免后台空转
+        if (isWindowVisible) startSimulation()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        isWindowVisible = visibility == View.VISIBLE
+        if (isWindowVisible && isAttachedToWindow) {
+            startSimulation()
+        } else {
+            physicsAnimator?.cancel()
         }
     }
 
@@ -360,16 +417,13 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         }
 
         // 2. 绘制星轨引力光波连线 (Gravity Laser Beams)
+        edgePaint.shader = null
         for (edge in edges) {
             val src = edge.source
             val dst = edge.target
 
-            // 渐变光束：跨媒介共鸣边更亮更粗，同域引力边保持低调
-            edgePaint.shader = LinearGradient(
-                src.x, src.y, dst.x, dst.y,
-                src.color, dst.color,
-                Shader.TileMode.CLAMP,
-            )
+            // 纯色光束（预混色）：跨媒介共鸣边更亮更粗，同域引力边保持低调
+            edgePaint.color = edge.blendedColor
             edgePaint.alpha = if (edge.crossMedia) 150 else 55
             edgePaint.strokeWidth = if (edge.crossMedia) 2.4f else 1.2f
             canvas.drawLine(src.x, src.y, dst.x, dst.y, edgePaint)
@@ -382,37 +436,32 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         }
 
         // 3. 绘制引力天体节点 (Celestial Bodies)
+        // 着色器以节点原点缓存，绘制时仅平移/缩放画布，避免每帧重建渐变
         for (node in nodes) {
             val r = node.radius
+            canvas.save()
+            canvas.translate(node.x, node.y)
 
-            // 呼吸光晕 Halo
-            val haloRadius = r * (1.25f + sin(pulsePhase) * 0.1f)
-            haloPaint.shader = RadialGradient(
-                node.x, node.y, haloRadius,
-                intArrayOf(node.color, Color.TRANSPARENT),
-                floatArrayOf(0.4f, 1.0f),
-                Shader.TileMode.CLAMP,
-            )
+            // 呼吸光晕 Halo：通过缩放画布实现呼吸效果
+            val haloScale = 1.25f + sin(pulsePhase) * 0.1f
+            canvas.save()
+            canvas.scale(haloScale, haloScale)
+            haloPaint.shader = node.haloShader
             haloPaint.alpha = if (node === draggedNode) 180 else 100
-            canvas.drawCircle(node.x, node.y, haloRadius, haloPaint)
+            canvas.drawCircle(0f, 0f, r, haloPaint)
+            canvas.restore()
 
             // 天体球体本体
-            nodePaint.shader = RadialGradient(
-                node.x - r * 0.3f, node.y - r * 0.3f, r,
-                intArrayOf(Color.WHITE, node.color, Color.parseColor("#0A0F1A")),
-                floatArrayOf(0f, 0.65f, 1.0f),
-                Shader.TileMode.CLAMP,
-            )
-            canvas.drawCircle(node.x, node.y, r, nodePaint)
+            nodePaint.shader = node.bodyShader
+            canvas.drawCircle(0f, 0f, r, nodePaint)
 
             // 天体中央 Emoji
-            val emojiY = node.y + (emojiPaint.textSize * 0.35f)
-            canvas.drawText(node.book.mediaType.emoji, node.x, emojiY, emojiPaint)
+            canvas.drawText(node.book.mediaType.emoji, 0f, emojiPaint.textSize * 0.35f, emojiPaint)
 
             // 天体名称 (Serif / Monospace)
-            val titleY = node.y + r + 14f * resources.displayMetrics.density
-            val displayTitle = if (node.book.title.length > 6) node.book.title.substring(0, 5) + "…" else node.book.title
-            canvas.drawText(displayTitle, node.x, titleY, textPaint)
+            canvas.drawText(node.displayTitle, 0f, r + 14f * resources.displayMetrics.density, textPaint)
+
+            canvas.restore()
         }
     }
 
