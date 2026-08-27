@@ -15,6 +15,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -34,6 +37,12 @@ class CoverGalleryActivity : AppCompatActivity() {
     private lateinit var btnGalleryOpenDetail: TextView
     private lateinit var galleryAmbientGlow: View
     private lateinit var galleryRoot: View
+    private lateinit var tabGalleryAll: TextView
+    private lateinit var tabGalleryBook: TextView
+    private lateinit var tabGalleryAnime: TextView
+    private lateinit var tabGalleryMovie: TextView
+    private lateinit var tabGalleryGame: TextView
+    private lateinit var tvGalleryTitle: TextView
 
     private var allBooks: List<Book> = emptyList()
     private var displayedBooks: List<Book> = emptyList()
@@ -50,6 +59,7 @@ class CoverGalleryActivity : AppCompatActivity() {
         databaseHelper = BookDatabaseHelper(this)
 
         initViews()
+        applySystemBarInsets()
         setupRecyclerView()
         setupTabs()
         loadData()
@@ -61,6 +71,12 @@ class CoverGalleryActivity : AppCompatActivity() {
         tvGalleryCounter = findViewById(R.id.tvGalleryCounter)
         btnGalleryOpenDetail = findViewById(R.id.btnGalleryOpenDetail)
         rvCoverGallery = findViewById(R.id.rvCoverGallery)
+        tabGalleryAll = findViewById(R.id.tabGalleryAll)
+        tabGalleryBook = findViewById(R.id.tabGalleryBook)
+        tabGalleryAnime = findViewById(R.id.tabGalleryAnime)
+        tabGalleryMovie = findViewById(R.id.tabGalleryMovie)
+        tabGalleryGame = findViewById(R.id.tabGalleryGame)
+        tvGalleryTitle = findViewById(R.id.tvGalleryTitle)
 
         FloatingBack.install(this)
 
@@ -81,6 +97,21 @@ class CoverGalleryActivity : AppCompatActivity() {
             startActivity(intent)
         }
         ViewAnimationHelper.attachSpringTouch(btnGalleryOpenDetail)
+    }
+
+    /**
+     * Android 15+/targetSdk 35+ 默认强制 edge-to-edge，状态栏会覆盖在内容上方。
+     * 监听系统栏与刘海 inset，动态给 root view 补 paddingTop / paddingBottom，
+     * 让标题、tab 行、底部按钮都能避开系统栏。
+     */
+    private fun applySystemBarInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(galleryRoot) { v, insets ->
+            val sb = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(top = sb.top, bottom = sb.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun setupRecyclerView() {
@@ -115,11 +146,11 @@ class CoverGalleryActivity : AppCompatActivity() {
 
     private fun setupTabs() {
         val tabs = listOf(
-            findViewById<TextView>(R.id.tabGalleryAll) to null,
-            findViewById<TextView>(R.id.tabGalleryBook) to MediaType.BOOK,
-            findViewById<TextView>(R.id.tabGalleryAnime) to MediaType.ANIME,
-            findViewById<TextView>(R.id.tabGalleryMovie) to MediaType.MOVIE,
-            findViewById<TextView>(R.id.tabGalleryGame) to MediaType.GAME,
+            tabGalleryAll to null,
+            tabGalleryBook to MediaType.BOOK,
+            tabGalleryAnime to MediaType.ANIME,
+            tabGalleryMovie to MediaType.MOVIE,
+            tabGalleryGame to MediaType.GAME,
         )
 
         tabs.forEach { (tab, mediaType) ->
@@ -127,8 +158,8 @@ class CoverGalleryActivity : AppCompatActivity() {
                 selectedMediaType = mediaType
                 tabs.forEach { (t, m) ->
                     val isSelected = m == selectedMediaType
-                    t.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-                    t.setTextColor(ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink))
+                    t.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_pill_button)
+                    t.setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#E8E2D9"))
                 }
                 filterBooks()
             }

@@ -35,8 +35,10 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvGalleryTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:includeFontPadding="true"
                     android:text="🖼️ 封面壁纸画廊"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
@@ -88,10 +90,10 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_status_chip_selected"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="7dp"
                     android:text="全部"
                     android:textColor="#FFFFFF"
-                    android:textSize="12.5sp"
+                    android:textSize="13.5sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -99,48 +101,48 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_status_chip"
+                    android:background="@drawable/bg_pill_button"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="7dp"
                     android:text="📖 书籍"
                     android:textColor="#E8E2D9"
-                    android:textSize="12.5sp" />
+                    android:textSize="13.5sp" />
 
                 <TextView
                     android:id="@+id/tabGalleryAnime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_status_chip"
+                    android:background="@drawable/bg_pill_button"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="7dp"
                     android:text="🌸 番剧"
                     android:textColor="#E8E2D9"
-                    android:textSize="12.5sp" />
+                    android:textSize="13.5sp" />
 
                 <TextView
                     android:id="@+id/tabGalleryMovie"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_status_chip"
+                    android:background="@drawable/bg_pill_button"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="7dp"
                     android:text="🎬 影视"
                     android:textColor="#E8E2D9"
-                    android:textSize="12.5sp" />
+                    android:textSize="13.5sp" />
 
                 <TextView
                     android:id="@+id/tabGalleryGame"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_status_chip"
+                    android:background="@drawable/bg_pill_button"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="7dp"
                     android:text="🎮 游戏"
                     android:textColor="#E8E2D9"
-                    android:textSize="12.5sp" />
+                    android:textSize="13.5sp" />
             </LinearLayout>
         </HorizontalScrollView>
 

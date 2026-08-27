@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="#FFFFFF"
             android:textSize="21sp"
             android:textStyle="bold"
             tools:text="新世纪福音战士：终" />
@@ -90,7 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="#9E988F"
             android:textSize="13.5sp"
             tools:text="庵野秀明 · 神作番剧 · ★ 5.0" />
 
