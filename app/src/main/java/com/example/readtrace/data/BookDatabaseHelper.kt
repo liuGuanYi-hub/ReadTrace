@@ -1180,7 +1180,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "向着蔚蓝的晴空挥手作别，那滴落在手心的泪水，终会化为滋润大地的春雨。",
                     review = "TV动画《葬送的芙莉莲》第2季度 OP 主题曲。n-buna 标志性的清澈吉他扫弦与 suis 纯净高亢的声线，将千年精灵对漫长时光、生死别离的释然与深情吟唱得淋漓尽致，堪称 2024 年日系摇滚的巅峰之作。",
-                    coverUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
+                    coverUrl = "https://p3.music.126.net/A2uvcfwP0zBfOfiR36Qiww==/109951169237033693.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.5f, 10.0f),
                 ),
                 MusicEntry(
@@ -1193,7 +1193,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便双脚陷于泥泞，我们依然要仰望并追寻那转动星辰的真理之火。",
                     review = "TV动画《地。-关于地球的运动-》ED 主题曲。歌名 Aporia 意为哲学术语中的‘困惑 / 无路可走’。探讨人类在浩瀚宇宙未知面前的渺小，以及前仆后继为真理献身的壮丽诗篇。",
-                    coverUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
+                    coverUrl = "https://p4.music.126.net/Pm_XyfxR0gu5XCb-5vR9KA==/109951170023203859.jpg",
                     mindprint = floatArrayOf(9.8f, 9.6f, 9.6f, 9.5f, 5.0f, 8.5f),
                 ),
                 MusicEntry(
@@ -1206,7 +1206,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "如果回忆会成为你的负担，那就请你连同我的名字与这个夏夜，一并遗忘吧。",
                     review = "夜鹿经典的夏日与离别物语。低回呢喃的琴键伴奏与渐进的弦乐编制，刻画出极致的物哀之美与温柔的解脱。",
-                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    coverUrl = "https://p4.music.126.net/leeWUbb51Ss-Kn2O6ii5cw==/109951169778596650.jpg",
                     mindprint = floatArrayOf(9.4f, 9.8f, 10.0f, 8.5f, 3.0f, 9.5f),
                 ),
                 MusicEntry(
@@ -1219,7 +1219,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.8,
                     shortComment = "在不被定义的拍子中自在漫步，把生活中的每一次停顿写成一首浪漫的散步曲。",
                     review = "轻快跳跃的爵士摇摆律动，如同雨后初霁在湿润的柏油路面上随意踏水前行，自由而充满生命力。",
-                    coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
+                    coverUrl = "https://p4.music.126.net/BNSgic6KUWr-eJrWFY4u0Q==/109951169634605453.jpg",
                     mindprint = floatArrayOf(8.8f, 9.5f, 9.2f, 9.0f, 2.5f, 9.8f),
                 ),
                 MusicEntry(
@@ -1232,7 +1232,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "放学后被斜阳染红的走廊里，那心照不宣的对视，是整个青春最滚烫的秘密。",
                     review = "TV动画《我心里危险的东西》第1季 OP 主题曲。轻盈奔放的吉他分解和弦与青涩悸动的歌词，描摹出初恋最纯粹的心动轨迹。",
-                    coverUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
+                    coverUrl = "https://p4.music.126.net/RmLnCQHie5SdBPURTl8Z4Q==/109951168599595799.jpg",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.8f, 8.8f, 2.0f, 10.0f),
                 ),
                 MusicEntry(
@@ -1245,7 +1245,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "慢慢地、慢慢地成长，即便智慧终会退去，也请在我的墓前放上一束鲜花。",
                     review = "TBS电视剧《夕暮れに、手をつなぐ》主题曲。灵感源自丹尼尔·凯斯世界名著《献给阿尔吉侬的花束》，温柔而深邃的生命叹息。",
-                    coverUrl = "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
+                    coverUrl = "https://p3.music.126.net/pAMfNtqQBVDTaz1ttrna2w==/109951173486374782.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.0f, 10.0f),
                 ),
                 MusicEntry(
@@ -1258,7 +1258,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "书页在华氏451度燃烧，但思想的火种永远不会在灰烬中熄灭。",
                     review = "画集专辑《幻燈》核心收录曲。致敬科幻大师雷·布拉德伯里的经典反乌托邦巨著，重型吉他 Riff 与极具张力的演唱。",
-                    coverUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600",
+                    coverUrl = "https://p3.music.126.net/pAMfNtqQBVDTaz1ttrna2w==/109951173486374782.jpg",
                     mindprint = floatArrayOf(9.6f, 9.5f, 9.2f, 9.6f, 5.0f, 7.0f),
                 ),
                 MusicEntry(
@@ -1271,7 +1271,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "在银白色的月光下洗尽尘世疲惫，时间在夜风里静止，灵魂重归静谧。",
                     review = "电影《大名倒产》主题曲。如同在深夜独自漫步在清凉月色下，琴音与声线如清泉流淌，抚平一切喧嚣与焦虑。",
-                    coverUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600",
+                    coverUrl = "https://p4.music.126.net/DmFjhQCbwkPl7Lmqxc7-UA==/109951168980090020.jpg",
                     mindprint = floatArrayOf(9.2f, 9.8f, 9.8f, 8.5f, 2.0f, 10.0f),
                 ),
 
@@ -1286,7 +1286,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便把软弱和真心伪装起来，那份为你而战的执念，绝对不是谎言！",
                     review = "动画电影《我的鬼女孩 (My Oni Girl)》主题曲。ACAね 标志性的高速吉他切音与炸裂的 Slap Bass，在疾走感中诉说着少年少女笨拙却炽热的真心。",
-                    coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
+                    coverUrl = "https://p3.music.126.net/eevP8WLVve9lX0Vq-4TowQ==/109951169618099511.jpg",
                     mindprint = floatArrayOf(9.4f, 9.8f, 9.8f, 9.2f, 4.0f, 9.0f),
                 ),
                 MusicEntry(
@@ -1299,7 +1299,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "把所有的不安塞进衣橱深处，戴上耳机，在蓝调的重低音里独自起舞。",
                     review = "ACAね 极具辨识度的真假音转换与复杂的爵士和弦走向，将都市年轻人在暗夜中的敏感孤独转化为摇摆律动。",
-                    coverUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600",
+                    coverUrl = "https://p3.music.126.net/cAtkQLQDmAOdYOAVuomBVg==/109951169661368682.jpg",
                     mindprint = floatArrayOf(9.0f, 9.8f, 9.4f, 9.5f, 4.5f, 8.8f),
                 ),
                 MusicEntry(
@@ -1312,7 +1312,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "海马体中隐隐作痛的记忆回响，是灵魂脱胎换骨的证明。",
                     review = "迷你专辑《虚仮の一念海馬に託す》主打曲。密集的节奏鼓点与天马行空的歌词隐喻，直击现代人的精神内耗与觉醒。",
-                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    coverUrl = "https://p4.music.126.net/lLRFfH4_VA1WVtgV48fgGg==/109951169914591223.jpg",
                     mindprint = floatArrayOf(9.5f, 9.8f, 9.6f, 9.4f, 6.0f, 8.0f),
                 ),
                 MusicEntry(
@@ -1338,7 +1338,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "想要那个孩子，不给那个孩子。在世俗的算计与博弈中，夺回属于自己的心跳。",
                     review = "3rd 专辑《沈香学》核心主打神作。将日本古老童谣《花一匁》解构重组为充满朋克反叛精神与精巧律动的殿堂级放克曲。",
-                    coverUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
+                    coverUrl = "https://p4.music.126.net/bmjKC1odG-1spq20rjjebg==/109951168657437538.jpg",
                     mindprint = floatArrayOf(9.6f, 10.0f, 9.8f, 9.6f, 5.5f, 9.0f),
                 ),
                 MusicEntry(
@@ -1351,7 +1351,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "像沉香一样历经伤口与岁月沉淀，在深夜里散发出幽微而绝美的香气。",
                     review = "真夜中集大成的第3张正规概念专辑。收录《残机》《綺羅キラー》《消えてしまいそうです》等多首殿堂名曲，狂放与细腻并存。",
-                    coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
+                    coverUrl = "https://p3.music.126.net/K91EJHEHhOie6daCAnM2Tw==/109951168661764575.jpg",
                     mindprint = floatArrayOf(9.8f, 10.0f, 9.8f, 9.6f, 6.0f, 9.5f),
                 ),
                 MusicEntry(
@@ -1364,7 +1364,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.8,
                     shortComment = "未经允许便悄然闯入我心中的你，留下了无法抹去的痕迹。",
                     review = "ABEMA 节目主题曲。标志性的键盘敲击与灵动声线，勾勒出恋爱中防不胜防的心动瞬间。",
-                    coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
+                    coverUrl = "https://p4.music.126.net/vNYG1ojHtvxqQTmS7pq1Jw==/109951168616751712.jpg",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.5f, 9.0f, 3.5f, 9.0f),
                 ),
                 MusicEntry(
@@ -1377,7 +1377,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便剩余的生命只剩一条，也要握紧电锯，在血肉横飞的绝望里杀穿终局！",
                     review = "TV动画《电锯人》ED2。爆裂的切分音与 ACAね 的狂气嘶吼，堪称日系摇滚新浪潮的核弹级现场演绎。",
-                    coverUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600",
+                    coverUrl = "https://p4.music.126.net/q7QS9ze9wXNXpUy2BscBPg==/109951167979033519.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 9.6f, 9.5f, 6.5f, 8.5f),
                 ),
             )
