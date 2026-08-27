@@ -56,7 +56,11 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         val target: CosmicNode,
         val strength: Float = 1.0f,
         val relationship: String = "共鸣引力",
+        val crossMedia: Boolean = false,
     )
+
+    /** 候选连线：记录两端节点下标、共振权重与是否跨媒介 */
+    private data class CandidateEdge(val a: Int, val b: Int, val weight: Float, val crossMedia: Boolean)
 
     data class StarDust(
         var x: Float,
@@ -65,6 +69,11 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         var radius: Float,
         var alpha: Int,
     )
+
+    private companion object {
+        /** 单个天体允许的最大连线数，防止星轨过密 */
+        const val MAX_NODE_DEGREE = 4
+    }
 
     private val nodes = mutableListOf<CosmicNode>()
     private val edges = mutableListOf<CosmicEdge>()
@@ -172,19 +181,59 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             )
         }
 
-        // 2. 构建跨媒介引力星轨连线
-        for (i in 0 until nodes.size) {
+        // 2. 构建跨媒介共鸣星轨：按分类/作者/标签共振生成候选连线，跨媒介连线加权优先，
+        //    并限制单节点度数，避免同类型节点两两全连造成视觉噪声
+        val candidates = mutableListOf<CandidateEdge>()
+        for (i in nodes.indices) {
             for (j in i + 1 until nodes.size) {
-                val n1 = nodes[i]
-                val n2 = nodes[j]
-                // 相同分类、或评分极高、或夜鹿/番剧关联
-                val isRelated = n1.book.mediaType == n2.book.mediaType ||
-                        (n1.book.category != null && n1.book.category == n2.book.category) ||
-                        (i == 0 && j in 1..4)
+                val b1 = nodes[i].book
+                val b2 = nodes[j].book
+                var weight = 0f
+                if (b1.category != null && b1.category == b2.category) weight += 2f
+                if (b1.author != null && b1.author == b2.author) weight += 2f
+                val sharedTags = b1.tags.intersect(b2.tags.toSet()).size
+                if (sharedTags > 0) weight += sharedTags
+                if (weight <= 0f) continue
+                val crossMedia = b1.mediaType != b2.mediaType
+                if (crossMedia) weight += 1.5f
+                candidates.add(CandidateEdge(i, j, weight, crossMedia))
+            }
+        }
 
-                if (isRelated) {
-                    edges.add(CosmicEdge(n1, n2, strength = 0.85f))
+        candidates.sortByDescending { it.weight }
+        val degree = IntArray(nodes.size)
+        for (candidate in candidates) {
+            if (degree[candidate.a] >= MAX_NODE_DEGREE || degree[candidate.b] >= MAX_NODE_DEGREE) continue
+            edges.add(
+                CosmicEdge(
+                    nodes[candidate.a],
+                    nodes[candidate.b],
+                    strength = if (candidate.crossMedia) 1.0f else 0.7f,
+                    relationship = if (candidate.crossMedia) "跨媒介共鸣" else "同域引力",
+                    crossMedia = candidate.crossMedia,
+                )
+            )
+            degree[candidate.a]++
+            degree[candidate.b]++
+        }
+
+        // 孤立天体兜底：与最近的同媒介天体相连，保证媒介星团成形
+        for (i in nodes.indices) {
+            if (degree[i] > 0) continue
+            var nearest = -1
+            var nearestDist = Float.MAX_VALUE
+            for (j in nodes.indices) {
+                if (j == i || nodes[j].book.mediaType != nodes[i].book.mediaType) continue
+                val d = hypot(nodes[j].x - nodes[i].x, nodes[j].y - nodes[i].y)
+                if (d < nearestDist) {
+                    nearestDist = d
+                    nearest = j
                 }
+            }
+            if (nearest >= 0) {
+                edges.add(CosmicEdge(nodes[i], nodes[nearest], strength = 0.5f, relationship = "同域引力"))
+                degree[i]++
+                degree[nearest]++
             }
         }
 
@@ -315,20 +364,21 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             val src = edge.source
             val dst = edge.target
 
-            // 渐变光束
+            // 渐变光束：跨媒介共鸣边更亮更粗，同域引力边保持低调
             edgePaint.shader = LinearGradient(
                 src.x, src.y, dst.x, dst.y,
                 src.color, dst.color,
                 Shader.TileMode.CLAMP,
             )
-            edgePaint.alpha = 90
+            edgePaint.alpha = if (edge.crossMedia) 150 else 55
+            edgePaint.strokeWidth = if (edge.crossMedia) 2.4f else 1.2f
             canvas.drawLine(src.x, src.y, dst.x, dst.y, edgePaint)
 
             // 绘制星轨流动光珠 (Animated Energy Bead)
             val beadProgress = ((pulsePhase + (src.x + dst.y) * 0.005f) % (2f * Math.PI.toFloat())) / (2f * Math.PI.toFloat())
             val beadX = src.x + (dst.x - src.x) * beadProgress
             val beadY = src.y + (dst.y - src.y) * beadProgress
-            canvas.drawCircle(beadX, beadY, 2.8f, edgeBeadPaint)
+            canvas.drawCircle(beadX, beadY, if (edge.crossMedia) 3.2f else 2.2f, edgeBeadPaint)
         }
 
         // 3. 绘制引力天体节点 (Celestial Bodies)
