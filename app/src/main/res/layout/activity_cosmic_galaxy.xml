@@ -57,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="monospace"
-                    android:text="528Hz 治愈引力波 · 拖拽节点触发展开"
+                    android:text="528Hz 治愈引力波 · 拖拽牵引天体 · 点击查看详情"
                     android:textColor="#88FFFFFF"
                     android:textSize="11sp" />
             </LinearLayout>

@@ -15,6 +15,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.HapticFeedbackEngine
@@ -31,7 +32,7 @@ import kotlin.random.Random
  * 对标 Cosmos.so / Siteinspire 顶尖引力拓扑与 Awwwards 宇宙可视化：
  * - 将书籍、番剧、电影、游戏、声音构建为具有质量与引力场的引力天体（Cosmic Celestial Bodies）；
  * - 实时运行库仑斥力 + 虎克弹簧引力 + 阻尼减速物理力导向系统；
- * - 手指拖拽天体产生丝绸弹簧物理形变，松手触发 528Hz 空灵引力波共鸣震荡。
+ * - 手指拖拽天体产生丝绸弹簧物理形变，松手带惯性自然滑行；点击天体触发 528Hz 空灵引力波共鸣并跳转详情。
  */
 class CosmicGravityGraphView @JvmOverloads constructor(
     context: Context,
@@ -73,6 +74,13 @@ class CosmicGravityGraphView @JvmOverloads constructor(
     private var isSimulating = false
     private var physicsAnimator: ValueAnimator? = null
     private var pulsePhase = 0f
+
+    // 拖拽起点与上一帧位置，用于区分点击/拖拽并产生抛掷惯性
+    private var touchDownX = 0f
+    private var touchDownY = 0f
+    private var touchLastX = 0f
+    private var touchLastY = 0f
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     var onNodeClickListener: ((Book) -> Unit)? = null
 
@@ -364,6 +372,10 @@ class CosmicGravityGraphView @JvmOverloads constructor(
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                touchDownX = tx
+                touchDownY = ty
+                touchLastX = tx
+                touchLastY = ty
                 draggedNode = nodes.find { node ->
                     hypot(node.x - tx, node.y - ty) <= node.radius * 1.5f
                 }
@@ -378,22 +390,35 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                 draggedNode?.let { node ->
                     node.x = tx
                     node.y = ty
-                    node.vx = 0f
-                    node.vy = 0f
+                    touchLastX = tx
+                    touchLastY = ty
                     invalidate()
                     return true
                 }
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_UP -> {
                 draggedNode?.let { node ->
-                    HapticFeedbackEngine.lightClick(context)
-                    SpatialAudioEngine.playCelestialTone()
-                    onNodeClickListener?.invoke(node.book)
+                    // 拖拽结束时把最后一次位移转为惯性，天体被"抛"出后自然滑行衰减
+                    node.vx = (tx - touchLastX) * 0.8f
+                    node.vy = (ty - touchLastY) * 0.8f
+                    // 仅当位移未超过系统触摸阈值时视为点击，拖拽松手不再误跳详情页
+                    val isTap = hypot(tx - touchDownX, ty - touchDownY) <= touchSlop
+                    if (isTap) {
+                        HapticFeedbackEngine.lightClick(context)
+                        SpatialAudioEngine.playCelestialTone()
+                        onNodeClickListener?.invoke(node.book)
+                    }
                     draggedNode = null
                     parent?.requestDisallowInterceptTouchEvent(false)
                     invalidate()
                     return true
                 }
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                draggedNode = null
+                parent?.requestDisallowInterceptTouchEvent(false)
+                invalidate()
+                return true
             }
         }
         return super.onTouchEvent(event)
