@@ -222,20 +222,20 @@ class MediaHubActivity : AppCompatActivity() {
                     startActivity(CulturalPassportActivity.createIntent(this, MediaType.GAME))
                 }
             }
-            MediaType.PODCAST -> {
-                hubTitle.text = "🎙️ 声音与播客宇宙"
-                hubStatusReading.text = "收听中"
-                hubStatusFinished.text = "已听完"
+            MediaType.MUSIC -> {
+                hubTitle.text = "💿 音乐唱片馆"
+                hubStatusReading.text = "在听"
+                hubStatusFinished.text = "听完"
                 hubStatusWishlist.text = "想听"
                 btnHubSpecialFeature.visibility = View.VISIBLE
                 btnHubSpecialFeature.text = "💽 拟真黑胶唱机"
                 btnHubSpecialFeature.setOnClickListener {
-                    val firstPodcast = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.PODCAST }
-                    if (firstPodcast != null) {
-                        startActivity(VinylCassettePlayerActivity.createIntent(this, firstPodcast.id))
+                    val firstMusic = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.MUSIC }
+                    if (firstMusic != null) {
+                        startActivity(VinylCassettePlayerActivity.createIntent(this, firstMusic.id))
                     } else {
-                        // 无播客时不再传递 -1L 哨兵值，避免黑胶页退化为混杂媒体列表的隐式行为
-                        Toast.makeText(this, "播客宇宙暂无收藏", Toast.LENGTH_SHORT).show()
+                        // 无音乐收藏时不再传递 -1L 哨兵值，避免黑胶页退化为混杂媒体列表的隐式行为
+                        Toast.makeText(this, "音乐馆暂无收藏", Toast.LENGTH_SHORT).show()
                     }
                 }
                 btnHubPassport.visibility = View.VISIBLE

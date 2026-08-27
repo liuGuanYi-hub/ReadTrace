@@ -146,7 +146,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             val ny = cy + sin(angle) * dist
 
             val color = when (book.mediaType) {
-                MediaType.PODCAST -> Color.parseColor("#4DEEEA") // 极光青
+                MediaType.MUSIC -> Color.parseColor("#4DEEEA") // 极光青
                 MediaType.BOOK -> Color.parseColor("#FFE700")    // 琥珀金
                 MediaType.ANIME -> Color.parseColor("#FF6F91")   // 樱花粉
                 MediaType.MOVIE -> Color.parseColor("#845EC2")   // 电影紫

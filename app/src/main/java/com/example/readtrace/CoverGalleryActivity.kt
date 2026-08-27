@@ -44,6 +44,7 @@ class CoverGalleryActivity : AppCompatActivity() {
     private lateinit var tabGalleryAnime: TextView
     private lateinit var tabGalleryMovie: TextView
     private lateinit var tabGalleryGame: TextView
+    private lateinit var tabGalleryMusic: TextView
     private lateinit var tvGalleryTitle: TextView
 
     private var allBooks: List<Book> = emptyList()
@@ -82,6 +83,7 @@ class CoverGalleryActivity : AppCompatActivity() {
         tabGalleryAnime = findViewById(R.id.tabGalleryAnime)
         tabGalleryMovie = findViewById(R.id.tabGalleryMovie)
         tabGalleryGame = findViewById(R.id.tabGalleryGame)
+        tabGalleryMusic = findViewById(R.id.tabGalleryMusic)
         tvGalleryTitle = findViewById(R.id.tvGalleryTitle)
 
         FloatingBack.install(this)
@@ -157,6 +159,7 @@ class CoverGalleryActivity : AppCompatActivity() {
             tabGalleryAnime to MediaType.ANIME,
             tabGalleryMovie to MediaType.MOVIE,
             tabGalleryGame to MediaType.GAME,
+            tabGalleryMusic to MediaType.MUSIC,
         )
 
         tabs.forEach { (tab, mediaType) ->
@@ -210,7 +213,7 @@ class CoverGalleryActivity : AppCompatActivity() {
             MediaType.BOOK -> intArrayOf(Color.parseColor("#2C2216"), Color.parseColor("#12100E"))
             MediaType.MOVIE -> intArrayOf(Color.parseColor("#14233A"), Color.parseColor("#12100E"))
             MediaType.GAME -> intArrayOf(Color.parseColor("#1A2B20"), Color.parseColor("#12100E"))
-            MediaType.PODCAST -> intArrayOf(Color.parseColor("#2D1B36"), Color.parseColor("#12100E"))
+            MediaType.MUSIC -> intArrayOf(Color.parseColor("#2D1B36"), Color.parseColor("#12100E"))
         }
 
         val gradient = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors)

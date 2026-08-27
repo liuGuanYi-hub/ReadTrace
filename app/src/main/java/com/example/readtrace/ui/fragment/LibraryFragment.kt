@@ -42,6 +42,7 @@ class LibraryFragment : Fragment() {
     private lateinit var mediaChipAnime: TextView
     private lateinit var mediaChipMovie: TextView
     private lateinit var mediaChipGame: TextView
+    private lateinit var mediaChipMusic: TextView
 
     private lateinit var librarySearchInput: EditText
     private lateinit var librarySearchClearButton: View
@@ -97,6 +98,7 @@ class LibraryFragment : Fragment() {
         mediaChipAnime = view.findViewById(R.id.mediaChipAnime)
         mediaChipMovie = view.findViewById(R.id.mediaChipMovie)
         mediaChipGame = view.findViewById(R.id.mediaChipGame)
+        mediaChipMusic = view.findViewById(R.id.mediaChipMusic)
 
         librarySearchInput = view.findViewById(R.id.librarySearchInput)
         librarySearchClearButton = view.findViewById(R.id.librarySearchClearButton)
@@ -130,6 +132,7 @@ class LibraryFragment : Fragment() {
         mediaChipAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         mediaChipMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
         mediaChipGame.setOnClickListener { selectMediaType(MediaType.GAME) }
+        mediaChipMusic.setOnClickListener { selectMediaType(MediaType.MUSIC) }
 
         statusChipAll.setOnClickListener { selectStatus(null) }
         statusChipReading.setOnClickListener { selectStatus(BookStatus.READING) }
@@ -170,7 +173,7 @@ class LibraryFragment : Fragment() {
 
         listOfNotNull<View>(
             btnLibraryAdd, btnLibraryToggleView, btnLibraryExportScroll,
-            mediaChipAll, mediaChipBook, mediaChipAnime, mediaChipMovie, mediaChipGame,
+            mediaChipAll, mediaChipBook, mediaChipAnime, mediaChipMovie, mediaChipGame, mediaChipMusic,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
@@ -194,6 +197,7 @@ class LibraryFragment : Fragment() {
             mediaChipAnime to (selectedMediaType == MediaType.ANIME),
             mediaChipMovie to (selectedMediaType == MediaType.MOVIE),
             mediaChipGame to (selectedMediaType == MediaType.GAME),
+            mediaChipMusic to (selectedMediaType == MediaType.MUSIC),
         )
         val ctx = context ?: return
         chips.forEach { (chip, isSelected) ->
@@ -216,7 +220,7 @@ class LibraryFragment : Fragment() {
             MediaType.ANIME -> Triple("追番中", "补完", "想追")
             MediaType.MOVIE -> Triple("在看", "已看", "想看")
             MediaType.GAME -> Triple("游玩中", "通关", "想玩")
-            MediaType.PODCAST -> Triple("收听中", "听完", "想听")
+            MediaType.MUSIC -> Triple("在听", "听完", "想听")
             null -> Triple("进行中", "已完成", "愿望单")
         }
         statusChipAll.text = "全部"

@@ -301,7 +301,7 @@ class MindprintConstellationView @JvmOverloads constructor(
             MediaType.ANIME to Pair(dpToPx(380f), -dpToPx(320f)), // 右上：梦幻动漫星团
             MediaType.MOVIE to Pair(-dpToPx(360f), dpToPx(360f)), // 左下：沉浸影视银河
             MediaType.GAME to Pair(dpToPx(380f), dpToPx(340f)), // 右下：赛博游戏星海
-            MediaType.PODCAST to Pair(0f, 0f), // 中央：灵性声音星核
+            MediaType.MUSIC to Pair(0f, 0f), // 中央：音乐旋律星核
         )
 
         val mediaPalette = mapOf(
@@ -309,7 +309,7 @@ class MindprintConstellationView @JvmOverloads constructor(
             MediaType.ANIME to Color.parseColor("#9B5DE5"), // 幻境紫罗兰
             MediaType.MOVIE to Color.parseColor("#F4A261"), // 光影落日金
             MediaType.GAME to Color.parseColor("#00BBF9"), // 赛博冰川青
-            MediaType.PODCAST to Color.parseColor("#81B29A"), // 灵息翡翠绿
+            MediaType.MUSIC to Color.parseColor("#81B29A"), // 灵息翡翠绿
         )
 
         // 1. 生成星辰节点（基于多维心智势能 + 斐波那契黄金螺旋分布）

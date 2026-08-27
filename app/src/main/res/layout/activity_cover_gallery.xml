@@ -157,6 +157,18 @@
                     android:text="🎮 游戏"
                     android:textColor="#E8E2D9"
                     android:textSize="13.5sp" />
+
+                <TextView
+                    android:id="@+id/tabGalleryMusic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="7dp"
+                    android:text="💿 音乐"
+                    android:textColor="#E8E2D9"
+                    android:textSize="13.5sp" />
             </LinearLayout>
         </HorizontalScrollView>
 

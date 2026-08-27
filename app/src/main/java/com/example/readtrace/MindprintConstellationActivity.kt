@@ -81,7 +81,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
             FilterOption("🌸 动漫番剧", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.ANIME)),
             FilterOption("🎬 光影影视", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.MOVIE)),
             FilterOption("🎮 互动游戏", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.GAME)),
-            FilterOption("🎙️ 沉浸播客", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.PODCAST)),
+            FilterOption("💿 音乐唱片", com.example.readtrace.widget.ConstellationFilter.ByMedia(com.example.readtrace.model.MediaType.MUSIC)),
             FilterOption("🇨🇳 华语经典", com.example.readtrace.widget.ConstellationFilter.ByRegion("华语")),
             FilterOption("🇯🇵 日本文学", com.example.readtrace.widget.ConstellationFilter.ByRegion("日本")),
             FilterOption("🌎 拉美文学", com.example.readtrace.widget.ConstellationFilter.ByRegion("拉美")),

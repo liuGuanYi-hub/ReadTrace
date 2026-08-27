@@ -342,7 +342,7 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                 MediaType.ANIME -> Color.parseColor("#FF2A85")
                 MediaType.MOVIE -> Color.parseColor("#FFE700")
                 MediaType.GAME -> Color.parseColor("#74EE15")
-                MediaType.PODCAST -> Color.parseColor("#F000FF")
+                MediaType.MUSIC -> Color.parseColor("#F000FF")
             }
             val strokeAlpha = (alphaFactor * (if (isSelected) 255 else 160)).toInt()
             paint.style = Paint.Style.STROKE

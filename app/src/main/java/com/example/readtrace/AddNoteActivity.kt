@@ -120,11 +120,11 @@ class AddNoteActivity : AppCompatActivity() {
                 labelChapter.text = "任务 / 篇章"
                 chapterInput.hint = "例如：主线任务 · 黄金树之影"
             }
-            com.example.readtrace.model.MediaType.PODCAST -> {
-                labelPage.text = "播放时间戳"
-                pageInput.hint = "例如：34:20"
-                labelChapter.text = "话题 / 环节"
-                chapterInput.hint = "例如：嘉宾观点 · 深度对话"
+            com.example.readtrace.model.MediaType.MUSIC -> {
+                labelPage.text = "曲目时间点"
+                pageInput.hint = "例如：01:24"
+                labelChapter.text = "曲目 / 专辑"
+                chapterInput.hint = "例如：真夜中 · 副歌段落"
             }
         }
     }

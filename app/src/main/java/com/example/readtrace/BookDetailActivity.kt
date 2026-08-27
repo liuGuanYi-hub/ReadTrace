@@ -821,27 +821,27 @@ class BookDetailActivity : AppCompatActivity() {
 
         val events = mutableListOf<com.example.readtrace.model.TimelineEvent>()
 
-        // 媒介适配文案：番剧/影视/游戏/播客不再使用"全书/阅读"类书籍字眼
+        // 媒介适配文案：番剧/影视/游戏/音乐不再使用"全书/阅读"类书籍字眼
         val startTitle = when (book.mediaType) {
             MediaType.BOOK -> "🏁 启程 · 翻开扉页"
             MediaType.ANIME -> "🏁 启程 · 点开第一话"
             MediaType.MOVIE -> "🏁 启程 · 熄灯开场"
             MediaType.GAME -> "🏁 启程 · 开机启程"
-            MediaType.PODCAST -> "🏁 启程 · 戴上耳机开听"
+            MediaType.MUSIC -> "🏁 启程 · 戴上耳机开听"
         }
         val startContent = when (book.mediaType) {
             MediaType.BOOK -> "初读期待与相遇"
             MediaType.ANIME -> "初看期待与相遇"
             MediaType.MOVIE -> "初看期待与相遇"
             MediaType.GAME -> "初玩期待与相遇"
-            MediaType.PODCAST -> "初听期待与相遇"
+            MediaType.MUSIC -> "初听期待与相遇"
         }
         val focusVerb = when (book.mediaType) {
             MediaType.BOOK -> "阅读"
             MediaType.ANIME -> "追番"
             MediaType.MOVIE -> "观影"
             MediaType.GAME -> "游玩"
-            MediaType.PODCAST -> "聆听"
+            MediaType.MUSIC -> "聆听"
         }
         val progressPrefix = if (book.mediaType == MediaType.BOOK) "读至" else "进度"
         val outlineIcon = when (book.mediaType) {
@@ -849,28 +849,28 @@ class BookDetailActivity : AppCompatActivity() {
             MediaType.ANIME -> "🌸"
             MediaType.MOVIE -> "🎬"
             MediaType.GAME -> "🎮"
-            MediaType.PODCAST -> "🎙️"
+            MediaType.MUSIC -> "💿"
         }
         val outlineUnit = when (book.mediaType) {
             MediaType.BOOK -> "章"
             MediaType.ANIME -> "话"
             MediaType.MOVIE -> "幕"
             MediaType.GAME -> "章"
-            MediaType.PODCAST -> "期"
+            MediaType.MUSIC -> "首"
         }
         val outlineSubtitle = when (book.mediaType) {
             MediaType.BOOK -> "全书大纲脉络"
             MediaType.ANIME -> "全剧集脉络"
             MediaType.MOVIE -> "全片脉络"
             MediaType.GAME -> "全程流程脉络"
-            MediaType.PODCAST -> "全期节目脉络"
+            MediaType.MUSIC -> "全曲目脉络"
         }
         val finishTitle = when (book.mediaType) {
             MediaType.BOOK -> "🌟 终章 · 全书完读复盘"
             MediaType.ANIME -> "🌟 终章 · 全剧补完复盘"
             MediaType.MOVIE -> "🌟 落幕 · 观影终章复盘"
             MediaType.GAME -> "🌟 终章 · 全作通关复盘"
-            MediaType.PODCAST -> "🌟 终章 · 全季听完复盘"
+            MediaType.MUSIC -> "🌟 终章 · 全曲听完复盘"
         }
 
         // 1. 初读起点（日期为占位文本如「待整理」时不再拼接时间后缀）
@@ -1144,7 +1144,7 @@ class BookDetailActivity : AppCompatActivity() {
                 MediaType.MOVIE -> "光影定格瞬间，回声穿透岁月。在银幕的光斑里，看见未曾经历的人生。"
                 MediaType.ANIME -> "若你跨越次元与时光，我们终将在热血与泪水的彼岸重逢。"
                 MediaType.GAME -> "每个按键的跃动，都是灵魂在异世界的无畏出征。"
-                MediaType.PODCAST -> "声音划过耳畔，思维在无垠空间激荡起共鸣的涟漪。"
+                MediaType.MUSIC -> "旋律划过耳畔，思维在无垠空间激荡起共鸣的涟漪。"
                 else -> "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
             }
         val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
@@ -1153,7 +1153,7 @@ class BookDetailActivity : AppCompatActivity() {
             MediaType.MOVIE -> "🎬 光影名台词"
             MediaType.ANIME -> "🌸 高光台词"
             MediaType.GAME -> "🎮 通关寄语"
-            MediaType.PODCAST -> "🎙️ 声音印记"
+            MediaType.MUSIC -> "💿 声音印记"
             else -> "📖 一句话感悟"
         }
         startActivity(
@@ -1302,9 +1302,9 @@ class BookDetailActivity : AppCompatActivity() {
                 sectionCharTitle.text = "🎮 主要角色与NPC谱"
                 navTabNotes.text = "💬 战报心得"
             }
-            MediaType.PODCAST -> {
-                headerTitle.text = "播客与声音详情"
-                headerSubtitle.text = "倾听思维碰撞、声音印记与黑胶旋律。"
+            MediaType.MUSIC -> {
+                headerTitle.text = "音乐与唱片详情"
+                headerSubtitle.text = "倾听旋律心跳、声音印记与黑胶律动。"
                 read3DBtn.text = "💽 3D 拟真黑胶唱机"
                 read3DBtn.visibility = View.VISIBLE
                 read3DBtn.setOnClickListener {
@@ -1315,7 +1315,7 @@ class BookDetailActivity : AppCompatActivity() {
                 quotePosterBtn.setOnClickListener {
                     startActivity(Intent(this, ResonancePosterActivity::class.java))
                 }
-                sectionIdentityTitle.text = "关于这档作品"
+                sectionIdentityTitle.text = "关于这张作品"
                 labelCategory.text = "曲目 / 类别"
                 sectionReadingTitle.text = "收听印记"
                 sectionThoughtsTitle.text = "听后感悟"
@@ -1324,7 +1324,7 @@ class BookDetailActivity : AppCompatActivity() {
                 sectionNotesTitle.text = "灵感火花与速记"
                 sectionTimerTitle.text = "⏱️ 聆听专注时光与打卡"
                 collectionTitle.text = "💰 实体唱片与录音带"
-                sectionCharTitle.text = "🎙️ 创作者与声乐谱"
+                sectionCharTitle.text = "💿 创作者与声乐谱"
                 navTabNotes.text = "💬 灵感速记"
             }
         }
@@ -1530,7 +1530,7 @@ class BookDetailActivity : AppCompatActivity() {
                     when (mediaType) {
                         MediaType.BOOK -> add("第 $pageNum 章")
                         MediaType.ANIME -> add("第 $pageNum 集")
-                        else -> Unit // 影视/游戏/播客等不标记定位刻度
+                        else -> Unit // 影视/游戏/音乐等不标记定位刻度
                     }
                 } else {
                     add(pageText)

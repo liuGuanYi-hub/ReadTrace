@@ -132,12 +132,12 @@
                             android:text="@string/media_type_game" />
 
                         <TextView
-                            android:id="@+id/mediaTypePodcast"
+                            android:id="@+id/mediaTypeMusic"
                             style="@style/ReadTraceStatusChip"
                             android:layout_marginStart="10dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="@string/media_type_podcast" />
+                            android:text="@string/media_type_music" />
                     </LinearLayout>
                 </HorizontalScrollView>
 

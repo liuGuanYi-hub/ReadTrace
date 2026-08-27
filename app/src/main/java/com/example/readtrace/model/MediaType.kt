@@ -65,17 +65,17 @@ enum class MediaType(
         pausedLabel = "封盘",
         droppedLabel = "弃坑",
     ),
-    PODCAST(
-        databaseValue = "podcast",
-        displayName = "播客",
-        emoji = "🎙️",
-        creatorLabel = "主播 / 频道",
-        creatorHint = "例如：忽左忽右、声东击西",
-        progressLabel = "单集 / 时间点",
+    MUSIC(
+        databaseValue = "music",
+        displayName = "音乐",
+        emoji = "💿",
+        creatorLabel = "歌手 / 乐队 / 厂牌",
+        creatorHint = "例如：ヨルシカ、ずっと真夜中でいいのに。",
+        progressLabel = "曲目 / 专辑",
         wishlistLabel = "想听",
         ongoingLabel = "在听",
         finishedLabel = "听完",
-        pausedLabel = "暂停",
+        pausedLabel = "搁置",
         droppedLabel = "弃听",
     );
 
@@ -88,7 +88,10 @@ enum class MediaType(
     }
 
     companion object {
-        fun fromDatabaseValue(value: String?): MediaType =
-            values().firstOrNull { it.databaseValue.equals(value, ignoreCase = true) } ?: BOOK
+        fun fromDatabaseValue(value: String?): MediaType = when {
+            // 历史版本中夜鹿/真夜中曲目曾存为 podcast，统一归入音乐，避免落到默认书籍
+            value.equals("podcast", ignoreCase = true) -> MUSIC
+            else -> values().firstOrNull { it.databaseValue.equals(value, ignoreCase = true) } ?: BOOK
+        }
     }
 }

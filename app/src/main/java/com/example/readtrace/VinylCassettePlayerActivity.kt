@@ -143,7 +143,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private fun loadPlaylist() {
         val initialBookId = intent.getLongExtra(EXTRA_BOOK_ID, -1L)
         val allBooks = databaseHelper.getBooks()
-        playlist = allBooks.filter { it.mediaType == MediaType.PODCAST }
+        playlist = allBooks.filter { it.mediaType == MediaType.MUSIC }
         if (playlist.isEmpty()) {
             playlist = allBooks
         }

@@ -255,7 +255,7 @@ object BookCsvParser {
             lower.contains("anime") || lower.contains("番剧") || lower.contains("动漫") || lower.contains("动画") -> MediaType.ANIME
             lower.contains("movie") || lower.contains("film") || lower.contains("电影") || lower.contains("影视") -> MediaType.MOVIE
             lower.contains("game") || lower.contains("游戏") || lower.contains("主机") || lower.contains("steam") -> MediaType.GAME
-            lower.contains("podcast") || lower.contains("播客") || lower.contains("电台") -> MediaType.PODCAST
+            lower.contains("music") || lower.contains("音乐") || lower.contains("歌曲") || lower.contains("专辑") -> MediaType.MUSIC
             lower.contains("book") || lower.contains("书") || lower.contains("名著") || lower.contains("小说") -> MediaType.BOOK
             else -> defaultType
         }

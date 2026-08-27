@@ -60,9 +60,9 @@ class CosmicGalaxyActivity : AppCompatActivity() {
             HapticFeedbackEngine.lightClick(this)
             cosmicGravityGraphView.setGalaxyData(allBooks)
         }
-        findViewById<Button>(R.id.btnFilterPodcast).setOnClickListener {
+        findViewById<Button>(R.id.btnFilterMusic).setOnClickListener {
             HapticFeedbackEngine.lightClick(this)
-            val filtered = allBooks.filter { it.mediaType == MediaType.PODCAST }
+            val filtered = allBooks.filter { it.mediaType == MediaType.MUSIC }
             cosmicGravityGraphView.setGalaxyData(if (filtered.isNotEmpty()) filtered else allBooks)
         }
         findViewById<Button>(R.id.btnFilterAnime).setOnClickListener {

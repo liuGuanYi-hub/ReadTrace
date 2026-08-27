@@ -93,6 +93,12 @@ class BookDatabaseHelper(val context: Context) :
             createLocationsTable(database)
             createMindprintsTable(database)
         }
+        if (oldVersion < 6) {
+            // v6：播客分类并入音乐，夜鹿/真夜中曲目统一迁移为 'music'
+            runCatching {
+                database.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_MEDIA_TYPE = 'music' WHERE $COLUMN_MEDIA_TYPE = 'podcast'")
+            }
+        }
     }
 
     private fun createNotesTable(database: SQLiteDatabase) {
@@ -241,7 +247,7 @@ class BookDatabaseHelper(val context: Context) :
         seedUserAnimeList(db)
         seedUserMovieList(db)
         seedUserGameList(db)
-        seedUserPodcastMusicList(db)
+        seedUserMusicList(db)
         seedCuratedBookCovers(db)
         autoFillMissingCovers(db)
     }
@@ -586,7 +592,7 @@ class BookDatabaseHelper(val context: Context) :
                         "anime" -> "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600"
                         "movie" -> "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600"
                         "game" -> "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600"
-                        "podcast" -> "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=600"
+                        "music" -> "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=600"
                         else -> "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600"
                     }
                 }
@@ -1146,9 +1152,9 @@ class BookDatabaseHelper(val context: Context) :
         }
     }
 
-    private fun seedUserPodcastMusicList(db: SQLiteDatabase) {
+    private fun seedUserMusicList(db: SQLiteDatabase) {
         runCatching {
-            data class PodcastMusicEntry(
+            data class MusicEntry(
                 val title: String,
                 val artist: String,
                 val category: String,
@@ -1162,9 +1168,9 @@ class BookDatabaseHelper(val context: Context) :
                 val mindprint: FloatArray? = null,
             )
 
-            val podcastMusicList = listOf(
+            val musicList = listOf(
                 // 🌙 ヨルシカ (Yorushika / 夜鹿) 2023 - 2024 经典作品
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "晴る (Haru)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "日系摇滚 / 物哀美学",
@@ -1177,7 +1183,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.5f, 10.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "アポリア (Aporia)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "哲学摇滚 / 宇宙浪漫",
@@ -1190,7 +1196,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600",
                     mindprint = floatArrayOf(9.8f, 9.6f, 9.6f, 9.5f, 5.0f, 8.5f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "忘れてください (Please Forget)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "日系抒情 / 夏日叙事",
@@ -1203,7 +1209,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
                     mindprint = floatArrayOf(9.4f, 9.8f, 10.0f, 8.5f, 3.0f, 9.5f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "ルバート (Rubato)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "灵动轻摇滚 / 爵士切分",
@@ -1216,7 +1222,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
                     mindprint = floatArrayOf(8.8f, 9.5f, 9.2f, 9.0f, 2.5f, 9.8f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "斜陽 (Setting Sun)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "青春摇滚 / 酸甜心境",
@@ -1229,7 +1235,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.8f, 8.8f, 2.0f, 10.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "アルジャーノン (Algernon)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "文学摇滚 / 治愈救赎",
@@ -1242,7 +1248,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.0f, 10.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "451 (华氏451)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "硬派反乌托邦摇滚",
@@ -1255,7 +1261,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600",
                     mindprint = floatArrayOf(9.6f, 9.5f, 9.2f, 9.6f, 5.0f, 7.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "月光浴 (Moonlight Bath)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "唯美抒情 / 静谧夜色",
@@ -1270,7 +1276,7 @@ class BookDatabaseHelper(val context: Context) :
                 ),
 
                 // 🌌 ずっと真夜中でいいのに。 (ZUTOMAYO / 永远是深夜有多好。) 2023 - 2024 经典作品
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "嘘じゃない (No Lie)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "前卫放克摇滚 / 疾走感",
@@ -1283,7 +1289,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
                     mindprint = floatArrayOf(9.4f, 9.8f, 9.8f, 9.2f, 4.0f, 9.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "Blues in the Closet",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "夜光放克 / 都会律动",
@@ -1296,7 +1302,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600",
                     mindprint = floatArrayOf(9.0f, 9.8f, 9.4f, 9.5f, 4.5f, 8.8f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "海馬成長痛 (Hippocampus Growing Pains)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "意识流摇滚 / 锐利切分",
@@ -1309,7 +1315,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
                     mindprint = floatArrayOf(9.5f, 9.8f, 9.6f, 9.4f, 6.0f, 8.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "TAIKUTSU (退屈)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "疾走放克摇滚",
@@ -1322,7 +1328,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.2f, 9.5f, 5.0f, 8.5f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "花一匁 (Hanaichimonme)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "和风放克摇滚 / 殿堂主打",
@@ -1335,7 +1341,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600",
                     mindprint = floatArrayOf(9.6f, 10.0f, 9.8f, 9.6f, 5.5f, 9.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "沈香学 (Jin Kou Gaku 专辑)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "正规概念专辑 / 殿堂之作",
@@ -1348,7 +1354,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600",
                     mindprint = floatArrayOf(9.8f, 10.0f, 9.8f, 9.6f, 6.0f, 9.5f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "不法侵入 (Trespass)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "迷幻放克 / 恋爱心境",
@@ -1361,7 +1367,7 @@ class BookDatabaseHelper(val context: Context) :
                     coverUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.5f, 9.0f, 3.5f, 9.0f),
                 ),
-                PodcastMusicEntry(
+                MusicEntry(
                     title = "残機 (Time Left)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "硬核疾走放克 / 爆裂现场",
@@ -1378,7 +1384,7 @@ class BookDatabaseHelper(val context: Context) :
 
             val now = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(java.time.LocalDateTime.now())
 
-            podcastMusicList.forEach { item ->
+            musicList.forEach { item ->
                 val cursor = db.query(
                     TABLE_BOOKS,
                     arrayOf(COLUMN_ID),
@@ -1396,7 +1402,7 @@ class BookDatabaseHelper(val context: Context) :
 
                 if (exists) {
                     val cv = ContentValues().apply {
-                        put(COLUMN_MEDIA_TYPE, "podcast")
+                        put(COLUMN_MEDIA_TYPE, "music")
                         if (item.shortComment != null) put(COLUMN_SHORT_COMMENT, item.shortComment)
                         if (item.review != null) put(COLUMN_REVIEW, item.review)
                         if (item.rating != null) put(COLUMN_RATING, item.rating)
@@ -1410,7 +1416,7 @@ class BookDatabaseHelper(val context: Context) :
                         put(COLUMN_AUTHOR, item.artist)
                         put(COLUMN_CATEGORY, item.category)
                         put(COLUMN_STATUS, item.status)
-                        put(COLUMN_MEDIA_TYPE, "podcast")
+                        put(COLUMN_MEDIA_TYPE, "music")
                         put(COLUMN_SHORT_COMMENT, item.shortComment)
                         put(COLUMN_REVIEW, item.review)
                         put(COLUMN_RATING, item.rating ?: 5.0)
@@ -3143,7 +3149,7 @@ class BookDatabaseHelper(val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
-        const val DATABASE_VERSION = 5
+        const val DATABASE_VERSION = 6
 
         private const val TABLE_BOOKS = "books"
         private const val TABLE_NOTES = "notes"

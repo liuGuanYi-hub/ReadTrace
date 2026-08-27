@@ -132,6 +132,16 @@
                             android:paddingEnd="12dp"
                             android:text="游戏 🎮"
                             android:textSize="12.5sp" />
+
+                        <TextView
+                            android:id="@+id/mediaChipMusic"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_height="34dp"
+                            android:layout_marginStart="8dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="音乐 💿"
+                            android:textSize="12.5sp" />
                     </LinearLayout>
                 </HorizontalScrollView>
             </LinearLayout>

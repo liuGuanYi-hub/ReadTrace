@@ -19,7 +19,7 @@ object AnimeCoverScraperHelper {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * 单部作品（书籍/番剧/影视/游戏/播客）联网搜索并获取封面海报
+     * 单部作品（书籍/番剧/影视/游戏/音乐）联网搜索并获取封面海报
      */
     fun fetchAndSaveAnimeCover(
         context: Context,
@@ -88,7 +88,7 @@ object AnimeCoverScraperHelper {
                 MediaType.ANIME -> 2
                 MediaType.GAME -> 4
                 MediaType.MOVIE -> 6
-                MediaType.PODCAST -> 1
+                MediaType.MUSIC -> 3
             }
 
             // 1. 优先尝试 Bangumi 开放 API (覆盖超 30 万书籍与海量 ACG/影视作品)

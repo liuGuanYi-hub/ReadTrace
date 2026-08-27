@@ -56,7 +56,7 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var mediaTypeAnime: TextView
     private lateinit var mediaTypeMovie: TextView
     private lateinit var mediaTypeGame: TextView
-    private lateinit var mediaTypePodcast: TextView
+    private lateinit var mediaTypeMusic: TextView
 
     private lateinit var coverPickerContainer: View
     private lateinit var coverPreviewImage: ImageView
@@ -139,7 +139,7 @@ class AddBookActivity : AppCompatActivity() {
         mediaTypeAnime = findViewById(R.id.mediaTypeAnime)
         mediaTypeMovie = findViewById(R.id.mediaTypeMovie)
         mediaTypeGame = findViewById(R.id.mediaTypeGame)
-        mediaTypePodcast = findViewById(R.id.mediaTypePodcast)
+        mediaTypeMusic = findViewById(R.id.mediaTypeMusic)
 
         coverPickerContainer = findViewById(R.id.coverPickerContainer)
         coverPreviewImage = findViewById(R.id.coverPreviewImage)
@@ -174,7 +174,7 @@ class AddBookActivity : AppCompatActivity() {
             mediaTypeAnime to MediaType.ANIME,
             mediaTypeMovie to MediaType.MOVIE,
             mediaTypeGame to MediaType.GAME,
-            mediaTypePodcast to MediaType.PODCAST,
+            mediaTypeMusic to MediaType.MUSIC,
         )
         chips.forEach { (chip, type) ->
             val isSelected = selectedMediaType == type
@@ -195,14 +195,14 @@ class AddBookActivity : AppCompatActivity() {
             MediaType.ANIME -> "番剧名称 *"
             MediaType.MOVIE -> "影视名称 *"
             MediaType.GAME -> "游戏名称 *"
-            MediaType.PODCAST -> "播客名称 *"
+            MediaType.MUSIC -> "曲目 / 专辑名称 *"
         }
         titleInput.hint = when (selectedMediaType) {
             MediaType.BOOK -> "例如：百年孤独、小王子"
             MediaType.ANIME -> "例如：新世纪福音战士、葬送的芙莉莲"
             MediaType.MOVIE -> "例如：星际穿越、千与千寻"
             MediaType.GAME -> "例如：艾尔登法环、黑神话：悟空"
-            MediaType.PODCAST -> "例如：忽左忽右、声东击西"
+            MediaType.MUSIC -> "例如：真夜中、夜鹿"
         }
         configureFormMode()
     }
@@ -214,14 +214,14 @@ class AddBookActivity : AppCompatActivity() {
                 MediaType.ANIME -> "编辑番剧"
                 MediaType.MOVIE -> "编辑影视"
                 MediaType.GAME -> "编辑游戏"
-                MediaType.PODCAST -> "编辑播客"
+                MediaType.MUSIC -> "编辑音乐"
             }
             formSubtitle.text = when (selectedMediaType) {
                 MediaType.BOOK -> "让这段阅读记录更接近现在的感受。"
                 MediaType.ANIME -> "让这段追番记录更接近现在的感受。"
                 MediaType.MOVIE -> "让这段观影记录更接近现在的感受。"
                 MediaType.GAME -> "让这段游玩记录更接近现在的感受。"
-                MediaType.PODCAST -> "让这段收听记录更接近现在的感受。"
+                MediaType.MUSIC -> "让这段聆听记录更接近现在的感受。"
             }
         } else {
             formTitle.text = when (selectedMediaType) {
@@ -229,14 +229,14 @@ class AddBookActivity : AppCompatActivity() {
                 MediaType.ANIME -> "新增番剧"
                 MediaType.MOVIE -> "新增影视"
                 MediaType.GAME -> "新增游戏"
-                MediaType.PODCAST -> "新增播客"
+                MediaType.MUSIC -> "新增音乐"
             }
             formSubtitle.text = when (selectedMediaType) {
                 MediaType.BOOK -> "录入一本新书，开启一段心智旅程。"
                 MediaType.ANIME -> "录入一部番剧，记录精彩名场面与声优。"
                 MediaType.MOVIE -> "录入一部光影作品，定格感动瞬间。"
                 MediaType.GAME -> "录入一款游戏，开启通关冒险之旅。"
-                MediaType.PODCAST -> "录入一档播客，记录声音火花与灵感。"
+                MediaType.MUSIC -> "录入一首歌或一张专辑，记录旋律火花与灵感。"
             }
         }
     }
@@ -308,7 +308,7 @@ class AddBookActivity : AppCompatActivity() {
         mediaTypeAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         mediaTypeMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
         mediaTypeGame.setOnClickListener { selectMediaType(MediaType.GAME) }
-        mediaTypePodcast.setOnClickListener { selectMediaType(MediaType.PODCAST) }
+        mediaTypeMusic.setOnClickListener { selectMediaType(MediaType.MUSIC) }
 
         coverPickerContainer.setOnClickListener {
             pickImageLauncher.launch("image/*")

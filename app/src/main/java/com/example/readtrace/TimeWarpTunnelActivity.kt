@@ -145,7 +145,7 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
             FilterTab("🌸 追番印记", MediaType.ANIME),
             FilterTab("🎬 胶片光影", MediaType.MOVIE),
             FilterTab("🎮 游戏通关", MediaType.GAME),
-            FilterTab("🎙️ 声音宇宙", MediaType.PODCAST),
+            FilterTab("💿 音乐唱盘", MediaType.MUSIC),
         )
 
         tabs.forEach { tab ->

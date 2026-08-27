@@ -27,6 +27,7 @@ import com.example.readtrace.R
 import com.example.readtrace.ReadingTimerActivity
 import com.example.readtrace.ResonancePosterActivity
 import com.example.readtrace.TrashActivity
+import com.example.readtrace.VinylCassettePlayerActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
@@ -124,6 +125,14 @@ class HubFragment : Fragment() {
     private lateinit var btnEnterGameHub: View
     private lateinit var btnQuickGameCartridge: View
     private lateinit var btnQuickGamePassport: View
+
+    private lateinit var hubCardMusic: View
+    private lateinit var hubMusicCountBadge: TextView
+    private lateinit var hubMusicSubtitle: TextView
+    private lateinit var hubMusicCoversPreview: LinearLayout
+    private lateinit var btnEnterMusicHub: View
+    private lateinit var btnQuickMusicVinyl: View
+    private lateinit var btnQuickMusicResonance: View
 
     // 时光深处的回响
     private lateinit var memoryPanel: View
@@ -256,6 +265,14 @@ class HubFragment : Fragment() {
         btnQuickGameCartridge = view.findViewById(R.id.btnQuickGameCartridge)
         btnQuickGamePassport = view.findViewById(R.id.btnQuickGamePassport)
 
+        hubCardMusic = view.findViewById(R.id.hubCardMusic)
+        hubMusicCountBadge = view.findViewById(R.id.hubMusicCountBadge)
+        hubMusicSubtitle = view.findViewById(R.id.hubMusicSubtitle)
+        hubMusicCoversPreview = view.findViewById(R.id.hubMusicCoversPreview)
+        btnEnterMusicHub = view.findViewById(R.id.btnEnterMusicHub)
+        btnQuickMusicVinyl = view.findViewById(R.id.btnQuickMusicVinyl)
+        btnQuickMusicResonance = view.findViewById(R.id.btnQuickMusicResonance)
+
         // 🪐 跨媒介引力星系
         view.findViewById<com.example.readtrace.widget.EditorialBadgeView>(R.id.badgeCosmicGravity)?.setBadgeContent("COSMOS", "#4DEEEA")
         val openGalaxy = {
@@ -295,7 +312,7 @@ class HubFragment : Fragment() {
                     MediaType.ANIME -> startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
                     MediaType.MOVIE -> startActivity(MovieTicketPosterActivity.createIntent(requireContext(), book.id))
                     MediaType.GAME -> startActivity(GameCartridgePosterActivity.createIntent(requireContext(), book.id))
-                    MediaType.PODCAST -> startActivity(Intent(requireContext(), ResonancePosterActivity::class.java))
+                    MediaType.MUSIC -> startActivity(Intent(requireContext(), ResonancePosterActivity::class.java))
                 }
             } else {
                 Toast.makeText(requireContext(), "请先添加或导入藏品", Toast.LENGTH_SHORT).show()
@@ -395,6 +412,21 @@ class HubFragment : Fragment() {
         btnQuickGamePassport.setOnClickListener {
             startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.GAME))
         }
+
+        val openMusicHub = { startActivity(MediaHubActivity.createIntent(requireContext(), MediaType.MUSIC)) }
+        hubCardMusic.setOnClickListener { openMusicHub() }
+        btnEnterMusicHub.setOnClickListener { openMusicHub() }
+        btnQuickMusicVinyl.setOnClickListener {
+            val firstMusic = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.MUSIC }
+            if (firstMusic != null) {
+                startActivity(VinylCassettePlayerActivity.createIntent(requireContext(), firstMusic.id))
+            } else {
+                Toast.makeText(requireContext(), "音乐馆暂无曲目，请先添加或导入", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnQuickMusicResonance.setOnClickListener {
+            startActivity(Intent(requireContext(), ResonancePosterActivity::class.java))
+        }
     }
 
     private fun updateThemeToggleIcon() {
@@ -464,6 +496,14 @@ class HubFragment : Fragment() {
             coversContainer = hubGameCoversPreview,
             unit = "款神作",
         )
+        renderHubCard(
+            mediaType = MediaType.MUSIC,
+            allWorks = allBooks.filter { it.mediaType == MediaType.MUSIC },
+            badgeView = hubMusicCountBadge,
+            subtitleView = hubMusicSubtitle,
+            coversContainer = hubMusicCoversPreview,
+            unit = "首曲目",
+        )
 
         renderMemoryCard()
     }
@@ -485,7 +525,7 @@ class HubFragment : Fragment() {
                 MediaType.ANIME -> "🌸 追番入境签证"
                 MediaType.MOVIE -> "🎟️ 透光电影票根"
                 MediaType.GAME -> "🕹️ 全息白金卡带"
-                MediaType.PODCAST -> "🎴 共鸣双生微卡"
+                MediaType.MUSIC -> "🎴 共鸣双生微卡"
             }
 
             val rating = featuredBook.rating
