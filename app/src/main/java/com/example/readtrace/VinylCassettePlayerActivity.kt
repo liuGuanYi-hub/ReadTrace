@@ -65,6 +65,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var btnNextTrack: ImageButton
     private lateinit var btnSpeedToggle: TextView
     private lateinit var btnAmbientSound: TextView
+    private lateinit var btnOpenNetease: TextView
 
     // 传感器
     private var sensorManager: SensorManager? = null
@@ -130,6 +131,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnNextTrack = findViewById(R.id.btnNextTrack)
         btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
         btnAmbientSound = findViewById(R.id.btnAmbientSound)
+        btnOpenNetease = findViewById(R.id.btnOpenNetease)
 
         FloatingBack.install(this)
     }
@@ -244,6 +246,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "伴随声场：$ambient", Toast.LENGTH_SHORT).show()
         }
 
+        // 外部真实播放：拉起网易云音乐搜索当前曲目（无版权音频内置，跳转外部播放）
+        btnOpenNetease.setOnClickListener {
+            triggerHapticClick()
+            openInNeteaseMusic()
+        }
+
         // 进度拖动
         playerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -255,6 +263,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+    }
+
+    private fun openInNeteaseMusic() {
+        if (playlist.isEmpty()) {
+            Toast.makeText(this, "暂无曲目可跳转", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val track = playlist[currentIndex]
+        // 去除括号注音（如 晴る (Haru) → 晴る）后拼接歌手作为搜索词，命中率更高
+        val cleanTitle = track.title.replace(Regex("[（(].*?[)）]"), "").trim()
+        val query = if (track.author.isNullOrBlank()) cleanTitle else "$cleanTitle ${track.author}"
+        val searchUrl = "https://music.163.com/#/search/s/?s=${java.net.URLEncoder.encode(query, "UTF-8")}&type=1"
+        runCatching {
+            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(searchUrl)))
+        }.onFailure {
+            Toast.makeText(this, "无法打开网易云音乐，请手动搜索《$cleanTitle》", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun togglePlayState() {
