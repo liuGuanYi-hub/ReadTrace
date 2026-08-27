@@ -42,11 +42,23 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
     private val metaPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     companion object {
+        /** 标题字号相对画布宽度的比例 */
+        private const val TITLE_TEXT_RATIO = 0.030f
+
+        /** meta / 短评字号相对画布宽度的比例 */
+        private const val BODY_TEXT_RATIO = 0.022f
+
         /** 无短评时卡片的基础高度 */
-        private const val BASE_CARD_HEIGHT = 112f
+        private const val BASE_CARD_HEIGHT = 100f
+
+        /** meta 区顶部相对卡片顶部的偏移 */
+        private const val META_TOP_OFFSET = 50f
 
         /** 短评区顶部相对卡片顶部的偏移 */
-        private const val QUOTE_TOP_OFFSET = 88f
+        private const val QUOTE_TOP_OFFSET = 80f
+
+        /** 卡片底部内边距（短评下沿到卡片底） */
+        private const val QUOTE_BOTTOM_PADDING = 12f
 
         /** 短评最多显示的行数，超出截断加省略号 */
         private const val QUOTE_MAX_LINES = 3
@@ -60,8 +72,9 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         /** 标题最多显示的行数，超出截断加省略号 */
         private const val TITLE_MAX_LINES = 2
 
-        /** 标题 StaticLayout 的行间距附加值 */
-        private const val TITLE_LINE_SPACING = 5f
+        /** StaticLayout 行间距附加值（标题/meta/短评） */
+        private const val TITLE_LINE_SPACING = 3f
+        private const val BODY_LINE_SPACING = 2f
     }
 
     fun setAnimeData(list: List<Book>) {
@@ -120,13 +133,13 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         if (comment.isNullOrEmpty()) return null
         val quote = "“$comment”"
 
-        quotePaint.textSize = canvasWidth * 0.024f
+        quotePaint.textSize = canvasWidth * BODY_TEXT_RATIO
         val maxWidth = quoteMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
 
         fun build(text: String): StaticLayout =
             StaticLayout.Builder.obtain(text, 0, text.length, quotePaint, maxWidth)
                 .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-                .setLineSpacing(4f, 1f)
+                .setLineSpacing(BODY_LINE_SPACING, 1f)
                 .build()
 
         val layout = build(quote)
@@ -143,7 +156,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
      * 超过 [TITLE_MAX_LINES] 行时截断并以省略号结尾。
      */
     private fun titleLayoutFor(book: Book, canvasWidth: Float): StaticLayout {
-        titlePaint.textSize = canvasWidth * 0.032f
+        titlePaint.textSize = canvasWidth * TITLE_TEXT_RATIO
         titlePaint.isFakeBoldText = true
         val maxWidth = titleMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
 
@@ -167,12 +180,12 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
      * 单行截断而非换行，避免撑高卡片。
      */
     private fun metaLayoutFor(book: Book, canvasWidth: Float): StaticLayout {
-        metaPaint.textSize = canvasWidth * 0.024f
+        metaPaint.textSize = canvasWidth * BODY_TEXT_RATIO
         val text = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
         val maxWidth = metaMaxWidth(canvasWidth).toInt().coerceAtLeast(1)
         return StaticLayout.Builder.obtain(text, 0, text.length, metaPaint, maxWidth)
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-            .setLineSpacing(4f, 1f)
+            .setLineSpacing(BODY_LINE_SPACING, 1f)
             .setEllipsize(TextUtils.TruncateAt.END)
             .setMaxLines(1)
             .build()
@@ -203,11 +216,10 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         val singleTitleHeight = titlePaint.fontSpacing + TITLE_LINE_SPACING
         val extraTitleHeight = max(0f, titleLayout.height - singleTitleHeight)
 
-        // meta 原 drawText 基线为 64f；StaticLayout 顶部 = 基线 + ascent（ascent 为负）
-        val metaTop = 64f + metaPaint.ascent() + extraTitleHeight
+        val metaTop = META_TOP_OFFSET + extraTitleHeight
         val quoteTop = QUOTE_TOP_OFFSET + extraTitleHeight
         val height = if (quoteLayout != null) {
-            quoteTop + quoteLayout.height + 16f
+            quoteTop + quoteLayout.height + QUOTE_BOTTOM_PADDING
         } else {
             BASE_CARD_HEIGHT + extraTitleHeight
         }
