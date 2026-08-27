@@ -6,9 +6,12 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.ResonancePosterView
@@ -28,7 +31,17 @@ class ResonancePosterActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_resonance_poster)
+
+        // 系统栏避让统一交给根布局按 WindowInsets 处理，顶栏只保留对称的视觉留白
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.resonancePosterRoot)) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         databaseHelper = BookDatabaseHelper(this)
 
