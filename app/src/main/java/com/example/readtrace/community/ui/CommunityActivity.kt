@@ -89,7 +89,7 @@ class CommunityActivity : AppCompatActivity() {
                 setPadding(32, 14, 32, 14)
                 val isSelected = category == selectedCategory
                 setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_pill)
-                setTextColor(getColor(if (isSelected) R.color.readtrace_accent else R.color.readtrace_ink))
+                setTextColor(getColor(if (isSelected) R.color.white else R.color.readtrace_ink))
                 setOnClickListener {
                     selectedCategory = category
                     renderCategoryTabs()
