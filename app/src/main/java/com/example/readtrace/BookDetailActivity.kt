@@ -201,7 +201,6 @@ class BookDetailActivity : AppCompatActivity() {
         renderBook(book)
         renderCollection(book)
         renderNotes(databaseHelper.getNotes(bookId))
-        renderReadingSessions(databaseHelper.getReadingSessions(bookId))
         renderCharacters(databaseHelper.getCharacters(bookId))
         renderOutlines(databaseHelper.getOutlines(bookId))
         renderMindprint(databaseHelper.getMindprint(bookId))
@@ -233,56 +232,6 @@ class BookDetailActivity : AppCompatActivity() {
         } ?: getString(R.string.not_recorded)
     }
 
-    private fun renderReadingSessions(sessions: List<com.example.readtrace.model.ReadingSession>) {
-        val container = findViewById<LinearLayout>(R.id.detailSessionsContainer)
-        val emptyView = findViewById<TextView>(R.id.detailSessionsEmpty)
-        val totalTimeView = findViewById<TextView>(R.id.detailTotalReadingTime)
-        container.removeAllViews()
-
-        val totalMinutes = databaseHelper.getTotalReadingMinutes(bookId)
-        val hours = totalMinutes / 60
-        val remainingMins = totalMinutes % 60
-        val timeFormatted = if (hours > 0) "${hours} 小时 ${remainingMins} 分钟" else "${remainingMins} 分钟"
-        totalTimeView.text = "⌛ 已累计阅读 $timeFormatted · 打卡 ${sessions.size} 次"
-
-        if (sessions.isEmpty()) {
-            emptyView.visibility = View.VISIBLE
-            container.visibility = View.GONE
-            return
-        }
-
-        emptyView.visibility = View.GONE
-        container.visibility = View.VISIBLE
-
-        sessions.forEach { session ->
-            val item = layoutInflater.inflate(R.layout.item_reading_session, container, false)
-            item.findViewById<TextView>(R.id.sessionDurationBadge).text = "⏱️ 专注 ${session.durationMinutes} 分钟"
-            item.findViewById<TextView>(R.id.sessionPagesText).text = session.pagesRead ?: "阅读打卡"
-            item.findViewById<TextView>(R.id.sessionTimeText).text = formatTimestamp(session.createdAt)
-
-            val thoughtView = item.findViewById<TextView>(R.id.sessionThoughtText)
-            if (session.thought.isNullOrBlank()) {
-                thoughtView.visibility = View.GONE
-            } else {
-                thoughtView.visibility = View.VISIBLE
-                thoughtView.text = session.thought
-            }
-
-            item.findViewById<View>(R.id.sessionDeleteBtn).setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle("删除打卡记录")
-                    .setMessage("确定要删除本次 ${session.durationMinutes} 分钟的阅读打卡吗？")
-                    .setNegativeButton(R.string.action_cancel, null)
-                    .setPositiveButton("删除") { _, _ ->
-                        databaseHelper.deleteReadingSession(session.id)
-                        renderReadingSessions(databaseHelper.getReadingSessions(bookId))
-                    }
-                    .show()
-            }
-
-            container.addView(item)
-        }
-    }
 
     private fun renderCharacters(characters: List<com.example.readtrace.model.BookCharacter>) {
         val container = findViewById<LinearLayout>(R.id.detailCharsContainer)
@@ -1177,7 +1126,6 @@ class BookDetailActivity : AppCompatActivity() {
         val shortCommentLabel = findViewById<TextView>(R.id.detailShortCommentLabel)
         val reviewLabel = findViewById<TextView>(R.id.detailReviewLabel)
         val sectionNotesTitle = findViewById<TextView>(R.id.detailSectionNotesTitle)
-        val sectionTimerTitle = findViewById<TextView>(R.id.detailSectionTimerTitle)
         val collectionTitle = findViewById<TextView>(R.id.detailCollectionTitle)
         val sectionCharTitle = findViewById<TextView>(R.id.detailSectionCharTitle)
         val navTabNotes = findViewById<TextView>(R.id.navTabNotes)
@@ -1196,7 +1144,6 @@ class BookDetailActivity : AppCompatActivity() {
                 shortCommentLabel.text = "一句话感悟"
                 reviewLabel.text = "长篇书评"
                 sectionNotesTitle.text = "摘录与笔记"
-                sectionTimerTitle.text = "⏱️ 阅读时光与打卡"
                 collectionTitle.text = "💰 实体馆藏与藏书印记"
                 sectionCharTitle.text = "👥 人物角色谱"
                 navTabNotes.text = "💬 痕迹与摘录"
@@ -1220,7 +1167,6 @@ class BookDetailActivity : AppCompatActivity() {
                 shortCommentLabel.text = "经典台词 / 金句"
                 reviewLabel.text = "完结长评"
                 sectionNotesTitle.text = "高光台词与名场面"
-                sectionTimerTitle.text = "⏱️ 追番沉浸时光与打卡"
                 collectionTitle.text = "💰 周边特典与实体盘片"
                 sectionCharTitle.text = "🌸 登场角色与声优谱"
                 navTabNotes.text = "💬 经典台词"
@@ -1242,7 +1188,6 @@ class BookDetailActivity : AppCompatActivity() {
                 shortCommentLabel.text = "经典台词"
                 reviewLabel.text = "深度影评"
                 sectionNotesTitle.text = "光影名句与长评"
-                sectionTimerTitle.text = "⏱️ 观影沉浸时光与打卡"
                 collectionTitle.text = "💰 实体票根与蓝光收藏"
                 sectionCharTitle.text = "🎬 演职人员与角色谱"
                 navTabNotes.text = "💬 光影名句"
@@ -1266,7 +1211,6 @@ class BookDetailActivity : AppCompatActivity() {
                 shortCommentLabel.text = "通关寄语 / 金句"
                 reviewLabel.text = "深度评测"
                 sectionNotesTitle.text = "高光战报与心得"
-                sectionTimerTitle.text = "⏱️ 游玩专注时光与打卡"
                 collectionTitle.text = "💰 实体卡带与典藏周边"
                 sectionCharTitle.text = "🎮 主要角色与NPC谱"
                 navTabNotes.text = "💬 战报心得"
@@ -1290,10 +1234,10 @@ class BookDetailActivity : AppCompatActivity() {
                 shortCommentLabel.text = "灵感歌词 / 金句"
                 reviewLabel.text = "深度听感"
                 sectionNotesTitle.text = "灵感火花与速记"
-                sectionTimerTitle.text = "⏱️ 聆听专注时光与打卡"
                 collectionTitle.text = "💰 实体唱片与录音带"
                 sectionCharTitle.text = "💿 创作者与声乐谱"
                 navTabNotes.text = "💬 灵感速记"
+                findViewById<View>(R.id.detailOutlineSection).visibility = View.GONE
             }
         }
 

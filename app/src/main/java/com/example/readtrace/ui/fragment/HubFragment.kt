@@ -68,12 +68,6 @@ class HubFragment : Fragment() {
 
     private lateinit var gyroscopeHelper: com.example.readtrace.util.GyroscopeParallaxHelper
 
-    // 📊 非对称双副卡
-    private lateinit var bentoCardReading: View
-    private lateinit var bentoReadingTitle: TextView
-    private lateinit var bentoReadingProgressBar: ProgressBar
-    private lateinit var bentoReadingProgressText: TextView
-    private var currentReadingBook: Book? = null
 
 
     // 📜 羊皮纸便签横幅
@@ -207,10 +201,6 @@ class HubFragment : Fragment() {
         heroBtnDetail = view.findViewById(R.id.heroBtnDetail)
 
         // 📊 Bento 副卡
-        bentoCardReading = view.findViewById(R.id.bentoCardReading)
-        bentoReadingTitle = view.findViewById(R.id.bentoReadingTitle)
-        bentoReadingProgressBar = view.findViewById(R.id.bentoReadingProgressBar)
-        bentoReadingProgressText = view.findViewById(R.id.bentoReadingProgressText)
 
 
         // 📜 羊皮纸便签
@@ -318,14 +308,6 @@ class HubFragment : Fragment() {
         heroCuratorialCard.setOnClickListener { openHeroDetail() }
 
         // 📊 Bento 副卡交互
-        bentoCardReading.setOnClickListener {
-            val book = currentReadingBook ?: currentHeroBook
-            if (book != null) {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
-            } else {
-                startActivity(Intent(requireContext(), AddBookActivity::class.java))
-            }
-        }
 
 
         // 📜 羊皮纸便签轮播交互
@@ -428,7 +410,6 @@ class HubFragment : Fragment() {
         }
 
         renderHeroCuratorialCard(allBooks)
-        renderBentoSubCards()
         renderParchmentQuote()
 
         renderHubCard(
@@ -519,24 +500,6 @@ class HubFragment : Fragment() {
         }
     }
 
-    private fun renderBentoSubCards() {
-        val latestReading = databaseHelper.getLatestReadingBook()
-        currentReadingBook = latestReading
-
-        if (latestReading != null) {
-            bentoReadingTitle.text = "《${latestReading.title}》"
-            val page = databaseHelper.getReadingPage(latestReading.id)
-            val displayPage = page + 1
-            val progressPercent = (page * 3).coerceIn(10, 95)
-            bentoReadingProgressBar.progress = progressPercent
-            bentoReadingProgressText.text = "第 $displayPage 页 · $progressPercent%"
-        } else {
-            bentoReadingTitle.text = "暂无在读作品"
-            bentoReadingProgressBar.progress = 0
-            bentoReadingProgressText.text = "轻点开启阅读 ➔"
-        }
-
-    }
 
     private fun renderParchmentQuote(excludeQuote: String? = null) {
         val (book, quote) = databaseHelper.getRandomOrNextQuote(excludeQuote)

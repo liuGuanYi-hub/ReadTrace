@@ -46,16 +46,6 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                 )
 
                 // 计算已读页码与进度
-                val pageIndex = databaseHelper.getReadingPage(book.id)
-                val displayPage = pageIndex + 1
-                val totalReadingMinutes = databaseHelper.getTotalReadingMinutes(book.id)
-                val progressPercent = (pageIndex * 3).coerceIn(10, 95) // 动态展示阅读刻度
-
-                views.setTextViewText(
-                    R.id.widgetReadingProgressText,
-                    if (totalReadingMinutes > 0) "第 $displayPage 页 · 专注 ${totalReadingMinutes}m" else "第 $displayPage 页",
-                )
-                views.setProgressBar(R.id.widgetReadingProgressBar, 100, progressPercent, false)
 
                 // 封面加载 (支持本地图片与占位符)
                 var coverLoaded = false
@@ -111,8 +101,6 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widgetReadingBookTitle, "书架虚席以待")
                 views.setTextViewText(R.id.widgetReadingBookAuthor, "点击开启第一段阅读痕迹")
                 views.setTextViewText(R.id.widgetReadingStatusChip, "✨ 开启阅读")
-                views.setTextViewText(R.id.widgetReadingProgressText, "0%")
-                views.setProgressBar(R.id.widgetReadingProgressBar, 100, 0, false)
                 views.setViewVisibility(R.id.widgetReadingCover, View.GONE)
                 views.setViewVisibility(R.id.widgetReadingCoverPlaceholder, View.VISIBLE)
                 views.setTextViewText(R.id.widgetReadingCoverPlaceholder, "📖\n阅痕")
