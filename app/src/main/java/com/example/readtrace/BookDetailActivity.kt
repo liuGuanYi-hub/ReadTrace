@@ -1356,7 +1356,7 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         findViewById<TextView>(R.id.detailCoverUrl).text =
-            if (CoverImageHelper.isAssetPath(book.coverUrl)) "APK 内置封面（离线可用）" else valueOrFallback(book.coverUrl)
+            if (CoverImageHelper.isLanCoverKey(book.coverUrl)) "内网封面资源" else valueOrFallback(book.coverUrl)
         findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
         findViewById<TextView>(R.id.detailRating).text = book.rating?.let {
             getString(R.string.rating_format, RATING_FORMAT.format(it))

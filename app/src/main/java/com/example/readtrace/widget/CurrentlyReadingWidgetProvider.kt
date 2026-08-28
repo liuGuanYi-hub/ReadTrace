@@ -61,10 +61,14 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                 // 封面加载 (支持本地图片与占位符)
                 var coverLoaded = false
                 val coverUrl = book.coverUrl
-                if (!coverUrl.isNullOrBlank() && (coverUrl.startsWith("/") || coverUrl.startsWith("file:"))) {
-                    // file:///android_asset/ 为 APK 内置资产封面，直接从 assets 解码
-                    val bitmap = if (coverUrl.startsWith("file:", ignoreCase = true)) {
-                        CoverImageHelper.decodeSampledBitmapFromAsset(context, coverUrl, 140, 200)
+                if (!coverUrl.isNullOrBlank() &&
+                    (coverUrl.startsWith("/") || coverUrl.startsWith("file:") || CoverImageHelper.isLanCoverKey(coverUrl))
+                ) {
+                    // 内网封面键（covers/…）在小组件主线程不做网络，仅读取已缓存到本机的封面文件
+                    val bitmap = if (CoverImageHelper.isLanCoverKey(coverUrl)) {
+                        CoverImageHelper.peekCachedCoverFile(context, coverUrl)?.let {
+                            CoverImageHelper.decodeSampledBitmapFromFile(it.absolutePath, 140, 200)
+                        }
                     } else {
                         CoverImageHelper.decodeSampledBitmapFromFile(coverUrl, 140, 200)
                     }

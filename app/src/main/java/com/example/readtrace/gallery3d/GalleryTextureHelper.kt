@@ -17,11 +17,10 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.CoverImageHelper
 import java.io.File
 
 object GalleryTextureHelper {
-
-    private const val ASSET_PREFIX = "file:///android_asset/"
 
     /**
      * 为指定作品生成或加载 OpenGL 2D 纹理，返回 OpenGL textureId
@@ -36,14 +35,14 @@ object GalleryTextureHelper {
     private fun loadCoverBitmap(context: Context, book: Book): Bitmap? {
         val path = book.coverUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return null
 
-        // 内置资产封面（file:///android_asset/covers/…）直接从 APK assets 解码
-        if (path.startsWith(ASSET_PREFIX, ignoreCase = true)) {
-            val assetPath = path.substring(ASSET_PREFIX.length)
+        // 内网封面键（covers/…）：GL 线程不做网络请求，仅使用已缓存到本机的封面文件，未缓存则回退艺术封面
+        if (CoverImageHelper.isLanCoverKey(path)) {
+            val cached = CoverImageHelper.peekCachedCoverFile(context, path) ?: return null
             return runCatching {
                 val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, boundsOptions) }
+                BitmapFactory.decodeFile(cached.absolutePath, boundsOptions)
                 if (boundsOptions.outWidth <= 0 || boundsOptions.outHeight <= 0) return null
-                BitmapFactory.decodeStream(context.assets.open(assetPath), null, sampledDecodeOptions(boundsOptions))
+                BitmapFactory.decodeFile(cached.absolutePath, sampledDecodeOptions(boundsOptions))
             }.getOrNull()
         }
 

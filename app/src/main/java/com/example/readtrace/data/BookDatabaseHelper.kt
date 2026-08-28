@@ -19,6 +19,7 @@ import com.example.readtrace.model.NoteType
 import com.example.readtrace.model.ReadingSession
 import com.example.readtrace.util.CoverImageHelper
 import org.json.JSONArray
+import java.io.File
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -100,8 +101,8 @@ class BookDatabaseHelper(val context: Context) :
             }
         }
         if (oldVersion < 7) {
-            // v7：无表结构变更；预置封面由外网链接改写为 APK 内置资产，
-            // 实际改写在 runPresetSeedsOnce 的 migrateRemoteCoversToLocalAssets 中完成。
+            // v7：无表结构变更；预置封面由外网链接/打包资产统一改写为内网封面键，
+            // 实际改写在 runPresetSeedsOnce 的 migrateCoversToLanKeys 中完成。
         }
     }
 
@@ -255,7 +256,7 @@ class BookDatabaseHelper(val context: Context) :
     private fun patchCorruptedPresetCovers(db: SQLiteDatabase) {
         runCatching {
             val cvZootopia = ContentValues().apply {
-                put(COLUMN_COVER_URL, "file:///android_asset/covers/douban_p2614500649.jpg")
+                put(COLUMN_COVER_URL, "covers/douban_p2614500649.jpg")
             }
             db.update(
                 TABLE_BOOKS,
@@ -265,7 +266,7 @@ class BookDatabaseHelper(val context: Context) :
             )
 
             val cvKungfu = ContentValues().apply {
-                put(COLUMN_COVER_URL, "file:///android_asset/covers/douban_p2219011938.jpg")
+                put(COLUMN_COVER_URL, "covers/douban_p2219011938.jpg")
             }
             db.update(
                 TABLE_BOOKS,
@@ -299,7 +300,7 @@ class BookDatabaseHelper(val context: Context) :
                 seedUserGameList(db)
                 seedUserMusicList(db)
                 seedCuratedBookCovers(db)
-                migrateRemoteCoversToLocalAssets(db)
+                migrateCoversToLanKeys(db)
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
             seedChecked = true
@@ -307,38 +308,50 @@ class BookDatabaseHelper(val context: Context) :
     }
 
     /**
-     * 一次性迁移：将历史版本遗留的外网封面链接（豆瓣/Bangumi/Steam/网易云/Unsplash 等）
-     * 改写为 APK 内置资产路径 file:///android_asset/covers/…，实现完全离线可加载。
-     * 命名规则与 assets/covers 打包文件一一对应，仅当对应资产确实存在时才改写，幂等可重入。
+     * 一次性迁移：将历史版本遗留的封面路径统一改写为内网封面键 covers/…：
+     * - 外网直链（豆瓣/Bangumi/Steam/网易云/Unsplash）→ covers/<域名标签>_<原名>
+     * - 早期打包资产路径（file:///android_asset/covers/…）→ covers/<原名>
+     * 同时把旧链接已下载的本机缓存按新键改名保留，避免重复下载与孤儿缓存。
+     * 命名规则与 cover_server/covers 打包文件一一对应，幂等可重入。
      */
-    private fun migrateRemoteCoversToLocalAssets(db: SQLiteDatabase) {
+    private fun migrateCoversToLanKeys(db: SQLiteDatabase) {
         runCatching {
-            val rewrites = mutableListOf<Pair<Long, String>>()
+            val rewrites = mutableListOf<Triple<Long, String, String>>() // id, 旧值, 新键
             db.query(
                 TABLE_BOOKS,
                 arrayOf(COLUMN_ID, COLUMN_COVER_URL),
-                "$COLUMN_COVER_URL LIKE 'http%'",
+                "$COLUMN_COVER_URL LIKE 'http%' OR $COLUMN_COVER_URL LIKE 'file:///%'",
                 null, null, null, null,
             ).use { cursor ->
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(0)
                     val cover = cursor.getString(1)?.trim() ?: continue
-                    val assetName = assetNameForRemoteUrl(cover) ?: continue
-                    val assetExists = runCatching {
-                        context.assets.open("covers/$assetName").use { true }
-                    }.getOrDefault(false)
-                    if (assetExists) {
-                        rewrites += id to "${CoverImageHelper.ASSET_COVER_PREFIX}covers/$assetName"
-                    }
+                    val newKey = when {
+                        cover.startsWith("file:///android_asset/covers/", ignoreCase = true) ->
+                            CoverImageHelper.LAN_COVER_KEY_PREFIX + cover.substring("file:///android_asset/covers/".length)
+                        cover.startsWith("http", ignoreCase = true) ->
+                            assetNameForRemoteUrl(cover)?.let { CoverImageHelper.LAN_COVER_KEY_PREFIX + it }
+                        else -> null
+                    } ?: continue
+                    rewrites += Triple(id, cover, newKey)
                 }
             }
             if (rewrites.isEmpty()) return
+            val cacheDir = File(context.filesDir, CoverImageHelper.LAN_COVER_KEY_PREFIX.trim('/')).apply { if (!exists()) mkdirs() }
             db.beginTransaction()
             try {
-                rewrites.forEach { (id, assetPath) ->
+                rewrites.forEach { (id, oldCover, newKey) ->
+                    // 旧链接已缓存过的封面文件按新键改名保留，离线仍可直接显示
+                    runCatching {
+                        val oldCache = File(cacheDir, "net_${CoverImageHelper.md5KeyOf(oldCover)}.jpg")
+                        val newCache = File(cacheDir, "net_${CoverImageHelper.md5KeyOf(newKey)}.jpg")
+                        if (oldCache.exists() && oldCache.length() > 0 && !newCache.exists()) {
+                            oldCache.renameTo(newCache)
+                        }
+                    }
                     db.execSQL(
                         "UPDATE $TABLE_BOOKS SET $COLUMN_COVER_URL = ? WHERE $COLUMN_ID = ?",
-                        arrayOf(assetPath, id),
+                        arrayOf(newKey, id),
                     )
                 }
                 db.setTransactionSuccessful()
@@ -348,7 +361,7 @@ class BookDatabaseHelper(val context: Context) :
         }
     }
 
-    /** 外网封面 → 内置资产文件名映射规则，与 assets/covers 打包命名保持一致 */
+    /** 外网封面 → 内网封面文件名映射规则，与 cover_server/covers 打包命名保持一致 */
     private fun assetNameForRemoteUrl(url: String): String? = runCatching {
         val uri = java.net.URI(url.trim())
         val host = uri.host?.lowercase() ?: return@runCatching null
@@ -478,58 +491,58 @@ class BookDatabaseHelper(val context: Context) :
             data class BookCoverPreset(val title: String, val author: String, val category: String, val coverUrl: String, val shortComment: String)
 
             val presetList = listOf(
-                BookCoverPreset("1984", "乔治·奥威尔", "反乌托邦", "file:///android_asset/covers/douban_s4371408.jpg", "战争即和平，自由即奴役，无知即力量。"),
-                BookCoverPreset("鼠疫", "加缪", "存在主义", "file:///android_asset/covers/bgm_310634_R3bhR.jpg", "在这个世界上存在着瘟疫，也存在着受害者，我们应当尽量不站在瘟疫一边。"),
-                BookCoverPreset("动物农场", "乔治·奥威尔", "政治讽喻", "file:///android_asset/covers/bgm_123576_9yR5T.jpg", "所有动物生来平等，但有些动物比其他动物更平等。"),
-                BookCoverPreset("诡计博物馆", "大山诚一郎", "本格推理", "file:///android_asset/covers/bgm_448954_xcxFM.jpg", "封印二十年的悬案，在赤色博物馆内被纯粹的逻辑瞬间洞穿。"),
-                BookCoverPreset("霍乱时期的爱情", "马尔克斯", "拉美文学", "file:///android_asset/covers/bgm_556855_7hv2O.jpg", "跨越半个多世纪的等待，换来的是船头上那面永不落下的霍乱黄旗。"),
-                BookCoverPreset("悲惨世界", "雨果", "法国文学", "file:///android_asset/covers/bgm_156904_qYLyb.jpg", "释放无限光明的是人心，制造无边黑暗的也是人心。"),
-                BookCoverPreset("四世同堂", "老舍", "华语经典", "file:///android_asset/covers/douban_s3424257.jpg", "小羊圈胡同的悲欢离合，记录了抗战时期北平底层百姓的风骨与苦难。"),
-                BookCoverPreset("西西弗神话", "加缪", "哲学思辨", "file:///android_asset/covers/bgm_635490_d6ekH.jpg", "登上顶峰的斗争足以充实一个人的心灵，我们应当想象西西弗是幸福的。"),
-                BookCoverPreset("挪威的森林", "村上春树", "日本文学", "file:///android_asset/covers/bgm_920_85mPM.jpg", "每个人都有属于自己的一片森林，迷失的人迷失了，相逢的人会再相逢。"),
-                BookCoverPreset("老人与海", "海明威", "欧美文学", "file:///android_asset/covers/bgm_156705_3VOdt.jpg", "人不是生来要给打败的，一个人可以被毁灭，但不能被打败。"),
-                BookCoverPreset("上帝掷骰子吗", "曹天元", "硬核科普", "file:///android_asset/covers/douban_s1486674.jpg", "这是一部波澜壮阔的量子力学史，带你走进人类认知最神秘的微观微境。"),
-                BookCoverPreset("全员嫌疑人", "大山诚一郎", "密室推理", "file:///android_asset/covers/douban_s34002344.jpg", "快节奏的逻辑推演，当所有人都被怀疑时，唯有华丽的诡计才能破解真相。"),
-                BookCoverPreset("绝叫", "叶真中显", "社会派推理", "file:///android_asset/covers/bgm_337991_HTm3A.jpg", "从普通家庭女性滑向无底深渊，一部令人窒息的平成时代生存绝叫。"),
-                BookCoverPreset("人类简史", "尤瓦尔·赫拉利", "历史哲学", "file:///android_asset/covers/douban_s27814883.jpg", "认知革命、农业革命与科学革命，虚构故事的能力让人类成为了地球的主宰。"),
-                BookCoverPreset("时间简史", "霍金", "宇宙科普", "file:///android_asset/covers/douban_s1914861.jpg", "探寻黑洞、奇点与时间箭头的终极奥秘，仰望星空的最璀璨思想。"),
-                BookCoverPreset("经济学原理", "曼昆", "经济社会", "file:///android_asset/covers/douban_s33698881.jpg", "人们面临权衡取舍，某种东西的成本就是为了得到它所放弃的东西。"),
-                BookCoverPreset("廊桥遗梦", "沃勒", "情感文学", "file:///android_asset/covers/douban_s28806260.jpg", "这样确切的爱，一生只有一次。麦迪逊桥头的四天，刻骨铭心的一生。"),
-                BookCoverPreset("社会心理学", "迈尔斯", "心理学", "file:///android_asset/covers/douban_s1670932.jpg", "探索群体对个体的影响、态度与从众、偏见与利他，看透人际关系的本质。"),
-                BookCoverPreset("在细雨中呼喊", "余华", "华语经典", "file:///android_asset/covers/douban_s34569411.jpg", "在江南细雨中回望童年与成长的创伤，记忆像水草一样在时间的河流里摇曳。"),
-                BookCoverPreset("白夜行", "东野圭吾", "推理悬疑", "file:///android_asset/covers/bgm_6686_zXCXz.jpg", "我的天空里没有太阳，总是黑夜，但并不暗，因为有东西代替了太阳。"),
-                BookCoverPreset("局外人", "加缪", "存在主义", "file:///android_asset/covers/bgm_136481_i538r.jpg", "今天，妈妈死了。也许是昨天，我不知道。对这荒谬世界的清醒抗争。"),
-                BookCoverPreset("许三观卖血记", "余华", "华语经典", "file:///android_asset/covers/douban_s24575140.jpg", "一盘炒猪肝，二两黄酒，用身体的鲜血托起一个家庭所有风雨的坚韧史诗。"),
-                BookCoverPreset("解忧杂货店", "东野圭吾", "温暖治愈", "file:///android_asset/covers/bgm_177164_jp.jpg", "如果把你的地图比作白纸，正因为是一张白纸，才可以随心所欲地描绘地图。"),
-                BookCoverPreset("无人生还", "阿加莎·克里斯蒂", "孤岛推理", "file:///android_asset/covers/bgm_396073_GO8H4.jpg", "十个印第安小男孩，孤岛之上的审判与童谣谋杀，本格推理的巅峰神作。"),
-                BookCoverPreset("蛇结", "莫里亚克", "法国文学", "file:///android_asset/covers/douban_s35106938.jpg", "人心如同纠缠在一起的蛇结，唯有爱与宽恕才能解开这深重的仇恨。"),
-                BookCoverPreset("我是猫", "夏目漱石", "日本文学", "file:///android_asset/covers/douban_s2507284.jpg", "我是猫，还没有名字。以一只猫的独特视角，辛辣审视明治时代文人与社会的百态。"),
-                BookCoverPreset("罗生门", "芥川龙之介", "日本文学", "file:///android_asset/covers/douban_s3435158.jpg", "在暮色昏暗的罗生门下，每个人都在以谎言掩盖自己丑陋的利己本能。"),
-                BookCoverPreset("活着", "余华", "华语经典", "file:///android_asset/covers/douban_s29869926.jpg", "人是为活着本身而活着的，而不是为了活着之外的任何事物所活着。"),
-                BookCoverPreset("月亮与六便士", "毛姆", "欧美文学", "file:///android_asset/covers/douban_s29634528.jpg", "满地都是六便士，他却抬头看见了月亮。为了艺术狂热抛弃一切的追寻。"),
-                BookCoverPreset("罪与罚", "陀思妥耶夫斯基", "俄苏文学", "file:///android_asset/covers/bgm_477180_I9dd9.jpg", "从高傲的超人理论到灵魂的受难救赎，人类心灵最深处的激烈交战。"),
-                BookCoverPreset("消失的十三级台阶", "高野和明", "社会派推理", "file:///android_asset/covers/douban_s34070178.jpg", "踏上死刑台阶前的生死追凶，直击死刑制度与人性救赎的最震撼思索。"),
-                BookCoverPreset("同名同姓受害者协会", "下村敦史", "社会悬疑", "file:///android_asset/covers/bgm_602142_O20ve.jpg", "同名同姓带来的网络暴力与偏见审判，一场直击现代互联网生态的悬疑悲剧。"),
-                BookCoverPreset("呼啸山庄", "艾米莉·勃朗特", "古典名著", "file:///android_asset/covers/bgm_127782_bSf0j.jpg", "荒原上的狂野爱恨，希斯克利夫超越生死与坟墓的终极执念。"),
-                BookCoverPreset("蛤蟆先生去看心理医生", "罗伯特·戴博德", "心理成长", "file:///android_asset/covers/douban_s33941998.jpg", "探索儿童自我状态、父母自我状态与成人自我状态，找回属于自己的力量。"),
-                BookCoverPreset("帷幕", "阿加莎·克里斯蒂", "古典推理", "file:///android_asset/covers/bgm_411619_m8E7V.jpg", "大侦探波洛的谢幕之战，以生命为代价完成对完美罪犯的终极审判。"),
-                BookCoverPreset("一个叫欧维的男人决定去死", "巴克曼", "温情治愈", "file:///android_asset/covers/douban_s29071620.jpg", "一个固执刻板的孤独老头，被一群吵闹的邻居拯救并重新爱上人间的温情旅程。"),
-                BookCoverPreset("傲慢与偏见", "简·奥斯汀", "古典名著", "file:///android_asset/covers/bgm_426638_51raR.jpg", "傲慢让别人无法来爱我，偏见让我无法去爱别人。达西与伊丽莎白的真爱和解。"),
-                BookCoverPreset("恶意", "东野圭吾", "心理推理", "file:///android_asset/covers/douban_s34092441.jpg", "就算赌上我这一生，我也要将你拉入无间地狱。毫无由来的深渊恶意。"),
-                BookCoverPreset("边城", "沈从文", "华语经典", "file:///android_asset/covers/bgm_458438_5Co5t.jpg", "这个人也许永远不回来了，也许‘明天’回来！湘西茶峒的纯美风土与凄美爱恋。"),
-                BookCoverPreset("斜阳", "太宰治", "日本文学", "file:///android_asset/covers/bgm_501590_ppwOL.jpg", "在没落贵族的残照中，向旧道德决裂，用生命的微光进行最后的革命。"),
-                BookCoverPreset("基督山伯爵", "大仲马", "传奇冒险", "file:///android_asset/covers/bgm_116740_5OoZG.jpg", "人类的一切智慧都包含在这四个字里面：‘等待’和‘希望’。快意恩仇的传奇史诗。"),
-                BookCoverPreset("人间失格", "太宰治", "日本文学", "file:///android_asset/covers/bgm_2176_2866n.jpg", "生而为人，我很抱歉。叶藏以小丑的面具应付人间，在脆弱中走向毁灭。"),
-                BookCoverPreset("ABC谋杀案", "阿加莎·克里斯蒂", "本格推理", "file:///android_asset/covers/bgm_218090_H70Fk.jpg", "按照字母表顺序展开的连环谋杀，波洛用灰色脑细胞破解最巧妙的掩饰诡计。"),
-                BookCoverPreset("春雪", "三岛由纪夫", "丰饶之海", "file:///android_asset/covers/douban_s4418737.jpg", "清显与聪子之间凄美禁忌的恋情，大正时代绚烂优雅又易碎的贵族挽歌。"),
-                BookCoverPreset("追风筝的人", "胡赛尼", "成长救赎", "file:///android_asset/covers/douban_s1727290.jpg", "为你，千千万万遍。在喀布尔蓝天下的风筝与漫长一生的罪咎救赎。"),
-                BookCoverPreset("战争与和平", "列夫·托尔斯泰", "俄苏文学", "file:///android_asset/covers/bgm_172940_jHsTY.jpg", "俄罗斯辽阔大地上五大家族的命运交织，人类历史长河与个人意志的史诗巨著。"),
-                BookCoverPreset("生死疲劳", "莫言", "魔幻现实", "file:///android_asset/covers/douban_s35289336.jpg", "西门闹经历六道轮回转世为驴、牛、猪、狗、猴，见证半个世纪中国乡土风云变幻。"),
-                BookCoverPreset("谋杀启事", "阿加莎·克里斯蒂", "古典推理", "file:///android_asset/covers/bgm_410675_Vx37q.jpg", "报纸上赫然刊登的谋杀预告游戏，马普尔小姐在宁静乡村中洞察人性隐秘。"),
-                BookCoverPreset("雾都孤儿", "狄更斯", "英国文学", "file:///android_asset/covers/bgm_143159_b135f.jpg", "在十九世纪伦敦的阴暗底层与贼窝里，纯真少年奥利弗对善良与尊严的执着追求。"),
-                BookCoverPreset("人间椅子", "江户川乱步", "猎奇推理", "file:///android_asset/covers/bgm_612863_HxOOQ.jpg", "藏身于扶手椅中的制椅匠，在触觉与暗处的窥视中谱写惊悚奇异的幻觉物语。"),
-                BookCoverPreset("雪国", "川端康成", "新感觉派", "file:///android_asset/covers/bgm_366887_6e7e8.jpg", "穿过县界长长的隧道，便是雪国。夜空下一片白茫茫，驹子与岛村徒劳而纯粹的凄美物语。"),
-                BookCoverPreset("伊豆的舞女", "川端康成", "新感觉派", "file:///android_asset/covers/bgm_296767_0oKUU.jpg", "少年的孤独与伊豆山道上舞女熏子的纯真目光，洗净了青春所有阴翳的清冽散文诗。"),
+                BookCoverPreset("1984", "乔治·奥威尔", "反乌托邦", "covers/douban_s4371408.jpg", "战争即和平，自由即奴役，无知即力量。"),
+                BookCoverPreset("鼠疫", "加缪", "存在主义", "covers/bgm_310634_R3bhR.jpg", "在这个世界上存在着瘟疫，也存在着受害者，我们应当尽量不站在瘟疫一边。"),
+                BookCoverPreset("动物农场", "乔治·奥威尔", "政治讽喻", "covers/bgm_123576_9yR5T.jpg", "所有动物生来平等，但有些动物比其他动物更平等。"),
+                BookCoverPreset("诡计博物馆", "大山诚一郎", "本格推理", "covers/bgm_448954_xcxFM.jpg", "封印二十年的悬案，在赤色博物馆内被纯粹的逻辑瞬间洞穿。"),
+                BookCoverPreset("霍乱时期的爱情", "马尔克斯", "拉美文学", "covers/bgm_556855_7hv2O.jpg", "跨越半个多世纪的等待，换来的是船头上那面永不落下的霍乱黄旗。"),
+                BookCoverPreset("悲惨世界", "雨果", "法国文学", "covers/bgm_156904_qYLyb.jpg", "释放无限光明的是人心，制造无边黑暗的也是人心。"),
+                BookCoverPreset("四世同堂", "老舍", "华语经典", "covers/douban_s3424257.jpg", "小羊圈胡同的悲欢离合，记录了抗战时期北平底层百姓的风骨与苦难。"),
+                BookCoverPreset("西西弗神话", "加缪", "哲学思辨", "covers/bgm_635490_d6ekH.jpg", "登上顶峰的斗争足以充实一个人的心灵，我们应当想象西西弗是幸福的。"),
+                BookCoverPreset("挪威的森林", "村上春树", "日本文学", "covers/bgm_920_85mPM.jpg", "每个人都有属于自己的一片森林，迷失的人迷失了，相逢的人会再相逢。"),
+                BookCoverPreset("老人与海", "海明威", "欧美文学", "covers/bgm_156705_3VOdt.jpg", "人不是生来要给打败的，一个人可以被毁灭，但不能被打败。"),
+                BookCoverPreset("上帝掷骰子吗", "曹天元", "硬核科普", "covers/douban_s1486674.jpg", "这是一部波澜壮阔的量子力学史，带你走进人类认知最神秘的微观微境。"),
+                BookCoverPreset("全员嫌疑人", "大山诚一郎", "密室推理", "covers/douban_s34002344.jpg", "快节奏的逻辑推演，当所有人都被怀疑时，唯有华丽的诡计才能破解真相。"),
+                BookCoverPreset("绝叫", "叶真中显", "社会派推理", "covers/bgm_337991_HTm3A.jpg", "从普通家庭女性滑向无底深渊，一部令人窒息的平成时代生存绝叫。"),
+                BookCoverPreset("人类简史", "尤瓦尔·赫拉利", "历史哲学", "covers/douban_s27814883.jpg", "认知革命、农业革命与科学革命，虚构故事的能力让人类成为了地球的主宰。"),
+                BookCoverPreset("时间简史", "霍金", "宇宙科普", "covers/douban_s1914861.jpg", "探寻黑洞、奇点与时间箭头的终极奥秘，仰望星空的最璀璨思想。"),
+                BookCoverPreset("经济学原理", "曼昆", "经济社会", "covers/douban_s33698881.jpg", "人们面临权衡取舍，某种东西的成本就是为了得到它所放弃的东西。"),
+                BookCoverPreset("廊桥遗梦", "沃勒", "情感文学", "covers/douban_s28806260.jpg", "这样确切的爱，一生只有一次。麦迪逊桥头的四天，刻骨铭心的一生。"),
+                BookCoverPreset("社会心理学", "迈尔斯", "心理学", "covers/douban_s1670932.jpg", "探索群体对个体的影响、态度与从众、偏见与利他，看透人际关系的本质。"),
+                BookCoverPreset("在细雨中呼喊", "余华", "华语经典", "covers/douban_s34569411.jpg", "在江南细雨中回望童年与成长的创伤，记忆像水草一样在时间的河流里摇曳。"),
+                BookCoverPreset("白夜行", "东野圭吾", "推理悬疑", "covers/bgm_6686_zXCXz.jpg", "我的天空里没有太阳，总是黑夜，但并不暗，因为有东西代替了太阳。"),
+                BookCoverPreset("局外人", "加缪", "存在主义", "covers/bgm_136481_i538r.jpg", "今天，妈妈死了。也许是昨天，我不知道。对这荒谬世界的清醒抗争。"),
+                BookCoverPreset("许三观卖血记", "余华", "华语经典", "covers/douban_s24575140.jpg", "一盘炒猪肝，二两黄酒，用身体的鲜血托起一个家庭所有风雨的坚韧史诗。"),
+                BookCoverPreset("解忧杂货店", "东野圭吾", "温暖治愈", "covers/bgm_177164_jp.jpg", "如果把你的地图比作白纸，正因为是一张白纸，才可以随心所欲地描绘地图。"),
+                BookCoverPreset("无人生还", "阿加莎·克里斯蒂", "孤岛推理", "covers/bgm_396073_GO8H4.jpg", "十个印第安小男孩，孤岛之上的审判与童谣谋杀，本格推理的巅峰神作。"),
+                BookCoverPreset("蛇结", "莫里亚克", "法国文学", "covers/douban_s35106938.jpg", "人心如同纠缠在一起的蛇结，唯有爱与宽恕才能解开这深重的仇恨。"),
+                BookCoverPreset("我是猫", "夏目漱石", "日本文学", "covers/douban_s2507284.jpg", "我是猫，还没有名字。以一只猫的独特视角，辛辣审视明治时代文人与社会的百态。"),
+                BookCoverPreset("罗生门", "芥川龙之介", "日本文学", "covers/douban_s3435158.jpg", "在暮色昏暗的罗生门下，每个人都在以谎言掩盖自己丑陋的利己本能。"),
+                BookCoverPreset("活着", "余华", "华语经典", "covers/douban_s29869926.jpg", "人是为活着本身而活着的，而不是为了活着之外的任何事物所活着。"),
+                BookCoverPreset("月亮与六便士", "毛姆", "欧美文学", "covers/douban_s29634528.jpg", "满地都是六便士，他却抬头看见了月亮。为了艺术狂热抛弃一切的追寻。"),
+                BookCoverPreset("罪与罚", "陀思妥耶夫斯基", "俄苏文学", "covers/bgm_477180_I9dd9.jpg", "从高傲的超人理论到灵魂的受难救赎，人类心灵最深处的激烈交战。"),
+                BookCoverPreset("消失的十三级台阶", "高野和明", "社会派推理", "covers/douban_s34070178.jpg", "踏上死刑台阶前的生死追凶，直击死刑制度与人性救赎的最震撼思索。"),
+                BookCoverPreset("同名同姓受害者协会", "下村敦史", "社会悬疑", "covers/bgm_602142_O20ve.jpg", "同名同姓带来的网络暴力与偏见审判，一场直击现代互联网生态的悬疑悲剧。"),
+                BookCoverPreset("呼啸山庄", "艾米莉·勃朗特", "古典名著", "covers/bgm_127782_bSf0j.jpg", "荒原上的狂野爱恨，希斯克利夫超越生死与坟墓的终极执念。"),
+                BookCoverPreset("蛤蟆先生去看心理医生", "罗伯特·戴博德", "心理成长", "covers/douban_s33941998.jpg", "探索儿童自我状态、父母自我状态与成人自我状态，找回属于自己的力量。"),
+                BookCoverPreset("帷幕", "阿加莎·克里斯蒂", "古典推理", "covers/bgm_411619_m8E7V.jpg", "大侦探波洛的谢幕之战，以生命为代价完成对完美罪犯的终极审判。"),
+                BookCoverPreset("一个叫欧维的男人决定去死", "巴克曼", "温情治愈", "covers/douban_s29071620.jpg", "一个固执刻板的孤独老头，被一群吵闹的邻居拯救并重新爱上人间的温情旅程。"),
+                BookCoverPreset("傲慢与偏见", "简·奥斯汀", "古典名著", "covers/bgm_426638_51raR.jpg", "傲慢让别人无法来爱我，偏见让我无法去爱别人。达西与伊丽莎白的真爱和解。"),
+                BookCoverPreset("恶意", "东野圭吾", "心理推理", "covers/douban_s34092441.jpg", "就算赌上我这一生，我也要将你拉入无间地狱。毫无由来的深渊恶意。"),
+                BookCoverPreset("边城", "沈从文", "华语经典", "covers/bgm_458438_5Co5t.jpg", "这个人也许永远不回来了，也许‘明天’回来！湘西茶峒的纯美风土与凄美爱恋。"),
+                BookCoverPreset("斜阳", "太宰治", "日本文学", "covers/bgm_501590_ppwOL.jpg", "在没落贵族的残照中，向旧道德决裂，用生命的微光进行最后的革命。"),
+                BookCoverPreset("基督山伯爵", "大仲马", "传奇冒险", "covers/bgm_116740_5OoZG.jpg", "人类的一切智慧都包含在这四个字里面：‘等待’和‘希望’。快意恩仇的传奇史诗。"),
+                BookCoverPreset("人间失格", "太宰治", "日本文学", "covers/bgm_2176_2866n.jpg", "生而为人，我很抱歉。叶藏以小丑的面具应付人间，在脆弱中走向毁灭。"),
+                BookCoverPreset("ABC谋杀案", "阿加莎·克里斯蒂", "本格推理", "covers/bgm_218090_H70Fk.jpg", "按照字母表顺序展开的连环谋杀，波洛用灰色脑细胞破解最巧妙的掩饰诡计。"),
+                BookCoverPreset("春雪", "三岛由纪夫", "丰饶之海", "covers/douban_s4418737.jpg", "清显与聪子之间凄美禁忌的恋情，大正时代绚烂优雅又易碎的贵族挽歌。"),
+                BookCoverPreset("追风筝的人", "胡赛尼", "成长救赎", "covers/douban_s1727290.jpg", "为你，千千万万遍。在喀布尔蓝天下的风筝与漫长一生的罪咎救赎。"),
+                BookCoverPreset("战争与和平", "列夫·托尔斯泰", "俄苏文学", "covers/bgm_172940_jHsTY.jpg", "俄罗斯辽阔大地上五大家族的命运交织，人类历史长河与个人意志的史诗巨著。"),
+                BookCoverPreset("生死疲劳", "莫言", "魔幻现实", "covers/douban_s35289336.jpg", "西门闹经历六道轮回转世为驴、牛、猪、狗、猴，见证半个世纪中国乡土风云变幻。"),
+                BookCoverPreset("谋杀启事", "阿加莎·克里斯蒂", "古典推理", "covers/bgm_410675_Vx37q.jpg", "报纸上赫然刊登的谋杀预告游戏，马普尔小姐在宁静乡村中洞察人性隐秘。"),
+                BookCoverPreset("雾都孤儿", "狄更斯", "英国文学", "covers/bgm_143159_b135f.jpg", "在十九世纪伦敦的阴暗底层与贼窝里，纯真少年奥利弗对善良与尊严的执着追求。"),
+                BookCoverPreset("人间椅子", "江户川乱步", "猎奇推理", "covers/bgm_612863_HxOOQ.jpg", "藏身于扶手椅中的制椅匠，在触觉与暗处的窥视中谱写惊悚奇异的幻觉物语。"),
+                BookCoverPreset("雪国", "川端康成", "新感觉派", "covers/bgm_366887_6e7e8.jpg", "穿过县界长长的隧道，便是雪国。夜空下一片白茫茫，驹子与岛村徒劳而纯粹的凄美物语。"),
+                BookCoverPreset("伊豆的舞女", "川端康成", "新感觉派", "covers/bgm_296767_0oKUU.jpg", "少年的孤独与伊豆山道上舞女熏子的纯真目光，洗净了青春所有阴翳的清冽散文诗。"),
             )
 
             val now = currentTimestamp()
@@ -573,115 +586,115 @@ class BookDatabaseHelper(val context: Context) :
         runCatching {
             val defaultCoverMap = mapOf(
                 // 经典文学 / 书籍
-                "1984" to "file:///android_asset/covers/douban_s4371408.jpg",
-                "鼠疫" to "file:///android_asset/covers/bgm_310634_R3bhR.jpg",
-                "动物农场" to "file:///android_asset/covers/bgm_123576_9yR5T.jpg",
-                "诡计博物馆" to "file:///android_asset/covers/bgm_448954_xcxFM.jpg",
-                "霍乱时期的爱情" to "file:///android_asset/covers/bgm_556855_7hv2O.jpg",
-                "悲惨世界" to "file:///android_asset/covers/bgm_156904_qYLyb.jpg",
-                "四世同堂" to "file:///android_asset/covers/douban_s3424257.jpg",
-                "西西弗神话" to "file:///android_asset/covers/bgm_635490_d6ekH.jpg",
-                "挪威的森林" to "file:///android_asset/covers/bgm_920_85mPM.jpg",
-                "老人与海" to "file:///android_asset/covers/bgm_156705_3VOdt.jpg",
-                "上帝掷骰子吗" to "file:///android_asset/covers/douban_s1486674.jpg",
-                "全员嫌疑人" to "file:///android_asset/covers/douban_s34002344.jpg",
-                "绝叫" to "file:///android_asset/covers/bgm_337991_HTm3A.jpg",
-                "人类简史" to "file:///android_asset/covers/douban_s27814883.jpg",
-                "时间简史" to "file:///android_asset/covers/douban_s1914861.jpg",
-                "经济学原理" to "file:///android_asset/covers/douban_s33698881.jpg",
-                "廊桥遗梦" to "file:///android_asset/covers/douban_s28806260.jpg",
-                "社会心理学" to "file:///android_asset/covers/douban_s1670932.jpg",
-                "在细雨中呼喊" to "file:///android_asset/covers/douban_s34569411.jpg",
-                "白夜行" to "file:///android_asset/covers/bgm_6686_zXCXz.jpg",
-                "局外人" to "file:///android_asset/covers/bgm_136481_i538r.jpg",
-                "许三观卖血记" to "file:///android_asset/covers/douban_s24575140.jpg",
-                "解忧杂货店" to "file:///android_asset/covers/bgm_177164_jp.jpg",
-                "无人生还" to "file:///android_asset/covers/bgm_396073_GO8H4.jpg",
-                "蛇结" to "file:///android_asset/covers/douban_s35106938.jpg",
-                "我是猫" to "file:///android_asset/covers/douban_s2507284.jpg",
-                "罗生门" to "file:///android_asset/covers/douban_s3435158.jpg",
-                "活着" to "file:///android_asset/covers/douban_s29869926.jpg",
-                "月亮与六便士" to "file:///android_asset/covers/douban_s29634528.jpg",
-                "罪与罚" to "file:///android_asset/covers/bgm_477180_I9dd9.jpg",
-                "消失的十三级台阶" to "file:///android_asset/covers/douban_s34070178.jpg",
-                "同名同姓受害者协会" to "file:///android_asset/covers/bgm_602142_O20ve.jpg",
-                "呼啸山庄" to "file:///android_asset/covers/bgm_127782_bSf0j.jpg",
-                "蛤蟆先生去看心理医生" to "file:///android_asset/covers/douban_s33941998.jpg",
-                "帷幕" to "file:///android_asset/covers/bgm_411619_m8E7V.jpg",
-                "一个叫欧维的男人决定去死" to "file:///android_asset/covers/douban_s29071620.jpg",
-                "傲慢与偏见" to "file:///android_asset/covers/bgm_426638_51raR.jpg",
-                "恶意" to "file:///android_asset/covers/douban_s34092441.jpg",
-                "边城" to "file:///android_asset/covers/bgm_458438_5Co5t.jpg",
-                "斜阳" to "file:///android_asset/covers/bgm_501590_ppwOL.jpg",
-                "基督山伯爵" to "file:///android_asset/covers/bgm_116740_5OoZG.jpg",
-                "人间失格" to "file:///android_asset/covers/bgm_2176_2866n.jpg",
-                "ABC谋杀案" to "file:///android_asset/covers/bgm_218090_H70Fk.jpg",
-                "春雪" to "file:///android_asset/covers/douban_s4418737.jpg",
-                "追风筝的人" to "file:///android_asset/covers/douban_s1727290.jpg",
-                "战争与和平" to "file:///android_asset/covers/bgm_172940_jHsTY.jpg",
-                "生死疲劳" to "file:///android_asset/covers/douban_s35289336.jpg",
-                "谋杀启事" to "file:///android_asset/covers/bgm_410675_Vx37q.jpg",
-                "雾都孤儿" to "file:///android_asset/covers/bgm_143159_b135f.jpg",
-                "人间椅子" to "file:///android_asset/covers/bgm_612863_HxOOQ.jpg",
-                "雪国" to "file:///android_asset/covers/bgm_366887_6e7e8.jpg",
-                "伊豆的舞女" to "file:///android_asset/covers/bgm_296767_0oKUU.jpg",
+                "1984" to "covers/douban_s4371408.jpg",
+                "鼠疫" to "covers/bgm_310634_R3bhR.jpg",
+                "动物农场" to "covers/bgm_123576_9yR5T.jpg",
+                "诡计博物馆" to "covers/bgm_448954_xcxFM.jpg",
+                "霍乱时期的爱情" to "covers/bgm_556855_7hv2O.jpg",
+                "悲惨世界" to "covers/bgm_156904_qYLyb.jpg",
+                "四世同堂" to "covers/douban_s3424257.jpg",
+                "西西弗神话" to "covers/bgm_635490_d6ekH.jpg",
+                "挪威的森林" to "covers/bgm_920_85mPM.jpg",
+                "老人与海" to "covers/bgm_156705_3VOdt.jpg",
+                "上帝掷骰子吗" to "covers/douban_s1486674.jpg",
+                "全员嫌疑人" to "covers/douban_s34002344.jpg",
+                "绝叫" to "covers/bgm_337991_HTm3A.jpg",
+                "人类简史" to "covers/douban_s27814883.jpg",
+                "时间简史" to "covers/douban_s1914861.jpg",
+                "经济学原理" to "covers/douban_s33698881.jpg",
+                "廊桥遗梦" to "covers/douban_s28806260.jpg",
+                "社会心理学" to "covers/douban_s1670932.jpg",
+                "在细雨中呼喊" to "covers/douban_s34569411.jpg",
+                "白夜行" to "covers/bgm_6686_zXCXz.jpg",
+                "局外人" to "covers/bgm_136481_i538r.jpg",
+                "许三观卖血记" to "covers/douban_s24575140.jpg",
+                "解忧杂货店" to "covers/bgm_177164_jp.jpg",
+                "无人生还" to "covers/bgm_396073_GO8H4.jpg",
+                "蛇结" to "covers/douban_s35106938.jpg",
+                "我是猫" to "covers/douban_s2507284.jpg",
+                "罗生门" to "covers/douban_s3435158.jpg",
+                "活着" to "covers/douban_s29869926.jpg",
+                "月亮与六便士" to "covers/douban_s29634528.jpg",
+                "罪与罚" to "covers/bgm_477180_I9dd9.jpg",
+                "消失的十三级台阶" to "covers/douban_s34070178.jpg",
+                "同名同姓受害者协会" to "covers/bgm_602142_O20ve.jpg",
+                "呼啸山庄" to "covers/bgm_127782_bSf0j.jpg",
+                "蛤蟆先生去看心理医生" to "covers/douban_s33941998.jpg",
+                "帷幕" to "covers/bgm_411619_m8E7V.jpg",
+                "一个叫欧维的男人决定去死" to "covers/douban_s29071620.jpg",
+                "傲慢与偏见" to "covers/bgm_426638_51raR.jpg",
+                "恶意" to "covers/douban_s34092441.jpg",
+                "边城" to "covers/bgm_458438_5Co5t.jpg",
+                "斜阳" to "covers/bgm_501590_ppwOL.jpg",
+                "基督山伯爵" to "covers/bgm_116740_5OoZG.jpg",
+                "人间失格" to "covers/bgm_2176_2866n.jpg",
+                "ABC谋杀案" to "covers/bgm_218090_H70Fk.jpg",
+                "春雪" to "covers/douban_s4418737.jpg",
+                "追风筝的人" to "covers/douban_s1727290.jpg",
+                "战争与和平" to "covers/bgm_172940_jHsTY.jpg",
+                "生死疲劳" to "covers/douban_s35289336.jpg",
+                "谋杀启事" to "covers/bgm_410675_Vx37q.jpg",
+                "雾都孤儿" to "covers/bgm_143159_b135f.jpg",
+                "人间椅子" to "covers/bgm_612863_HxOOQ.jpg",
+                "雪国" to "covers/bgm_366887_6e7e8.jpg",
+                "伊豆的舞女" to "covers/bgm_296767_0oKUU.jpg",
 
                 // 经典番剧
-                "EVA" to "file:///android_asset/covers/bgm_6048_MJqSM.jpg",
-                "新世纪福音战士" to "file:///android_asset/covers/bgm_6048_MJqSM.jpg",
-                "浪客剑心" to "file:///android_asset/covers/bgm_1728_HLsCr.jpg",
-                "夏目友人帐" to "file:///android_asset/covers/bgm_259_7C5D9.jpg",
-                "轻音少女" to "file:///android_asset/covers/bgm_1424_q8FMQ.jpg",
-                "怪盗基德" to "file:///android_asset/covers/bgm_4330_czWc0.jpg",
-                "魔术快斗" to "file:///android_asset/covers/bgm_4330_czWc0.jpg",
-                "Angel Beats" to "file:///android_asset/covers/bgm_1851_ZFEg7.jpg",
-                "JOJO" to "file:///android_asset/covers/bgm_61534_55bd5.jpg",
-                "我的青春恋爱物语果然有问题" to "file:///android_asset/covers/bgm_54433_JZ99l.jpg",
-                "约会大作战" to "file:///android_asset/covers/bgm_49131_CIPjC.jpg",
-                "月刊少女野崎君" to "file:///android_asset/covers/bgm_100449_d101j.jpg",
-                "Charlotte" to "file:///android_asset/covers/bgm_120925_Zp040.jpg",
-                "夏洛特" to "file:///android_asset/covers/bgm_120925_Zp040.jpg",
-                "路人女主" to "file:///android_asset/covers/bgm_231497_tZxtU.jpg",
-                "齐木楠雄" to "file:///android_asset/covers/bgm_181354_smUU3.jpg",
-                "在下坂本" to "file:///android_asset/covers/bgm_165829_cwSZV.jpg",
-                "灵能百分百" to "file:///android_asset/covers/bgm_228109_wb3bL.jpg",
-                "来自深渊" to "file:///android_asset/covers/bgm_230914_fJJ0J.jpg",
-                "笨女孩" to "file:///android_asset/covers/bgm_208450_0l5MJ.jpg",
-                "实力至上主义教室" to "file:///android_asset/covers/bgm_214272_vlcWz.jpg",
-                "青春猪头少年" to "file:///android_asset/covers/bgm_240038_b5j7g.jpg",
-                "紫罗兰永恒花园" to "file:///android_asset/covers/bgm_280837_L6VeG.jpg",
-                "碧蓝之海" to "file:///android_asset/covers/bgm_235130_suy3s.jpg",
-                "强风吹拂" to "file:///android_asset/covers/bgm_248154_D8z6D.jpg",
-                "文豪野犬" to "file:///android_asset/covers/bgm_171068_XIwkj.jpg",
-                "魔女之旅" to "file:///android_asset/covers/bgm_292970_mxMxx.jpg",
-                "从零开始的异世界生活" to "file:///android_asset/covers/bgm_296195_n0KqL.jpg",
-                "国王排名" to "file:///android_asset/covers/bgm_296109_8GeaM.jpg",
-                "转生成蜘蛛" to "file:///android_asset/covers/bgm_252782_aWyEn.jpg",
-                "间谍过家家" to "file:///android_asset/covers/bgm_329906_hmtVD.jpg",
-                "夏日重现" to "file:///android_asset/covers/bgm_326895_j1S2n.jpg",
-                "孤独摇滚" to "file:///android_asset/covers/bgm_328609_2EHLJ.jpg",
-                "蓝色监狱" to "file:///android_asset/covers/bgm_341163_l525N.jpg",
-                "我独自升级" to "file:///android_asset/covers/bgm_390353_07vz7.jpg",
-                "鬼灭之刃" to "file:///android_asset/covers/bgm_245665_5an54.jpg",
-                "魔法少女小圆" to "file:///android_asset/covers/bgm_9717_sAVag.jpg",
-                "咒术回战" to "file:///android_asset/covers/bgm_294993_JrrzK.jpg",
-                "魔都精兵" to "file:///android_asset/covers/bgm_357962_eEjJA.jpg",
-                "我推的孩子" to "file:///android_asset/covers/bgm_443428_FIhFu.jpg",
-                "玉子市场" to "file:///android_asset/covers/bgm_55113_TR5Is.jpg",
-                "超电磁炮" to "file:///android_asset/covers/bgm_98371_zdWKw.jpg",
-                "凉宫春日" to "file:///android_asset/covers/bgm_485_Et062.jpg",
-                "中二病" to "file:///android_asset/covers/bgm_72942_VniXv.jpg",
-                "冰菓" to "file:///android_asset/covers/bgm_27364_1ZFmr.jpg",
-                "野良神" to "file:///android_asset/covers/bgm_82572_PNW44.jpg",
-                "点兔" to "file:///android_asset/covers/bgm_88287_h4xKo.jpg",
-                "请问您今天要来点兔子吗" to "file:///android_asset/covers/bgm_88287_h4xKo.jpg",
-                "小埋" to "file:///android_asset/covers/bgm_212775_as9It.jpg",
-                "逆转裁判" to "file:///android_asset/covers/bgm_146737_1rwbd.jpg",
-                "杀戮天使" to "file:///android_asset/covers/bgm_220566_0CMxK.jpg",
-                "多罗罗" to "file:///android_asset/covers/bgm_503698_iJLgN.jpg",
-                "葬送的芙莉莲" to "file:///android_asset/covers/bgm_400602_ZI8Y9.jpg",
-                "超时空要塞" to "file:///android_asset/covers/bgm_3173_IM2X2.jpg",
-                "辉夜大小姐" to "file:///android_asset/covers/bgm_317613_bpGX4.jpg",
+                "EVA" to "covers/bgm_6048_MJqSM.jpg",
+                "新世纪福音战士" to "covers/bgm_6048_MJqSM.jpg",
+                "浪客剑心" to "covers/bgm_1728_HLsCr.jpg",
+                "夏目友人帐" to "covers/bgm_259_7C5D9.jpg",
+                "轻音少女" to "covers/bgm_1424_q8FMQ.jpg",
+                "怪盗基德" to "covers/bgm_4330_czWc0.jpg",
+                "魔术快斗" to "covers/bgm_4330_czWc0.jpg",
+                "Angel Beats" to "covers/bgm_1851_ZFEg7.jpg",
+                "JOJO" to "covers/bgm_61534_55bd5.jpg",
+                "我的青春恋爱物语果然有问题" to "covers/bgm_54433_JZ99l.jpg",
+                "约会大作战" to "covers/bgm_49131_CIPjC.jpg",
+                "月刊少女野崎君" to "covers/bgm_100449_d101j.jpg",
+                "Charlotte" to "covers/bgm_120925_Zp040.jpg",
+                "夏洛特" to "covers/bgm_120925_Zp040.jpg",
+                "路人女主" to "covers/bgm_231497_tZxtU.jpg",
+                "齐木楠雄" to "covers/bgm_181354_smUU3.jpg",
+                "在下坂本" to "covers/bgm_165829_cwSZV.jpg",
+                "灵能百分百" to "covers/bgm_228109_wb3bL.jpg",
+                "来自深渊" to "covers/bgm_230914_fJJ0J.jpg",
+                "笨女孩" to "covers/bgm_208450_0l5MJ.jpg",
+                "实力至上主义教室" to "covers/bgm_214272_vlcWz.jpg",
+                "青春猪头少年" to "covers/bgm_240038_b5j7g.jpg",
+                "紫罗兰永恒花园" to "covers/bgm_280837_L6VeG.jpg",
+                "碧蓝之海" to "covers/bgm_235130_suy3s.jpg",
+                "强风吹拂" to "covers/bgm_248154_D8z6D.jpg",
+                "文豪野犬" to "covers/bgm_171068_XIwkj.jpg",
+                "魔女之旅" to "covers/bgm_292970_mxMxx.jpg",
+                "从零开始的异世界生活" to "covers/bgm_296195_n0KqL.jpg",
+                "国王排名" to "covers/bgm_296109_8GeaM.jpg",
+                "转生成蜘蛛" to "covers/bgm_252782_aWyEn.jpg",
+                "间谍过家家" to "covers/bgm_329906_hmtVD.jpg",
+                "夏日重现" to "covers/bgm_326895_j1S2n.jpg",
+                "孤独摇滚" to "covers/bgm_328609_2EHLJ.jpg",
+                "蓝色监狱" to "covers/bgm_341163_l525N.jpg",
+                "我独自升级" to "covers/bgm_390353_07vz7.jpg",
+                "鬼灭之刃" to "covers/bgm_245665_5an54.jpg",
+                "魔法少女小圆" to "covers/bgm_9717_sAVag.jpg",
+                "咒术回战" to "covers/bgm_294993_JrrzK.jpg",
+                "魔都精兵" to "covers/bgm_357962_eEjJA.jpg",
+                "我推的孩子" to "covers/bgm_443428_FIhFu.jpg",
+                "玉子市场" to "covers/bgm_55113_TR5Is.jpg",
+                "超电磁炮" to "covers/bgm_98371_zdWKw.jpg",
+                "凉宫春日" to "covers/bgm_485_Et062.jpg",
+                "中二病" to "covers/bgm_72942_VniXv.jpg",
+                "冰菓" to "covers/bgm_27364_1ZFmr.jpg",
+                "野良神" to "covers/bgm_82572_PNW44.jpg",
+                "点兔" to "covers/bgm_88287_h4xKo.jpg",
+                "请问您今天要来点兔子吗" to "covers/bgm_88287_h4xKo.jpg",
+                "小埋" to "covers/bgm_212775_as9It.jpg",
+                "逆转裁判" to "covers/bgm_146737_1rwbd.jpg",
+                "杀戮天使" to "covers/bgm_220566_0CMxK.jpg",
+                "多罗罗" to "covers/bgm_503698_iJLgN.jpg",
+                "葬送的芙莉莲" to "covers/bgm_400602_ZI8Y9.jpg",
+                "超时空要塞" to "covers/bgm_3173_IM2X2.jpg",
+                "辉夜大小姐" to "covers/bgm_317613_bpGX4.jpg",
             )
 
             // 查询所有 cover_url 为空或 null 的作品
@@ -710,11 +723,11 @@ class BookDatabaseHelper(val context: Context) :
                 }
                 if (matchedUrl == null) {
                     matchedUrl = when (mediaType) {
-                        "anime" -> "file:///android_asset/covers/unsplash_photo-1578632767115-351597cf2477.jpg"
-                        "movie" -> "file:///android_asset/covers/unsplash_photo-1489599849927-2ee91cede3ba.jpg"
-                        "game" -> "file:///android_asset/covers/unsplash_photo-1542751371-adc38448a05e.jpg"
-                        "music" -> "file:///android_asset/covers/unsplash_photo-1590602847861-f357a9332bbc.jpg"
-                        else -> "file:///android_asset/covers/unsplash_photo-1544716278-ca5e3f4abd8c.jpg"
+                        "anime" -> "covers/unsplash_photo-1578632767115-351597cf2477.jpg"
+                        "movie" -> "covers/unsplash_photo-1489599849927-2ee91cede3ba.jpg"
+                        "game" -> "covers/unsplash_photo-1542751371-adc38448a05e.jpg"
+                        "music" -> "covers/unsplash_photo-1590602847861-f357a9332bbc.jpg"
+                        else -> "covers/unsplash_photo-1544716278-ca5e3f4abd8c.jpg"
                     }
                 }
 
@@ -902,7 +915,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.8,
                     shortComment = "能力越大，责任越大。无论世界如何遗忘彼得·帕克，蜘蛛侠永远守护纽约的晨曦。",
                     review = "剥离了斯塔克工业高科技光环，彼得·帕克在简陋公寓中缝制新战衣，重拾街头英雄的坚韧与初心。",
-                    coverUrl = "file:///android_asset/covers/bgm_420898_M4KCk.jpg",
+                    coverUrl = "covers/bgm_420898_M4KCk.jpg",
                     mindprint = floatArrayOf(8.0f, 8.5f, 9.2f, 8.4f, 4.0f, 8.8f),
                 ),
                 MovieEntry(
@@ -914,7 +927,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "我命由我不由天，是魔是仙，我自己说了才算！四海龙族受死！",
                     review = "国产动画电影巅峰巨制。哪吒与敖丙肉身虽灭但魂魄尚存，重塑肉身与四海龙王掀起撼天动地的终极决战。",
-                    coverUrl = "file:///android_asset/covers/bgm_537858_yQh8W.jpg",
+                    coverUrl = "covers/bgm_537858_yQh8W.jpg",
                     mindprint = floatArrayOf(8.8f, 9.2f, 9.6f, 8.6f, 5.0f, 8.8f),
                 ),
                 MovieEntry(
@@ -926,7 +939,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "有些鸟儿是关不住的，它们的每一片羽毛都闪耀着自由的光辉。希望是件好东西，也许是最好的东西。",
                     review = "影史无可争议的无冕之王。安迪用一把小石锤在十九年里凿开肖申克监狱的高墙，暴雨中拥抱自由的瞬间成为人类电影史的永恒丰碑。",
-                    coverUrl = "file:///android_asset/covers/douban_p1435894655.jpg",
+                    coverUrl = "covers/douban_p1435894655.jpg",
                     mindprint = floatArrayOf(10.0f, 9.8f, 9.8f, 9.7f, 6.0f, 9.6f),
                 ),
                 MovieEntry(
@@ -938,7 +951,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "在茫茫人海中相遇，我已经找了你很久很久。世界这么大，人生这么长，总会有一个人，让你想要温柔对待。",
                     review = "宫崎骏最唯美浪漫的心灵寓言。即使外表衰老如风烛残年，真挚勇敢的心灵也能让沉重钢铁城堡翱翔于澄澈星空与花海。",
-                    coverUrl = "file:///android_asset/covers/bgm_312_LmAan.jpg",
+                    coverUrl = "covers/bgm_312_LmAan.jpg",
                     mindprint = floatArrayOf(9.0f, 10.0f, 10.0f, 8.5f, 4.0f, 10.0f),
                 ),
                 MovieEntry(
@@ -950,7 +963,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "不要温和地走进那个良夜。爱是唯一可以超越时间与空间维度的力量。",
                     review = "硬核相对论物理与极致父女亲情的壮丽交响。穿越五维超正方体拨动书架手表的秒针，浩瀚宇宙在人类的情感面前亦化作回音。",
-                    coverUrl = "file:///android_asset/covers/bgm_114365_O26a7.jpg",
+                    coverUrl = "covers/bgm_114365_O26a7.jpg",
                     mindprint = floatArrayOf(9.8f, 9.6f, 10.0f, 9.8f, 7.5f, 9.0f),
                 ),
                 MovieEntry(
@@ -962,7 +975,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "最坚韧的寄生虫是什么？是想法。一个想法可以筑起城市，也可以改变世界。图腾旋转不息，但我们已回到真实。",
                     review = "多层梦境嵌套与时间差叙事的结构奇迹。旋转的陀螺成为了整个电影史最迷人的哲学隐喻。",
-                    coverUrl = "file:///android_asset/covers/bgm_24057_P7DQx.jpg",
+                    coverUrl = "covers/bgm_24057_P7DQx.jpg",
                     mindprint = floatArrayOf(9.6f, 9.5f, 9.0f, 10.0f, 8.0f, 7.5f),
                 ),
                 MovieEntry(
@@ -974,7 +987,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "生活总会有点不顺心，但无论你是何种动物，改变都从你开始。Try Everything!",
                     review = "迪士尼兼具极致娱乐性与深刻社会多元包容思辨的现代经典。兔朱迪与狐尼克的乌托邦冒险充满灵动与温暖。",
-                    coverUrl = "file:///android_asset/covers/douban_p2614500649.jpg",
+                    coverUrl = "covers/douban_p2614500649.jpg",
                     mindprint = floatArrayOf(9.2f, 9.4f, 9.4f, 9.0f, 4.0f, 9.6f),
                 ),
                 MovieEntry(
@@ -986,7 +999,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "伟大的人不是生来就伟大的，而是在成长过程中展现其伟大的。永远不要让别人知道你在想什么。",
                     review = "男人的圣经，电影美学的教科书。柯里昂家族在光影暗调中的沉浮与决断，构筑了人类权力与家庭责任的最冷峻赞歌。",
-                    coverUrl = "file:///android_asset/covers/bgm_64965_8c3K2.jpg",
+                    coverUrl = "covers/bgm_64965_8c3K2.jpg",
                     mindprint = floatArrayOf(9.8f, 9.8f, 9.2f, 9.6f, 6.5f, 6.5f),
                 ),
                 MovieEntry(
@@ -998,7 +1011,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "想学啊？我教你啊。一曲肝肠断，天涯何处觅知音。",
                     review = "周星驰无厘头与传统武侠浪漫美学的集大成之作。从猪笼城寨的市井烟火到如来神掌化作彩蝶，充满了小人物对纯真童梦的守候。",
-                    coverUrl = "file:///android_asset/covers/douban_p2219011938.jpg",
+                    coverUrl = "covers/douban_p2219011938.jpg",
                     mindprint = floatArrayOf(8.8f, 9.4f, 9.2f, 8.6f, 4.0f, 9.5f),
                 ),
                 MovieEntry(
@@ -1010,7 +1023,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "不能逃避，面对人与人之间的AT力场，向所有的福音战士告别，再见所有的Evangelion。",
                     review = "跨越四分之一个世纪的青春终章。庵野秀明用最真诚的成年人笔触，打破了虚幻的避难所，教我们走出忧郁，拥抱真实的人间与现实世界。",
-                    coverUrl = "file:///android_asset/covers/bgm_6049_zy52O.jpg",
+                    coverUrl = "covers/bgm_6049_zy52O.jpg",
                     mindprint = floatArrayOf(9.9f, 9.6f, 9.8f, 8.5f, 6.0f, 9.5f),
                 ),
                 MovieEntry(
@@ -1022,7 +1035,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "阿嘛留下的不仅是摇椅与古厝的风，更是流淌在血脉里永远不会褪色的温暖记忆。",
                     review = "真挚动人的代际亲情与乡土记忆。用温柔细腻的镜头记录祖辈的坚韧与慈爱，勾起无数人内心最柔软的归宿感与故土乡愁。",
-                    coverUrl = "file:///android_asset/covers/douban_p2932240430.jpg",
+                    coverUrl = "covers/douban_p2932240430.jpg",
                     mindprint = floatArrayOf(9.0f, 9.5f, 10.0f, 8.6f, 3.5f, 10.0f),
                 ),
             )
@@ -1118,85 +1131,85 @@ class BookDatabaseHelper(val context: Context) :
 
             val gameList = listOf(
                 // 1. 魂系与硬核动作神作
-                GameEntry("艾尔登法环", "FromSoftware · 宫崎英高 / 乔治·马丁", "魂系神作", "finished", listOf("年度最佳", "魂系开放世界", "交界地", "宫崎英高", "神作"), 5.0, "落叶跳费，黄金树将庇护你我。愿引导之光与你同在，褪色者啊，成为艾尔登之王吧！", "开放世界箱庭设计的最高巅峰。从宁姆格福的晨光到黄金树脚下的律动，交界地的每一寸土地都回荡着神话破灭的史诗挽歌。", "file:///android_asset/covers/steam_1245620_library_600x900.jpg", floatArrayOf(9.8f, 10.0f, 9.5f, 9.2f, 9.8f, 6.0f)),
-                GameEntry("黑神话：悟空", "游戏科学 Game Science · 冯骥 / 杨奇", "动作角色扮演", "finished", listOf("国产3A丰碑", "东方神话", "西游后传", "动作RPG", "大圣归来"), 5.0, "踏过三界宝刹，阅尽九洲繁华。若不披上这身袈裟，唯恐负了这世间苍生。", "国产 3A 游戏的划时代里程碑。顶级的东方魔幻美术、深邃的西游后传叙事与酣畅淋漓的棍法变身，圆了无数国人的大圣之梦。", "file:///android_asset/covers/steam_2358720_library_600x900.jpg", floatArrayOf(9.6f, 10.0f, 9.8f, 9.0f, 9.2f, 8.0f)),
-                GameEntry("只狼：影逝二度", "FromSoftware · 宫崎英高", "硬核动作", "finished", listOf("年度最佳", "拼刀打铁", "苇名弦一郎", "硬核动作", "断绝不死"), 5.0, "犹豫就会败北！苇名一心。忍者的宿命，唯有侍奉唯一之主。", "冷兵器打铁音律的极致快感。弹刀见招拆招的压迫感与唯美苍凉的苇名古国风貌，将武士道与不死宿命展现得淋漓尽致。", "file:///android_asset/covers/steam_814380_library_600x900.jpg", floatArrayOf(9.2f, 9.6f, 9.2f, 9.5f, 10.0f, 6.5f)),
-                GameEntry("DARK SOULS™ III", "FromSoftware · 宫崎英高", "魂系神作", "finished", listOf("黑魂3", "传火时代", "无火余灰", "薪王们", "魂系巅峰"), 5.0, "灰烬大人，愿初火将您引向终焉。传火的漫长时代在此落幕。", "黑魂三部曲的终极史诗篇章。传火祭祀场中回荡的管风琴声与洛斯里克高墙，将不死人的宿命升华为永恒赞歌。", "file:///android_asset/covers/steam_374320_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.5f, 9.2f, 9.8f, 6.0f)),
-                GameEntry("DARK SOULS™: REMASTERED", "FromSoftware", "魂系始祖", "finished", listOf("魂系鼻祖", "赞美太阳", "罗德兰", "传火祭祀场"), 5.0, "赞美太阳！罗德兰古国的立体地图设计，魂系梦开始的地方。", "传火神话的开山之作。无缝垂直立体的罗德兰地图设计被奉为游戏关卡设计的无上教科书。", "file:///android_asset/covers/steam_570940_library_600x900.jpg", floatArrayOf(9.8f, 9.6f, 9.2f, 9.8f, 9.8f, 5.5f)),
-                GameEntry("DARK SOULS™ II: Scholar of the First Sin", "FromSoftware", "魂系经典", "finished", listOf("原罪学者", "多兰古雷格", "安迪尔", "黑魂2"), 4.8, "超越光明，超越黑暗。在受诅咒的命运之外，找寻全新的归途。", "多兰古雷格王国的宏大悲剧，探讨人性诅咒与原罪深度的厚重史诗。", "file:///android_asset/covers/steam_335300_library_600x900.jpg", floatArrayOf(9.4f, 9.2f, 9.0f, 9.2f, 9.6f, 5.5f)),
-                GameEntry("Devil May Cry 5", "CAPCOM · 伊津野英昭", "硬核动作", "finished", listOf("动作天花板", "CAPCOM", "SSS连招", "阎魔刀", "华丽摇滚"), 4.9, "抛弃所有平庸，以 SSS 级的华丽姿态撕碎恶魔！但丁、尼禄与维吉尔的宿命合奏。", "动作游戏（ACT）领域的皇冠明珠。顶尖的 RE 引擎画面、深度极高的连招判定与暴风骤雨般的摇滚战斗。", "file:///android_asset/covers/steam_601150_library_600x900.jpg", floatArrayOf(8.5f, 9.5f, 9.0f, 9.2f, 8.5f, 9.0f)),
-                GameEntry("剑星", "SHIFT UP · 金亨泰", "动作冒险", "finished", listOf("剑星", "SHIFT UP", "伊芙", "硬核动作", "末世地球"), 4.8, "伊芙降临荒废地球，以最优雅凌厉的剑技驱散孽奇拔的阴霾，拯救人类残存火种。", "兼具顶尖动作打击反馈与华丽韩系美学的 3A 动作新作。极度爽快的完美招架与处决演出。", "file:///android_asset/covers/bgm_283357_ZChZh.jpg", floatArrayOf(8.5f, 9.6f, 9.0f, 8.8f, 7.5f, 8.5f)),
-                GameEntry("明末：渊虚之羽", "灵泽科技", "国风魂系动作", "wishlist", listOf("明末蜀地", "古蜀文明", "国风魂系", "三星堆", "动作RPG"), 4.8, "明末乱世，羽化怪病肆虐蜀地。无常少女拔剑斩妖，探寻古蜀文明与宿命秘辛！", "备受期待的明末古蜀题材国风魂系动作大作。将三星堆、金沙古蜀文明与克苏鲁式羽化异变完美交融。", "file:///android_asset/covers/bgm_498460_DFndm.jpg", floatArrayOf(9.2f, 9.6f, 9.0f, 9.0f, 9.0f, 7.0f)),
+                GameEntry("艾尔登法环", "FromSoftware · 宫崎英高 / 乔治·马丁", "魂系神作", "finished", listOf("年度最佳", "魂系开放世界", "交界地", "宫崎英高", "神作"), 5.0, "落叶跳费，黄金树将庇护你我。愿引导之光与你同在，褪色者啊，成为艾尔登之王吧！", "开放世界箱庭设计的最高巅峰。从宁姆格福的晨光到黄金树脚下的律动，交界地的每一寸土地都回荡着神话破灭的史诗挽歌。", "covers/steam_1245620_library_600x900.jpg", floatArrayOf(9.8f, 10.0f, 9.5f, 9.2f, 9.8f, 6.0f)),
+                GameEntry("黑神话：悟空", "游戏科学 Game Science · 冯骥 / 杨奇", "动作角色扮演", "finished", listOf("国产3A丰碑", "东方神话", "西游后传", "动作RPG", "大圣归来"), 5.0, "踏过三界宝刹，阅尽九洲繁华。若不披上这身袈裟，唯恐负了这世间苍生。", "国产 3A 游戏的划时代里程碑。顶级的东方魔幻美术、深邃的西游后传叙事与酣畅淋漓的棍法变身，圆了无数国人的大圣之梦。", "covers/steam_2358720_library_600x900.jpg", floatArrayOf(9.6f, 10.0f, 9.8f, 9.0f, 9.2f, 8.0f)),
+                GameEntry("只狼：影逝二度", "FromSoftware · 宫崎英高", "硬核动作", "finished", listOf("年度最佳", "拼刀打铁", "苇名弦一郎", "硬核动作", "断绝不死"), 5.0, "犹豫就会败北！苇名一心。忍者的宿命，唯有侍奉唯一之主。", "冷兵器打铁音律的极致快感。弹刀见招拆招的压迫感与唯美苍凉的苇名古国风貌，将武士道与不死宿命展现得淋漓尽致。", "covers/steam_814380_library_600x900.jpg", floatArrayOf(9.2f, 9.6f, 9.2f, 9.5f, 10.0f, 6.5f)),
+                GameEntry("DARK SOULS™ III", "FromSoftware · 宫崎英高", "魂系神作", "finished", listOf("黑魂3", "传火时代", "无火余灰", "薪王们", "魂系巅峰"), 5.0, "灰烬大人，愿初火将您引向终焉。传火的漫长时代在此落幕。", "黑魂三部曲的终极史诗篇章。传火祭祀场中回荡的管风琴声与洛斯里克高墙，将不死人的宿命升华为永恒赞歌。", "covers/steam_374320_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.5f, 9.2f, 9.8f, 6.0f)),
+                GameEntry("DARK SOULS™: REMASTERED", "FromSoftware", "魂系始祖", "finished", listOf("魂系鼻祖", "赞美太阳", "罗德兰", "传火祭祀场"), 5.0, "赞美太阳！罗德兰古国的立体地图设计，魂系梦开始的地方。", "传火神话的开山之作。无缝垂直立体的罗德兰地图设计被奉为游戏关卡设计的无上教科书。", "covers/steam_570940_library_600x900.jpg", floatArrayOf(9.8f, 9.6f, 9.2f, 9.8f, 9.8f, 5.5f)),
+                GameEntry("DARK SOULS™ II: Scholar of the First Sin", "FromSoftware", "魂系经典", "finished", listOf("原罪学者", "多兰古雷格", "安迪尔", "黑魂2"), 4.8, "超越光明，超越黑暗。在受诅咒的命运之外，找寻全新的归途。", "多兰古雷格王国的宏大悲剧，探讨人性诅咒与原罪深度的厚重史诗。", "covers/steam_335300_library_600x900.jpg", floatArrayOf(9.4f, 9.2f, 9.0f, 9.2f, 9.6f, 5.5f)),
+                GameEntry("Devil May Cry 5", "CAPCOM · 伊津野英昭", "硬核动作", "finished", listOf("动作天花板", "CAPCOM", "SSS连招", "阎魔刀", "华丽摇滚"), 4.9, "抛弃所有平庸，以 SSS 级的华丽姿态撕碎恶魔！但丁、尼禄与维吉尔的宿命合奏。", "动作游戏（ACT）领域的皇冠明珠。顶尖的 RE 引擎画面、深度极高的连招判定与暴风骤雨般的摇滚战斗。", "covers/steam_601150_library_600x900.jpg", floatArrayOf(8.5f, 9.5f, 9.0f, 9.2f, 8.5f, 9.0f)),
+                GameEntry("剑星", "SHIFT UP · 金亨泰", "动作冒险", "finished", listOf("剑星", "SHIFT UP", "伊芙", "硬核动作", "末世地球"), 4.8, "伊芙降临荒废地球，以最优雅凌厉的剑技驱散孽奇拔的阴霾，拯救人类残存火种。", "兼具顶尖动作打击反馈与华丽韩系美学的 3A 动作新作。极度爽快的完美招架与处决演出。", "covers/bgm_283357_ZChZh.jpg", floatArrayOf(8.5f, 9.6f, 9.0f, 8.8f, 7.5f, 8.5f)),
+                GameEntry("明末：渊虚之羽", "灵泽科技", "国风魂系动作", "wishlist", listOf("明末蜀地", "古蜀文明", "国风魂系", "三星堆", "动作RPG"), 4.8, "明末乱世，羽化怪病肆虐蜀地。无常少女拔剑斩妖，探寻古蜀文明与宿命秘辛！", "备受期待的明末古蜀题材国风魂系动作大作。将三星堆、金沙古蜀文明与克苏鲁式羽化异变完美交融。", "covers/bgm_498460_DFndm.jpg", floatArrayOf(9.2f, 9.6f, 9.0f, 9.0f, 9.0f, 7.0f)),
 
                 // 2. JRPG / 殿堂叙事与心之物语
-                GameEntry("女神异闻录5皇家版", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P5天下第一", "JRPG巅峰", "心之怪盗团", "潮酷美学", "神作"), 5.0, "夺取那些腐朽大人的扭曲欲望，在这个无可救药的世界中贯彻属于心之怪盗团的正义！Take Your Heart!", "天下第一的 JRPG 殿堂神作。无与伦比的潮爆 UI 视觉语言、酸爵士配乐与白天高中生活、夜晚怪盗夺心双重人生的完美融合。", "file:///android_asset/covers/steam_1687950_header.jpg", floatArrayOf(9.5f, 10.0f, 9.8f, 9.2f, 6.0f, 9.6f)),
-                GameEntry("女神异闻录3 Reload", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P3R", "铭记死亡", "影时间", "ATLUS", "神作重制"), 4.9, "Memento Mori（铭记死亡）。在影时间中直面终焉与救赎，化作永恒的迎春花。", "P3 系列的终极完全重制。深邃的生死哲学命题、鞑靼罗斯之塔探索与经典人格面具召唤，催人泪下的灵魂篇章。", "file:///android_asset/covers/steam_2179850_library_600x900.jpg", floatArrayOf(9.8f, 9.6f, 10.0f, 9.0f, 6.5f, 8.5f)),
-                GameEntry("女神异闻录4 黄金版", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P4G", "八十稻羽", "深夜电视", "真理追寻", "黄金青春"), 4.9, "拨开深夜电视的迷雾，追寻无可取代的羁绊与唯一的真实。", "充满稻羽市乡村阳光与青春回忆的侦探物语。自称特别搜查队的伙伴们在电视世界中直面真实自我的温暖传奇。", "file:///android_asset/covers/steam_1221250_library_600x900.jpg", floatArrayOf(9.2f, 9.4f, 9.8f, 9.0f, 5.5f, 9.8f)),
-                GameEntry("暗喻幻想：ReFantazio", "ATLUS · Studio Zero · 桥野桂", "日系角色扮演", "finished", listOf("桥野桂", "ATLUS", "选举之王", "年度RPG", "幻想史诗"), 5.0, "打破血统与种族的枷锁，在没有偏见的幻想世界中，为人民加冕为王！", "桥野桂、副岛成记、目黑将司铁三角打造的全新幻想 RPG 巅峰。探讨焦虑与乌托邦政治选举的哲学巨作。", "file:///android_asset/covers/steam_2670770_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.5f, 9.4f, 6.5f, 9.0f)),
-                GameEntry("神之天平（ASTLIBRA Revision）", "KEIZO · DX Library", "横版动作RPG", "finished", listOf("神作", "神级剧本", "一人十四年", "时间跨越", "热血反转"), 5.0, "跨越十四年的时光执念，与乌鸦嘉隆一同拨动命运的天平，向神明挥剑！", "一人独立开发十四年的传世独立神作。无可挑剔的剧本层层反转、极度爽快的横版刷宝战斗与宏大的宿命交响。", "file:///android_asset/covers/steam_1718570_library_600x900.jpg", floatArrayOf(9.8f, 9.2f, 10.0f, 9.6f, 7.5f, 9.2f)),
-                GameEntry("Granblue Fantasy: Relink", "Cygames", "日系动作共斗", "finished", listOf("骑空团", "Cygames", "奥义连锁", "日系共斗", "王道冒险"), 4.8, "向着星之岛伊斯塔鲁西亚扬帆！骑空团四人连携奥义，在云海之上斩落巨兽！", "Cygames 匠心打磨的日式动作共斗佳作。极具冲击力的奥义连锁 Chain Burst 与王道冒险物语。", "file:///android_asset/covers/steam_881020_library_600x900.jpg", floatArrayOf(8.5f, 9.6f, 9.4f, 8.8f, 6.5f, 9.0f)),
-                GameEntry("莱莎的炼金工房 ～常暗女王与秘密藏身处～", "GUST · 光荣特库摩", "日系炼金RPG", "finished", listOf("莱莎", "炼金工房", "夏日冒险", "治愈日常"), 4.8, "库肯岛的夏日微风与炼金大锅，属于平凡少女不可思议的盛夏冒险！", "炼金工房系列最畅销之作。充满乡村夏日惬意风情的探索采集与合成系统。", "file:///android_asset/covers/steam_1152620_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 9.2f, 9.0f, 4.0f, 9.8f)),
+                GameEntry("女神异闻录5皇家版", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P5天下第一", "JRPG巅峰", "心之怪盗团", "潮酷美学", "神作"), 5.0, "夺取那些腐朽大人的扭曲欲望，在这个无可救药的世界中贯彻属于心之怪盗团的正义！Take Your Heart!", "天下第一的 JRPG 殿堂神作。无与伦比的潮爆 UI 视觉语言、酸爵士配乐与白天高中生活、夜晚怪盗夺心双重人生的完美融合。", "covers/steam_1687950_header.jpg", floatArrayOf(9.5f, 10.0f, 9.8f, 9.2f, 6.0f, 9.6f)),
+                GameEntry("女神异闻录3 Reload", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P3R", "铭记死亡", "影时间", "ATLUS", "神作重制"), 4.9, "Memento Mori（铭记死亡）。在影时间中直面终焉与救赎，化作永恒的迎春花。", "P3 系列的终极完全重制。深邃的生死哲学命题、鞑靼罗斯之塔探索与经典人格面具召唤，催人泪下的灵魂篇章。", "covers/steam_2179850_library_600x900.jpg", floatArrayOf(9.8f, 9.6f, 10.0f, 9.0f, 6.5f, 8.5f)),
+                GameEntry("女神异闻录4 黄金版", "ATLUS · P-Studio", "日系角色扮演", "finished", listOf("P4G", "八十稻羽", "深夜电视", "真理追寻", "黄金青春"), 4.9, "拨开深夜电视的迷雾，追寻无可取代的羁绊与唯一的真实。", "充满稻羽市乡村阳光与青春回忆的侦探物语。自称特别搜查队的伙伴们在电视世界中直面真实自我的温暖传奇。", "covers/steam_1221250_library_600x900.jpg", floatArrayOf(9.2f, 9.4f, 9.8f, 9.0f, 5.5f, 9.8f)),
+                GameEntry("暗喻幻想：ReFantazio", "ATLUS · Studio Zero · 桥野桂", "日系角色扮演", "finished", listOf("桥野桂", "ATLUS", "选举之王", "年度RPG", "幻想史诗"), 5.0, "打破血统与种族的枷锁，在没有偏见的幻想世界中，为人民加冕为王！", "桥野桂、副岛成记、目黑将司铁三角打造的全新幻想 RPG 巅峰。探讨焦虑与乌托邦政治选举的哲学巨作。", "covers/steam_2670770_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.5f, 9.4f, 6.5f, 9.0f)),
+                GameEntry("神之天平（ASTLIBRA Revision）", "KEIZO · DX Library", "横版动作RPG", "finished", listOf("神作", "神级剧本", "一人十四年", "时间跨越", "热血反转"), 5.0, "跨越十四年的时光执念，与乌鸦嘉隆一同拨动命运的天平，向神明挥剑！", "一人独立开发十四年的传世独立神作。无可挑剔的剧本层层反转、极度爽快的横版刷宝战斗与宏大的宿命交响。", "covers/steam_1718570_library_600x900.jpg", floatArrayOf(9.8f, 9.2f, 10.0f, 9.6f, 7.5f, 9.2f)),
+                GameEntry("Granblue Fantasy: Relink", "Cygames", "日系动作共斗", "finished", listOf("骑空团", "Cygames", "奥义连锁", "日系共斗", "王道冒险"), 4.8, "向着星之岛伊斯塔鲁西亚扬帆！骑空团四人连携奥义，在云海之上斩落巨兽！", "Cygames 匠心打磨的日式动作共斗佳作。极具冲击力的奥义连锁 Chain Burst 与王道冒险物语。", "covers/steam_881020_library_600x900.jpg", floatArrayOf(8.5f, 9.6f, 9.4f, 8.8f, 6.5f, 9.0f)),
+                GameEntry("莱莎的炼金工房 ～常暗女王与秘密藏身处～", "GUST · 光荣特库摩", "日系炼金RPG", "finished", listOf("莱莎", "炼金工房", "夏日冒险", "治愈日常"), 4.8, "库肯岛的夏日微风与炼金大锅，属于平凡少女不可思议的盛夏冒险！", "炼金工房系列最畅销之作。充满乡村夏日惬意风情的探索采集与合成系统。", "covers/steam_1152620_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 9.2f, 9.0f, 4.0f, 9.8f)),
 
                 // 3. 肉鸽卡牌与独立神作
-                GameEntry("杀戮尖塔", "Mega Crit Games", "肉鸽卡牌", "finished", listOf("肉鸽神作", "卡牌构筑", "DBG鼻祖", "策略巅峰", "无尽爬塔"), 5.0, "高塔的心脏仍在跳动，一次又一次构筑你的套牌向顶端发起冲击！", "DBG（卡组构筑）肉鸽游戏的现代鼻祖与黄金标准。四种机制迥异的职业与近乎完美的数值平衡，造就了令人欲罢不能的爬塔体验。", "file:///android_asset/covers/steam_646570_library_600x900.jpg", floatArrayOf(8.5f, 8.8f, 8.5f, 10.0f, 8.8f, 7.5f)),
-                GameEntry("杀戮尖塔 2", "Mega Crit Games", "肉鸽卡牌", "wishlist", listOf("尖塔续作", "肉鸽期待", "卡牌神作", "死灵术士"), 5.0, "千年之后，高塔再次开启。死灵法师与全新遗物，迎接全新的爬塔传奇！", "万众期待的爬塔正统续作。全新引擎打造，引入全新职业死灵术士、剧毒机制与跨时代卡牌联动。", "file:///android_asset/covers/steam_2868840_library_600x900.jpg", floatArrayOf(8.8f, 9.0f, 8.8f, 10.0f, 9.0f, 8.0f)),
-                GameEntry("Hades", "Supergiant Games", "动作肉鸽", "finished", listOf("动作肉鸽巅峰", "希腊神话", "扎格列欧斯", "Supergiant"), 5.0, "在冥界深渊中一次又一次逃脱，哪怕死亡也无法阻止寻找母亲的脚步！", "将希腊神话群像剧本与动作肉鸽爽快打击感无缝融合的典范神作。每一次死亡都会推进全新剧情对话。", "file:///android_asset/covers/steam_1145360_library_600x900.jpg", floatArrayOf(9.0f, 9.8f, 9.5f, 9.6f, 8.0f, 9.0f)),
-                GameEntry("Dead Cells", "Motion Twin", "横版肉鸽动作", "finished", listOf("横版肉鸽", "爽快打击", "无头宿主", "皇室城堡"), 4.9, "菜就多练！翻滚、格挡、狂暴输出，在不断重生的牢房中杀出一条血路！", "打击感与动作流畅度首屈一指的横版银河恶魔城肉鸽。百种武器搭配与细胞升级体系极具深度。", "file:///android_asset/covers/steam_588650_library_600x900.jpg", floatArrayOf(8.0f, 9.2f, 8.0f, 9.5f, 9.2f, 8.0f)),
-                GameEntry("Hollow Knight", "Team Cherry", "银河恶魔城", "finished", listOf("银河恶魔城巅峰", "圣巢", "小骑士", "丝之歌", "神作"), 5.0, "没有可以思考的心智，没有可以屈服的意志。小骑士穿越圣巢废墟，封印终极瘟疫光芒。", "银河恶魔城类型的无上丰碑。精雕细琢的昆虫王国地下世界、手绘哥特暗黑美学与富有挑战性的 BOSS 战体验。", "file:///android_asset/covers/steam_367520_library_600x900.jpg", floatArrayOf(9.6f, 10.0f, 9.5f, 9.5f, 9.5f, 7.0f)),
-                GameEntry("Celeste", "Extremely OK Games", "平台跳跃神作", "finished", listOf("TGA最佳影响力", "硬核跳跃", "战胜抑郁", "神级配乐"), 5.0, "深呼吸，你可以战胜心中的恐慌与阴暗面。登上塞莱斯特山顶吧，玛德琳！", "关卡设计与心理叙事完美交融的神作。通过攀登险峻雪山的硬核跳跃，帮助无数抑郁与焦虑症患者战胜心魔。", "file:///android_asset/covers/steam_504230_library_600x900.jpg", floatArrayOf(9.2f, 9.8f, 10.0f, 9.8f, 9.6f, 10.0f)),
-                GameEntry("挺进地牢", "Dodge Roll", "弹幕射击肉鸽", "finished", listOf("弹幕肉鸽", "消灭过去", "翻滚无敌", "像素射击"), 4.9, "翻滚规避弹幕，消灭过去之枪！在无尽地牢中收集百种枪械狂欢！", "将弹幕射击与武器创意发挥到极致的像素肉鸽。翻滚无敌帧与掀桌掩体的快感。", "file:///android_asset/covers/steam_311690_library_600x900.jpg", floatArrayOf(8.0f, 9.0f, 8.5f, 9.6f, 9.0f, 8.5f)),
-                GameEntry("土豆兄弟(Brotato)", "Blobfish", "爽快割草肉鸽", "finished", listOf("割草神作", "六枪土豆", "上头解压", "构筑狂欢"), 4.8, "手持六把加特林，在疯狂外星虫潮中横扫千军！极致解压的五分钟爽快割草。", "极简画面下蕴含无尽策略深度的自走割草肉鸽神作。", "file:///android_asset/covers/steam_1942280_library_600x900.jpg", floatArrayOf(7.5f, 8.5f, 8.0f, 9.8f, 7.5f, 9.5f)),
-                GameEntry("苍翼：混沌效应", "91Act", "横版动作肉鸽", "finished", listOf("苍翼默示录", "丝滑动作", "赛博肉鸽", "横版连招"), 4.8, "潜入意识空间，在混沌霓虹中打出无缝连段与潜能质变！", "格斗游戏级丝滑手感的横版动作肉鸽。苍翼默示录经典角色与潜能继承系统。", "file:///android_asset/covers/steam_2273430_library_600x900.jpg", floatArrayOf(8.5f, 9.4f, 8.8f, 9.0f, 8.0f, 8.5f)),
-                GameEntry("Library Of Ruina", "Project Moon", "卡牌策略RPG", "finished", listOf("Project Moon", "罗兰", "都市残酷", "卡牌策略"), 4.9, "愿你在此找到想要的书。在都市的残酷齿轮下，司书罗兰与安吉拉的舞台！", "独一无二的脑叶公司世界观衍生神作。极具深度的骰子卡牌拼点与宏大的都市悲喜剧。", "file:///android_asset/covers/steam_1256670_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.6f, 9.8f, 9.0f, 7.5f)),
-                GameEntry("Limbus Company", "Project Moon", "回合制策略RPG", "finished", listOf("边狱公司", "罪人巴士", "但丁", "都市物语"), 4.8, "引导十二位罪人，穿梭于都市二十六个巢区，回收金枝！", "黑暗哥特风格的都市罪人救赎物语。硬核硬派的回合拼点与深度群像叙事。", "file:///android_asset/covers/steam_1973530_library_600x900.jpg", floatArrayOf(9.4f, 9.6f, 9.4f, 9.6f, 8.5f, 7.5f)),
+                GameEntry("杀戮尖塔", "Mega Crit Games", "肉鸽卡牌", "finished", listOf("肉鸽神作", "卡牌构筑", "DBG鼻祖", "策略巅峰", "无尽爬塔"), 5.0, "高塔的心脏仍在跳动，一次又一次构筑你的套牌向顶端发起冲击！", "DBG（卡组构筑）肉鸽游戏的现代鼻祖与黄金标准。四种机制迥异的职业与近乎完美的数值平衡，造就了令人欲罢不能的爬塔体验。", "covers/steam_646570_library_600x900.jpg", floatArrayOf(8.5f, 8.8f, 8.5f, 10.0f, 8.8f, 7.5f)),
+                GameEntry("杀戮尖塔 2", "Mega Crit Games", "肉鸽卡牌", "wishlist", listOf("尖塔续作", "肉鸽期待", "卡牌神作", "死灵术士"), 5.0, "千年之后，高塔再次开启。死灵法师与全新遗物，迎接全新的爬塔传奇！", "万众期待的爬塔正统续作。全新引擎打造，引入全新职业死灵术士、剧毒机制与跨时代卡牌联动。", "covers/steam_2868840_library_600x900.jpg", floatArrayOf(8.8f, 9.0f, 8.8f, 10.0f, 9.0f, 8.0f)),
+                GameEntry("Hades", "Supergiant Games", "动作肉鸽", "finished", listOf("动作肉鸽巅峰", "希腊神话", "扎格列欧斯", "Supergiant"), 5.0, "在冥界深渊中一次又一次逃脱，哪怕死亡也无法阻止寻找母亲的脚步！", "将希腊神话群像剧本与动作肉鸽爽快打击感无缝融合的典范神作。每一次死亡都会推进全新剧情对话。", "covers/steam_1145360_library_600x900.jpg", floatArrayOf(9.0f, 9.8f, 9.5f, 9.6f, 8.0f, 9.0f)),
+                GameEntry("Dead Cells", "Motion Twin", "横版肉鸽动作", "finished", listOf("横版肉鸽", "爽快打击", "无头宿主", "皇室城堡"), 4.9, "菜就多练！翻滚、格挡、狂暴输出，在不断重生的牢房中杀出一条血路！", "打击感与动作流畅度首屈一指的横版银河恶魔城肉鸽。百种武器搭配与细胞升级体系极具深度。", "covers/steam_588650_library_600x900.jpg", floatArrayOf(8.0f, 9.2f, 8.0f, 9.5f, 9.2f, 8.0f)),
+                GameEntry("Hollow Knight", "Team Cherry", "银河恶魔城", "finished", listOf("银河恶魔城巅峰", "圣巢", "小骑士", "丝之歌", "神作"), 5.0, "没有可以思考的心智，没有可以屈服的意志。小骑士穿越圣巢废墟，封印终极瘟疫光芒。", "银河恶魔城类型的无上丰碑。精雕细琢的昆虫王国地下世界、手绘哥特暗黑美学与富有挑战性的 BOSS 战体验。", "covers/steam_367520_library_600x900.jpg", floatArrayOf(9.6f, 10.0f, 9.5f, 9.5f, 9.5f, 7.0f)),
+                GameEntry("Celeste", "Extremely OK Games", "平台跳跃神作", "finished", listOf("TGA最佳影响力", "硬核跳跃", "战胜抑郁", "神级配乐"), 5.0, "深呼吸，你可以战胜心中的恐慌与阴暗面。登上塞莱斯特山顶吧，玛德琳！", "关卡设计与心理叙事完美交融的神作。通过攀登险峻雪山的硬核跳跃，帮助无数抑郁与焦虑症患者战胜心魔。", "covers/steam_504230_library_600x900.jpg", floatArrayOf(9.2f, 9.8f, 10.0f, 9.8f, 9.6f, 10.0f)),
+                GameEntry("挺进地牢", "Dodge Roll", "弹幕射击肉鸽", "finished", listOf("弹幕肉鸽", "消灭过去", "翻滚无敌", "像素射击"), 4.9, "翻滚规避弹幕，消灭过去之枪！在无尽地牢中收集百种枪械狂欢！", "将弹幕射击与武器创意发挥到极致的像素肉鸽。翻滚无敌帧与掀桌掩体的快感。", "covers/steam_311690_library_600x900.jpg", floatArrayOf(8.0f, 9.0f, 8.5f, 9.6f, 9.0f, 8.5f)),
+                GameEntry("土豆兄弟(Brotato)", "Blobfish", "爽快割草肉鸽", "finished", listOf("割草神作", "六枪土豆", "上头解压", "构筑狂欢"), 4.8, "手持六把加特林，在疯狂外星虫潮中横扫千军！极致解压的五分钟爽快割草。", "极简画面下蕴含无尽策略深度的自走割草肉鸽神作。", "covers/steam_1942280_library_600x900.jpg", floatArrayOf(7.5f, 8.5f, 8.0f, 9.8f, 7.5f, 9.5f)),
+                GameEntry("苍翼：混沌效应", "91Act", "横版动作肉鸽", "finished", listOf("苍翼默示录", "丝滑动作", "赛博肉鸽", "横版连招"), 4.8, "潜入意识空间，在混沌霓虹中打出无缝连段与潜能质变！", "格斗游戏级丝滑手感的横版动作肉鸽。苍翼默示录经典角色与潜能继承系统。", "covers/steam_2273430_library_600x900.jpg", floatArrayOf(8.5f, 9.4f, 8.8f, 9.0f, 8.0f, 8.5f)),
+                GameEntry("Library Of Ruina", "Project Moon", "卡牌策略RPG", "finished", listOf("Project Moon", "罗兰", "都市残酷", "卡牌策略"), 4.9, "愿你在此找到想要的书。在都市的残酷齿轮下，司书罗兰与安吉拉的舞台！", "独一无二的脑叶公司世界观衍生神作。极具深度的骰子卡牌拼点与宏大的都市悲喜剧。", "covers/steam_1256670_library_600x900.jpg", floatArrayOf(9.6f, 9.8f, 9.6f, 9.8f, 9.0f, 7.5f)),
+                GameEntry("Limbus Company", "Project Moon", "回合制策略RPG", "finished", listOf("边狱公司", "罪人巴士", "但丁", "都市物语"), 4.8, "引导十二位罪人，穿梭于都市二十六个巢区，回收金枝！", "黑暗哥特风格的都市罪人救赎物语。硬核硬派的回合拼点与深度群像叙事。", "covers/steam_1973530_library_600x900.jpg", floatArrayOf(9.4f, 9.6f, 9.4f, 9.6f, 8.5f, 7.5f)),
 
                 // 4. Freebird 系列与灵魂催泪物语
-                GameEntry("To the Moon《去月球》", "Freebird Games · 高瞰", "叙事催泪神作", "finished", listOf("催泪天花板", "神级配乐", "去月球", "纯真爱恋", "心灵洗礼"), 5.0, "如果我迷路了，我们就在月亮上相见！折一只纸兔子，跨越记忆的长河奔向你。", "游戏艺术史上最纯粹的心灵震撼。用钢琴声和像素画面谱写了一曲关于阿斯伯格综合征、承诺与跨越生死的至高爱之诗。", "file:///android_asset/covers/steam_206420_library_600x900.jpg", floatArrayOf(9.5f, 10.0f, 10.0f, 8.8f, 2.0f, 10.0f)),
-                GameEntry("Finding Paradise《寻找天堂》", "Freebird Games · 高瞰", "叙事催泪神作", "finished", listOf("寻找天堂", "Freebird", "自我和解", "催泪感动"), 5.0, "即便一生充满平淡与遗憾，我也曾拥有过属于自己的幻想之翼与真实人生。", "去月球正统续作。探讨与自我和解、童年幻想朋友菲耶与接受不完美人生的温柔篇章。", "file:///android_asset/covers/steam_337340_library_600x900.jpg", floatArrayOf(9.4f, 9.8f, 10.0f, 8.6f, 2.0f, 10.0f)),
-                GameEntry("Impostor Factory《影子工厂》", "Freebird Games · 高瞰", "悬疑叙事", "finished", listOf("影子工厂", "Freebird", "悬疑科幻", "时间轮回"), 4.8, "在暴雨古宅与量子蝴蝶翅膀之间，用一杯红茶倒映出宇宙全息生命的悲喜。", "Freebird 系列第三部曲。融入悬疑谋杀与科幻轮回，揭示记忆修改技术的起源与母爱的深邃奇迹。", "file:///android_asset/covers/steam_1182620_library_600x900.jpg", floatArrayOf(9.2f, 9.5f, 9.6f, 9.0f, 3.0f, 9.2f)),
-                GameEntry("A Bird Story", "Freebird Games · 高瞰", "唯美治愈", "finished", listOf("无字短篇", "唯美治愈", "童真梦境", "温暖"), 4.8, "无字的长卷，一个小男孩与一只断翅小鸟的纯真童梦飞行。", "没有任何台词纯靠画面与音乐推动的唯美短篇。连接《去月球》与《寻找天堂》的心灵纽带。", "file:///android_asset/covers/steam_265610_library_600x900.jpg", floatArrayOf(8.5f, 9.5f, 9.5f, 7.5f, 1.5f, 10.0f)),
-                GameEntry("ATRI -My Dear Moments-", "Frontwing · 枕社", "视觉小说", "finished", listOf("ATRI", "亚托莉", "沉没末日", "仿生少女", "催泪神作"), 4.9, "即便地表沉入海底，即便机能停止运转，我也要为你献上最后四十五天的璀璨微笑。", "末日与仿生少女相伴的心灵物语。探讨情感与灵魂存在意义的催泪视觉小说巅峰。", "file:///android_asset/covers/steam_1290260_library_600x900.jpg", floatArrayOf(9.0f, 9.6f, 10.0f, 8.5f, 2.0f, 9.8f)),
-                GameEntry("Ori and the Will of the Wisps", "Moon Studios", "唯美动作冒险", "finished", listOf("视听艺术", "奥日2", "唯美动作", "萤火意志", "催泪感动"), 5.0, "为了守护森林与挚友库，微光化作永恒的神圣古树，拥抱光明。", "艺术品级别的视听盛宴。流畅如丝绸的位移手感与直击心灵的交响乐，将光与暗的牺牲救赎演绎到极致。", "file:///android_asset/covers/steam_1057090_library_600x900.jpg", floatArrayOf(9.0f, 10.0f, 10.0f, 9.0f, 7.5f, 9.8f)),
-                GameEntry("Ori and the Blind Forest", "Moon Studios", "唯美动作冒险", "finished", listOf("水彩童话", "尼贝尔森林", "母爱挽歌", "唯美跳跃"), 4.9, "在尼贝尔森林枯萎的黑暗中，小精灵奥日点亮希望的第一缕微光。", "如同在动态水彩画中奔跑的艺术巨作。开场十分钟母子情深的动画让无数玩家潸然泪下。", "file:///android_asset/covers/steam_387290_library_600x900.jpg", floatArrayOf(8.8f, 10.0f, 9.8f, 8.8f, 7.0f, 9.8f)),
+                GameEntry("To the Moon《去月球》", "Freebird Games · 高瞰", "叙事催泪神作", "finished", listOf("催泪天花板", "神级配乐", "去月球", "纯真爱恋", "心灵洗礼"), 5.0, "如果我迷路了，我们就在月亮上相见！折一只纸兔子，跨越记忆的长河奔向你。", "游戏艺术史上最纯粹的心灵震撼。用钢琴声和像素画面谱写了一曲关于阿斯伯格综合征、承诺与跨越生死的至高爱之诗。", "covers/steam_206420_library_600x900.jpg", floatArrayOf(9.5f, 10.0f, 10.0f, 8.8f, 2.0f, 10.0f)),
+                GameEntry("Finding Paradise《寻找天堂》", "Freebird Games · 高瞰", "叙事催泪神作", "finished", listOf("寻找天堂", "Freebird", "自我和解", "催泪感动"), 5.0, "即便一生充满平淡与遗憾，我也曾拥有过属于自己的幻想之翼与真实人生。", "去月球正统续作。探讨与自我和解、童年幻想朋友菲耶与接受不完美人生的温柔篇章。", "covers/steam_337340_library_600x900.jpg", floatArrayOf(9.4f, 9.8f, 10.0f, 8.6f, 2.0f, 10.0f)),
+                GameEntry("Impostor Factory《影子工厂》", "Freebird Games · 高瞰", "悬疑叙事", "finished", listOf("影子工厂", "Freebird", "悬疑科幻", "时间轮回"), 4.8, "在暴雨古宅与量子蝴蝶翅膀之间，用一杯红茶倒映出宇宙全息生命的悲喜。", "Freebird 系列第三部曲。融入悬疑谋杀与科幻轮回，揭示记忆修改技术的起源与母爱的深邃奇迹。", "covers/steam_1182620_library_600x900.jpg", floatArrayOf(9.2f, 9.5f, 9.6f, 9.0f, 3.0f, 9.2f)),
+                GameEntry("A Bird Story", "Freebird Games · 高瞰", "唯美治愈", "finished", listOf("无字短篇", "唯美治愈", "童真梦境", "温暖"), 4.8, "无字的长卷，一个小男孩与一只断翅小鸟的纯真童梦飞行。", "没有任何台词纯靠画面与音乐推动的唯美短篇。连接《去月球》与《寻找天堂》的心灵纽带。", "covers/steam_265610_library_600x900.jpg", floatArrayOf(8.5f, 9.5f, 9.5f, 7.5f, 1.5f, 10.0f)),
+                GameEntry("ATRI -My Dear Moments-", "Frontwing · 枕社", "视觉小说", "finished", listOf("ATRI", "亚托莉", "沉没末日", "仿生少女", "催泪神作"), 4.9, "即便地表沉入海底，即便机能停止运转，我也要为你献上最后四十五天的璀璨微笑。", "末日与仿生少女相伴的心灵物语。探讨情感与灵魂存在意义的催泪视觉小说巅峰。", "covers/steam_1290260_library_600x900.jpg", floatArrayOf(9.0f, 9.6f, 10.0f, 8.5f, 2.0f, 9.8f)),
+                GameEntry("Ori and the Will of the Wisps", "Moon Studios", "唯美动作冒险", "finished", listOf("视听艺术", "奥日2", "唯美动作", "萤火意志", "催泪感动"), 5.0, "为了守护森林与挚友库，微光化作永恒的神圣古树，拥抱光明。", "艺术品级别的视听盛宴。流畅如丝绸的位移手感与直击心灵的交响乐，将光与暗的牺牲救赎演绎到极致。", "covers/steam_1057090_library_600x900.jpg", floatArrayOf(9.0f, 10.0f, 10.0f, 9.0f, 7.5f, 9.8f)),
+                GameEntry("Ori and the Blind Forest", "Moon Studios", "唯美动作冒险", "finished", listOf("水彩童话", "尼贝尔森林", "母爱挽歌", "唯美跳跃"), 4.9, "在尼贝尔森林枯萎的黑暗中，小精灵奥日点亮希望的第一缕微光。", "如同在动态水彩画中奔跑的艺术巨作。开场十分钟母子情深的动画让无数玩家潸然泪下。", "covers/steam_387290_library_600x900.jpg", floatArrayOf(8.8f, 10.0f, 9.8f, 8.8f, 7.0f, 9.8f)),
 
                 // 5. 叙事开放世界与沉浸模拟
-                GameEntry("赛博朋克 2077", "CD PROJEKT RED", "开放世界RPG", "finished", listOf("夜之城", "赛博朋克", "强尼银手", "往日之影", "CDPR"), 4.9, "夜之城没有活着的传奇。大闹一场吧V，把荒坂塔点燃，敬所有的来生酒！", "科幻赛博朋克视觉艺术与沉浸叙事的集大成之作。强尼·银手的意识寄生与夜之城冷血资本下的悲壮挽歌。", "file:///android_asset/covers/steam_1091500_library_600x900.jpg", floatArrayOf(9.5f, 9.8f, 9.8f, 8.8f, 6.5f, 8.0f)),
-                GameEntry("巫师 3：狂猎", "CD PROJEKT RED", "开放世界RPG", "finished", listOf("年度最佳", "白狼", "欧美RPG巅峰", "石之心", "血与酒"), 5.0, "恶就是恶，无论是大恶还是小恶，如果要我二选一，我宁愿什么都不选。白狼杰洛特与希里。", "欧美 RPG 叙事不可逾越的高山。从血腥男爵的悲剧到陶森特的阳光葡萄园，展现了最真实的人性灰度与史诗冒险。", "file:///android_asset/covers/steam_292030_library_600x900.jpg", floatArrayOf(9.8f, 9.8f, 9.8f, 9.5f, 6.5f, 8.5f)),
-                GameEntry("底特律：化身为人类", "Quantic Dream", "互动电影叙事", "finished", listOf("互动电影", "仿生人觉醒", "康纳酱", "自由之声", "蝴蝶效应"), 4.9, "我是一个有感觉的生命，我不是机器。康纳、马库斯与卡拉的觉醒之歌。", "互动电影游戏的巅峰代表作。庞大复杂的蝴蝶效应分支树与探讨仿生人自我意识、人权与自由的深刻命题。", "file:///android_asset/covers/steam_1222140_library_600x900.jpg", floatArrayOf(9.5f, 9.5f, 9.8f, 9.4f, 4.0f, 9.0f)),
-                GameEntry("饥荒", "Klei Entertainment", "生存沙盒", "finished", listOf("硬核生存", "哥特手绘", "San值狂掉", "联机神作"), 4.9, "在永夜与疯癫降临前点燃火把。活下去，在这个充满哥特荒诞的荒野世界！", "暗黑手绘哥特风生存沙盒的巅峰。理智值（San值）与四季生物群系的机制让人沉浸其中数百小时。", "file:///android_asset/covers/steam_219740_library_600x900.jpg", floatArrayOf(8.8f, 9.5f, 8.8f, 9.5f, 8.8f, 8.0f)),
-                GameEntry("缺氧", "Klei Entertainment", "硬核模拟经营", "finished", listOf("硬核科学", "自动化工程", "Klei", "小行星殖民"), 4.9, "热力学定律在小行星内部运作。调配每一口氧气与热量，带领复制人建立太空文明！", "硬核物理热力学与自动化工程模拟的天花板。管道、电路与气体液体的流动构建了无与伦比的工业美学。", "file:///android_asset/covers/steam_457140_library_600x900.jpg", floatArrayOf(9.0f, 9.0f, 8.0f, 10.0f, 9.8f, 8.0f)),
-                GameEntry("极限竞速：地平线 4", "Playground Games", "竞速汽车文化", "finished", listOf("地平线4", "四季更迭", "英伦漫游", "赛车巅峰"), 4.9, "四季更迭的英伦风光，在爱丁堡的落叶与雪原上肆意漂移，享受纯粹的驾驶浪漫！", "开放世界赛车游戏的殿堂标杆。如画的英伦乡间与上百款超跑的声浪交响。", "file:///android_asset/covers/bgm_471932_uHoWl.jpg", floatArrayOf(7.5f, 9.8f, 8.5f, 8.5f, 4.5f, 10.0f)),
-                GameEntry("《猎人：荒野的召唤™》", "Expansive Worlds", "荒野沉浸模拟", "finished", listOf("大自然漫步", "荒野召唤", "极致风景", "沉浸模拟", "治愈养生"), 4.8, "在莱顿湖区的晨雾与林风中驻足，倾听荒野最纯净的呼吸与生命律动。", "大自然风光沉浸感第一的荒野漫步模拟器。极其逼真的植被光影、动物足迹追踪与风向气味系统。", "file:///android_asset/covers/steam_518790_library_600x900.jpg", floatArrayOf(8.0f, 9.8f, 8.5f, 9.0f, 5.0f, 10.0f)),
-                GameEntry("房产达人", "Frozen District", "沉浸装修模拟", "finished", listOf("极度解压", "房屋翻新", "室内设计", "模拟经营"), 4.8, "挥动大锤砸碎旧墙，铺设全新地板与暖光。亲手打造独一无二的心灵居所！", "极度解压上头的房屋翻新改造模拟器。从破旧瓦房到奢华别墅的成就感满满。", "file:///android_asset/covers/steam_613100_library_600x900.jpg", floatArrayOf(7.5f, 9.0f, 8.5f, 8.8f, 3.0f, 10.0f)),
-                GameEntry("冒险村物语 (Dungeon Village)", "开罗游戏 Kairosoft", "经典像素模拟", "finished", listOf("开罗游戏", "像素模拟", "勇者冒险", "经典治愈"), 4.9, "在村口建立旅馆与武器店，吸引勇者们定居，打造世界第一的冒险之村！", "开罗像素模拟经营的经典代表作。看着冒险者们升级装备、讨伐巨龙并入住村庄，充满纯粹的养成快乐。", "file:///android_asset/covers/steam_1859360_library_600x900.jpg", floatArrayOf(7.5f, 9.0f, 9.0f, 9.2f, 3.0f, 10.0f)),
-                GameEntry("Beholder", "Warm Lamp Games", "反乌托邦道德抉择", "finished", listOf("反乌托邦", "道德抉择", "极权阴影", "人性拷问"), 4.8, "在极权公寓的锁孔后窥视住户。服从法令还是拯救良知？每一次告密都在拷问人性。", "冷峻的反乌托邦道德抉择神作。在生存重压与人性善念之间的艰难博弈。", "file:///android_asset/covers/steam_475550_library_600x900.jpg", floatArrayOf(9.5f, 9.2f, 9.4f, 9.2f, 6.5f, 6.0f)),
+                GameEntry("赛博朋克 2077", "CD PROJEKT RED", "开放世界RPG", "finished", listOf("夜之城", "赛博朋克", "强尼银手", "往日之影", "CDPR"), 4.9, "夜之城没有活着的传奇。大闹一场吧V，把荒坂塔点燃，敬所有的来生酒！", "科幻赛博朋克视觉艺术与沉浸叙事的集大成之作。强尼·银手的意识寄生与夜之城冷血资本下的悲壮挽歌。", "covers/steam_1091500_library_600x900.jpg", floatArrayOf(9.5f, 9.8f, 9.8f, 8.8f, 6.5f, 8.0f)),
+                GameEntry("巫师 3：狂猎", "CD PROJEKT RED", "开放世界RPG", "finished", listOf("年度最佳", "白狼", "欧美RPG巅峰", "石之心", "血与酒"), 5.0, "恶就是恶，无论是大恶还是小恶，如果要我二选一，我宁愿什么都不选。白狼杰洛特与希里。", "欧美 RPG 叙事不可逾越的高山。从血腥男爵的悲剧到陶森特的阳光葡萄园，展现了最真实的人性灰度与史诗冒险。", "covers/steam_292030_library_600x900.jpg", floatArrayOf(9.8f, 9.8f, 9.8f, 9.5f, 6.5f, 8.5f)),
+                GameEntry("底特律：化身为人类", "Quantic Dream", "互动电影叙事", "finished", listOf("互动电影", "仿生人觉醒", "康纳酱", "自由之声", "蝴蝶效应"), 4.9, "我是一个有感觉的生命，我不是机器。康纳、马库斯与卡拉的觉醒之歌。", "互动电影游戏的巅峰代表作。庞大复杂的蝴蝶效应分支树与探讨仿生人自我意识、人权与自由的深刻命题。", "covers/steam_1222140_library_600x900.jpg", floatArrayOf(9.5f, 9.5f, 9.8f, 9.4f, 4.0f, 9.0f)),
+                GameEntry("饥荒", "Klei Entertainment", "生存沙盒", "finished", listOf("硬核生存", "哥特手绘", "San值狂掉", "联机神作"), 4.9, "在永夜与疯癫降临前点燃火把。活下去，在这个充满哥特荒诞的荒野世界！", "暗黑手绘哥特风生存沙盒的巅峰。理智值（San值）与四季生物群系的机制让人沉浸其中数百小时。", "covers/steam_219740_library_600x900.jpg", floatArrayOf(8.8f, 9.5f, 8.8f, 9.5f, 8.8f, 8.0f)),
+                GameEntry("缺氧", "Klei Entertainment", "硬核模拟经营", "finished", listOf("硬核科学", "自动化工程", "Klei", "小行星殖民"), 4.9, "热力学定律在小行星内部运作。调配每一口氧气与热量，带领复制人建立太空文明！", "硬核物理热力学与自动化工程模拟的天花板。管道、电路与气体液体的流动构建了无与伦比的工业美学。", "covers/steam_457140_library_600x900.jpg", floatArrayOf(9.0f, 9.0f, 8.0f, 10.0f, 9.8f, 8.0f)),
+                GameEntry("极限竞速：地平线 4", "Playground Games", "竞速汽车文化", "finished", listOf("地平线4", "四季更迭", "英伦漫游", "赛车巅峰"), 4.9, "四季更迭的英伦风光，在爱丁堡的落叶与雪原上肆意漂移，享受纯粹的驾驶浪漫！", "开放世界赛车游戏的殿堂标杆。如画的英伦乡间与上百款超跑的声浪交响。", "covers/bgm_471932_uHoWl.jpg", floatArrayOf(7.5f, 9.8f, 8.5f, 8.5f, 4.5f, 10.0f)),
+                GameEntry("《猎人：荒野的召唤™》", "Expansive Worlds", "荒野沉浸模拟", "finished", listOf("大自然漫步", "荒野召唤", "极致风景", "沉浸模拟", "治愈养生"), 4.8, "在莱顿湖区的晨雾与林风中驻足，倾听荒野最纯净的呼吸与生命律动。", "大自然风光沉浸感第一的荒野漫步模拟器。极其逼真的植被光影、动物足迹追踪与风向气味系统。", "covers/steam_518790_library_600x900.jpg", floatArrayOf(8.0f, 9.8f, 8.5f, 9.0f, 5.0f, 10.0f)),
+                GameEntry("房产达人", "Frozen District", "沉浸装修模拟", "finished", listOf("极度解压", "房屋翻新", "室内设计", "模拟经营"), 4.8, "挥动大锤砸碎旧墙，铺设全新地板与暖光。亲手打造独一无二的心灵居所！", "极度解压上头的房屋翻新改造模拟器。从破旧瓦房到奢华别墅的成就感满满。", "covers/steam_613100_library_600x900.jpg", floatArrayOf(7.5f, 9.0f, 8.5f, 8.8f, 3.0f, 10.0f)),
+                GameEntry("冒险村物语 (Dungeon Village)", "开罗游戏 Kairosoft", "经典像素模拟", "finished", listOf("开罗游戏", "像素模拟", "勇者冒险", "经典治愈"), 4.9, "在村口建立旅馆与武器店，吸引勇者们定居，打造世界第一的冒险之村！", "开罗像素模拟经营的经典代表作。看着冒险者们升级装备、讨伐巨龙并入住村庄，充满纯粹的养成快乐。", "covers/steam_1859360_library_600x900.jpg", floatArrayOf(7.5f, 9.0f, 9.0f, 9.2f, 3.0f, 10.0f)),
+                GameEntry("Beholder", "Warm Lamp Games", "反乌托邦道德抉择", "finished", listOf("反乌托邦", "道德抉择", "极权阴影", "人性拷问"), 4.8, "在极权公寓的锁孔后窥视住户。服从法令还是拯救良知？每一次告密都在拷问人性。", "冷峻的反乌托邦道德抉择神作。在生存重压与人性善念之间的艰难博弈。", "covers/steam_475550_library_600x900.jpg", floatArrayOf(9.5f, 9.2f, 9.4f, 9.2f, 6.5f, 6.0f)),
 
                 // 6. 中式悬疑与经典恐怖
-                GameEntry("烟火", "拾英工作室", "中式悬疑解谜", "finished", listOf("中式恐怖", "拾英工作室", "田芳芳", "催泪悬疑", "时代悲悯"), 5.0, "愿你此去，前程似锦，再无羁绊。送林理洵与田芳芳最后一程烟火。", "最具中式人情味与时代悲悯感的悬疑叙事神作。凄美的水彩国风与直击人心的乡村迷信悲剧。", "file:///android_asset/covers/steam_1509960_library_600x900.jpg", floatArrayOf(9.5f, 9.6f, 10.0f, 9.2f, 4.0f, 9.5f)),
-                GameEntry("黑森町绮谭", "拾英工作室", "日系悬疑解谜", "finished", listOf("昭和物语", "拾英工作室", "妖怪奇谭", "治愈感动"), 4.9, "昭和泡沫时代的电车与妖怪物语。黑森町的樱花树下，告别过往的执念。", "拾英工作室开山之作。浪漫奇幻与现实历史相交融的叙事神作。", "file:///android_asset/covers/steam_1093910_library_600x900.jpg", floatArrayOf(9.0f, 9.5f, 9.8f, 9.0f, 3.5f, 9.5f)),
-                GameEntry("小小梦魇 强化版", "Tarsier Studios", "悬疑解谜恐怖", "finished", listOf("心理恐怖", "黄色雨衣小六", "环境叙事", "艺术解谜"), 4.9, "黄色雨衣小六在贪颚号巨轮中穿行。饥饿与深渊之下，逃离扭曲成人的诡异梦魇。", "微缩视角下的心理恐怖神作。精妙绝伦的环境叙事与无台词压迫感，探讨童年恐惧与人性异化。", "file:///android_asset/covers/steam_424840_header.jpg", floatArrayOf(9.2f, 9.8f, 9.2f, 9.2f, 6.0f, 6.0f)),
-                GameEntry("小小梦魇2", "Tarsier Studios", "悬疑解谜恐怖", "finished", listOf("小小梦魇2", "纸袋头摩诺", "电视电波", "背叛轮回"), 4.9, "纸袋头少年摩诺牵起小六的手，穿越被信号塔扭曲的苍白之城。", "直击心灵的续作巅峰。令人心碎的终极反转与宿命循环。", "file:///android_asset/covers/steam_860510_library_600x900.jpg", floatArrayOf(9.4f, 9.8f, 9.6f, 9.4f, 6.5f, 6.0f)),
-                GameEntry("Ib", "kouri", "日系RPG解谜", "finished", listOf("四大名著RPG", "红黄蓝玫瑰", "Garry", "催泪经典"), 5.0, "红黄蓝三色玫瑰，与 Garry 一起在格鲁特纳的美术馆中逃离无尽画布，永恒的约定。", "四大经典 RPG 恐怖解谜之首。充满艺术感的美术馆谜题与深深打动无数人的角色羁绊。", "file:///android_asset/covers/steam_1901370_library_600x900.jpg", floatArrayOf(9.2f, 9.8f, 10.0f, 9.0f, 4.0f, 9.2f)),
-                GameEntry("港诡实录", "Ghostpie Games", "中式民俗恐怖", "finished", listOf("港风恐怖", "九龙城寨", "粤剧民俗", "佳慧"), 4.6, "九龙城寨的狭窄弄堂与粤剧回响。嘉慧，不要回头！", "充满老香港都市传说与九龙城寨民俗文化的沉浸式恐怖解谜。", "file:///android_asset/covers/steam_1256760_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 8.6f, 6.0f, 5.0f)),
-                GameEntry("Dying Light", "Techland", "开放世界丧尸跑酷", "finished", listOf("哈兰跑酷", "夜魔追逐", "抓钩起飞", "丧尸生存"), 4.8, "好夜晚，好运气。在哈兰市的屋顶上飞跃，夜晚降临后与夜魔展开生死追逐！", "丧尸跑酷题材的巅峰代表作。白天搜刮物资夜晚狂奔逃命的极致肾上腺素刺激。", "file:///android_asset/covers/steam_239140_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 8.8f, 7.5f, 8.0f)),
-                GameEntry("雅皮士精神", "Baroque Decay", "职场像素恐怖", "finished", listOf("职场恐怖", "像素解谜", "辛特拉女巫", "荒诞讽刺"), 4.8, "入职世界第一巨头辛特拉集团的第一天，任务是猎杀盘踞在公司的女巫！", "荒诞职场讽刺与像素心理恐怖的绝妙融合。九十年代复古美学与深层反资本隐喻。", "file:///android_asset/covers/steam_485610_library_600x900.jpg", floatArrayOf(9.0f, 9.5f, 9.0f, 9.2f, 5.5f, 7.5f)),
-                GameEntry("灰烬之棺 Coffin of Ashes", "二律背反", "日系悬疑解谜", "finished", listOf("日系解谜", "暴雨古宅", "多结局", "悬疑微恐"), 4.7, "暴雨夜被困于神秘古宅，在血色与灰烬的记忆中找寻失落的真相。", "氛围极佳的日系微恐 RPG 解谜游戏。优美的立绘配乐与多结局救赎。", "file:///android_asset/covers/steam_546080_library_600x900.jpg", floatArrayOf(8.8f, 9.2f, 9.4f, 8.8f, 4.0f, 8.0f)),
-                GameEntry("白色情人节：恐怖学校", "SONNORI", "第一人称恐怖", "finished", listOf("校园恐怖", "深夜逃生", "东方惊悚", "经典重制"), 4.7, "深夜潜入延斗高中送糖果，却陷入恶灵与疯狂守卫巡逻的致命迷宫！", "经典东方校园恐怖的先驱之作。无武器反抗机制带来的极致惊悚逃生体验。", "file:///android_asset/covers/steam_387240_library_600x900.jpg", floatArrayOf(8.2f, 8.8f, 8.5f, 8.8f, 7.5f, 5.0f)),
-                GameEntry("Lakeview Cabin Collection", "Roope Tamminen", "复古砍杀解谜", "finished", listOf("复古恐怖", "B级片解谜", "脑洞大开", "湖景小屋"), 4.7, "致敬八十年代经典 B 级恐怖电影。用场景中一切荒谬道具反杀面具杀人魔！", "脑洞极大、解法极度自由的像素沙盒恐怖解谜神作。", "file:///android_asset/covers/steam_356570_library_600x900.jpg", floatArrayOf(8.5f, 9.0f, 8.0f, 9.5f, 8.5f, 7.0f)),
+                GameEntry("烟火", "拾英工作室", "中式悬疑解谜", "finished", listOf("中式恐怖", "拾英工作室", "田芳芳", "催泪悬疑", "时代悲悯"), 5.0, "愿你此去，前程似锦，再无羁绊。送林理洵与田芳芳最后一程烟火。", "最具中式人情味与时代悲悯感的悬疑叙事神作。凄美的水彩国风与直击人心的乡村迷信悲剧。", "covers/steam_1509960_library_600x900.jpg", floatArrayOf(9.5f, 9.6f, 10.0f, 9.2f, 4.0f, 9.5f)),
+                GameEntry("黑森町绮谭", "拾英工作室", "日系悬疑解谜", "finished", listOf("昭和物语", "拾英工作室", "妖怪奇谭", "治愈感动"), 4.9, "昭和泡沫时代的电车与妖怪物语。黑森町的樱花树下，告别过往的执念。", "拾英工作室开山之作。浪漫奇幻与现实历史相交融的叙事神作。", "covers/steam_1093910_library_600x900.jpg", floatArrayOf(9.0f, 9.5f, 9.8f, 9.0f, 3.5f, 9.5f)),
+                GameEntry("小小梦魇 强化版", "Tarsier Studios", "悬疑解谜恐怖", "finished", listOf("心理恐怖", "黄色雨衣小六", "环境叙事", "艺术解谜"), 4.9, "黄色雨衣小六在贪颚号巨轮中穿行。饥饿与深渊之下，逃离扭曲成人的诡异梦魇。", "微缩视角下的心理恐怖神作。精妙绝伦的环境叙事与无台词压迫感，探讨童年恐惧与人性异化。", "covers/steam_424840_header.jpg", floatArrayOf(9.2f, 9.8f, 9.2f, 9.2f, 6.0f, 6.0f)),
+                GameEntry("小小梦魇2", "Tarsier Studios", "悬疑解谜恐怖", "finished", listOf("小小梦魇2", "纸袋头摩诺", "电视电波", "背叛轮回"), 4.9, "纸袋头少年摩诺牵起小六的手，穿越被信号塔扭曲的苍白之城。", "直击心灵的续作巅峰。令人心碎的终极反转与宿命循环。", "covers/steam_860510_library_600x900.jpg", floatArrayOf(9.4f, 9.8f, 9.6f, 9.4f, 6.5f, 6.0f)),
+                GameEntry("Ib", "kouri", "日系RPG解谜", "finished", listOf("四大名著RPG", "红黄蓝玫瑰", "Garry", "催泪经典"), 5.0, "红黄蓝三色玫瑰，与 Garry 一起在格鲁特纳的美术馆中逃离无尽画布，永恒的约定。", "四大经典 RPG 恐怖解谜之首。充满艺术感的美术馆谜题与深深打动无数人的角色羁绊。", "covers/steam_1901370_library_600x900.jpg", floatArrayOf(9.2f, 9.8f, 10.0f, 9.0f, 4.0f, 9.2f)),
+                GameEntry("港诡实录", "Ghostpie Games", "中式民俗恐怖", "finished", listOf("港风恐怖", "九龙城寨", "粤剧民俗", "佳慧"), 4.6, "九龙城寨的狭窄弄堂与粤剧回响。嘉慧，不要回头！", "充满老香港都市传说与九龙城寨民俗文化的沉浸式恐怖解谜。", "covers/steam_1256760_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 8.6f, 6.0f, 5.0f)),
+                GameEntry("Dying Light", "Techland", "开放世界丧尸跑酷", "finished", listOf("哈兰跑酷", "夜魔追逐", "抓钩起飞", "丧尸生存"), 4.8, "好夜晚，好运气。在哈兰市的屋顶上飞跃，夜晚降临后与夜魔展开生死追逐！", "丧尸跑酷题材的巅峰代表作。白天搜刮物资夜晚狂奔逃命的极致肾上腺素刺激。", "covers/steam_239140_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 8.8f, 7.5f, 8.0f)),
+                GameEntry("雅皮士精神", "Baroque Decay", "职场像素恐怖", "finished", listOf("职场恐怖", "像素解谜", "辛特拉女巫", "荒诞讽刺"), 4.8, "入职世界第一巨头辛特拉集团的第一天，任务是猎杀盘踞在公司的女巫！", "荒诞职场讽刺与像素心理恐怖的绝妙融合。九十年代复古美学与深层反资本隐喻。", "covers/steam_485610_library_600x900.jpg", floatArrayOf(9.0f, 9.5f, 9.0f, 9.2f, 5.5f, 7.5f)),
+                GameEntry("灰烬之棺 Coffin of Ashes", "二律背反", "日系悬疑解谜", "finished", listOf("日系解谜", "暴雨古宅", "多结局", "悬疑微恐"), 4.7, "暴雨夜被困于神秘古宅，在血色与灰烬的记忆中找寻失落的真相。", "氛围极佳的日系微恐 RPG 解谜游戏。优美的立绘配乐与多结局救赎。", "covers/steam_546080_library_600x900.jpg", floatArrayOf(8.8f, 9.2f, 9.4f, 8.8f, 4.0f, 8.0f)),
+                GameEntry("白色情人节：恐怖学校", "SONNORI", "第一人称恐怖", "finished", listOf("校园恐怖", "深夜逃生", "东方惊悚", "经典重制"), 4.7, "深夜潜入延斗高中送糖果，却陷入恶灵与疯狂守卫巡逻的致命迷宫！", "经典东方校园恐怖的先驱之作。无武器反抗机制带来的极致惊悚逃生体验。", "covers/steam_387240_library_600x900.jpg", floatArrayOf(8.2f, 8.8f, 8.5f, 8.8f, 7.5f, 5.0f)),
+                GameEntry("Lakeview Cabin Collection", "Roope Tamminen", "复古砍杀解谜", "finished", listOf("复古恐怖", "B级片解谜", "脑洞大开", "湖景小屋"), 4.7, "致敬八十年代经典 B 级恐怖电影。用场景中一切荒谬道具反杀面具杀人魔！", "脑洞极大、解法极度自由的像素沙盒恐怖解谜神作。", "covers/steam_356570_library_600x900.jpg", floatArrayOf(8.5f, 9.0f, 8.0f, 9.5f, 8.5f, 7.0f)),
 
                 // 7. 竞技合作与合家欢
-                GameEntry("Plants vs. Zombies: Game of the Year", "PopCap Games · 宝开", "经典塔防", "finished", listOf("童年神作", "PopCap巅峰", "戴夫疯狂", "经典塔防"), 5.0, "屋顶上的玉米加农炮与后院泳池的向日葵。There's a Zombie on your Lawn!", "承载整整一代人童年欢笑的塔防艺术极品。无懈可击的节奏平衡与充满创意的植物僵尸设计。", "file:///android_asset/covers/bgm_1859_GM4r4.jpg", floatArrayOf(8.0f, 9.5f, 9.5f, 9.5f, 4.0f, 10.0f)),
-                GameEntry("Kingdom Rush", "Ironhide Game Studio", "经典策略塔防", "finished", listOf("塔防教科书", "Ironhide", "为了国王", "策略巅峰"), 5.0, "For the King! 弓箭塔、法师塔与圣骑士，誓死捍卫利尼维亚王国的荣耀！", "被誉为传统策略塔防顶峰的乌拉圭独立神作。极具深度的英雄操控与地形战术配置。", "file:///android_asset/covers/steam_246420_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 8.8f, 9.8f, 7.5f, 9.0f)),
-                GameEntry("Kingdom Rush Frontiers", "Ironhide Game Studio", "经典策略塔防", "finished", listOf("前线突破", "外星异形", "沙漠丛林", "塔防神作"), 5.0, "迎击沙漠强盗与丛林巨怪！全面进阶的英雄技能与防御工事。", "王国保卫战系列集大成之作。更多变的地形危机与更刺激的 BOSS 决战。", "file:///android_asset/covers/steam_246580_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 8.8f, 9.8f, 7.5f, 9.0f)),
-                GameEntry("雀魂麻将", "猫粮工作室 · 悠星网络", "日麻竞技", "finished", listOf("雀魂", "立直一发", "国士无双", "日麻对局"), 4.8, "立直！一发！自摸！断幺九也能点燃役满的牌桌奇迹。", "将日式立直麻将与二次元角色立绘完美结合的现象级竞技棋牌。", "file:///android_asset/covers/bgm_250372_lr1qD.jpg", floatArrayOf(7.5f, 9.0f, 8.8f, 9.8f, 7.0f, 8.5f)),
-                GameEntry("人类一败涂地 / Human Fall Flat", "No Brakes Games", "物理合家欢", "finished", listOf("面条人", "沙雕开黑", "物理引擎", "爆笑解压"), 4.8, "摇摇晃晃的面条人，与好友互相拉扯坠落悬崖的欢笑时光。", "软体物理引擎带来的纯粹友谊与欢笑。最适合与朋友一起开黑解谜的解压神作。", "file:///android_asset/covers/steam_477160_library_600x900.jpg", floatArrayOf(7.0f, 8.8f, 9.6f, 8.0f, 3.0f, 10.0f)),
-                GameEntry("Goose Goose Duck", "Gaggle Studios", "社交推理", "finished", listOf("鹅鸭杀", "鹈鹕吃人", "社交推理", "开黑神器"), 4.8, "我是好鹅！别刀我！充满心机与爆笑的太空飞船社交推理派对。", "丰富职业设定与语音互动的现象级社交推理合家欢神作。", "file:///android_asset/covers/steam_1568590_header.jpg", floatArrayOf(7.5f, 8.8f, 9.5f, 9.5f, 5.0f, 9.5f)),
-                GameEntry("Among Us", "Innersloth", "社交推理", "finished", listOf("太空狼人杀", "内鬼冒充", "紧急会议", "经典开黑"), 4.8, "内鬼就在我们之中！修理飞船、跳通风管，展开斗智斗勇的紧急会议投票。", "掀起全球太空狼人杀狂潮的经典独立社交推理神作。", "file:///android_asset/covers/steam_945360_library_600x900.jpg", floatArrayOf(7.5f, 8.8f, 9.4f, 9.5f, 5.0f, 9.5f)),
-                GameEntry("Counter-Strike 2", "Valve", "战术射击竞技", "finished", listOf("CS2", "V社电竞", "急停爆头", "战术竞技"), 4.8, "一颗闪光弹，一次冷静的急停爆头，为了团队拆除炸弹的最后一秒！", "FPS 电子竞技的不朽基石。起源2引擎下的全新烟雾物理与极致硬核枪法对决。", "file:///android_asset/covers/steam_730_library_600x900.jpg", floatArrayOf(7.5f, 8.5f, 8.8f, 9.5f, 9.5f, 7.5f)),
-                GameEntry("使命召唤®", "Activision", "电影化FPS", "finished", listOf("使命召唤", "普莱斯队长", "现代战争", "电影化射击"), 4.8, "Bravo Six, Going Dark. 普莱斯队长带领第141特遣队深入敌后！", "电影化第一人称射击叙事的教科书巅峰。震撼的宏大战争场面与绝佳手感。", "file:///android_asset/covers/steam_393080_header.jpg", floatArrayOf(8.0f, 9.2f, 9.0f, 8.8f, 7.0f, 8.0f)),
-                GameEntry("《战地风云 5》", "DICE · EA", "二战战场模拟", "finished", listOf("二战战场", "寒霜引擎", "大战场协同", "破坏物理"), 4.8, "在鹿特丹的断壁残垣与北非沙漠中冲锋，体验二战浩瀚沙场的震撼与残酷。", "寒霜引擎打造的顶级二战战场视听。破坏物理效果与大战场兵种协同作战的极致体验。", "file:///android_asset/covers/steam_1238840_library_600x900.jpg", floatArrayOf(8.0f, 9.2f, 8.5f, 9.0f, 7.5f, 7.5f)),
-                GameEntry("Apex Legends", "Respawn Entertainment", "战术英雄大逃杀", "finished", listOf("身法射击", "英雄战术", "诸王峡谷", "丝滑滑铲"), 4.8, "滑铲、滑索、身法起飞！捍卫者的荣耀属于默契无间的诸王峡谷三人小队！", "重生工作室打造的高机动性英雄战术射击巅峰。极度丝滑的身法滑铲与快节奏团战。", "file:///android_asset/covers/steam_1172470_library_600x900.jpg", floatArrayOf(7.8f, 9.0f, 8.8f, 9.4f, 8.8f, 8.0f)),
-                GameEntry("彩虹六号：围攻", "Ubisoft Montreal", "室内战术CQB", "finished", listOf("育碧神作", "战术CQB", "信息博弈", "可破坏环境"), 4.8, "爆破加固墙体，小车侦察点位。毫厘之间的信息战与垂直进攻战术！", "CQB 室内近距离战术射击的绝对王者。完全可破坏的墙体物理与干员技能博弈。", "file:///android_asset/covers/steam_359550_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 10.0f, 9.8f, 7.0f)),
+                GameEntry("Plants vs. Zombies: Game of the Year", "PopCap Games · 宝开", "经典塔防", "finished", listOf("童年神作", "PopCap巅峰", "戴夫疯狂", "经典塔防"), 5.0, "屋顶上的玉米加农炮与后院泳池的向日葵。There's a Zombie on your Lawn!", "承载整整一代人童年欢笑的塔防艺术极品。无懈可击的节奏平衡与充满创意的植物僵尸设计。", "covers/bgm_1859_GM4r4.jpg", floatArrayOf(8.0f, 9.5f, 9.5f, 9.5f, 4.0f, 10.0f)),
+                GameEntry("Kingdom Rush", "Ironhide Game Studio", "经典策略塔防", "finished", listOf("塔防教科书", "Ironhide", "为了国王", "策略巅峰"), 5.0, "For the King! 弓箭塔、法师塔与圣骑士，誓死捍卫利尼维亚王国的荣耀！", "被誉为传统策略塔防顶峰的乌拉圭独立神作。极具深度的英雄操控与地形战术配置。", "covers/steam_246420_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 8.8f, 9.8f, 7.5f, 9.0f)),
+                GameEntry("Kingdom Rush Frontiers", "Ironhide Game Studio", "经典策略塔防", "finished", listOf("前线突破", "外星异形", "沙漠丛林", "塔防神作"), 5.0, "迎击沙漠强盗与丛林巨怪！全面进阶的英雄技能与防御工事。", "王国保卫战系列集大成之作。更多变的地形危机与更刺激的 BOSS 决战。", "covers/steam_246580_library_600x900.jpg", floatArrayOf(8.2f, 9.2f, 8.8f, 9.8f, 7.5f, 9.0f)),
+                GameEntry("雀魂麻将", "猫粮工作室 · 悠星网络", "日麻竞技", "finished", listOf("雀魂", "立直一发", "国士无双", "日麻对局"), 4.8, "立直！一发！自摸！断幺九也能点燃役满的牌桌奇迹。", "将日式立直麻将与二次元角色立绘完美结合的现象级竞技棋牌。", "covers/bgm_250372_lr1qD.jpg", floatArrayOf(7.5f, 9.0f, 8.8f, 9.8f, 7.0f, 8.5f)),
+                GameEntry("人类一败涂地 / Human Fall Flat", "No Brakes Games", "物理合家欢", "finished", listOf("面条人", "沙雕开黑", "物理引擎", "爆笑解压"), 4.8, "摇摇晃晃的面条人，与好友互相拉扯坠落悬崖的欢笑时光。", "软体物理引擎带来的纯粹友谊与欢笑。最适合与朋友一起开黑解谜的解压神作。", "covers/steam_477160_library_600x900.jpg", floatArrayOf(7.0f, 8.8f, 9.6f, 8.0f, 3.0f, 10.0f)),
+                GameEntry("Goose Goose Duck", "Gaggle Studios", "社交推理", "finished", listOf("鹅鸭杀", "鹈鹕吃人", "社交推理", "开黑神器"), 4.8, "我是好鹅！别刀我！充满心机与爆笑的太空飞船社交推理派对。", "丰富职业设定与语音互动的现象级社交推理合家欢神作。", "covers/steam_1568590_header.jpg", floatArrayOf(7.5f, 8.8f, 9.5f, 9.5f, 5.0f, 9.5f)),
+                GameEntry("Among Us", "Innersloth", "社交推理", "finished", listOf("太空狼人杀", "内鬼冒充", "紧急会议", "经典开黑"), 4.8, "内鬼就在我们之中！修理飞船、跳通风管，展开斗智斗勇的紧急会议投票。", "掀起全球太空狼人杀狂潮的经典独立社交推理神作。", "covers/steam_945360_library_600x900.jpg", floatArrayOf(7.5f, 8.8f, 9.4f, 9.5f, 5.0f, 9.5f)),
+                GameEntry("Counter-Strike 2", "Valve", "战术射击竞技", "finished", listOf("CS2", "V社电竞", "急停爆头", "战术竞技"), 4.8, "一颗闪光弹，一次冷静的急停爆头，为了团队拆除炸弹的最后一秒！", "FPS 电子竞技的不朽基石。起源2引擎下的全新烟雾物理与极致硬核枪法对决。", "covers/steam_730_library_600x900.jpg", floatArrayOf(7.5f, 8.5f, 8.8f, 9.5f, 9.5f, 7.5f)),
+                GameEntry("使命召唤®", "Activision", "电影化FPS", "finished", listOf("使命召唤", "普莱斯队长", "现代战争", "电影化射击"), 4.8, "Bravo Six, Going Dark. 普莱斯队长带领第141特遣队深入敌后！", "电影化第一人称射击叙事的教科书巅峰。震撼的宏大战争场面与绝佳手感。", "covers/steam_393080_header.jpg", floatArrayOf(8.0f, 9.2f, 9.0f, 8.8f, 7.0f, 8.0f)),
+                GameEntry("《战地风云 5》", "DICE · EA", "二战战场模拟", "finished", listOf("二战战场", "寒霜引擎", "大战场协同", "破坏物理"), 4.8, "在鹿特丹的断壁残垣与北非沙漠中冲锋，体验二战浩瀚沙场的震撼与残酷。", "寒霜引擎打造的顶级二战战场视听。破坏物理效果与大战场兵种协同作战的极致体验。", "covers/steam_1238840_library_600x900.jpg", floatArrayOf(8.0f, 9.2f, 8.5f, 9.0f, 7.5f, 7.5f)),
+                GameEntry("Apex Legends", "Respawn Entertainment", "战术英雄大逃杀", "finished", listOf("身法射击", "英雄战术", "诸王峡谷", "丝滑滑铲"), 4.8, "滑铲、滑索、身法起飞！捍卫者的荣耀属于默契无间的诸王峡谷三人小队！", "重生工作室打造的高机动性英雄战术射击巅峰。极度丝滑的身法滑铲与快节奏团战。", "covers/steam_1172470_library_600x900.jpg", floatArrayOf(7.8f, 9.0f, 8.8f, 9.4f, 8.8f, 8.0f)),
+                GameEntry("彩虹六号：围攻", "Ubisoft Montreal", "室内战术CQB", "finished", listOf("育碧神作", "战术CQB", "信息博弈", "可破坏环境"), 4.8, "爆破加固墙体，小车侦察点位。毫厘之间的信息战与垂直进攻战术！", "CQB 室内近距离战术射击的绝对王者。完全可破坏的墙体物理与干员技能博弈。", "covers/steam_359550_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 10.0f, 9.8f, 7.0f)),
             )
 
             val now = currentTimestamp()
@@ -1301,7 +1314,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "向着蔚蓝的晴空挥手作别，那滴落在手心的泪水，终会化为滋润大地的春雨。",
                     review = "TV动画《葬送的芙莉莲》第2季度 OP 主题曲。n-buna 标志性的清澈吉他扫弦与 suis 纯净高亢的声线，将千年精灵对漫长时光、生死别离的释然与深情吟唱得淋漓尽致，堪称 2024 年日系摇滚的巅峰之作。",
-                    coverUrl = "file:///android_asset/covers/netease_A2uvcfwP0zBfOfiR36Qiww___109951169237033693.jpg",
+                    coverUrl = "covers/netease_A2uvcfwP0zBfOfiR36Qiww___109951169237033693.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.5f, 10.0f),
                 ),
                 MusicEntry(
@@ -1314,7 +1327,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便双脚陷于泥泞，我们依然要仰望并追寻那转动星辰的真理之火。",
                     review = "TV动画《地。-关于地球的运动-》ED 主题曲。歌名 Aporia 意为哲学术语中的‘困惑 / 无路可走’。探讨人类在浩瀚宇宙未知面前的渺小，以及前仆后继为真理献身的壮丽诗篇。",
-                    coverUrl = "file:///android_asset/covers/netease_Pm_XyfxR0gu5XCb-5vR9KA___109951170023203859.jpg",
+                    coverUrl = "covers/netease_Pm_XyfxR0gu5XCb-5vR9KA___109951170023203859.jpg",
                     mindprint = floatArrayOf(9.8f, 9.6f, 9.6f, 9.5f, 5.0f, 8.5f),
                 ),
                 MusicEntry(
@@ -1327,7 +1340,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "如果回忆会成为你的负担，那就请你连同我的名字与这个夏夜，一并遗忘吧。",
                     review = "夜鹿经典的夏日与离别物语。低回呢喃的琴键伴奏与渐进的弦乐编制，刻画出极致的物哀之美与温柔的解脱。",
-                    coverUrl = "file:///android_asset/covers/netease_leeWUbb51Ss-Kn2O6ii5cw___109951169778596650.jpg",
+                    coverUrl = "covers/netease_leeWUbb51Ss-Kn2O6ii5cw___109951169778596650.jpg",
                     mindprint = floatArrayOf(9.4f, 9.8f, 10.0f, 8.5f, 3.0f, 9.5f),
                 ),
                 MusicEntry(
@@ -1340,7 +1353,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.8,
                     shortComment = "在不被定义的拍子中自在漫步，把生活中的每一次停顿写成一首浪漫的散步曲。",
                     review = "轻快跳跃的爵士摇摆律动，如同雨后初霁在湿润的柏油路面上随意踏水前行，自由而充满生命力。",
-                    coverUrl = "file:///android_asset/covers/netease_BNSgic6KUWr-eJrWFY4u0Q___109951169634605453.jpg",
+                    coverUrl = "covers/netease_BNSgic6KUWr-eJrWFY4u0Q___109951169634605453.jpg",
                     mindprint = floatArrayOf(8.8f, 9.5f, 9.2f, 9.0f, 2.5f, 9.8f),
                 ),
                 MusicEntry(
@@ -1353,7 +1366,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "放学后被斜阳染红的走廊里，那心照不宣的对视，是整个青春最滚烫的秘密。",
                     review = "TV动画《我心里危险的东西》第1季 OP 主题曲。轻盈奔放的吉他分解和弦与青涩悸动的歌词，描摹出初恋最纯粹的心动轨迹。",
-                    coverUrl = "file:///android_asset/covers/netease_RmLnCQHie5SdBPURTl8Z4Q___109951168599595799.jpg",
+                    coverUrl = "covers/netease_RmLnCQHie5SdBPURTl8Z4Q___109951168599595799.jpg",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.8f, 8.8f, 2.0f, 10.0f),
                 ),
                 MusicEntry(
@@ -1366,7 +1379,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "慢慢地、慢慢地成长，即便智慧终会退去，也请在我的墓前放上一束鲜花。",
                     review = "TBS电视剧《夕暮れに、手をつなぐ》主题曲。灵感源自丹尼尔·凯斯世界名著《献给阿尔吉侬的花束》，温柔而深邃的生命叹息。",
-                    coverUrl = "file:///android_asset/covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
+                    coverUrl = "covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.0f, 10.0f),
                 ),
                 MusicEntry(
@@ -1379,7 +1392,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "书页在华氏451度燃烧，但思想的火种永远不会在灰烬中熄灭。",
                     review = "画集专辑《幻燈》核心收录曲。致敬科幻大师雷·布拉德伯里的经典反乌托邦巨著，重型吉他 Riff 与极具张力的演唱。",
-                    coverUrl = "file:///android_asset/covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
+                    coverUrl = "covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
                     mindprint = floatArrayOf(9.6f, 9.5f, 9.2f, 9.6f, 5.0f, 7.0f),
                 ),
                 MusicEntry(
@@ -1392,7 +1405,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "在银白色的月光下洗尽尘世疲惫，时间在夜风里静止，灵魂重归静谧。",
                     review = "电影《大名倒产》主题曲。如同在深夜独自漫步在清凉月色下，琴音与声线如清泉流淌，抚平一切喧嚣与焦虑。",
-                    coverUrl = "file:///android_asset/covers/netease_DmFjhQCbwkPl7Lmqxc7-UA___109951168980090020.jpg",
+                    coverUrl = "covers/netease_DmFjhQCbwkPl7Lmqxc7-UA___109951168980090020.jpg",
                     mindprint = floatArrayOf(9.2f, 9.8f, 9.8f, 8.5f, 2.0f, 10.0f),
                 ),
 
@@ -1407,7 +1420,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便把软弱和真心伪装起来，那份为你而战的执念，绝对不是谎言！",
                     review = "动画电影《我的鬼女孩 (My Oni Girl)》主题曲。ACAね 标志性的高速吉他切音与炸裂的 Slap Bass，在疾走感中诉说着少年少女笨拙却炽热的真心。",
-                    coverUrl = "file:///android_asset/covers/netease_eevP8WLVve9lX0Vq-4TowQ___109951169618099511.jpg",
+                    coverUrl = "covers/netease_eevP8WLVve9lX0Vq-4TowQ___109951169618099511.jpg",
                     mindprint = floatArrayOf(9.4f, 9.8f, 9.8f, 9.2f, 4.0f, 9.0f),
                 ),
                 MusicEntry(
@@ -1420,7 +1433,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "把所有的不安塞进衣橱深处，戴上耳机，在蓝调的重低音里独自起舞。",
                     review = "ACAね 极具辨识度的真假音转换与复杂的爵士和弦走向，将都市年轻人在暗夜中的敏感孤独转化为摇摆律动。",
-                    coverUrl = "file:///android_asset/covers/netease_cAtkQLQDmAOdYOAVuomBVg___109951169661368682.jpg",
+                    coverUrl = "covers/netease_cAtkQLQDmAOdYOAVuomBVg___109951169661368682.jpg",
                     mindprint = floatArrayOf(9.0f, 9.8f, 9.4f, 9.5f, 4.5f, 8.8f),
                 ),
                 MusicEntry(
@@ -1433,7 +1446,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "海马体中隐隐作痛的记忆回响，是灵魂脱胎换骨的证明。",
                     review = "迷你专辑《虚仮の一念海馬に託す》主打曲。密集的节奏鼓点与天马行空的歌词隐喻，直击现代人的精神内耗与觉醒。",
-                    coverUrl = "file:///android_asset/covers/netease_lLRFfH4_VA1WVtgV48fgGg___109951169914591223.jpg",
+                    coverUrl = "covers/netease_lLRFfH4_VA1WVtgV48fgGg___109951169914591223.jpg",
                     mindprint = floatArrayOf(9.5f, 9.8f, 9.6f, 9.4f, 6.0f, 8.0f),
                 ),
                 MusicEntry(
@@ -1446,7 +1459,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "用狂暴的贝斯轰碎无聊日常，在超自然的夜色中掀起狂澜！",
                     review = "极速狂飙的贝斯与二胡传统民乐音色奇妙碰撞，真夜中独门的高密度音乐轰炸，打破一切审美疲劳。",
-                    coverUrl = "file:///android_asset/covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
+                    coverUrl = "covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.2f, 9.5f, 5.0f, 8.5f),
                 ),
                 MusicEntry(
@@ -1459,7 +1472,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "想要那个孩子，不给那个孩子。在世俗的算计与博弈中，夺回属于自己的心跳。",
                     review = "3rd 专辑《沈香学》核心主打神作。将日本古老童谣《花一匁》解构重组为充满朋克反叛精神与精巧律动的殿堂级放克曲。",
-                    coverUrl = "file:///android_asset/covers/netease_bmjKC1odG-1spq20rjjebg___109951168657437538.jpg",
+                    coverUrl = "covers/netease_bmjKC1odG-1spq20rjjebg___109951168657437538.jpg",
                     mindprint = floatArrayOf(9.6f, 10.0f, 9.8f, 9.6f, 5.5f, 9.0f),
                 ),
                 MusicEntry(
@@ -1472,7 +1485,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "像沉香一样历经伤口与岁月沉淀，在深夜里散发出幽微而绝美的香气。",
                     review = "真夜中集大成的第3张正规概念专辑。收录《残机》《綺羅キラー》《消えてしまいそうです》等多首殿堂名曲，狂放与细腻并存。",
-                    coverUrl = "file:///android_asset/covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
+                    coverUrl = "covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
                     mindprint = floatArrayOf(9.8f, 10.0f, 9.8f, 9.6f, 6.0f, 9.5f),
                 ),
                 MusicEntry(
@@ -1485,7 +1498,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.8,
                     shortComment = "未经允许便悄然闯入我心中的你，留下了无法抹去的痕迹。",
                     review = "ABEMA 节目主题曲。标志性的键盘敲击与灵动声线，勾勒出恋爱中防不胜防的心动瞬间。",
-                    coverUrl = "file:///android_asset/covers/netease_vNYG1ojHtvxqQTmS7pq1Jw___109951168616751712.jpg",
+                    coverUrl = "covers/netease_vNYG1ojHtvxqQTmS7pq1Jw___109951168616751712.jpg",
                     mindprint = floatArrayOf(9.0f, 9.6f, 9.5f, 9.0f, 3.5f, 9.0f),
                 ),
                 MusicEntry(
@@ -1498,7 +1511,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 5.0,
                     shortComment = "即便剩余的生命只剩一条，也要握紧电锯，在血肉横飞的绝望里杀穿终局！",
                     review = "TV动画《电锯人》ED2。爆裂的切分音与 ACAね 的狂气嘶吼，堪称日系摇滚新浪潮的核弹级现场演绎。",
-                    coverUrl = "file:///android_asset/covers/netease_q7QS9ze9wXNXpUy2BscBPg___109951167979033519.jpg",
+                    coverUrl = "covers/netease_q7QS9ze9wXNXpUy2BscBPg___109951167979033519.jpg",
                     mindprint = floatArrayOf(9.6f, 9.8f, 9.6f, 9.5f, 6.5f, 8.5f),
                 ),
             )
@@ -1755,7 +1768,7 @@ class BookDatabaseHelper(val context: Context) :
                 review = "这是一本写给所有曾经是小孩的大人的童话。它用最纯净的语言，道出了人世间最深刻的真理：爱是驯服与责任，唯有用心才能看清本质。",
                 rating = 5.0,
                 tags = listOf("童话", "治愈", "哲学", "经典"),
-                coverUrl = "file:///android_asset/covers/bgm_470322_nAZAP.jpg",
+                coverUrl = "covers/bgm_470322_nAZAP.jpg",
                 buyChannel = "上海独立书店 · 季风书园",
                 shelfLocation = "书架第1层 · 治愈精神馆",
                 bindingType = "精装全彩插图典藏本",
@@ -1802,7 +1815,7 @@ class BookDatabaseHelper(val context: Context) :
                 review = "魔幻现实主义的巅峰神作。七代人的宿命轮回，将人类无法摆脱的孤独、激情、荒诞与历史遗忘写到了极致。",
                 rating = 5.0,
                 tags = listOf("魔幻现实", "拉美", "家族史诗", "经典"),
-                coverUrl = "file:///android_asset/covers/douban_s27237850.jpg",
+                coverUrl = "covers/douban_s27237850.jpg",
                 buyChannel = "京东自营 · 范晔译本",
                 shelfLocation = "书架第2层 · 拉美魔幻现实",
                 bindingType = "精装布面烫金",
@@ -1846,7 +1859,7 @@ class BookDatabaseHelper(val context: Context) :
                 review = "中国科幻的巍峨丰碑。从红岸基地的第一声啼鸣到整个宇宙的黑暗森林法则，宏大的想象力与冷峻的文明思考令人叹为观止。",
                 rating = 5.0,
                 tags = listOf("硬核科幻", "宇宙文明", "硬科幻", "经典"),
-                coverUrl = "file:///android_asset/covers/douban_s2768378.jpg",
+                coverUrl = "covers/douban_s2768378.jpg",
                 buyChannel = "科幻世界特约渠道",
                 shelfLocation = "书架第1层 · 硬核科幻神作",
                 bindingType = "精装硬壳纪念版",
@@ -1890,7 +1903,7 @@ class BookDatabaseHelper(val context: Context) :
                 review = "跨越四分之一个世纪的青春终章。庵野秀明用最真诚的成年人笔触，打破了虚幻的避难所，教我们走出忧郁，拥抱真实的人间与现实世界。",
                 rating = 5.0,
                 tags = listOf("神作番剧", "机甲科幻", "哲学心智", "治愈成长"),
-                coverUrl = "file:///android_asset/covers/bgm_29883_jQ4Hz.jpg",
+                coverUrl = "covers/bgm_29883_jQ4Hz.jpg",
                 buyChannel = "Bilibili 番剧 · 正版特装",
                 shelfLocation = "展厅第3层 · 经典番剧回廊",
                 bindingType = "BD 蓝光典藏全集",
