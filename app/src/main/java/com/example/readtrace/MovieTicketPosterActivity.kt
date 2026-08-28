@@ -162,8 +162,8 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         }
 
         currentMindprint = databaseHelper.getMindprint(movieId)
-        movieTicketPosterView.setData(currentMovie!!, currentMindprint)
-        tvTicketSummary.text = "🎟️ 《${currentMovie!!.title}》· 典藏打孔透光票根"
+        movieTicketPosterView.setData(currentMovie!!, currentMindprint, movieTicketPosterView.getTheme())
+        tvTicketSummary.text = "🎬 《${currentMovie!!.title}》· 电影透光票根"
     }
 
     private fun buildThemeChips() {

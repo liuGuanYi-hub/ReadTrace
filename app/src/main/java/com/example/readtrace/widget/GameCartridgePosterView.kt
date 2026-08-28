@@ -11,6 +11,9 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -21,7 +24,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
 
 class GameCartridgePosterView @JvmOverloads constructor(
@@ -43,10 +45,10 @@ class GameCartridgePosterView @JvmOverloads constructor(
     ) {
         PLATINUM_HOLO(
             "💎 耀世白金",
-            intArrayOf(Color.parseColor("#10141C"), Color.parseColor("#182030"), Color.parseColor("#0E121A")),
-            Color.parseColor("#A0C4E2"),
-            intArrayOf(Color.parseColor("#80E0FF"), Color.parseColor("#C39BD3"), Color.parseColor("#F9E79F"), Color.parseColor("#85C1E9")),
-            Color.parseColor("#151D2A"),
+            intArrayOf(Color.parseColor("#0B0E14"), Color.parseColor("#141B26"), Color.parseColor("#0A0D12")),
+            Color.parseColor("#85B8E2"),
+            intArrayOf(Color.parseColor("#7EE8FA"), Color.parseColor("#EECDA3"), Color.parseColor("#ECA0FF"), Color.parseColor("#80D0C7")),
+            Color.parseColor("#101722"),
             Color.parseColor("#F0F6FC"),
             Color.parseColor("#8B949E"),
             Color.parseColor("#E5E8E8"), // 白金银
@@ -94,6 +96,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val staticTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     fun setData(
         game: Book,
@@ -158,15 +161,16 @@ class GameCartridgePosterView @JvmOverloads constructor(
 
         val gameItem = game ?: return
 
-        // 2. 计算 3:4 实体卡带盒区域 (居中适配)
-        val pad = w * 0.05f
-        val boxLeft = pad
-        val boxTop = h * 0.03f
-        val boxRight = w - pad
-        val boxBottom = h - h * 0.03f
+        // 2. 实体卡带外壳 (Cartridge Case, 3:4 比例自适应居中)
+        val padH = w * 0.04f
+        val padV = h * 0.025f
+        val boxLeft = padH
+        val boxTop = padV
+        val boxRight = w - padH
+        val boxBottom = h - padV
         val boxW = boxRight - boxLeft
         val boxH = boxBottom - boxTop
-        val cornerRadius = boxW * 0.04f
+        val cornerRadius = boxW * 0.045f
 
         val boxRect = RectF(boxLeft, boxTop, boxRight, boxBottom)
 
@@ -175,14 +179,14 @@ class GameCartridgePosterView @JvmOverloads constructor(
         paint.style = Paint.Style.FILL
         canvas.drawRoundRect(boxRect, cornerRadius, cornerRadius, paint)
 
-        // 盒体外边框 (高阶流光边框)
+        // 盒体外边框 (高阶流光微光边框)
         paint.color = currentTheme.caseBorderColor
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 3.5f
+        paint.strokeWidth = 3f
         canvas.drawRoundRect(boxRect, cornerRadius, cornerRadius, paint)
 
         // 3. 顶部全息流光带 (Hologram Header Band)
-        val headerH = boxH * 0.09f
+        val headerH = boxH * 0.075f
         val headerRect = RectF(boxLeft, boxTop, boxRight, boxTop + headerH)
 
         canvas.save()
@@ -197,38 +201,74 @@ class GameCartridgePosterView @JvmOverloads constructor(
         canvas.drawRect(headerRect, paint)
         paint.shader = null
 
-        // 顶部文字
+        // 顶部文字与徽标 (左侧品牌 · 右侧限定胶囊)
         textPaint.color = Color.WHITE
-        textPaint.textSize = headerH * 0.36f
+        textPaint.textSize = headerH * 0.38f
         textPaint.isFakeBoldText = true
-        canvas.drawText("READTRACE PLATINUM EDITION", boxLeft + boxW * 0.05f, boxTop + headerH * 0.62f, textPaint)
+        textPaint.textAlign = Paint.Align.LEFT
+        canvas.drawText("READTRACE PLATINUM", boxLeft + boxW * 0.04f, boxTop + headerH * 0.64f, textPaint)
 
-        textPaint.color = Color.argb(230, 255, 255, 255)
-        textPaint.textSize = headerH * 0.28f
-        textPaint.isFakeBoldText = false
-        val platformStr = "STEAM VERIFIED · 100% CLEAR"
-        canvas.drawText(platformStr, boxRight - boxW * 0.05f - textPaint.measureText(platformStr), boxTop + headerH * 0.62f, textPaint)
+        // 右侧限定徽标胶囊
+        val pillText = "100% CLEAR ★"
+        textPaint.textSize = headerH * 0.30f
+        textPaint.isFakeBoldText = true
+        val pillTextW = textPaint.measureText(pillText)
+        val pillPadH = boxW * 0.02f
+        val pillW = pillTextW + pillPadH * 2
+        val pillH = headerH * 0.60f
+        val pillRight = boxRight - boxW * 0.04f
+        val pillLeft = pillRight - pillW
+        val pillTop = boxTop + (headerH - pillH) * 0.5f
+        val pillRect = RectF(pillLeft, pillTop, pillRight, pillTop + pillH)
+
+        paint.color = Color.argb(80, 0, 0, 0)
+        paint.style = Paint.Style.FILL
+        canvas.drawRoundRect(pillRect, pillH * 0.5f, pillH * 0.5f, paint)
+
+        paint.color = Color.argb(120, 255, 255, 255)
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 1f
+        canvas.drawRoundRect(pillRect, pillH * 0.5f, pillH * 0.5f, paint)
+
+        textPaint.color = Color.WHITE
+        canvas.drawText(pillText, pillLeft + pillPadH, pillTop + pillH * 0.70f, textPaint)
         canvas.restore()
 
-        // 4. 中部游戏主视觉封面
-        val coverTop = boxTop + headerH + boxH * 0.03f
-        val coverW = boxW * 0.90f
-        val coverH = boxH * 0.46f
+        // 4. 中部游戏主视觉封面 (CenterCrop 保持原始纵横比无畸变)
+        val coverTop = boxTop + headerH + boxH * 0.022f
+        val coverW = boxW * 0.92f
+        val coverH = boxH * 0.42f
         val coverLeft = boxLeft + (boxW - coverW) * 0.5f
         val coverRect = RectF(coverLeft, coverTop, coverLeft + coverW, coverTop + coverH)
 
-        if (gameCoverBitmap != null) {
+        if (gameCoverBitmap != null && !gameCoverBitmap!!.isRecycled) {
             canvas.save()
             val coverClip = Path().apply {
-                addRoundRect(coverRect, 16f, 16f, Path.Direction.CW)
+                addRoundRect(coverRect, 14f, 14f, Path.Direction.CW)
             }
             canvas.clipPath(coverClip)
-            canvas.drawBitmap(gameCoverBitmap!!, null, coverRect, paint)
+
+            val bmp = gameCoverBitmap!!
+            val bmpW = bmp.width.toFloat()
+            val bmpH = bmp.height.toFloat()
+            val targetRatio = coverW / coverH
+            val bmpRatio = bmpW / bmpH
+
+            val srcRect = if (bmpRatio > targetRatio) {
+                val cropW = bmpH * targetRatio
+                val left = (bmpW - cropW) * 0.5f
+                Rect(left.toInt(), 0, (left + cropW).toInt(), bmpH.toInt())
+            } else {
+                val cropH = bmpW / targetRatio
+                val top = (bmpH - cropH) * 0.5f
+                Rect(0, top.toInt(), bmpW.toInt(), (top + cropH).toInt())
+            }
+            canvas.drawBitmap(bmp, srcRect, coverRect, paint)
             canvas.restore()
         } else {
-            paint.color = Color.argb(40, 255, 255, 255)
+            paint.color = Color.argb(30, 255, 255, 255)
             paint.style = Paint.Style.FILL
-            canvas.drawRoundRect(coverRect, 16f, 16f, paint)
+            canvas.drawRoundRect(coverRect, 14f, 14f, paint)
 
             textPaint.color = currentTheme.subTextColor
             textPaint.textSize = coverH * 0.16f
@@ -237,88 +277,128 @@ class GameCartridgePosterView @JvmOverloads constructor(
             textPaint.textAlign = Paint.Align.LEFT
         }
 
-        // 封面边框与玻璃反光
+        // 封面流光高精边框
         paint.color = currentTheme.caseBorderColor
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2f
-        canvas.drawRoundRect(coverRect, 16f, 16f, paint)
+        paint.strokeWidth = 1.5f
+        canvas.drawRoundRect(coverRect, 14f, 14f, paint)
 
         // 5. 游戏标题与制作团队
-        val titleY = coverRect.bottom + boxH * 0.052f
+        val titleY = coverRect.bottom + boxH * 0.048f
         textPaint.color = currentTheme.textColor
-        textPaint.textSize = boxH * 0.042f
+        textPaint.textSize = boxH * 0.038f
         textPaint.isFakeBoldText = true
-        val title = if (gameItem.title.length > 14) gameItem.title.substring(0, 13) + "..." else gameItem.title
+        val title = if (gameItem.title.length > 18) gameItem.title.substring(0, 17) + "…" else gameItem.title
         canvas.drawText(title, coverLeft, titleY, textPaint)
 
-        val authorY = titleY + boxH * 0.032f
+        val authorY = titleY + boxH * 0.028f
         textPaint.color = currentTheme.trophyColor
-        textPaint.textSize = boxH * 0.024f
+        textPaint.textSize = boxH * 0.022f
         textPaint.isFakeBoldText = false
         val author = "制作/发行: " + (gameItem.author.orEmpty().ifBlank { "独立神作工作室" })
-        canvas.drawText(author, coverLeft, authorY, textPaint)
+        val displayAuthor = if (author.length > 24) author.substring(0, 23) + "…" else author
+        canvas.drawText(displayAuthor, coverLeft, authorY, textPaint)
 
-        // 6. 白金通关徽章 (左下) & 六维心智雷达 (右下)
-        val infoRowTop = authorY + boxH * 0.025f
-        val infoRowH = boxH * 0.18f
+        // 6. 白金通关徽章 (左侧) & 六维心智雷达 (右侧)
+        val infoRowTop = authorY + boxH * 0.020f
+        val infoRowH = boxH * 0.175f
 
-        // A. 左侧白金通关徽章盒
-        val badgeW = coverW * 0.46f
+        // A. 左侧白金通关徽章盒 (自适应宽度与内边距)
+        val badgeW = coverW * 0.60f
         val badgeRect = RectF(coverLeft, infoRowTop, coverLeft + badgeW, infoRowTop + infoRowH)
-        paint.color = Color.argb(30, Color.red(currentTheme.trophyColor), Color.green(currentTheme.trophyColor), Color.blue(currentTheme.trophyColor))
+        paint.color = Color.argb(35, Color.red(currentTheme.trophyColor), Color.green(currentTheme.trophyColor), Color.blue(currentTheme.trophyColor))
         paint.style = Paint.Style.FILL
-        canvas.drawRoundRect(badgeRect, 12f, 12f, paint)
+        canvas.drawRoundRect(badgeRect, 10f, 10f, paint)
 
         paint.color = currentTheme.trophyColor
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.2f
-        canvas.drawRoundRect(badgeRect, 12f, 12f, paint)
+        canvas.drawRoundRect(badgeRect, 10f, 10f, paint)
 
-        // 徽章内容
+        // 徽章文本 (严格自动测量缩放，确保 100% 居内无溢出)
+        val badgePadX = 10f * (w / 320f)
+        val maxBadgeTextW = badgeW - badgePadX * 2.2f
+
+        // 行1: 🏆 白金通关认证
+        val titleBadge = "🏆 白金通关认证"
         textPaint.color = currentTheme.trophyColor
-        textPaint.textSize = infoRowH * 0.28f
+        textPaint.textSize = (infoRowH * 0.22f).coerceAtLeast(10f)
         textPaint.isFakeBoldText = true
-        canvas.drawText("🏆 白金通关认证", badgeRect.left + badgeW * 0.08f, badgeRect.top + infoRowH * 0.38f, textPaint)
+        while (textPaint.measureText(titleBadge) > maxBadgeTextW && textPaint.textSize > 8f) {
+            textPaint.textSize -= 0.5f
+        }
+        canvas.drawText(titleBadge, badgeRect.left + badgePadX, badgeRect.top + infoRowH * 0.35f, textPaint)
 
-        textPaint.color = currentTheme.textColor
-        textPaint.textSize = infoRowH * 0.20f
-        textPaint.isFakeBoldText = false
+        // 行2: 评级: SSS · 战力 8.9
         val scoreAvg = String.format(Locale.getDefault(), "%.1f", mindprint?.averageScore() ?: 9.8)
-        canvas.drawText("通关评级: SSS (战力 $scoreAvg)", badgeRect.left + badgeW * 0.08f, badgeRect.top + infoRowH * 0.68f, textPaint)
+        val rankBadge = "评级: SSS · 战力 $scoreAvg"
+        textPaint.color = currentTheme.textColor
+        textPaint.textSize = (infoRowH * 0.18f).coerceAtLeast(9f)
+        textPaint.isFakeBoldText = false
+        while (textPaint.measureText(rankBadge) > maxBadgeTextW && textPaint.textSize > 7f) {
+            textPaint.textSize -= 0.5f
+        }
+        canvas.drawText(rankBadge, badgeRect.left + badgePadX, badgeRect.top + infoRowH * 0.64f, textPaint)
 
+        // 行3: 入库时刻: 2026.08.28
         val curDate = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(Date())
+        val dateBadge = "入库时刻: $curDate"
         textPaint.color = currentTheme.subTextColor
-        textPaint.textSize = infoRowH * 0.16f
-        canvas.drawText("入库时刻: $curDate", badgeRect.left + badgeW * 0.08f, badgeRect.top + infoRowH * 0.90f, textPaint)
+        textPaint.textSize = (infoRowH * 0.15f).coerceAtLeast(8f)
+        while (textPaint.measureText(dateBadge) > maxBadgeTextW && textPaint.textSize > 6f) {
+            textPaint.textSize -= 0.5f
+        }
+        canvas.drawText(dateBadge, badgeRect.left + badgePadX, badgeRect.top + infoRowH * 0.88f, textPaint)
 
         // B. 右侧六维心智战力雷达
-        val radarCenterX = coverLeft + coverW - infoRowH * 0.55f
+        val radarCenterX = coverLeft + badgeW + (coverW - badgeW) * 0.5f
         val radarCenterY = infoRowTop + infoRowH * 0.5f
-        val radarRadius = infoRowH * 0.44f
+        val radarRadius = (coverW - badgeW) * 0.42f
 
         drawMiniRadar(canvas, radarCenterX, radarCenterY, radarRadius)
 
-        // 7. 底部名台词金句横幅 (Quote Banner)
-        val quoteTop = infoRowTop + infoRowH + boxH * 0.025f
-        val quoteH = boxBottom - quoteTop - boxH * 0.025f
-        val quoteRect = RectF(coverLeft, quoteTop, coverLeft + coverW, quoteTop + quoteH)
+        // 7. 底部名台词与高光短评横幅 (Quote Banner, 支持自动多行折行与全字展示)
+        val quoteTop = infoRowTop + infoRowH + boxH * 0.020f
+        val quoteBottom = boxBottom - boxH * 0.022f
+        val quoteRect = RectF(coverLeft, quoteTop, coverLeft + coverW, quoteBottom)
 
-        paint.color = Color.argb(40, Color.red(currentTheme.caseBorderColor), Color.green(currentTheme.caseBorderColor), Color.blue(currentTheme.caseBorderColor))
+        paint.color = Color.argb(35, Color.red(currentTheme.caseBorderColor), Color.green(currentTheme.caseBorderColor), Color.blue(currentTheme.caseBorderColor))
         paint.style = Paint.Style.FILL
-        canvas.drawRoundRect(quoteRect, 10f, 10f, paint)
+        canvas.drawRoundRect(quoteRect, 8f, 8f, paint)
 
-        paint.color = currentTheme.caseBorderColor
+        paint.color = Color.argb(120, Color.red(currentTheme.caseBorderColor), Color.green(currentTheme.caseBorderColor), Color.blue(currentTheme.caseBorderColor))
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1f
-        canvas.drawRoundRect(quoteRect, 10f, 10f, paint)
+        canvas.drawRoundRect(quoteRect, 8f, 8f, paint)
 
         val quote = gameItem.shortComment?.ifBlank { "“犹豫就会败北！忍者的宿命，唯有侍奉唯一之主。”" }
             ?: "“落叶跳费，黄金树将庇护你我。褪色者啊，成为艾尔登之王吧！”"
-        textPaint.color = currentTheme.textColor
-        textPaint.textSize = quoteH * 0.42f
-        textPaint.isFakeBoldText = false
-        val displayQuote = if (quote.length > 28) quote.substring(0, 27) + "..." else quote
-        canvas.drawText(displayQuote, quoteRect.left + quoteRect.width() * 0.04f, quoteRect.top + quoteH * 0.65f, textPaint)
+
+        val quotePadX = 10f * (w / 320f)
+        val quoteContentW = (quoteRect.width() - quotePadX * 2).toInt().coerceAtLeast(50)
+
+        staticTextPaint.color = currentTheme.textColor
+        staticTextPaint.textSize = boxH * 0.025f
+        staticTextPaint.isFakeBoldText = false
+
+        val formattedQuote = if (quote.startsWith("“") || quote.startsWith("\"")) quote else "“$quote”"
+        val staticLayout = StaticLayout.Builder.obtain(
+            formattedQuote,
+            0,
+            formattedQuote.length,
+            staticTextPaint,
+            quoteContentW,
+        )
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setMaxLines(2)
+            .setLineSpacing(2f, 1.15f)
+            .build()
+
+        canvas.save()
+        val textTop = quoteRect.top + (quoteRect.height() - staticLayout.height) * 0.5f
+        canvas.translate(quoteRect.left + quotePadX, textTop.coerceAtLeast(quoteRect.top + 4f))
+        staticLayout.draw(canvas)
+        canvas.restore()
     }
 
     private fun drawMiniRadar(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
@@ -382,7 +462,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
 
     fun create1080pPosterBitmap(): Bitmap {
         val targetW = 1080
-        val targetH = 1440 // 3:4 经典卡带盒比例
+        val targetH = 1520 // 3:4.22 经典卡带盒比例
         val bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         drawCartridge(canvas, targetW.toFloat(), targetH.toFloat())

@@ -147,7 +147,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         }
 
         currentMindprint = databaseHelper.getMindprint(gameId)
-        gameCartridgePosterView.setData(currentGame!!, currentMindprint)
+        gameCartridgePosterView.setData(currentGame!!, currentMindprint, gameCartridgePosterView.getTheme())
         tvCartridgeSummary.text = "🕹️ 《${currentGame!!.title}》· 白金全息通关卡带"
     }
 

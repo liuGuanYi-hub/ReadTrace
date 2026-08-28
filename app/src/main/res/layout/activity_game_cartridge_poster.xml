@@ -77,8 +77,8 @@
             android:padding="16dp">
 
             <FrameLayout
-                android:layout_width="280dp"
-                android:layout_height="370dp">
+                android:layout_width="320dp"
+                android:layout_height="460dp">
 
                 <com.example.readtrace.widget.GameCartridgePosterView
                     android:id="@+id/gameCartridgePosterView"
