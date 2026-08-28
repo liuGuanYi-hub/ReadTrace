@@ -464,6 +464,7 @@
 
             <!-- 💰 实体馆藏与藏本印记表单卡片 -->
             <LinearLayout
+                android:id="@+id/cardCollection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"

@@ -50,6 +50,7 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var shortCommentInput: EditText
     private lateinit var reviewLabel: TextView
     private lateinit var reviewInput: EditText
+    private lateinit var cardCollection: View
     private lateinit var sectionCollectionTitle: TextView
     private lateinit var buyChannelInput: EditText
     private lateinit var shelfLocationInput: EditText
@@ -109,10 +110,12 @@ class AddBookActivity : AppCompatActivity() {
         databaseHelper = BookDatabaseHelper.getInstance(this)
         editingBookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         bindViews()
-        val extraType = intent.getStringExtra("extra_media_type")
+        val extraType = intent.getStringExtra("extra_media_type") ?: intent.getStringExtra("extra_default_media_type")
         if (extraType != null) {
-            runCatching { MediaType.valueOf(extraType) }.getOrNull()?.let {
-                selectedMediaType = it
+            val parsed = runCatching { MediaType.valueOf(extraType) }.getOrNull()
+                ?: MediaType.fromDatabaseValue(extraType)
+            if (parsed != null) {
+                selectedMediaType = parsed
             }
         }
         updateMediaTypeChips()
@@ -151,6 +154,7 @@ class AddBookActivity : AppCompatActivity() {
         shortCommentInput = findViewById(R.id.shortCommentInput)
         reviewLabel = findViewById(R.id.reviewLabel)
         reviewInput = findViewById(R.id.reviewInput)
+        cardCollection = findViewById(R.id.cardCollection)
         sectionCollectionTitle = findViewById(R.id.sectionCollectionTitle)
         buyChannelInput = findViewById(R.id.buyChannelInput)
         shelfLocationInput = findViewById(R.id.shelfLocationInput)
@@ -324,34 +328,15 @@ class AddBookActivity : AppCompatActivity() {
             MediaType.MUSIC -> "用逗号分隔，如：循环单曲，失眠必听，Live现场"
         }
 
-        // 5. 实体周边与收藏区域
-        sectionCollectionTitle.text = when (selectedMediaType) {
-            MediaType.BOOK -> "💰 实体馆藏与藏本印记 (选填)"
-            MediaType.ANIME -> "💰 实体周边与光碟印记 (选填)"
-            MediaType.MOVIE -> "💰 实体影碟与纪念周边 (选填)"
-            MediaType.GAME -> "💰 实体卡带与典藏印记 (选填)"
-            MediaType.MUSIC -> "💰 实体黑胶与CD印记 (选填)"
-        }
-        bindingTypeLabel.text = when (selectedMediaType) {
-            MediaType.BOOK -> "装帧版次"
-            MediaType.ANIME -> "发行版本"
-            MediaType.MOVIE -> "载体版本"
-            MediaType.GAME -> "介质版本"
-            MediaType.MUSIC -> "唱片介质"
-        }
-        bindingTypeInput.hint = when (selectedMediaType) {
-            MediaType.BOOK -> "如：精装锁线 / 平装"
-            MediaType.ANIME -> "如：BD限定版 / 特典"
-            MediaType.MOVIE -> "如：4K UHD蓝光 / 典藏版"
-            MediaType.GAME -> "如：NS卡带 / PS5光盘"
-            MediaType.MUSIC -> "如：黑胶LP / 彩胶 / CD"
-        }
-        shelfLocationInput.hint = when (selectedMediaType) {
-            MediaType.BOOK -> "如：书架第 2 层 A 区"
-            MediaType.ANIME -> "如：手办柜 / 蓝光收纳架"
-            MediaType.MOVIE -> "如：影碟柜 / 收藏盒"
-            MediaType.GAME -> "如：主机抽屉 / 实体盒"
-            MediaType.MUSIC -> "如：黑胶唱机旁 / CD架"
+        // 5. 实体馆藏与藏本印记 (仅在书籍模式下展示)
+        if (selectedMediaType == MediaType.BOOK) {
+            cardCollection.visibility = View.VISIBLE
+            sectionCollectionTitle.text = "💰 实体馆藏与藏本印记 (选填)"
+            bindingTypeLabel.text = "装帧版次"
+            bindingTypeInput.hint = "如：精装锁线 / 平装"
+            shelfLocationInput.hint = "如：书架第 2 层 A 区"
+        } else {
+            cardCollection.visibility = View.GONE
         }
 
         configureFormMode()

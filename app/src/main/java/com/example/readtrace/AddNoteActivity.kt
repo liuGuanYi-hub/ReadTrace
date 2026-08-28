@@ -45,12 +45,13 @@ class AddNoteActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         editingNoteId = intent.getLongExtra(EXTRA_NOTE_ID, NO_NOTE_ID)
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         bindViews()
         configureTypeInput()
         configureFormMode()
+        updateMediaTypeLabels()
         if (savedInstanceState == null) {
             loadNoteForEditing()
             if (isFinishing) return
@@ -237,11 +238,6 @@ class AddNoteActivity : AppCompatActivity() {
 
     private fun EditText.normalizedText(): String? =
         text.toString().trim().takeIf { it.isNotEmpty() }
-
-    override fun onDestroy() {
-        databaseHelper.close()
-        super.onDestroy()
-    }
 
     companion object {
         private const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"

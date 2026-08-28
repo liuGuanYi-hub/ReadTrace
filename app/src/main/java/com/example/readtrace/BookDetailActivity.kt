@@ -245,7 +245,7 @@ class BookDetailActivity : AppCompatActivity() {
             book.buyPrice != null
 
         findViewById<View>(R.id.detailCollectionCard).visibility =
-            if (hasCollectionInfo) View.VISIBLE else View.GONE
+            if (book.mediaType == MediaType.BOOK && hasCollectionInfo) View.VISIBLE else View.GONE
 
         findViewById<TextView>(R.id.detailBuyChannel).text = valueOrFallback(book.buyChannel)
         findViewById<TextView>(R.id.detailShelfLocation).text = valueOrFallback(book.shelfLocation)

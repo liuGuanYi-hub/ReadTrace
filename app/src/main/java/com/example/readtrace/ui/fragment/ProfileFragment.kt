@@ -125,9 +125,4 @@ class ProfileFragment : Fragment() {
             "基于 OpenGL 的 360° 环形悬浮立体展台与全息封面流"
         }
     }
-
-    override fun onDestroyView() {
-        databaseHelper.close()
-        super.onDestroyView()
-    }
 }
