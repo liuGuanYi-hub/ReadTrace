@@ -28,6 +28,7 @@ import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
 import com.example.readtrace.widget.VinylTurntableView
 import com.example.readtrace.util.FloatingBack
+import com.example.readtrace.util.ViewAnimationHelper
 
 /**
  * 💽 3D 拟真黑胶唱机与磁带卡座播放系统 (VinylCassettePlayerActivity)
@@ -187,6 +188,40 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setupListeners() {
+        // 选曲歌单列表
+        val btnTrackList = findViewById<TextView>(R.id.btnTrackList)
+        btnTrackList?.setOnClickListener {
+            val allMusic = databaseHelper.getBooks().filter { it.mediaType == MediaType.MUSIC }.ifEmpty { databaseHelper.getBooks() }
+            com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                title = "💿 选择播放音乐与原声",
+                works = allMusic,
+                selectedWorkId = playlist.getOrNull(currentIndex)?.id,
+                onSelected = { track ->
+                    playlist = allMusic
+                    val idx = playlist.indexOfFirst { it.id == track.id }
+                    if (idx != -1) {
+                        currentIndex = idx
+                        currentSeconds = 0
+                        renderCurrentTrack()
+                        if (!isPlaying) {
+                            togglePlayState()
+                        } else {
+                            if (isCassetteMode) {
+                                cassetteDeckView.togglePlay(true)
+                            } else {
+                                vinylTurntableView.togglePlay(true)
+                            }
+                        }
+                        Toast.makeText(this, "正在播放: 《${track.title}》", Toast.LENGTH_SHORT).show()
+                    }
+                },
+            )
+        }
+        if (btnTrackList != null) {
+            ViewAnimationHelper.attachSpringTouch(btnTrackList)
+        }
+
         // 模式切换：黑胶 vs 磁带
         btnToggleMode.setOnClickListener {
             triggerHapticClick()

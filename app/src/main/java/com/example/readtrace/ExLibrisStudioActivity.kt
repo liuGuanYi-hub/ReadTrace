@@ -58,6 +58,28 @@ class ExLibrisStudioActivity : AppCompatActivity() {
 
         FloatingBack.install(this)
 
+        val btnSwitch = findViewById<android.widget.TextView>(R.id.btnSwitchExLibrisBook)
+        btnSwitch?.setOnClickListener {
+            val allBooks = databaseHelper.getBooks()
+            if (allBooks.isEmpty()) {
+                Toast.makeText(this, "书库中暂无藏书数据", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                title = "📜 选择要定制藏书票的作品",
+                works = allBooks,
+                selectedWorkId = currentBook?.id,
+                onSelected = { book ->
+                    currentBook = book
+                    HapticFeedbackEngine.pageTurnRustle(this)
+                    loadBookData()
+                    Toast.makeText(this, "已切换为《${book.title}》", Toast.LENGTH_SHORT).show()
+                },
+            )
+        }
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnSwitch)
+
         // 主题滤镜切换
         findViewById<Button>(R.id.btnThemeParchment).setOnClickListener {
             SonicHapticMatrix.playParchmentRustle(this)

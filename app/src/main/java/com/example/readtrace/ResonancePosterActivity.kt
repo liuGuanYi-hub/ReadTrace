@@ -83,9 +83,13 @@ class ResonancePosterActivity : AppCompatActivity() {
         btnShareTop.setOnClickListener { exportAndSharePoster() }
         ViewAnimationHelper.attachSpringTouch(btnShareTop)
 
-        val btnExport = findViewById<TextView>(R.id.btnExportResonancePoster)
-        btnExport.setOnClickListener { exportAndSharePoster() }
-        ViewAnimationHelper.attachSpringTouch(btnExport)
+        val btnSaveAlbum = findViewById<TextView>(R.id.btnSaveResonanceAlbum)
+        btnSaveAlbum?.setOnClickListener { savePosterToGallery() }
+        ViewAnimationHelper.attachSpringTouch(btnSaveAlbum)
+
+        val btnShareImage = findViewById<TextView>(R.id.btnShareResonanceImage)
+        btnShareImage?.setOnClickListener { exportAndSharePoster() }
+        ViewAnimationHelper.attachSpringTouch(btnShareImage)
 
         setupThemeTabs()
     }
@@ -216,10 +220,47 @@ class ResonancePosterActivity : AppCompatActivity() {
         )
     }
 
+    private fun savePosterToGallery() {
+        runCatching {
+            Toast.makeText(this, "正在保存 1080P 超清微卡至相册...", Toast.LENGTH_SHORT).show()
+            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1750)
+            val filename = "ReadTrace_TwinResonance_${System.currentTimeMillis()}.png"
+            val resolver = contentResolver
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val contentValues = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+                }
+                val imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                if (imageUri != null) {
+                    resolver.openOutputStream(imageUri)?.use { out ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    }
+                    Toast.makeText(this, "✨ 成功保存至相册 /Pictures/ReadTrace！", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "保存至相册失败", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                val picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES)
+                val appDir = File(picturesDir, "ReadTrace").apply { if (!exists()) mkdirs() }
+                val imageFile = File(appDir, filename)
+                FileOutputStream(imageFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                android.media.MediaScannerConnection.scanFile(this, arrayOf(imageFile.absolutePath), arrayOf("image/png"), null)
+                Toast.makeText(this, "✨ 成功保存至相册 /Pictures/ReadTrace！", Toast.LENGTH_LONG).show()
+            }
+        }.onFailure {
+            Toast.makeText(this, "保存相册失败: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun exportAndSharePoster() {
         runCatching {
             Toast.makeText(this, "正在生成 1080P 双生共鸣超清微卡...", Toast.LENGTH_SHORT).show()
-            val bitmap = resonancePosterView.exportUltraHdBitmap(1080)
+            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1750)
             val cacheFile = File(cacheDir, "readtrace_twin_resonance_${System.currentTimeMillis()}.png")
             FileOutputStream(cacheFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)

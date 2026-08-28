@@ -4,6 +4,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:name=".ReadTraceApplication"
@@ -90,7 +93,7 @@
             android:exported="true" />
         <activity
             android:name=".VinylCassettePlayerActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".TimeWarpTunnelActivity"
             android:exported="true" />
@@ -171,7 +174,7 @@
         <!-- 📜 典藏藏书票与生成式艺术工坊 -->
         <activity
             android:name=".ExLibrisStudioActivity"
-            android:exported="false" />
+            android:exported="true" />
     </application>
 
 </manifest>
