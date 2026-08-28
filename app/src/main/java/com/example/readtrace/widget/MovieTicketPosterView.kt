@@ -467,14 +467,14 @@ class MovieTicketPosterView @JvmOverloads constructor(
         // A. 顶部影院放映头
         val headerY = top + h * 0.08f
         textPaint.color = currentTheme.accentColor
-        textPaint.textSize = h * 0.032f
+        textPaint.textSize = h * 0.026f
         textPaint.isFakeBoldText = true
-        canvas.drawText("READTRACE CINEMA ARCHIVE · 阅痕光影", left + innerPad, headerY, textPaint)
+        canvas.drawText("READTRACE CINEMA", left + innerPad, headerY, textPaint)
 
         textPaint.color = currentTheme.subTextColor
         textPaint.textSize = h * 0.024f
         textPaint.isFakeBoldText = false
-        val seatInfo = "01厅 · DOLBY ATMOS · VIP 06排12座"
+        val seatInfo = "DOLBY ATMOS · 4K"
         canvas.drawText(seatInfo, left + w - innerPad - textPaint.measureText(seatInfo), headerY, textPaint)
 
         // 顶部分隔线
@@ -483,11 +483,10 @@ class MovieTicketPosterView @JvmOverloads constructor(
         paint.strokeWidth = 1.2f
         canvas.drawLine(left + innerPad, headerY + h * 0.02f, left + w - innerPad, headerY + h * 0.02f, paint)
 
-        // B. 电影海报 (左侧)
+        // B. 电影海报 (左侧，撑满主票高度，为票面最大元素)
         val posterTop = headerY + h * 0.05f
-        val posterW = w * 0.28f
-        val posterH = posterW * 1.45f
-        val posterRect = RectF(left + innerPad, posterTop, left + innerPad + posterW, posterTop + posterH)
+        val posterW = w * 0.40f
+        val posterRect = RectF(left + innerPad, posterTop, left + innerPad + posterW, top + h - innerPad)
 
         if (movieCoverBitmap != null && !movieCoverBitmap!!.isRecycled) {
             canvas.save()
@@ -499,7 +498,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
             val bmp = movieCoverBitmap!!
             val bmpW = bmp.width.toFloat()
             val bmpH = bmp.height.toFloat()
-            val targetRatio = posterW / posterH
+            val targetRatio = posterRect.width() / posterRect.height()
             val bmpRatio = bmpW / bmpH
 
             val srcRect = if (bmpRatio > targetRatio) {
@@ -532,19 +531,19 @@ class MovieTicketPosterView @JvmOverloads constructor(
         paint.strokeWidth = 1.5f
         canvas.drawRoundRect(posterRect, 14f, 14f, paint)
 
-        // C. 电影标题与导演信息 (海报右侧)
+        // C. 电影标题与导演信息 (海报右侧竖排)
         val infoLeft = posterRect.right + innerPad * 0.8f
         val infoMaxW = left + w - innerPad - infoLeft
 
-        var textY = posterTop + h * 0.045f
+        var textY = posterTop + h * 0.035f
         textPaint.color = currentTheme.textColor
-        textPaint.textSize = h * 0.048f
+        textPaint.textSize = h * 0.042f
         textPaint.isFakeBoldText = true
-        val title = if (movie.title.length > 12) movie.title.substring(0, 11) + "..." else movie.title
+        val title = if (movie.title.length > 8) movie.title.substring(0, 7) + "..." else movie.title
         canvas.drawText(title, infoLeft, textY, textPaint)
 
         // 导演 / 制作社
-        textY += h * 0.038f
+        textY += h * 0.045f
         textPaint.color = currentTheme.accentColor
         textPaint.textSize = h * 0.025f
         textPaint.isFakeBoldText = false
@@ -552,17 +551,16 @@ class MovieTicketPosterView @JvmOverloads constructor(
         canvas.drawText(author, infoLeft, textY, textPaint)
 
         // 分类标签与评分星级
-        textY += h * 0.036f
+        textY += h * 0.042f
         textPaint.color = currentTheme.subTextColor
         textPaint.textSize = h * 0.022f
         val ratingStr = "★★★★★  ${movie.rating ?: 5.0} 分"
+        val ratingY = textY
         canvas.drawText(ratingStr, infoLeft, textY, textPaint)
 
-        // D. 经典台词金句 (在海报下方或右侧延展)
-        val quoteTop = posterRect.bottom + h * 0.04f
-        val quoteW = w - innerPad * 2
-        val quoteH = h * 0.22f
-        val quoteRect = RectF(left + innerPad, quoteTop, left + innerPad + quoteW, quoteTop + quoteH)
+        // D. 经典台词金句 (右列评分下方，延伸至票底)
+        val quoteRect = RectF(infoLeft, ratingY + h * 0.05f, left + w - innerPad, top + h - innerPad)
+        val quoteH = quoteRect.height()
 
         paint.color = Color.argb(30, Color.red(currentTheme.accentColor), Color.green(currentTheme.accentColor), Color.blue(currentTheme.accentColor))
         paint.style = Paint.Style.FILL
@@ -577,36 +575,17 @@ class MovieTicketPosterView @JvmOverloads constructor(
         val quote = movie.shortComment?.ifBlank { "“有些鸟儿是关不住的，它们的每一片羽毛都闪耀着自由的光辉。”" }
             ?: "“爱是唯一可以超越时间与空间维度的力量。”"
         textPaint.color = currentTheme.textColor
-        textPaint.textSize = h * 0.026f
+        textPaint.textSize = h * 0.024f
         textPaint.isFakeBoldText = false
 
         // 简易两行折行
-        val line1 = if (quote.length > 24) quote.substring(0, 24) else quote
-        val line2 = if (quote.length > 24) quote.substring(24).take(26) + if (quote.length > 50) "..." else "" else ""
+        val line1 = if (quote.length > 11) quote.substring(0, 11) else quote
+        val line2 = if (quote.length > 11) quote.substring(11).take(12) + if (quote.length > 23) "..." else "" else ""
 
-        canvas.drawText(line1, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.42f, textPaint)
+        canvas.drawText(line1, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.35f, textPaint)
         if (line2.isNotBlank()) {
-            canvas.drawText(line2, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.78f, textPaint)
+            canvas.drawText(line2, quoteRect.left + innerPad * 0.6f, quoteRect.top + quoteH * 0.62f, textPaint)
         }
-
-        // E. 底部六维心智微缩雷达
-        val radarBottomY = top + h - innerPad * 0.8f
-        val radarCenterY = quoteRect.bottom + (radarBottomY - quoteRect.bottom) * 0.55f
-        val radarCenterX = left + innerPad + h * 0.08f
-        val radarRadius = h * 0.065f
-
-        drawMiniRadar(canvas, radarCenterX, radarCenterY, radarRadius)
-
-        // 心智解读文本
-        val mpTextX = radarCenterX + radarRadius + innerPad * 0.8f
-        textPaint.color = currentTheme.subTextColor
-        textPaint.textSize = h * 0.020f
-        canvas.drawText("6D COGNITIVE MINDPRINT", mpTextX, radarCenterY - h * 0.015f, textPaint)
-        textPaint.color = currentTheme.textColor
-        textPaint.textSize = h * 0.022f
-        textPaint.isFakeBoldText = true
-        val avgScore = String.format(Locale.getDefault(), "%.1f", mindprint?.averageScore() ?: 9.5)
-        canvas.drawText("综合心智评分: $avgScore / 10.0 (殿堂级光影)", mpTextX, radarCenterY + h * 0.018f, textPaint)
     }
 
     private fun drawStubTicketContent(canvas: Canvas, movie: Book, left: Float, top: Float, w: Float, h: Float) {
@@ -680,55 +659,6 @@ class MovieTicketPosterView @JvmOverloads constructor(
         }
     }
 
-    private fun drawMiniRadar(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
-        val scores = floatArrayOf(
-            mindprint?.depthScore?.toFloat() ?: 9.5f,
-            mindprint?.artistryScore?.toFloat() ?: 9.8f,
-            mindprint?.emotionScore?.toFloat() ?: 9.6f,
-            mindprint?.logicScore?.toFloat() ?: 9.2f,
-            mindprint?.difficultyScore?.toFloat() ?: 7.5f,
-            mindprint?.healingScore?.toFloat() ?: 8.5f,
-        )
-
-        // 网格线
-        paint.color = currentTheme.perforationColor
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1f
-
-        for (step in 1..3) {
-            val r = radius * (step / 3f)
-            val gridPath = Path()
-            for (i in 0..5) {
-                val angle = (i * 60 - 90) * Math.PI / 180.0
-                val px = (cx + r * cos(angle)).toFloat()
-                val py = (cy + r * sin(angle)).toFloat()
-                if (i == 0) gridPath.moveTo(px, py) else gridPath.lineTo(px, py)
-            }
-            gridPath.close()
-            canvas.drawPath(gridPath, paint)
-        }
-
-        // 数据多边形
-        val dataPath = Path()
-        for (i in 0..5) {
-            val norm = (scores[i] / 10f).coerceIn(0.1f, 1.0f)
-            val r = radius * norm
-            val angle = (i * 60 - 90) * Math.PI / 180.0
-            val px = (cx + r * cos(angle)).toFloat()
-            val py = (cy + r * sin(angle)).toFloat()
-            if (i == 0) dataPath.moveTo(px, py) else dataPath.lineTo(px, py)
-        }
-        dataPath.close()
-
-        paint.color = Color.argb(90, Color.red(currentTheme.radarColor), Color.green(currentTheme.radarColor), Color.blue(currentTheme.radarColor))
-        paint.style = Paint.Style.FILL
-        canvas.drawPath(dataPath, paint)
-
-        paint.color = currentTheme.radarColor
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2f
-        canvas.drawPath(dataPath, paint)
-    }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_DOWN) {
