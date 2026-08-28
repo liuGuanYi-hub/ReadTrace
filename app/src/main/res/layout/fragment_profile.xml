@@ -238,39 +238,6 @@
                 android:textSize="12.5sp" />
         </LinearLayout>
 
-        <!-- 内网封面服务 -->
-        <LinearLayout
-            android:id="@+id/profileLanCoverPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_glass_panel"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans"
-                android:text="🖥️ 内网封面服务"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/profileLanCoverSummary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="sans"
-                android:text="连接电脑上的封面服务器，预置封面秒开且不占用安装空间"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="12.5sp" />
-        </LinearLayout>
-
         <!-- 回收站 -->
         <LinearLayout
             android:id="@+id/profileTrashPanel"

@@ -28,50 +28,43 @@ object CoverImageHelper {
     private const val THUMB_HEIGHT = 450
     private const val JPEG_QUALITY = 85
 
-    /** 预置封面在内网服务器上的相对键前缀（covers/xxx.jpg），由局域网 HTTP 服务提供，首次加载后缓存本机 */
+    /** 预置封面的相对键前缀（covers/xxx.jpg），实际图源由 assets/cover_cdn_map.json 指向国内可达 CDN */
     const val LAN_COVER_KEY_PREFIX = "covers/"
-    private const val LAN_PREFS = "readtrace_lan_prefs"
-    private const val KEY_LAN_COVER_BASE = "lan_cover_base_url"
+    private const val CDN_MAP_ASSET = "cover_cdn_map.json"
 
-    /** 判断封面路径是否为内网封面键（covers/xxx.jpg） */
+    /** APK 内置兜底封面（assets/covers 下少量通用占位图）的前缀 */
+    const val BUNDLED_ASSET_PREFIX = "file:///android_asset/"
+
+    /** 判断封面路径是否为预置封面键（covers/xxx.jpg） */
     fun isLanCoverKey(path: String?): Boolean {
         return path != null && path.trim().startsWith(LAN_COVER_KEY_PREFIX, ignoreCase = true)
     }
 
-    /** 读取内网封面服务地址（如 http://192.168.1.100:8000），未配置返回空串 */
-    fun getLanCoverBaseUrl(context: Context): String {
-        return context.applicationContext.getSharedPreferences(LAN_PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_LAN_COVER_BASE, "")?.trim().orEmpty()
+    // 键 → 国内图源 URL 映射（首次访问从 assets 惰性加载，与数据库解耦，换图源只需更新映射文件）
+    @Volatile
+    private var cdnMap: Map<String, String>? = null
+
+    private fun loadCdnMap(context: Context): Map<String, String> {
+        cdnMap?.let { return it }
+        return runCatching {
+            val text = context.applicationContext.assets.open(CDN_MAP_ASSET)
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val entries = org.json.JSONObject(text)
+            val result = mutableMapOf<String, String>()
+            for (name in entries.keys()) {
+                result["covers/$name"] = entries.getString(name)
+            }
+            result
+        }.getOrDefault(emptyMap()).also { cdnMap = it }
     }
 
-    /** 保存内网封面服务地址：自动补 http:// 前缀、去尾部斜杠 */
-    fun setLanCoverBaseUrl(context: Context, baseUrl: String) {
-        var normalized = baseUrl.trim()
-        if (normalized.isNotEmpty() && !normalized.startsWith("http://", ignoreCase = true) &&
-            !normalized.startsWith("https://", ignoreCase = true)
-        ) {
-            normalized = "http://$normalized"
-        }
-        while (normalized.endsWith("/")) {
-            normalized = normalized.dropLast(1)
-        }
-        context.applicationContext.getSharedPreferences(LAN_PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_LAN_COVER_BASE, normalized)
-            .apply()
-    }
-
-    /** 内网封面键 → 完整下载 URL；服务地址未配置时返回 null */
+    /** 预置封面键 → 国内可达图源 URL（未收录返回 null，走占位图） */
     fun resolveLanCoverUrl(context: Context, key: String): String? {
-        val base = getLanCoverBaseUrl(context)
-        if (base.isEmpty()) return null
-        return base + "/" + key.trim().trimStart('/')
+        return loadCdnMap(context)[key.trim()]
     }
 
-    /**
-     * 查询封面在本机磁盘缓存中的文件（内网键或网络链接，加载过一次即缓存）。
-     * 供 GL 线程、桌面小组件等不能做网络请求的同步场景使用；未缓存返回 null。
-     */
+    /** 查询封面在本机磁盘缓存中的文件（预置键或网络链接，加载过一次即缓存）。
+     *  供 GL 线程、桌面小组件等不能做网络请求的同步场景使用；未缓存返回 null。 */
     fun peekCachedCoverFile(context: Context, path: String?): File? {
         val trimmed = path?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         if (trimmed.startsWith("http", ignoreCase = true) || isLanCoverKey(trimmed)) {
@@ -208,6 +201,31 @@ object CoverImageHelper {
     }
 
     /**
+     * 安全解码 APK 内置资产封面为下采样缩略图（支持完整资产 URI 与裸相对路径）
+     */
+    fun decodeSampledBitmapFromAsset(context: Context, path: String, reqWidth: Int = THUMB_WIDTH, reqHeight: Int = THUMB_HEIGHT): Bitmap? {
+        return runCatching {
+            val assetPath = if (path.startsWith(BUNDLED_ASSET_PREFIX, ignoreCase = true)) {
+                path.substring(BUNDLED_ASSET_PREFIX.length)
+            } else {
+                path
+            }
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+            if (options.outWidth <= 0 || options.outHeight <= 0) return null
+
+            options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+            options.inJustDecodeBounds = false
+            options.inPreferredConfig = Bitmap.Config.RGB_565
+
+            context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+        }.getOrElse {
+            memoryCache.evictAll()
+            null
+        }
+    }
+
+    /**
      * 安全删除旧封面文件
      */
     fun deleteCoverFile(path: String?) {
@@ -261,12 +279,13 @@ object CoverImageHelper {
         }
 
         val appContext = imageView.context.applicationContext
-        // LAN 键在此解析为完整下载 URL；磁盘缓存键始终取存储键，服务地址更换后缓存依然命中
+        // 预置封面键在此解析为国内图源 URL；磁盘缓存键始终取存储键，更换图源后缓存依然命中
         val networkUrl = when {
             trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true) -> trimmed
             isLanCoverKey(trimmed) -> resolveLanCoverUrl(appContext, trimmed)
             else -> null
         }
+        val bundledAssetUri = if (networkUrl == null && isLanCoverKey(trimmed)) BUNDLED_ASSET_PREFIX + trimmed else null
 
         // 4. 将所有磁盘检查、哈希计算与解码操作完全推入后台线程池
         imageExecutor.execute {
@@ -276,34 +295,10 @@ object CoverImageHelper {
             var bitmap: Bitmap? = null
 
             if (networkUrl != null) {
-                val cacheKey = md5(trimmed)
-                val cacheDir = File(appContext.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
-                val cacheFile = File(cacheDir, "net_$cacheKey.jpg")
-
-                if (cacheFile.exists() && cacheFile.length() > 0) {
-                    bitmap = decodeSampledBitmapFromFile(cacheFile.absolutePath)
-                } else {
-                    runCatching {
-                        val url = URL(networkUrl)
-                        val connection = (url.openConnection() as HttpURLConnection).apply {
-                            connectTimeout = 8000
-                            readTimeout = 8000
-                            instanceFollowRedirects = true
-                            setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
-                            // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
-                            if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
-                                setRequestProperty("Referer", "https://book.douban.com/")
-                            }
-                        }
-                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                            val bytes = connection.inputStream.use { it.readBytes() }
-                            val savedPath = cropAndSaveCoverFromBytes(appContext, bytes, "net_$cacheKey.jpg")
-                            if (savedPath != null) {
-                                bitmap = decodeSampledBitmapFromFile(savedPath)
-                            }
-                        }
-                    }
-                }
+                bitmap = downloadRemoteCover(appContext, networkUrl, THUMB_WIDTH, THUMB_HEIGHT, cacheKeyFor = trimmed)
+            } else if (bundledAssetUri != null) {
+                // 映射未收录的键回退 APK 内置兜底封面
+                bitmap = decodeSampledBitmapFromAsset(appContext, bundledAssetUri, THUMB_WIDTH, THUMB_HEIGHT)
             } else {
                 val file = File(trimmed)
                 if (file.exists() && file.isFile) {
@@ -366,9 +361,9 @@ object CoverImageHelper {
             if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
                 bitmap = downloadRemoteCover(ctx, trimmed, reqWidth, reqHeight)
             } else if (isLanCoverKey(trimmed) && ctx != null) {
-                val resolved = resolveLanCoverUrl(ctx, trimmed)
-                if (resolved != null) {
-                    bitmap = downloadRemoteCover(ctx, resolved, reqWidth, reqHeight, cacheKeyFor = trimmed)
+                bitmap = when (val resolved = resolveLanCoverUrl(ctx, trimmed)) {
+                    null -> decodeSampledBitmapFromAsset(ctx, BUNDLED_ASSET_PREFIX + trimmed, reqWidth, reqHeight)
+                    else -> downloadRemoteCover(ctx, resolved, reqWidth, reqHeight, cacheKeyFor = trimmed)
                 }
             } else if (trimmed.startsWith("content://", ignoreCase = true) && ctx != null) {
                 runCatching {
@@ -404,7 +399,7 @@ object CoverImageHelper {
 
     /**
      * 从内网/外网地址下载封面并按存储键落盘缓存（cacheKeyFor 未传时以 URL 为键）。
-     * 命中磁盘缓存直接解码返回；下载失败静默返回 null，由上层回退占位图。
+     * jsDelivr 域名失败时自动轮询国内可达镜像；命中磁盘缓存直接解码返回，失败静默回退占位图。
      */
     private fun downloadRemoteCover(context: Context?, url: String, reqWidth: Int, reqHeight: Int, cacheKeyFor: String = url): Bitmap? {
         if (context == null) return null
@@ -416,28 +411,46 @@ object CoverImageHelper {
         }
 
         return runCatching {
-            val host = runCatching { URL(url).host }.getOrDefault("")
-            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                connectTimeout = 5000
-                readTimeout = 8000
-                instanceFollowRedirects = true
-                setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
-                // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
-                if (host.endsWith("doubanio.com") || host.endsWith("douban.com")) {
-                    setRequestProperty("Referer", "https://book.douban.com/")
+            for (candidate in mirrorVariants(url)) {
+                try {
+                    val host = runCatching { URL(candidate).host }.getOrDefault("")
+                    val conn = (URL(candidate).openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 5000
+                        readTimeout = 8000
+                        instanceFollowRedirects = true
+                        setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
+                        // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
+                        if (host.endsWith("doubanio.com") || host.endsWith("douban.com")) {
+                            setRequestProperty("Referer", "https://book.douban.com/")
+                        }
+                    }
+                    if (conn.responseCode != HttpURLConnection.HTTP_OK) continue
+                    val bytes = conn.inputStream.use { it.readBytes() }
+                    runCatching {
+                        FileOutputStream(cacheFile).use { out -> out.write(bytes) }
+                    }
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                    if (options.outWidth <= 0) continue
+                    options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+                    options.inJustDecodeBounds = false
+                    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                } catch (e: Exception) {
+                    // 尝试下一个镜像
                 }
             }
-            if (conn.responseCode != HttpURLConnection.HTTP_OK) return null
-            val bytes = conn.inputStream.use { it.readBytes() }
-            runCatching {
-                FileOutputStream(cacheFile).use { out -> out.write(bytes) }
-            }
-            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
-            options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
-            options.inJustDecodeBounds = false
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+            null
         }.getOrNull()
+    }
+
+    /** jsDelivr 主域在国内存在波动，失败时自动轮询备用镜像节点 */
+    private fun mirrorVariants(url: String): List<String> {
+        if (!url.contains("jsdelivr.net", ignoreCase = true)) return listOf(url)
+        return listOf(
+            url,
+            url.replace("cdn.jsdelivr.net", "gcore.jsdelivr.net", ignoreCase = true),
+            url.replace("cdn.jsdelivr.net", "testingcf.jsdelivr.net", ignoreCase = true),
+        )
     }
 
     private fun md5(input: String): String {
