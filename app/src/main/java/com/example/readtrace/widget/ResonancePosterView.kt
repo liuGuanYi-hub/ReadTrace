@@ -27,8 +27,9 @@ import kotlin.math.sin
 
 /**
  * 🌌 跨媒介双生共鸣先锋微卡视图 (ResonancePosterView)
- * 采用先锋「上下纵向双联对峙 / 灵魂共鸣对决」Bento 架构。
- * 完美适配 9:16 手机全屏黄金比例，彻底消除横向压缩与文字截断。
+ * 采用全纵向流式排版（Pure Vertical Cascading Architecture）：
+ * 单卡内部「大封面在上 -> 完整标题与标签在下 -> 核心金句在底」纯竖向布局，
+ * 彻底告别左右分栏横向压缩，所有元素 100% 居中舒展、清晰沉浸。
  */
 class ResonancePosterView @JvmOverloads constructor(
     context: Context,
@@ -57,7 +58,7 @@ class ResonancePosterView @JvmOverloads constructor(
             Color.parseColor("#F4A261"), // 琥珀金
             Color.parseColor("#A855F7"), // 幻夜紫
             Color.parseColor("#33FFFFFF"),
-            Color.parseColor("#1F222E"),
+            Color.parseColor("#221D28"),
             Color.parseColor("#4DF4A261"),
         ),
         RICE_PAPER(
@@ -115,7 +116,7 @@ class ResonancePosterView @JvmOverloads constructor(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = (width * 1.7777778f).toInt() // 9:16 全屏标准比例
+        val height = (width * 2.3f).toInt() // 全纵向长海报比例
         super.onMeasure(
             MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
@@ -186,7 +187,7 @@ class ResonancePosterView @JvmOverloads constructor(
         drawPoster(canvas, width.toFloat(), height.toFloat())
     }
 
-    fun exportUltraHdBitmap(width: Int = 1080, height: Int = 1920): Bitmap {
+    fun exportUltraHdBitmap(width: Int = 1080, height: Int = 2480): Bitmap {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         drawPoster(canvas, width.toFloat(), height.toFloat())
@@ -246,13 +247,13 @@ class ResonancePosterView @JvmOverloads constructor(
         textPaint.color = t.accentAColor
         canvas.drawText(badgeText, w / 2f, badgeTop + badgeH * 0.68f, textPaint)
 
-        // 4. 上方作品 A Bento 卡盒 (Full Width, 2:3 大封面 + 完整标题 + 创作者 + 内嵌金句)
+        // 4. 上方作品 A 纯竖排卡盒 (Full Width, 大封面在上 -> 完整标题与信息在下 -> 金句在底)
         val cardLeft = 60f * scale
         val cardW = w - 120f * scale
-        val cardH = 500f * scale
+        val cardH = 760f * scale
         val cardTopA = 175f * scale
 
-        drawVerticalWorkBentoCard(
+        drawPureVerticalWorkCard(
             canvas = canvas,
             left = cardLeft,
             top = cardTopA,
@@ -267,15 +268,15 @@ class ResonancePosterView @JvmOverloads constructor(
         )
 
         // 5. 中间共鸣枢纽与六维灵魂雷达 (Central Resonance Hub)
-        val radarCenterY = 955f * scale
-        val radarRadius = 150f * scale
+        val radarCenterY = 1215f * scale
+        val radarRadius = 155f * scale
 
         drawCentralDualRadar(canvas, w / 2f, radarCenterY, radarRadius, scale, mindprintA, mindprintB, t)
 
-        // 6. 下方作品 B Bento 卡盒 (Full Width, 2:3 大封面 + 完整标题 + 创作者 + 内嵌金句)
-        val cardTopB = 1220f * scale
+        // 6. 下方作品 B 纯竖排卡盒 (Full Width, 大封面在上 -> 完整标题与信息在下 -> 金句在底)
+        val cardTopB = 1490f * scale
 
-        drawVerticalWorkBentoCard(
+        drawPureVerticalWorkCard(
             canvas = canvas,
             left = cardLeft,
             top = cardTopB,
@@ -313,11 +314,13 @@ class ResonancePosterView @JvmOverloads constructor(
     }
 
     /**
-     * 绘制全宽纵向作品卡盒 (Full-Width Work Bento Card)
-     * 左侧：2:3 黄金比例高清立体封面
-     * 右侧：顶部标签 + 完整大标题 + 创作者 + 评分芯片 + 内嵌毛玻璃金句气泡
+     * 绘制纯竖向作品卡盒 (Pure Vertical Work Card)
+     * 顶部：维度角标与媒介标签
+     * 上部：居中大封面（清晰通透、高清无损）
+     * 中部：大标题 + 创作者 + 评分 + 标签流（纵向向下展开）
+     * 底部：全宽内嵌毛玻璃核心金句气泡
      */
-    private fun drawVerticalWorkBentoCard(
+    private fun drawPureVerticalWorkCard(
         canvas: Canvas,
         left: Float,
         top: Float,
@@ -333,26 +336,43 @@ class ResonancePosterView @JvmOverloads constructor(
         if (book == null) return
         val cardRect = RectF(left, top, left + width, top + height)
 
-        // 卡片底色与流光外边框
+        // 1. 卡片底色与流光外边框
         paint.style = Paint.Style.FILL
         paint.color = t.cardBgColor
-        canvas.drawRoundRect(cardRect, 22f * scale, 22f * scale, paint)
+        canvas.drawRoundRect(cardRect, 24f * scale, 24f * scale, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 2.2f * scale
         paint.color = accentColor
-        canvas.drawRoundRect(cardRect, 22f * scale, 22f * scale, paint)
+        canvas.drawRoundRect(cardRect, 24f * scale, 24f * scale, paint)
 
-        // 左侧 2:3 竖版大封面 (宽:高 = 230:345)
-        val coverMarginL = 20f * scale
-        val coverMarginT = 20f * scale
-        val coverW = 230f * scale
-        val coverH = 345f * scale
-        val coverRect = RectF(left + coverMarginL, top + coverMarginT, left + coverMarginL + coverW, top + coverMarginT + coverH)
+        // 2. 顶部维度胶囊行
+        val headerY = top + 36f * scale
+        textPaint.textAlign = Paint.Align.LEFT
+        textPaint.textSize = 18f * scale
+        textPaint.isFakeBoldText = true
+        textPaint.color = accentColor
+        canvas.drawText(dimensionTag, left + 24f * scale, headerY, textPaint)
+
+        val rating = book.rating ?: 0.0
+        val ratingStr = if (rating > 0.0) String.format(Locale.US, "%.1f", rating) else "4.9"
+        val headerMeta = "${book.mediaType.emoji} ${book.category ?: "典藏"} · ⭐ $ratingStr · ${book.status.displayName}"
+        textPaint.textAlign = Paint.Align.RIGHT
+        textPaint.textSize = 17f * scale
+        textPaint.isFakeBoldText = false
+        textPaint.color = t.subTextColor
+        canvas.drawText(headerMeta, cardRect.right - 24f * scale, headerY, textPaint)
+
+        // 3. 上部居中宽幅高清大封面 (宽:高 = 520:300)
+        val coverW = 520f * scale
+        val coverH = 300f * scale
+        val coverL = cardRect.centerX() - coverW / 2f
+        val coverT = top + 56f * scale
+        val coverRect = RectF(coverL, coverT, coverL + coverW, coverT + coverH)
 
         if (coverBitmap != null && !coverBitmap.isRecycled) {
             canvas.save()
-            val clipPath = Path().apply { addRoundRect(coverRect, 14f * scale, 14f * scale, Path.Direction.CW) }
+            val clipPath = Path().apply { addRoundRect(coverRect, 16f * scale, 16f * scale, Path.Direction.CW) }
             canvas.clipPath(clipPath)
 
             val bmpW = coverBitmap.width.toFloat()
@@ -374,58 +394,27 @@ class ResonancePosterView @JvmOverloads constructor(
         } else {
             paint.style = Paint.Style.FILL
             paint.color = Color.argb(40, 255, 255, 255)
-            canvas.drawRoundRect(coverRect, 14f * scale, 14f * scale, paint)
+            canvas.drawRoundRect(coverRect, 16f * scale, 16f * scale, paint)
 
             textPaint.textAlign = Paint.Align.CENTER
-            textPaint.textSize = 54f * scale
-            canvas.drawText(book.mediaType.emoji, coverRect.centerX(), coverRect.centerY() + 18f * scale, textPaint)
+            textPaint.textSize = 60f * scale
+            canvas.drawText(book.mediaType.emoji, coverRect.centerX(), coverRect.centerY() + 20f * scale, textPaint)
         }
 
         // 封面发光描边
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.2f * scale
         paint.color = Color.argb(120, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-        canvas.drawRoundRect(coverRect, 14f * scale, 14f * scale, paint)
+        canvas.drawRoundRect(coverRect, 16f * scale, 16f * scale, paint)
 
-        // 封面左上角媒介角标
-        val mediaBadgeText = "${book.mediaType.emoji} ${book.mediaType.displayName}"
-        textPaint.textSize = 15f * scale
-        textPaint.isFakeBoldText = true
-        val mbW = textPaint.measureText(mediaBadgeText) + 16f * scale
-        val mbH = 26f * scale
-        val mbRect = RectF(coverRect.left + 6f * scale, coverRect.top + 6f * scale, coverRect.left + 6f * scale + mbW, coverRect.top + 6f * scale + mbH)
-        paint.style = Paint.Style.FILL
-        paint.color = Color.argb(200, 16, 16, 24)
-        canvas.drawRoundRect(mbRect, 6f * scale, 6f * scale, paint)
-        textPaint.color = Color.WHITE
-        textPaint.textAlign = Paint.Align.LEFT
-        canvas.drawText(mediaBadgeText, mbRect.left + 8f * scale, mbRect.top + 18f * scale, textPaint)
+        // 4. 封面下方纵向文本流 (Title -> Author & Tags -> Quote)
+        val textL = left + 24f * scale
+        val textW = (width - 48f * scale).toInt().coerceAtLeast(100)
 
-        // 封面底部维度角标 (例如：NO.01 · ALPHA 维度)
-        val dimY = coverRect.bottom + 36f * scale
-        textPaint.textSize = 17f * scale
-        textPaint.isFakeBoldText = true
-        textPaint.color = accentColor
-        textPaint.textAlign = Paint.Align.CENTER
-        canvas.drawText(dimensionTag, coverRect.centerX(), dimY, textPaint)
-
-        // 右侧信息区域
-        val rightLeft = coverRect.right + 22f * scale
-        val rightW = (cardRect.right - 20f * scale - rightLeft).toInt().coerceAtLeast(100)
-
-        // 1. 顶部元数据行
-        val metaY = top + 36f * scale
-        textPaint.textAlign = Paint.Align.LEFT
-        textPaint.textSize = 17f * scale
-        textPaint.isFakeBoldText = false
-        val rating = book.rating ?: 0.0
-        val ratingStr = if (rating > 0.0) String.format(Locale.US, "%.1f", rating) else "4.9"
-        val meta = "${book.mediaType.emoji} ${book.category ?: "典藏"} · ⭐ 评分 $ratingStr · ${book.status.displayName}"
-        canvas.drawText(meta, rightLeft, metaY, textPaint)
-
-        // 2. 完整作品大标题 (使用 StaticLayout 支持长标题优雅换行)
+        // 4.1 完整作品大标题
+        val titleTop = coverRect.bottom + 20f * scale
         staticTextPaint.color = t.textColor
-        staticTextPaint.textSize = 30f * scale
+        staticTextPaint.textSize = 32f * scale
         staticTextPaint.isFakeBoldText = true
 
         val fullTitle = "《${book.title}》"
@@ -434,7 +423,7 @@ class ResonancePosterView @JvmOverloads constructor(
             0,
             fullTitle.length,
             staticTextPaint,
-            rightW,
+            textW,
         )
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setMaxLines(2)
@@ -442,43 +431,43 @@ class ResonancePosterView @JvmOverloads constructor(
             .build()
 
         canvas.save()
-        canvas.translate(rightLeft, top + 48f * scale)
+        canvas.translate(textL, titleTop)
         titleLayout.draw(canvas)
         canvas.restore()
 
-        val titleHeight = titleLayout.height.toFloat()
+        val titleH = titleLayout.height.toFloat()
 
-        // 3. 创作者与标签
-        val authorY = top + 52f * scale + titleHeight + 20f * scale
+        // 4.2 创作者与标签芯片行 (纵向排在标题下方)
+        val infoY = titleTop + titleH + 20f * scale
+        textPaint.textAlign = Paint.Align.LEFT
         textPaint.textSize = 19f * scale
-        textPaint.color = t.subTextColor
         textPaint.isFakeBoldText = false
+        textPaint.color = t.subTextColor
         val author = "创作者: ${book.author ?: "未知"}"
-        canvas.drawText(author, rightLeft, authorY, textPaint)
+        canvas.drawText(author, textL, infoY, textPaint)
 
-        val tagsY = authorY + 24f * scale
         val tagList = book.tags.filter { it.isNotBlank() }.take(3)
         if (tagList.isNotEmpty()) {
-            textPaint.textSize = 16f * scale
+            val authorWidth = textPaint.measureText(author)
+            val tagsStr = "   " + tagList.joinToString("  ") { "#$it" }
             textPaint.color = accentColor
-            textPaint.isFakeBoldText = false
-            val tagStr = "🏷️ " + tagList.joinToString("  ") { "#$it" }
-            canvas.drawText(tagStr, rightLeft, tagsY, textPaint)
+            textPaint.textSize = 16.5f * scale
+            canvas.drawText(tagsStr, textL + authorWidth, infoY, textPaint)
         }
 
-        // 4. 内嵌毛玻璃核心金句卡盒 (Embedded Soul Quote Box)
-        val quoteBoxTop = (if (tagList.isNotEmpty()) tagsY else authorY) + 14f * scale
-        val quoteBoxH = (cardRect.bottom - 18f * scale - quoteBoxTop).coerceAtLeast(130f * scale)
-        val quoteBoxRect = RectF(rightLeft, quoteBoxTop, cardRect.right - 18f * scale, quoteBoxTop + quoteBoxH)
+        // 4.3 底部全宽毛玻璃金句卡盒 (Embedded Soul Quote Box)
+        val quoteBoxTop = infoY + 14f * scale
+        val quoteBoxH = (cardRect.bottom - 20f * scale - quoteBoxTop).coerceAtLeast(130f * scale)
+        val quoteBoxRect = RectF(textL, quoteBoxTop, cardRect.right - 24f * scale, quoteBoxTop + quoteBoxH)
 
         paint.style = Paint.Style.FILL
         paint.color = t.quoteBgColor
-        canvas.drawRoundRect(quoteBoxRect, 14f * scale, 14f * scale, paint)
+        canvas.drawRoundRect(quoteBoxRect, 16f * scale, 16f * scale, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.2f * scale
         paint.color = Color.argb(90, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-        canvas.drawRoundRect(quoteBoxRect, 14f * scale, 14f * scale, paint)
+        canvas.drawRoundRect(quoteBoxRect, 16f * scale, 16f * scale, paint)
 
         // 金句内容
         val rawQuote = book.shortComment.takeUnless { it.isNullOrBlank() }
@@ -486,7 +475,7 @@ class ResonancePosterView @JvmOverloads constructor(
             ?: "精神印记，静默于灵魂深处。"
         val quote = if (rawQuote.startsWith("“") || rawQuote.startsWith("\"")) rawQuote else "“$rawQuote”"
 
-        val quotePadX = 16f * scale
+        val quotePadX = 18f * scale
         val quoteContentW = (quoteBoxRect.width() - quotePadX * 2).toInt().coerceAtLeast(100)
 
         staticTextPaint.color = t.textColor
@@ -515,7 +504,7 @@ class ResonancePosterView @JvmOverloads constructor(
         textPaint.textSize = 16f * scale
         textPaint.color = t.subTextColor
         textPaint.isFakeBoldText = false
-        canvas.drawText("—— ${book.author ?: "佚名"}", quoteBoxRect.right - 14f * scale, quoteBoxRect.bottom - 12f * scale, textPaint)
+        canvas.drawText("—— ${book.author ?: "佚名"}", quoteBoxRect.right - 18f * scale, quoteBoxRect.bottom - 14f * scale, textPaint)
     }
 
     /**
