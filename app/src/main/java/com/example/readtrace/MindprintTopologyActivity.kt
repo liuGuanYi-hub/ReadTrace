@@ -235,7 +235,6 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
             startActivity(BookDetailActivity.createIntent(this, book.id))
         }
 
-        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
 
         dialog.show()

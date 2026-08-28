@@ -34,18 +34,6 @@ class BookDetailActivity : AppCompatActivity() {
     private var bookId: Long = NO_BOOK_ID
     private var currentBook: Book? = null
 
-    private val importTxtLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri: android.net.Uri? ->
-        if (uri != null && bookId != NO_BOOK_ID) {
-            val success = com.example.readtrace.reader.TxtReaderHelper.importTxtFromUri(this, bookId, uri)
-            if (success) {
-                Toast.makeText(this, R.string.reader_import_txt_success, Toast.LENGTH_SHORT).show()
-                startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, bookId))
-            } else {
-                Toast.makeText(this, R.string.reader_import_txt_failed, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -73,9 +61,6 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         FloatingBack.install(this) { supportFinishAfterTransition() }
-        findViewById<View>(R.id.detailImportTxtButton).setOnClickListener {
-            importTxtLauncher.launch(arrayOf("text/plain", "*/*"))
-        }
         findViewById<View>(R.id.detailEditButton).setOnClickListener {
             startActivity(AddBookActivity.createEditIntent(this, bookId))
         }
@@ -84,11 +69,6 @@ class BookDetailActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.detailNotesAddButton).setOnClickListener {
             startActivity(AddNoteActivity.createAddIntent(this, bookId))
-        }
-        findViewById<View>(R.id.detailStartTimerButton).setOnClickListener {
-            currentBook?.let { book ->
-                startActivity(ReadingTimerActivity.createIntent(this, book.id, book.title))
-            }
         }
         findViewById<View>(R.id.detailAddCharButton).setOnClickListener {
             showAddCharacterDialog()
@@ -191,10 +171,8 @@ class BookDetailActivity : AppCompatActivity() {
         listOfNotNull<View>(
             findViewById(R.id.detailEditButton),
             findViewById(R.id.detailArchiveButton),
-            findViewById(R.id.detailStartTimerButton),
             findViewById(R.id.detailQuotePosterButton),
             findViewById(R.id.detailRead3DButton),
-            findViewById(R.id.detailImportTxtButton),
             findViewById(R.id.detailAddCharButton),
             findViewById(R.id.detailAddOutlineButton),
             findViewById(R.id.detailAddLocationBtn),
@@ -1191,7 +1169,6 @@ class BookDetailActivity : AppCompatActivity() {
         val headerTitle = findViewById<TextView>(R.id.detailHeaderTitle)
         val headerSubtitle = findViewById<TextView>(R.id.detailHeaderSubtitle)
         val read3DBtn = findViewById<TextView>(R.id.detailRead3DButton)
-        val importTxtBtn = findViewById<TextView>(R.id.detailImportTxtButton)
         val quotePosterBtn = findViewById<TextView>(R.id.detailQuotePosterButton)
         val sectionIdentityTitle = findViewById<TextView>(R.id.detailSectionIdentityTitle)
         val labelCategory = findViewById<TextView>(R.id.detailLabelCategory)
@@ -1209,12 +1186,7 @@ class BookDetailActivity : AppCompatActivity() {
             MediaType.BOOK -> {
                 headerTitle.text = "书籍详情"
                 headerSubtitle.text = "慢慢回看这本书留下的痕迹。"
-                read3DBtn.text = "📖 3D 沉浸翻阅"
-                read3DBtn.visibility = View.VISIBLE
-                read3DBtn.setOnClickListener {
-                    startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, book.id))
-                }
-                importTxtBtn.visibility = View.VISIBLE
+                read3DBtn.visibility = View.GONE
                 quotePosterBtn.text = "🎨 生成金句印记海报"
                 quotePosterBtn.setOnClickListener { openQuotePoster(book) }
                 sectionIdentityTitle.text = "关于这本书"
@@ -1237,7 +1209,6 @@ class BookDetailActivity : AppCompatActivity() {
                 read3DBtn.setOnClickListener {
                     startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
                 }
-                importTxtBtn.visibility = View.GONE
                 quotePosterBtn.text = "🛂 追番入境签证"
                 quotePosterBtn.setOnClickListener {
                     startActivity(CulturalPassportActivity.createIntent(this, MediaType.ANIME))
@@ -1262,7 +1233,6 @@ class BookDetailActivity : AppCompatActivity() {
                 read3DBtn.setOnClickListener {
                     startActivity(MovieTicketPosterActivity.createIntent(this, book.id))
                 }
-                importTxtBtn.visibility = View.GONE
                 quotePosterBtn.text = "🎨 生成光影名台词海报"
                 quotePosterBtn.setOnClickListener { openQuotePoster(book) }
                 sectionIdentityTitle.text = "关于这部影视"
@@ -1285,7 +1255,6 @@ class BookDetailActivity : AppCompatActivity() {
                 read3DBtn.setOnClickListener {
                     startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
                 }
-                importTxtBtn.visibility = View.GONE
                 quotePosterBtn.text = "🛂 游戏白金通关签证"
                 quotePosterBtn.setOnClickListener {
                     startActivity(CulturalPassportActivity.createIntent(this, MediaType.GAME))
@@ -1310,7 +1279,6 @@ class BookDetailActivity : AppCompatActivity() {
                 read3DBtn.setOnClickListener {
                     startActivity(VinylCassettePlayerActivity.createIntent(this, book.id))
                 }
-                importTxtBtn.visibility = View.GONE
                 quotePosterBtn.text = "🎴 跨媒介双生微卡"
                 quotePosterBtn.setOnClickListener {
                     startActivity(Intent(this, ResonancePosterActivity::class.java))

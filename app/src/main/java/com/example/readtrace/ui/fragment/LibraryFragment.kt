@@ -595,7 +595,6 @@ class LibraryFragment : Fragment() {
             dialog.dismiss()
             startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
-        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
 
         dialog.show()

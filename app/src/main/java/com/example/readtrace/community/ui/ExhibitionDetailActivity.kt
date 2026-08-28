@@ -16,7 +16,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.R
 import com.example.readtrace.community.model.CommunityExhibition
 import com.example.readtrace.community.repository.CommunityRepository
-import com.example.readtrace.reader.Book3DReaderActivity
 import com.example.readtrace.util.FloatingBack
 
 class ExhibitionDetailActivity : AppCompatActivity() {
@@ -190,25 +189,7 @@ class ExhibitionDetailActivity : AppCompatActivity() {
                 }
             }
 
-            val readBtn = TextView(this).apply {
-                text = "📖 3D 试读"
-                textSize = 12f
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                setTextColor(getColor(R.color.readtrace_ink))
-                setBackgroundResource(R.drawable.bg_secondary_button)
-                gravity = android.view.Gravity.CENTER
-                setPadding(28, 14, 28, 14)
-                val p = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                    marginStart = 16
-                }
-                layoutParams = p
-                setOnClickListener {
-                    startActivity(Book3DReaderActivity.createIntent(this@ExhibitionDetailActivity, book.id))
-                }
-            }
-
             actionRow.addView(saveBtn)
-            actionRow.addView(readBtn)
             item.addView(actionRow)
 
             booksListContainer.addView(item, lp)

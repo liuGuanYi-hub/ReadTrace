@@ -17,7 +17,6 @@ import com.example.readtrace.community.repository.CommunityRepository
 import com.example.readtrace.gallery3d.Gallery3DRenderer
 import com.example.readtrace.gallery3d.GalleryTouchHandler
 import com.example.readtrace.model.Book
-import com.example.readtrace.reader.Book3DReaderActivity
 import com.example.readtrace.util.FloatingBack
 
 class CommunityGalleryActivity : AppCompatActivity() {
@@ -122,12 +121,7 @@ class CommunityGalleryActivity : AppCompatActivity() {
             }
         }
 
-        // 3D 试读
-        read3DBtn.setOnClickListener {
-            currentFocusedBook?.let { book ->
-                startActivity(Book3DReaderActivity.createIntent(this, book.id))
-            }
-        }
+        read3DBtn.visibility = View.GONE
     }
 
     private fun updateFocusCard(book: Book) {

@@ -168,7 +168,6 @@ class CulturalPassportActivity : AppCompatActivity() {
         }
 
         // 点击其他快捷按钮也关闭弹窗
-        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
 
         dialog.show()

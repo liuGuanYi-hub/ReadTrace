@@ -119,7 +119,7 @@ class Gallery3DActivity : AppCompatActivity() {
 
         focusCard.setOnClickListener {
             currentFocusedBook?.let { book ->
-                startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, book.id))
+                startActivity(BookDetailActivity.createIntent(this, book.id))
             }
         }
         focusCard.setOnLongClickListener {

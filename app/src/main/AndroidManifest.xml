@@ -45,9 +45,6 @@
         <activity
             android:name=".QuotePosterActivity"
             android:exported="true" />
-        <activity
-            android:name=".ReadingTimerActivity"
-            android:exported="true" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -69,9 +66,6 @@
             android:exported="false" />
         <activity
             android:name=".community.ui.CommunityActivity"
-            android:exported="false" />
-        <activity
-            android:name=".reader.Book3DReaderActivity"
             android:exported="false" />
         <activity
             android:name=".Gallery3DActivity"
@@ -127,19 +121,6 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_daily_quote_info" />
-        </receiver>
-
-        <!-- 2x2 今日阅读计时打卡小组件 -->
-        <receiver
-            android:name=".widget.ReadingTimerWidgetProvider"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.example.readtrace.widget.ACTION_QUICK_PUNCH" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_reading_timer_info" />
         </receiver>
 
         <!-- 4x2 在读作品进度卡片小组件 -->

@@ -162,15 +162,7 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusReading.text = "在读"
                 hubStatusFinished.text = "读完"
                 hubStatusWishlist.text = "想读"
-                btnHubSpecialFeature.text = "📖 3D 翻书"
-                btnHubSpecialFeature.setOnClickListener {
-                    val firstBook = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.BOOK }
-                    if (firstBook != null) {
-                        startActivity(com.example.readtrace.reader.Book3DReaderActivity.createIntent(this, firstBook.id))
-                    } else {
-                        Toast.makeText(this, "书房暂无藏书", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                btnHubSpecialFeature.visibility = View.GONE
                 btnHubPassport.visibility = View.GONE
             }
             MediaType.ANIME -> {
@@ -591,7 +583,6 @@ class MediaHubActivity : AppCompatActivity() {
             dialog.dismiss()
             startActivity(BookDetailActivity.createIntent(this, book.id))
         }
-        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
 
         dialog.show()

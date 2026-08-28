@@ -13,7 +13,6 @@ import com.example.readtrace.MainActivity
 import com.example.readtrace.R
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.BookStatus
-import com.example.readtrace.reader.Book3DReaderActivity
 import com.example.readtrace.util.CoverImageHelper
 
 class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
@@ -89,8 +88,8 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                     )
                 }
 
-                // 点击「📖 3D 沉浸阅览 ➔」：一键直达阅读器
-                val readIntent = Book3DReaderActivity.createIntent(context, book.id)
+                // 点击「📖 继续阅读 ➔」：进入作品详情
+                val readIntent = BookDetailActivity.createIntent(context, book.id)
                 val readPendingIntent = PendingIntent.getActivity(
                     context,
                     appWidgetId * 10 + 1,

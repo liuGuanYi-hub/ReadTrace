@@ -24,7 +24,6 @@ import com.example.readtrace.GameCartridgePosterActivity
 import com.example.readtrace.MediaHubActivity
 import com.example.readtrace.MovieTicketPosterActivity
 import com.example.readtrace.R
-import com.example.readtrace.ReadingTimerActivity
 import com.example.readtrace.ResonancePosterActivity
 import com.example.readtrace.TrashActivity
 import com.example.readtrace.VinylCassettePlayerActivity
@@ -32,7 +31,6 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
-import com.example.readtrace.reader.Book3DReaderActivity
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ThemeHelper
@@ -77,9 +75,6 @@ class HubFragment : Fragment() {
     private lateinit var bentoReadingProgressText: TextView
     private var currentReadingBook: Book? = null
 
-    private lateinit var bentoCardTimer: View
-    private lateinit var bentoStreakBadge: TextView
-    private lateinit var bentoTimerMinutes: TextView
 
     // 📜 羊皮纸便签横幅
     private lateinit var parchmentQuoteRibbon: View
@@ -101,7 +96,6 @@ class HubFragment : Fragment() {
     private lateinit var hubBookSubtitle: TextView
     private lateinit var hubBookCoversPreview: LinearLayout
     private lateinit var btnEnterBookHub: View
-    private lateinit var btnQuickReader3D: View
 
     private lateinit var hubCardAnime: View
     private lateinit var hubAnimeCountBadge: TextView
@@ -218,9 +212,6 @@ class HubFragment : Fragment() {
         bentoReadingProgressBar = view.findViewById(R.id.bentoReadingProgressBar)
         bentoReadingProgressText = view.findViewById(R.id.bentoReadingProgressText)
 
-        bentoCardTimer = view.findViewById(R.id.bentoCardTimer)
-        bentoStreakBadge = view.findViewById(R.id.bentoStreakBadge)
-        bentoTimerMinutes = view.findViewById(R.id.bentoTimerMinutes)
 
         // 📜 羊皮纸便签
         parchmentQuoteRibbon = view.findViewById(R.id.parchmentQuoteRibbon)
@@ -240,7 +231,6 @@ class HubFragment : Fragment() {
         hubBookSubtitle = view.findViewById(R.id.hubBookSubtitle)
         hubBookCoversPreview = view.findViewById(R.id.hubBookCoversPreview)
         btnEnterBookHub = view.findViewById(R.id.btnEnterBookHub)
-        btnQuickReader3D = view.findViewById(R.id.btnQuickReader3D)
 
         hubCardAnime = view.findViewById(R.id.hubCardAnime)
         hubAnimeCountBadge = view.findViewById(R.id.hubAnimeCountBadge)
@@ -301,7 +291,7 @@ class HubFragment : Fragment() {
             val book = currentHeroBook
             if (book != null) {
                 when (book.mediaType) {
-                    MediaType.BOOK -> startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+                    MediaType.BOOK -> startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
                     MediaType.ANIME -> startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
                     MediaType.MOVIE -> startActivity(MovieTicketPosterActivity.createIntent(requireContext(), book.id))
                     MediaType.GAME -> startActivity(GameCartridgePosterActivity.createIntent(requireContext(), book.id))
@@ -331,20 +321,12 @@ class HubFragment : Fragment() {
         bentoCardReading.setOnClickListener {
             val book = currentReadingBook ?: currentHeroBook
             if (book != null) {
-                startActivity(Book3DReaderActivity.createIntent(requireContext(), book.id))
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
             } else {
                 startActivity(Intent(requireContext(), AddBookActivity::class.java))
             }
         }
 
-        bentoCardTimer.setOnClickListener {
-            val book = currentReadingBook ?: currentHeroBook
-            if (book != null) {
-                startActivity(ReadingTimerActivity.createIntent(requireContext(), book.id, book.title))
-            } else {
-                startActivity(Intent(requireContext(), ReadingTimerActivity::class.java))
-            }
-        }
 
         // 📜 羊皮纸便签轮播交互
         btnRefreshParchmentQuote.setOnClickListener {
@@ -360,14 +342,6 @@ class HubFragment : Fragment() {
         val openBookHub = { startActivity(MediaHubActivity.createIntent(requireContext(), MediaType.BOOK)) }
         hubCardBook.setOnClickListener { openBookHub() }
         btnEnterBookHub.setOnClickListener { openBookHub() }
-        btnQuickReader3D.setOnClickListener {
-            val firstBook = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.BOOK }
-            if (firstBook != null) {
-                startActivity(Book3DReaderActivity.createIntent(requireContext(), firstBook.id))
-            } else {
-                Toast.makeText(requireContext(), "书房暂无藏书，请先添加或导入", Toast.LENGTH_SHORT).show()
-            }
-        }
 
         val openAnimeHub = { startActivity(MediaHubActivity.createIntent(requireContext(), MediaType.ANIME)) }
         hubCardAnime.setOnClickListener { openAnimeHub() }
@@ -562,10 +536,6 @@ class HubFragment : Fragment() {
             bentoReadingProgressText.text = "轻点开启阅读 ➔"
         }
 
-        val todayMinutes = databaseHelper.getTodayTotalReadingMinutes()
-        val streakDays = databaseHelper.getConsecutiveReadingDays()
-        bentoTimerMinutes.text = todayMinutes.toString()
-        bentoStreakBadge.text = if (streakDays > 0) "🔥 连胜 ${streakDays}天" else "🌱 开启打卡"
     }
 
     private fun renderParchmentQuote(excludeQuote: String? = null) {
