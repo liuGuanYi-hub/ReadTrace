@@ -60,11 +60,11 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var rotationSensor: Sensor? = null
 
-    // 速度档位
+    // 速度档位（清新优雅漫步节奏）
     private val speeds = listOf(
-        Pair(1.0f, "⚡ 1x 慢速漫游"),
-        Pair(5.0f, "🚀 5x 曲速跳跃"),
-        Pair(10.0f, "🌌 10x 光速折跃"),
+        Pair(1.0f, "🍃 1x 悠然漫步"),
+        Pair(2.5f, "✨ 2.5x 流光漫游"),
+        Pair(4.5f, "🌌 4.5x 岁月折跃"),
     )
     private var currentSpeedIndex = 0
 
@@ -88,7 +88,7 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         initViews()
         initSensors()
         loadTunnelData()
@@ -201,18 +201,18 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
             btnToggleCruise.text = if (timeWarpTunnelView.isAutoCruising) "⏸ 暂停漫游" else "▶ 继续巡航"
         }
 
-        // 光速折跃跳跃
+        // 时序折跃漫游
         btnHyperspaceJump.setOnClickListener {
             HapticFeedbackEngine.celestialResonancePulse(this)
             SpatialAudioEngine.playCelestialTone()
 
-            timeWarpTunnelView.speedMultiplier = 14.0f
-            btnHyperspaceJump.text = "⚡ 光速折跃中..."
+            timeWarpTunnelView.speedMultiplier = 6.0f
+            btnHyperspaceJump.text = "✨ 岁月折跃中..."
             btnHyperspaceJump.isEnabled = false
 
             timeWarpTunnelView.postDelayed({
                 timeWarpTunnelView.speedMultiplier = speeds[currentSpeedIndex].first
-                btnHyperspaceJump.text = "🚀 光速折跃跳跃"
+                btnHyperspaceJump.text = "🚀 时光折跃漫游"
                 btnHyperspaceJump.isEnabled = true
             }, 1800)
         }
@@ -248,7 +248,7 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
             radarView.setMindprint(mindprint, animate = false)
         }
 
-        btnDetail.text = "✦ 穿梭进入作品"
+        btnDetail.text = "✦ 漫步进入作品"
         btnDetail.setOnClickListener {
             dialog.dismiss()
             val intent = Intent(this, BookDetailActivity::class.java).apply {
@@ -273,11 +273,6 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager?.unregisterListener(this)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        databaseHelper.close()
     }
 
     override fun onSensorChanged(event: SensorEvent) {

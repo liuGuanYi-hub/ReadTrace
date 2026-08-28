@@ -34,7 +34,7 @@ class CosmicGalaxyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cosmic_galaxy)
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         initViews()
         loadGalaxyData()
     }
@@ -46,7 +46,7 @@ class CosmicGalaxyActivity : AppCompatActivity() {
         tvGalaxySubtitle = findViewById(R.id.tvGalaxySubtitle)
         tvGalaxyEmpty = findViewById(R.id.tvGalaxyEmpty)
 
-        galaxyBadge.setBadgeContent("COSMOS", "#4DEEEA")
+        galaxyBadge.setBadgeContent("COSMOS", "#C8A265")
 
         FloatingBack.install(this)
 

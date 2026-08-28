@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#06080D">
+    android:background="#11161B">
 
     <!-- 1. 3D 时空穿梭虫洞与记忆胶囊主画布 -->
     <com.example.readtrace.widget.TimeWarpTunnelView
@@ -38,7 +38,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="serif"
-                    android:text="🌌 3D 时空穿梭隧道"
+                    android:text="🌌 时光长廊 · 记忆流光"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -48,8 +48,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="曲速虫洞 · 42 颗流光记忆胶囊"
-                    android:textColor="#4DEEEA"
+                    android:text="漫步岁月 · 封存作品的心智能量"
+                    android:textColor="#C8BFA7"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -62,8 +62,8 @@
                 android:background="@drawable/bg_pill_button"
                 android:gravity="center"
                 android:paddingHorizontal="12dp"
-                android:text="⚡ 1x 慢速漫游"
-                android:textColor="#FFE700"
+                android:text="🍃 1x 悠然漫步"
+                android:textColor="#E8E2D9"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </RelativeLayout>
@@ -223,7 +223,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_primary_button"
                     android:gravity="center"
-                    android:text="🚀 光速折跃跳跃"
+                    android:text="🚀 时光折跃漫游"
                     android:textColor="#0B130E"
                     android:textSize="12sp"
                     android:textStyle="bold" />

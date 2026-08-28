@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#07090E">
+    android:background="#11161B">
 
     <!-- 🌌 背景极光流体层 -->
     <com.example.readtrace.widget.AuroraFluidBackgroundView
@@ -46,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="serif"
-                    android:text="🪐 跨媒介认知引力星系"
+                    android:text="🪐 跨媒介心智星图"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -57,8 +57,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="monospace"
-                    android:text="528Hz 治愈引力波 · 拖拽牵引天体 · 点击查看详情"
-                    android:textColor="#88FFFFFF"
+                    android:text="528Hz 治愈微波 · 拖拽牵引天体 · 点击查看详情"
+                    android:textColor="#A8A29A"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -87,7 +87,7 @@
                     android:layout_height="36dp"
                     android:paddingHorizontal="12dp"
                     android:text="🌌 全媒介共鸣"
-                    android:textColor="#4DEEEA"
+                    android:textColor="#C8A265"
                     android:textSize="12sp" />
 
                 <Button

@@ -73,15 +73,15 @@ class TimeWarpTunnelView @JvmOverloads constructor(
     private val cardRect = RectF()
     private val hitRects = mutableListOf<Pair<RectF, CapsuleItem>>()
 
-    // 流光粒子
+    // 流光粒子（轻量化 36 颗，清新温润莫兰迪微芒）
     private data class WarpStar(var x: Float, var y: Float, var z: Float, val color: Int, val speed: Float)
     private val stars = mutableListOf<WarpStar>()
     private val starColors = intArrayOf(
-        Color.parseColor("#4DEEEA"), // 电光青
-        Color.parseColor("#74EE15"), // 极光绿
-        Color.parseColor("#FFE700"), // 晨曦金
-        Color.parseColor("#F000FF"), // 霓虹紫
-        Color.parseColor("#FF2A85"), // 幻境粉
+        Color.parseColor("#E6D7B8"), // 晨曦米金
+        Color.parseColor("#A8C4B8"), // 若草淡青
+        Color.parseColor("#B4C5D8"), // 霁蓝微风
+        Color.parseColor("#D6B8C4"), // 薄粉豆沙
+        Color.parseColor("#EDE8DF"), // 象牙暖白
     )
 
     // 动画驱动
@@ -89,8 +89,8 @@ class TimeWarpTunnelView @JvmOverloads constructor(
     private val gestureDetector: GestureDetector
 
     init {
-        // 初始化流光粒子
-        for (i in 0 until 90) {
+        // 初始化流光微尘粒子（轻量降级，减少循环开销）
+        for (i in 0 until 36) {
             val angle = Math.random().toFloat() * Math.PI.toFloat() * 2f
             val dist = 100f + Math.random().toFloat() * 600f
             stars.add(
@@ -99,7 +99,7 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                     y = sin(angle) * dist,
                     z = Math.random().toFloat() * farPlane,
                     color = starColors[i % starColors.size],
-                    speed = 2f + Math.random().toFloat() * 4f,
+                    speed = 1.5f + Math.random().toFloat() * 2.5f,
                 ),
             )
         }
@@ -230,28 +230,28 @@ class TimeWarpTunnelView @JvmOverloads constructor(
 
         hitRects.clear()
 
-        // 1. 绘制深邃虚空背景渐变
-        paint.shader = LinearGradient(0f, 0f, 0f, h, Color.parseColor("#06080D"), Color.parseColor("#0B0F19"), Shader.TileMode.CLAMP)
+        // 1. 绘制清雅深黛水墨背景（去除死黑与刺眼感）
+        paint.shader = LinearGradient(0f, 0f, 0f, h, Color.parseColor("#11161B"), Color.parseColor("#181E24"), Shader.TileMode.CLAMP)
         paint.style = Paint.Style.FILL
         canvas.drawRect(0f, 0f, w, h, paint)
         paint.shader = null
 
-        // 2. 绘制多边形时空隧道环 (Concentric Warp Rings)
+        // 2. 绘制清雅时空微光环 (Concentric Warp Rings)
         drawWarpRings(canvas, cx, cy)
 
-        // 3. 绘制光速拉丝流光粒子 (Speed Streaks)
+        // 3. 绘制微光拉丝流光粒子 (Speed Streaks)
         drawSpeedStreaks(canvas, cx, cy)
 
         // 4. 绘制 3D 流光记忆胶囊 (按 Z 轴由远及近渲染，以实现正确遮挡)
         drawMemoryCapsules(canvas, cx, cy)
 
-        // 5. 绘制中心微光虫洞灭点
+        // 5. 绘制中心微光核心灭点
         drawSingularityCore(canvas, cx, cy)
     }
 
     private fun drawWarpRings(canvas: Canvas, cx: Float, cy: Float) {
-        val ringCount = 8
-        val ringSpacing = 380f
+        val ringCount = 6
+        val ringSpacing = 480f
 
         for (i in 0 until ringCount) {
             val baseZ = (i * ringSpacing - (cameraZ % ringSpacing) + ringSpacing) % (ringCount * ringSpacing)
@@ -260,12 +260,12 @@ class TimeWarpTunnelView @JvmOverloads constructor(
             val scale = focalLength / (focalLength + baseZ)
             val ringW = width * 1.1f * scale
             val ringH = height * 0.85f * scale
-            val alpha = ((1f - (baseZ / farPlane)) * 140).toInt().coerceIn(10, 140)
+            val alpha = ((1f - (baseZ / farPlane)) * 60).toInt().coerceIn(6, 60)
 
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = maxOf(1f, 2.5f * scale)
-            paint.color = Color.argb(alpha, 77, 238, 234)
-            paint.pathEffect = DashPathEffect(floatArrayOf(18f * scale, 12f * scale), 0f)
+            paint.strokeWidth = maxOf(1f, 1.8f * scale)
+            paint.color = Color.argb(alpha, 220, 226, 230)
+            paint.pathEffect = DashPathEffect(floatArrayOf(16f * scale, 16f * scale), 0f)
 
             canvas.drawRoundRect(cx - ringW * 0.5f, cy - ringH * 0.5f, cx + ringW * 0.5f, cy + ringH * 0.5f, 32f * scale, 32f * scale, paint)
             paint.pathEffect = null
@@ -282,13 +282,13 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                 val sx = cx + star.x * scale
                 val sy = cy + star.y * scale
 
-                val tailZ = relZ + (60f * speedMultiplier)
+                val tailZ = relZ + (40f * speedMultiplier.coerceAtMost(2.5f))
                 val tailScale = focalLength / (focalLength + tailZ)
                 val tx = cx + star.x * tailScale
                 val ty = cy + star.y * tailScale
 
-                val alpha = ((1f - (relZ / farPlane)) * 255).toInt().coerceIn(0, 255)
-                paint.strokeWidth = maxOf(1f, 3.5f * scale * speedMultiplier.coerceAtMost(3f))
+                val alpha = ((1f - (relZ / farPlane)) * 180).toInt().coerceIn(0, 180)
+                paint.strokeWidth = maxOf(1f, 2.2f * scale * speedMultiplier.coerceAtMost(2f))
                 paint.color = Color.argb(alpha, Color.red(star.color), Color.green(star.color), Color.blue(star.color))
 
                 canvas.drawLine(tx, ty, sx, sy, paint)
@@ -329,24 +329,24 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                 hitRects.add(Pair(bounds, item))
             }
 
-            // 1. 胶囊流光底板
+            // 1. 优雅磨砂薄暮卡片底板
             cardRect.set(cardLeft, cardTop, cardRight, cardBottom)
-            val bgAlpha = (alphaFactor * (if (isSelected) 240 else 190)).toInt()
+            val bgAlpha = (alphaFactor * (if (isSelected) 245 else 200)).toInt()
             paint.style = Paint.Style.FILL
-            paint.color = Color.argb(bgAlpha, 16, 22, 34)
+            paint.color = Color.argb(bgAlpha, 22, 28, 36)
             canvas.drawRoundRect(cardRect, 18f * scale, 18f * scale, paint)
 
-            // 2. 霓虹发光边框
+            // 2. 温润莫兰迪媒介色边框（去除生硬高饱和霓虹）
             val strokeColor = when (item.book.mediaType) {
-                MediaType.BOOK -> Color.parseColor("#4DEEEA")
-                MediaType.ANIME -> Color.parseColor("#FF2A85")
-                MediaType.MOVIE -> Color.parseColor("#FFE700")
-                MediaType.GAME -> Color.parseColor("#74EE15")
-                MediaType.MUSIC -> Color.parseColor("#F000FF")
+                MediaType.BOOK -> Color.parseColor("#7FA88B") // 苍山竹青
+                MediaType.ANIME -> Color.parseColor("#D48590") // 浅绯落樱
+                MediaType.MOVIE -> Color.parseColor("#8B9EBF") // 晴岚霁蓝
+                MediaType.GAME -> Color.parseColor("#C8A265") // 琥珀沉香
+                MediaType.MUSIC -> Color.parseColor("#9F8DB0") // 幽兰微紫
             }
-            val strokeAlpha = (alphaFactor * (if (isSelected) 255 else 160)).toInt()
+            val strokeAlpha = (alphaFactor * (if (isSelected) 230 else 140)).toInt()
             paint.style = Paint.Style.STROKE
-            paint.strokeWidth = if (isSelected) 3.5f * scale else 1.8f * scale
+            paint.strokeWidth = if (isSelected) 2.6f * scale else 1.2f * scale
             paint.color = Color.argb(strokeAlpha, Color.red(strokeColor), Color.green(strokeColor), Color.blue(strokeColor))
             canvas.drawRoundRect(cardRect, 18f * scale, 18f * scale, paint)
 
@@ -356,21 +356,21 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                 val textPadX = cardLeft + 14f * scale
                 var textCursorY = cardTop + 24f * scale
 
-                textPaint.textSize = 14f * scale
+                textPaint.textSize = 13.5f * scale
                 textPaint.isFakeBoldText = true
                 textPaint.color = strokeColor
                 canvas.drawText("${item.book.mediaType.emoji} ${item.book.mediaType.displayName}", textPadX, textCursorY, textPaint)
 
                 // 评分/心智标识
                 textPaint.textAlign = Paint.Align.RIGHT
-                textPaint.color = Color.parseColor("#FFE700")
+                textPaint.color = Color.parseColor("#E6D7B8")
                 canvas.drawText("★ ${item.book.rating ?: 5.0}", cardRight - 14f * scale, textCursorY, textPaint)
                 textPaint.textAlign = Paint.Align.LEFT
 
                 // B. 作品标题
                 textCursorY += 28f * scale
-                textPaint.textSize = 17f * scale
-                textPaint.color = Color.WHITE
+                textPaint.textSize = 16.5f * scale
+                textPaint.color = Color.parseColor("#FFFFFF")
                 val title = if (item.book.title.length > 10) item.book.title.take(9) + ".." else item.book.title
                 canvas.drawText("《$title》", textPadX, textCursorY, textPaint)
 
@@ -378,15 +378,15 @@ class TimeWarpTunnelView @JvmOverloads constructor(
                 textCursorY += 22f * scale
                 textPaint.textSize = 11f * scale
                 textPaint.isFakeBoldText = false
-                textPaint.color = Color.parseColor("#8F9CAE")
-                val comment = item.book.shortComment?.take(18) ?: item.book.author ?: "心智星系收录"
+                textPaint.color = Color.parseColor("#A8A29A")
+                val comment = item.book.shortComment?.take(18) ?: item.book.author ?: "心智印痕收录"
                 canvas.drawText("“$comment”", textPadX, textCursorY, textPaint)
 
                 // D. 底部纪元时间标识
                 textCursorY += 24f * scale
                 textPaint.textSize = 10f * scale
-                textPaint.color = Color.parseColor("#4DEEEA")
-                canvas.drawText("纪元印痕 · NO.${item.book.id}", textPadX, textCursorY, textPaint)
+                textPaint.color = Color.parseColor("#98A2A8")
+                canvas.drawText("记忆刻印 · NO.${item.book.id}", textPadX, textCursorY, textPaint)
             }
         }
     }

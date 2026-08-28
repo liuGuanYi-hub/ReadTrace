@@ -132,14 +132,14 @@ class CosmicGravityGraphView @JvmOverloads constructor(
     private fun initStardust() {
         stardustList.clear()
         val random = Random(123)
-        for (i in 0 until 60) {
+        for (i in 0 until 28) {
             stardustList.add(
                 StarDust(
                     x = random.nextFloat() * 1000f,
                     y = random.nextFloat() * 2000f,
-                    speed = random.nextFloat() * 0.4f + 0.1f,
-                    radius = random.nextFloat() * 2.0f + 0.8f,
-                    alpha = random.nextInt(120) + 40,
+                    speed = random.nextFloat() * 0.3f + 0.08f,
+                    radius = random.nextFloat() * 1.6f + 0.6f,
+                    alpha = random.nextInt(90) + 30,
                 )
             )
         }
@@ -162,7 +162,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         val random = Random(42)
         val density = resources.displayMetrics.density
 
-        // 1. 构建天体节点
+        // 1. 构建天体节点（清新莫兰迪水墨调色盘）
         val renderBooks = books.take(MAX_RENDER_NODES)
         renderBooks.forEachIndexed { i, book ->
             val angle = (i.toFloat() / renderBooks.size) * 2f * Math.PI.toFloat()
@@ -171,11 +171,11 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             val ny = cy + sin(angle) * dist
 
             val color = when (book.mediaType) {
-                MediaType.MUSIC -> Color.parseColor("#4DEEEA") // 极光青
-                MediaType.BOOK -> Color.parseColor("#FFE700")    // 琥珀金
-                MediaType.ANIME -> Color.parseColor("#FF6F91")   // 樱花粉
-                MediaType.MOVIE -> Color.parseColor("#845EC2")   // 电影紫
-                MediaType.GAME -> Color.parseColor("#00C9A7")    // 电玩绿
+                MediaType.MUSIC -> Color.parseColor("#88A4B8") // 霁蓝水墨
+                MediaType.BOOK -> Color.parseColor("#C8A265")  // 沉香暖金
+                MediaType.ANIME -> Color.parseColor("#D48590") // 浅绯樱粉
+                MediaType.MOVIE -> Color.parseColor("#8E80A8") // 幽兰微紫
+                MediaType.GAME -> Color.parseColor("#6FA886")  // 苍竹松绿
             }
 
             nodes.add(
@@ -194,14 +194,14 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             val r = node.radius
             node.bodyShader = RadialGradient(
                 -r * 0.3f, -r * 0.3f, r,
-                intArrayOf(Color.WHITE, node.color, Color.parseColor("#0A0F1A")),
-                floatArrayOf(0f, 0.65f, 1.0f),
+                intArrayOf(Color.WHITE, node.color, Color.parseColor("#141A22")),
+                floatArrayOf(0f, 0.70f, 1.0f),
                 Shader.TileMode.CLAMP,
             )
             node.haloShader = RadialGradient(
                 0f, 0f, r,
                 intArrayOf(node.color, Color.TRANSPARENT),
-                floatArrayOf(0.4f, 1.0f),
+                floatArrayOf(0.35f, 1.0f),
                 Shader.TileMode.CLAMP,
             )
             node.displayTitle =
