@@ -223,7 +223,7 @@ class ResonancePosterActivity : AppCompatActivity() {
     private fun savePosterToGallery() {
         runCatching {
             Toast.makeText(this, "正在保存 1080P 超清微卡至相册...", Toast.LENGTH_SHORT).show()
-            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1750)
+            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1920)
             val filename = "ReadTrace_TwinResonance_${System.currentTimeMillis()}.png"
             val resolver = contentResolver
 
@@ -260,7 +260,7 @@ class ResonancePosterActivity : AppCompatActivity() {
     private fun exportAndSharePoster() {
         runCatching {
             Toast.makeText(this, "正在生成 1080P 双生共鸣超清微卡...", Toast.LENGTH_SHORT).show()
-            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1750)
+            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 1920)
             val cacheFile = File(cacheDir, "readtrace_twin_resonance_${System.currentTimeMillis()}.png")
             FileOutputStream(cacheFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
