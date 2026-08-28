@@ -83,6 +83,35 @@
                 android:orientation="horizontal" />
         </HorizontalScrollView>
 
+        <!-- 💡 交互引导与功能说明提示条 -->
+        <LinearLayout
+            android:id="@+id/panelTunnelGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_glass_panel_soft"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡 "
+                android:textSize="13sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="左右滑动或倾斜手机穿梭星际 · 点击迎面飞来的作品胶囊可重温作品与心智印记"
+                android:textColor="#C8BFA7"
+                android:textSize="11.5sp"
+                android:lineSpacingExtra="2dp" />
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"

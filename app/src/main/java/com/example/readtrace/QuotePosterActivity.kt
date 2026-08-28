@@ -307,5 +307,16 @@ class QuotePosterActivity : AppCompatActivity() {
                 putExtra(EXTRA_QUOTE_CONTENT, quoteContent)
                 putExtra(EXTRA_QUOTE_SOURCE, quoteSource)
             }
+
+        fun createIntent(context: Context, book: com.example.readtrace.model.Book): Intent =
+            createIntent(
+                context = context,
+                bookId = book.id,
+                bookTitle = book.title,
+                bookAuthor = book.author,
+                bookCover = book.coverUrl,
+                quoteContent = book.shortComment?.takeIf { it.isNotBlank() } ?: book.review?.takeIf { it.isNotBlank() } ?: "在这个快节奏的世界里，书籍是灵魂的避风港。",
+                quoteSource = book.author,
+            )
     }
 }

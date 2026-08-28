@@ -145,11 +145,26 @@ object AnimeCoverScraperHelper {
             val list = json.optJSONArray("list") ?: return null
             if (list.length() == 0) return null
 
-            val firstResult = list.getJSONObject(0)
-            val images = firstResult.optJSONObject("images")
-            images?.optString("large")?.takeIf { it.isNotBlank() }
-                ?: images?.optString("common")?.takeIf { it.isNotBlank() }
-                ?: images?.optString("medium")?.takeIf { it.isNotBlank() }
+            var fallbackImage: String? = null
+            for (i in 0 until list.length()) {
+                val item = list.getJSONObject(i)
+                val name = item.optString("name")
+                val nameCn = item.optString("name_cn")
+                val images = item.optJSONObject("images")
+                val img = images?.optString("large")?.takeIf { it.isNotBlank() }
+                    ?: images?.optString("common")?.takeIf { it.isNotBlank() }
+                    ?: images?.optString("medium")?.takeIf { it.isNotBlank() }
+
+                if (img != null) {
+                    if (name.equals(cleanTitle, ignoreCase = true) || nameCn.equals(cleanTitle, ignoreCase = true)) {
+                        return img
+                    }
+                    if (fallbackImage == null) {
+                        fallbackImage = img
+                    }
+                }
+            }
+            fallbackImage
         }.getOrNull()
     }
 

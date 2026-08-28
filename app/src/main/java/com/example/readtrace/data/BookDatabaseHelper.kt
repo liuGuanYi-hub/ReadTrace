@@ -242,9 +242,34 @@ class BookDatabaseHelper(val context: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+        patchCorruptedPresetCovers(db)
         runPresetSeedsOnce(db)
         // 保持每次开库执行：兜底用户导入的无封面作品，无缺失时仅一次轻量查询，不阻塞主线程 (Keep running on every DB open: fallback for user-imported works without covers, only one lightweight query when nothing is missing, does not block the main thread)
         autoFillMissingCovers(db)
+    }
+
+    private fun patchCorruptedPresetCovers(db: SQLiteDatabase) {
+        runCatching {
+            val cvZootopia = ContentValues().apply {
+                put(COLUMN_COVER_URL, "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614500649.jpg")
+            }
+            db.update(
+                TABLE_BOOKS,
+                cvZootopia,
+                "$COLUMN_TITLE = ? AND ($COLUMN_COVER_URL LIKE '%460021%' OR $COLUMN_COVER_URL LIKE '%Dungeons%' OR $COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '')",
+                arrayOf("疯狂动物城"),
+            )
+
+            val cvKungfu = ContentValues().apply {
+                put(COLUMN_COVER_URL, "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2219011938.jpg")
+            }
+            db.update(
+                TABLE_BOOKS,
+                cvKungfu,
+                "$COLUMN_TITLE = ? AND ($COLUMN_COVER_URL LIKE '%251853%' OR $COLUMN_COVER_URL LIKE '%速递%' OR $COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '')",
+                arrayOf("功夫"),
+            )
+        }
     }
 
     /**
@@ -877,7 +902,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "生活总会有点不顺心，但无论你是何种动物，改变都从你开始。Try Everything!",
                     review = "迪士尼兼具极致娱乐性与深刻社会多元包容思辨的现代经典。兔朱迪与狐尼克的乌托邦冒险充满灵动与温暖。",
-                    coverUrl = "https://lain.bgm.tv/pic/cover/l/8e/4f/460021_aFU0A.jpg",
+                    coverUrl = "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614500649.jpg",
                     mindprint = floatArrayOf(9.2f, 9.4f, 9.4f, 9.0f, 4.0f, 9.6f),
                 ),
                 MovieEntry(
@@ -901,7 +926,7 @@ class BookDatabaseHelper(val context: Context) :
                     rating = 4.9,
                     shortComment = "想学啊？我教你啊。一曲肝肠断，天涯何处觅知音。",
                     review = "周星驰无厘头与传统武侠浪漫美学的集大成之作。从猪笼城寨的市井烟火到如来神掌化作彩蝶，充满了小人物对纯真童梦的守候。",
-                    coverUrl = "https://lain.bgm.tv/pic/cover/l/61/f4/251853_k9OgZ.jpg",
+                    coverUrl = "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2219011938.jpg",
                     mindprint = floatArrayOf(8.8f, 9.4f, 9.2f, 8.6f, 4.0f, 9.5f),
                 ),
                 MovieEntry(

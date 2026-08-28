@@ -62,7 +62,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         movieId = intent.getLongExtra(EXTRA_MOVIE_ID, -1)
 
         initViews()
@@ -81,6 +81,8 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         btnToggleTicketTear = findViewById(R.id.btnToggleTicketTear)
 
         FloatingBack.install(this)
+        val btnSwitchMovie = findViewById<View>(R.id.btnSwitchMovie)
+        btnSwitchMovie?.setOnClickListener { showMoviePickerDialog() }
         findViewById<View>(R.id.btnTicketShareTop).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnShareTicketImage).setOnClickListener { exportAndShareTicket() }
         findViewById<View>(R.id.btnSaveTicketAlbum).setOnClickListener { saveTicketToAlbum() }
@@ -105,6 +107,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
+            btnSwitchMovie,
             findViewById(R.id.btnTicketShareTop),
             findViewById(R.id.btnShareTicketImage),
             findViewById(R.id.btnSaveTicketAlbum),
@@ -112,11 +115,43 @@ class MovieTicketPosterActivity : AppCompatActivity() {
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
+    private fun showMoviePickerDialog() {
+        val movies = databaseHelper.getBooks().filter { it.mediaType == com.example.readtrace.model.MediaType.MOVIE }
+        if (movies.isEmpty()) {
+            Toast.makeText(this, "书库中暂无已录入的电影作品", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val titles = movies.map { "🎬 《${it.title}》· ${it.author ?: "未知导演"}" }.toTypedArray()
+        val currentIndex = movies.indexOfFirst { it.id == movieId }.takeIf { it >= 0 } ?: 0
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🎬 选择要生成票根的电影")
+            .setSingleChoiceItems(titles, currentIndex) { dialog, which ->
+                val selected = movies[which]
+                if (selected.id != movieId) {
+                    movieId = selected.id
+                    HapticFeedbackEngine.lightClick(this)
+                    SpatialAudioEngine.playCartridgeSnap()
+                    loadData()
+                    Toast.makeText(this, "已切换为《${selected.title}》", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
     private fun loadData() {
         if (movieId <= 0) {
-            Toast.makeText(this, "无效的电影编号", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+            val fallbackMovie = databaseHelper.getBooks().firstOrNull { it.mediaType == com.example.readtrace.model.MediaType.MOVIE }
+            if (fallbackMovie != null) {
+                movieId = fallbackMovie.id
+            } else {
+                Toast.makeText(this, "未找到电影数据，请先在书库添加电影", Toast.LENGTH_SHORT).show()
+                finish()
+                return
+            }
         }
 
         currentMovie = databaseHelper.getBook(movieId)

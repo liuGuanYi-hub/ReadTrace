@@ -248,17 +248,44 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
             radarView.setMindprint(mindprint, animate = false)
         }
 
-        btnDetail.text = "✦ 漫步进入作品"
-        btnDetail.setOnClickListener {
-            dialog.dismiss()
-            val intent = Intent(this, BookDetailActivity::class.java).apply {
-                putExtra("extra_book_id", book.id)
-            }
-            startActivity(intent)
+        val sessionCard = view.findViewById<View>(R.id.peekRecentSessionCard)
+        val sessionTitle = view.findViewById<TextView>(R.id.peekSessionTitle)
+        val sessionContent = view.findViewById<TextView>(R.id.peekSessionContent)
+        val sessions = databaseHelper.getReadingSessions(book.id)
+        if (sessions.isNotEmpty()) {
+            val last = sessions.first()
+            sessionTitle.text = "⏱️ 最近专注印记"
+            sessionContent.text = "专注 ${last.durationMinutes} 分钟 · ${last.thought.takeIf { !it.isNullOrBlank() } ?: "保持心智沉浸"}"
+            sessionCard.visibility = View.VISIBLE
+        } else if (!book.shortComment.isNullOrBlank()) {
+            sessionTitle.text = "💬 核心金句 / 高光短评"
+            sessionContent.text = "“${book.shortComment}”"
+            sessionCard.visibility = View.VISIBLE
+        } else {
+            sessionCard.visibility = View.GONE
         }
 
-        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener { dialog.dismiss() }
-        view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
+        btnDetail.text = "✦ 查看作品详情"
+        btnDetail.setOnClickListener {
+            dialog.dismiss()
+            startActivity(BookDetailActivity.createIntent(this, book.id))
+        }
+
+        view.findViewById<View>(R.id.peekActionTimer).setOnClickListener {
+            dialog.dismiss()
+            startActivity(ReadingTimerActivity.createIntent(this, book.id, book.title))
+        }
+
+        view.findViewById<View>(R.id.peekActionPoster).setOnClickListener {
+            dialog.dismiss()
+            when (book.mediaType) {
+                MediaType.MOVIE -> startActivity(MovieTicketPosterActivity.createIntent(this, book.id))
+                MediaType.GAME -> startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
+                MediaType.MUSIC -> startActivity(VinylCassettePlayerActivity.createIntent(this, book.id))
+                MediaType.ANIME -> startActivity(CulturalPassportActivity.createIntent(this, MediaType.ANIME))
+                MediaType.BOOK -> startActivity(QuotePosterActivity.createIntent(this, book))
+            }
+        }
 
         dialog.show()
     }

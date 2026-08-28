@@ -26,25 +26,25 @@
             android:exported="false" />
         <activity
             android:name=".MovieTicketPosterActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".GameCartridgePosterActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".CulturalPassportActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ResonancePosterActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".MindprintConstellationActivity"
             android:exported="false" />
         <activity
             android:name=".QuotePosterActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ReadingTimerActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -87,7 +87,7 @@
             android:exported="false" />
         <activity
             android:name=".BookDetailActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".VinylCassettePlayerActivity"
             android:exported="false" />

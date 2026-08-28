@@ -15,6 +15,8 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
+import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.ResonancePosterView
 import com.example.readtrace.util.FloatingBack
@@ -48,7 +50,7 @@ class ResonancePosterActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
 
         bookAId = intent.getLongExtra(EXTRA_BOOK_A_ID, -1L)
         bookBId = intent.getLongExtra(EXTRA_BOOK_B_ID, -1L)
@@ -73,6 +75,10 @@ class ResonancePosterActivity : AppCompatActivity() {
 
         FloatingBack.install(this)
 
+        val btnSelectWorks = findViewById<TextView>(R.id.btnSelectWorks)
+        btnSelectWorks?.setOnClickListener { showSelectWorkADialog() }
+        ViewAnimationHelper.attachSpringTouch(btnSelectWorks)
+
         val btnShareTop = findViewById<TextView>(R.id.btnPosterShareTop)
         btnShareTop.setOnClickListener { exportAndSharePoster() }
         ViewAnimationHelper.attachSpringTouch(btnShareTop)
@@ -82,6 +88,77 @@ class ResonancePosterActivity : AppCompatActivity() {
         ViewAnimationHelper.attachSpringTouch(btnExport)
 
         setupThemeTabs()
+    }
+
+    private fun showSelectWorkADialog() {
+        val allWorks = databaseHelper.getBooks()
+        if (allWorks.size < 2) {
+            Toast.makeText(this, "书库中至少需要 2 部作品才能生成双生共鸣微卡", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val titles = allWorks.map { "[${it.mediaType.displayName}] 《${it.title}》" }.toTypedArray()
+        val currentIndex = allWorks.indexOfFirst { it.id == bookAId }.takeIf { it >= 0 } ?: 0
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("✨ 选择第 1 部共鸣作品 (Work A)")
+            .setSingleChoiceItems(titles, currentIndex) { dialog, whichA ->
+                dialog.dismiss()
+                val workA = allWorks[whichA]
+                showSelectWorkBDialog(workA, allWorks)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun showSelectWorkBDialog(workA: Book, allWorks: List<Book>) {
+        val availableWorksB = allWorks.filter { it.id != workA.id }
+        val titlesB = availableWorksB.map { "[${it.mediaType.displayName}] 《${it.title}》" }.toTypedArray()
+        val currentIndexB = availableWorksB.indexOfFirst { it.id == bookBId }.takeIf { it >= 0 } ?: 0
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("✨ 选择第 2 部共鸣作品 (Work B)")
+            .setSingleChoiceItems(titlesB, currentIndexB) { dialog, whichB ->
+                dialog.dismiss()
+                val workB = availableWorksB[whichB]
+                bookAId = workA.id
+                bookBId = workB.id
+
+                val mpA = databaseHelper.getMindprint(bookAId)
+                val mpB = databaseHelper.getMindprint(bookBId)
+                similarity = calculateSimilarity(mpA, mpB)
+                resonanceTrait = determineResonanceTrait(workA, workB, mpA, mpB)
+
+                com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
+                com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
+                loadData()
+                Toast.makeText(this, "已生成《${workA.title}》与《${workB.title}》的双生共鸣", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("返回重选", { _, _ -> showSelectWorkADialog() })
+            .show()
+    }
+
+    private fun calculateSimilarity(mpA: BookMindprint?, mpB: BookMindprint?): Int {
+        if (mpA == null || mpB == null) return 92
+        val diff1 = kotlin.math.abs(mpA.depthScore - mpB.depthScore)
+        val diff2 = kotlin.math.abs(mpA.artistryScore - mpB.artistryScore)
+        val diff3 = kotlin.math.abs(mpA.emotionScore - mpB.emotionScore)
+        val diff4 = kotlin.math.abs(mpA.logicScore - mpB.logicScore)
+        val diff5 = kotlin.math.abs(mpA.healingScore - mpB.healingScore)
+        val avgDiff = (diff1 + diff2 + diff3 + diff4 + diff5) / 5.0
+        return (100.0 - avgDiff * 8.0).toInt().coerceIn(65, 99)
+    }
+
+    private fun determineResonanceTrait(bookA: Book, bookB: Book, mpA: BookMindprint?, mpB: BookMindprint?): String {
+        val commonTag = bookA.tags.firstOrNull { tA ->
+            bookB.tags.any { tB -> tB.contains(tA, ignoreCase = true) || tA.contains(tB, ignoreCase = true) }
+        }
+        if (commonTag != null) {
+            return "跨媒介共鸣 · $commonTag"
+        }
+        val catA = bookA.category?.takeIf { it.isNotBlank() } ?: "精神"
+        val catB = bookB.category?.takeIf { it.isNotBlank() } ?: "心智"
+        return "$catA × $catB · 灵魂合璧"
     }
 
     private fun setupThemeTabs() {
@@ -106,6 +183,22 @@ class ResonancePosterActivity : AppCompatActivity() {
     }
 
     private fun loadData() {
+        val allBooks = databaseHelper.getBooks()
+        if (allBooks.size < 2) {
+            Toast.makeText(this, "书库中作品不足 2 部，无法生成双生共鸣微卡", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        if (bookAId <= 0 || bookBId <= 0 || bookAId == bookBId) {
+            bookAId = allBooks[0].id
+            bookBId = allBooks[1].id
+            val mpA = databaseHelper.getMindprint(bookAId)
+            val mpB = databaseHelper.getMindprint(bookBId)
+            similarity = calculateSimilarity(mpA, mpB)
+            resonanceTrait = determineResonanceTrait(allBooks[0], allBooks[1], mpA, mpB)
+        }
+
         val bookA = databaseHelper.getBook(bookAId)
         val bookB = databaseHelper.getBook(bookBId)
 

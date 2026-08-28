@@ -61,7 +61,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         gameId = intent.getLongExtra(EXTRA_GAME_ID, -1)
 
         initViews()
@@ -79,6 +79,8 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         tvCartridgeSummary = findViewById(R.id.tvCartridgeSummary)
 
         FloatingBack.install(this)
+        val btnSwitchGame = findViewById<View>(R.id.btnSwitchGame)
+        btnSwitchGame?.setOnClickListener { showGamePickerDialog() }
         findViewById<View>(R.id.btnCartridgeShareTop).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnShareCartridgeImage).setOnClickListener { exportAndShareCartridge() }
         findViewById<View>(R.id.btnSaveCartridgeAlbum).setOnClickListener { saveCartridgeToAlbum() }
@@ -91,17 +93,50 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         }
 
         listOfNotNull<View>(
+            btnSwitchGame,
             findViewById(R.id.btnCartridgeShareTop),
             findViewById(R.id.btnShareCartridgeImage),
             findViewById(R.id.btnSaveCartridgeAlbum),
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
+    private fun showGamePickerDialog() {
+        val games = databaseHelper.getBooks().filter { it.mediaType == com.example.readtrace.model.MediaType.GAME }
+        if (games.isEmpty()) {
+            Toast.makeText(this, "书库中暂无已录入的游戏作品", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val titles = games.map { "🎮 《${it.title}》· ${it.author ?: "未知开发商"}" }.toTypedArray()
+        val currentIndex = games.indexOfFirst { it.id == gameId }.takeIf { it >= 0 } ?: 0
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🎮 选择要生成卡带的游戏")
+            .setSingleChoiceItems(titles, currentIndex) { dialog, which ->
+                val selected = games[which]
+                if (selected.id != gameId) {
+                    gameId = selected.id
+                    HapticFeedbackEngine.lightClick(this)
+                    SpatialAudioEngine.playCartridgeSnap()
+                    loadData()
+                    Toast.makeText(this, "已切换为《${selected.title}》", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
     private fun loadData() {
         if (gameId <= 0) {
-            Toast.makeText(this, "无效的游戏编号", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+            val fallbackGame = databaseHelper.getBooks().firstOrNull { it.mediaType == com.example.readtrace.model.MediaType.GAME }
+            if (fallbackGame != null) {
+                gameId = fallbackGame.id
+            } else {
+                Toast.makeText(this, "未找到游戏数据，请先在书库添加游戏", Toast.LENGTH_SHORT).show()
+                finish()
+                return
+            }
         }
 
         currentGame = databaseHelper.getBook(gameId)
