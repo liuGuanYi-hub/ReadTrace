@@ -62,7 +62,12 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                 var coverLoaded = false
                 val coverUrl = book.coverUrl
                 if (!coverUrl.isNullOrBlank() && (coverUrl.startsWith("/") || coverUrl.startsWith("file:"))) {
-                    val bitmap = CoverImageHelper.decodeSampledBitmapFromFile(coverUrl, 140, 200)
+                    // file:///android_asset/ 为 APK 内置资产封面，直接从 assets 解码
+                    val bitmap = if (coverUrl.startsWith("file:", ignoreCase = true)) {
+                        CoverImageHelper.decodeSampledBitmapFromAsset(context, coverUrl, 140, 200)
+                    } else {
+                        CoverImageHelper.decodeSampledBitmapFromFile(coverUrl, 140, 200)
+                    }
                     if (bitmap != null) {
                         views.setImageViewBitmap(R.id.widgetReadingCover, bitmap)
                         views.setViewVisibility(R.id.widgetReadingCover, View.VISIBLE)

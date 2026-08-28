@@ -129,7 +129,7 @@ class ExLibrisStudioActivity : AppCompatActivity() {
                 exLibrisStampView.quoteText = book.shortComment
                 etCustomQuote.setText(book.shortComment)
             }
-            CoverImageHelper.loadCoverBitmap(book.coverUrl) { bmp ->
+            CoverImageHelper.loadCoverBitmap(this, book.coverUrl) { bmp ->
                 exLibrisStampView.coverBitmap = bmp
             }
         }

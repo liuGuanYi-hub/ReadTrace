@@ -53,7 +53,9 @@ object AnimeCoverScraperHelper {
             val allBooks = dbHelper.getBooks()
             val booksWithoutCovers = allBooks.filter { book ->
                 val typeMatches = targetMediaType == null || book.mediaType == targetMediaType
-                val needsCover = book.coverUrl.isNullOrBlank() || (!book.coverUrl.startsWith("http") && !File(book.coverUrl).exists())
+                // file: 开头为 APK 内置资产封面或本地文件 URI，均视为已有封面
+                val needsCover = book.coverUrl.isNullOrBlank() ||
+                    (!book.coverUrl.startsWith("http") && !book.coverUrl.startsWith("file:", ignoreCase = true) && !File(book.coverUrl).exists())
                 typeMatches && needsCover
             }
 

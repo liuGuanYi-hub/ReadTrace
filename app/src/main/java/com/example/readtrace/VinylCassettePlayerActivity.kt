@@ -182,7 +182,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         cassetteDeckView.artistName = track.author ?: "声音宇宙"
 
         // 使用 CoverImageHelper 异步加载专辑封面到黑胶唱片中心
-        CoverImageHelper.loadCoverBitmap(track.coverUrl) { bmp ->
+        CoverImageHelper.loadCoverBitmap(this, track.coverUrl) { bmp ->
             vinylTurntableView.coverBitmap = bmp
         }
     }

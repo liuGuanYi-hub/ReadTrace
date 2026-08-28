@@ -1355,7 +1355,8 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailRatingHolo)?.setRating(book.rating, animate = true)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
-        findViewById<TextView>(R.id.detailCoverUrl).text = valueOrFallback(book.coverUrl)
+        findViewById<TextView>(R.id.detailCoverUrl).text =
+            if (CoverImageHelper.isAssetPath(book.coverUrl)) "APK 内置封面（离线可用）" else valueOrFallback(book.coverUrl)
         findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
         findViewById<TextView>(R.id.detailRating).text = book.rating?.let {
             getString(R.string.rating_format, RATING_FORMAT.format(it))

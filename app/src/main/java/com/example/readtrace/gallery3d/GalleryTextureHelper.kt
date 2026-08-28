@@ -21,6 +21,8 @@ import java.io.File
 
 object GalleryTextureHelper {
 
+    private const val ASSET_PREFIX = "file:///android_asset/"
+
     /**
      * 为指定作品生成或加载 OpenGL 2D 纹理，返回 OpenGL textureId
      */
@@ -33,6 +35,18 @@ object GalleryTextureHelper {
 
     private fun loadCoverBitmap(context: Context, book: Book): Bitmap? {
         val path = book.coverUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+
+        // 内置资产封面（file:///android_asset/covers/…）直接从 APK assets 解码
+        if (path.startsWith(ASSET_PREFIX, ignoreCase = true)) {
+            val assetPath = path.substring(ASSET_PREFIX.length)
+            return runCatching {
+                val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, boundsOptions) }
+                if (boundsOptions.outWidth <= 0 || boundsOptions.outHeight <= 0) return null
+                BitmapFactory.decodeStream(context.assets.open(assetPath), null, sampledDecodeOptions(boundsOptions))
+            }.getOrNull()
+        }
+
         val file = File(path)
         if (!file.exists()) return null
 
@@ -41,19 +55,22 @@ object GalleryTextureHelper {
                 inJustDecodeBounds = true
             }
             BitmapFactory.decodeFile(path, options)
-
-            // 采样至 512x768 左右
-            var inSampleSize = 1
-            while (options.outWidth / (inSampleSize * 2) >= 512 && options.outHeight / (inSampleSize * 2) >= 768) {
-                inSampleSize *= 2
-            }
-
-            val decodeOptions = BitmapFactory.Options().apply {
-                this.inSampleSize = inSampleSize
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-            }
-            BitmapFactory.decodeFile(path, decodeOptions)
+            BitmapFactory.decodeFile(path, sampledDecodeOptions(options))
         }.getOrNull()
+    }
+
+    /**
+     * 依据边界信息采样至 512x768 左右，供 OpenGL 纹理使用
+     */
+    private fun sampledDecodeOptions(bounds: BitmapFactory.Options): BitmapFactory.Options {
+        var inSampleSize = 1
+        while (bounds.outWidth / (inSampleSize * 2) >= 512 && bounds.outHeight / (inSampleSize * 2) >= 768) {
+            inSampleSize *= 2
+        }
+        return BitmapFactory.Options().apply {
+            this.inSampleSize = inSampleSize
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
     }
 
     /**
