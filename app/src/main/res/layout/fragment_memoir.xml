@@ -100,7 +100,6 @@
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
-            <!-- 动态微缩胶囊预览行 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,14 +130,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 实时作品封面预览流 -->
-            <LinearLayout
-                android:id="@+id/tunnelCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <TextView
@@ -201,7 +192,6 @@
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
-            <!-- 签证状态胶囊 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -232,14 +222,6 @@
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
-
-            <!-- 封面预览 -->
-            <LinearLayout
-                android:id="@+id/passportCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 2. 📜 典藏藏书票工坊 (Ex Libris Studio) -->
@@ -324,14 +306,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 藏书票封面预览 -->
-            <LinearLayout
-                android:id="@+id/exLibrisCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 3. 🎟️ 复古电影透光票根 -->
@@ -416,14 +390,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 电影票封面预览 -->
-            <LinearLayout
-                android:id="@+id/movieCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 4. 💽 Hi-Res 拟真黑胶唱机 -->
@@ -508,14 +474,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 音乐黑胶封面预览 -->
-            <LinearLayout
-                android:id="@+id/vinylCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 5. 🕹️ 游戏白金全息卡带 -->
@@ -600,14 +558,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 游戏卡带封面预览 -->
-            <LinearLayout
-                android:id="@+id/gameCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 6. 🎴 跨媒介双生印记微卡 -->
@@ -692,14 +642,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 双生微卡预览 -->
-            <LinearLayout
-                android:id="@+id/resonanceCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 7. 📜 1995-2024 追番编年长卷 -->
@@ -784,14 +726,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 追番长卷封面预览 -->
-            <LinearLayout
-                android:id="@+id/animeTimelineCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
         <!-- 8. 🖼️ 全屏纯净封面画廊 -->
@@ -890,14 +824,6 @@
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
-
-            <!-- 封面画廊预览 -->
-            <LinearLayout
-                android:id="@+id/galleryCoversPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal" />
         </LinearLayout>
 
     </LinearLayout>

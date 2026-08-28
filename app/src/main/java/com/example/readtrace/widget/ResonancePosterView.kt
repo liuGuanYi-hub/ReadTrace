@@ -147,39 +147,19 @@ class ResonancePosterView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun getTheme(): PosterTheme = currentTheme
+    private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+        isDither = true
+    }
 
     private fun loadCoverBitmaps() {
-        loadBitmap(bookA?.coverUrl) { bmp ->
+        com.example.readtrace.util.CoverImageHelper.loadCoverBitmap(context, bookA?.coverUrl, 720, 1080) { bmp ->
             cachedCoverA = bmp
             invalidate()
         }
-        loadBitmap(bookB?.coverUrl) { bmp ->
+        com.example.readtrace.util.CoverImageHelper.loadCoverBitmap(context, bookB?.coverUrl, 720, 1080) { bmp ->
             cachedCoverB = bmp
             invalidate()
         }
-    }
-
-    private fun loadBitmap(url: String?, onLoaded: (Bitmap?) -> Unit) {
-        if (url.isNullOrBlank()) {
-            onLoaded(null)
-            return
-        }
-        Thread {
-            try {
-                val bmp = if (url.startsWith("/")) {
-                    val file = File(url)
-                    if (file.exists()) BitmapFactory.decodeFile(url) else null
-                } else if (url.startsWith("http")) {
-                    val stream = java.net.URL(url).openStream()
-                    BitmapFactory.decodeStream(stream)
-                } else null
-
-                post { onLoaded(bmp) }
-            } catch (_: Exception) {
-                post { onLoaded(null) }
-            }
-        }.start()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -389,7 +369,7 @@ class ResonancePosterView @JvmOverloads constructor(
                 val tp = (bmpH - cropH) * 0.5f
                 Rect(0, tp.toInt(), bmpW.toInt(), (tp + cropH).toInt())
             }
-            canvas.drawBitmap(coverBitmap, srcRect, coverRect, paint)
+            canvas.drawBitmap(coverBitmap, srcRect, coverRect, bitmapPaint)
             canvas.restore()
         } else {
             paint.style = Paint.Style.FILL

@@ -68,14 +68,13 @@ class CulturalPassportActivity : AppCompatActivity() {
 
         initViews()
         loadData()
-
-        val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
-        gyroscopeHelper.bind3DParallax(culturalPassportView, maxRotation = 10f, maxTranslation = 14f)
-        gyroscopeHelper.bindLifecycle(lifecycle)
     }
+
+    private lateinit var passportScrollView: android.widget.ScrollView
 
     private fun initViews() {
         culturalPassportView = findViewById(R.id.culturalPassportView)
+        passportScrollView = findViewById(R.id.passportScrollView)
         tabPassportAnime = findViewById(R.id.tabPassportAnime)
         tabPassportGame = findViewById(R.id.tabPassportGame)
 
@@ -112,6 +111,10 @@ class CulturalPassportActivity : AppCompatActivity() {
 
         tabPassportAnime.text = "🌸 追番入境签证 ($animeCount 部)"
         tabPassportGame.text = "🎮 游戏通关签证 ($gameCount 款)"
+
+        passportScrollView.post {
+            passportScrollView.fullScroll(android.widget.ScrollView.FOCUS_UP)
+        }
     }
 
     private fun switchTab(tab: MediaType) {
@@ -125,6 +128,9 @@ class CulturalPassportActivity : AppCompatActivity() {
         tabPassportGame.setTextColor(if (!isAnime) Color.WHITE else Color.parseColor("#C5BCAD"))
 
         culturalPassportView.setTab(tab)
+        passportScrollView.post {
+            passportScrollView.fullScroll(android.widget.ScrollView.FOCUS_UP)
+        }
     }
 
     private fun showStampDetailDialog(book: Book) {

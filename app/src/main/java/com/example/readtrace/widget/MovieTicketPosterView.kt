@@ -226,32 +226,21 @@ class MovieTicketPosterView @JvmOverloads constructor(
         return Pair(location[0] + splitX, location[1] + cy)
     }
 
+    private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+        isDither = true
+    }
+
     private fun loadCoverBitmap(url: String) {
         if (url.isBlank()) {
             movieCoverBitmap = null
+            invalidate()
             return
         }
 
-        Thread {
-            try {
-                val bmp = if (url.startsWith("/")) {
-                    val file = File(url)
-                    if (file.exists()) BitmapFactory.decodeFile(url) else null
-                } else if (url.startsWith("http")) {
-                    val stream = java.net.URL(url).openStream()
-                    BitmapFactory.decodeStream(stream)
-                } else null
-
-                if (bmp != null) {
-                    post {
-                        movieCoverBitmap = bmp
-                        invalidate()
-                    }
-                }
-            } catch (_: Exception) {
-                movieCoverBitmap = null
-            }
-        }.start()
+        com.example.readtrace.util.CoverImageHelper.loadCoverBitmap(context, url, 720, 1080) { bmp ->
+            movieCoverBitmap = bmp
+            invalidate()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -512,13 +501,30 @@ class MovieTicketPosterView @JvmOverloads constructor(
         val posterH = posterW * 1.45f
         val posterRect = RectF(left + innerPad, posterTop, left + innerPad + posterW, posterTop + posterH)
 
-        if (movieCoverBitmap != null) {
+        if (movieCoverBitmap != null && !movieCoverBitmap!!.isRecycled) {
             canvas.save()
             val clipPath = Path().apply {
                 addRoundRect(posterRect, 14f, 14f, Path.Direction.CW)
             }
             canvas.clipPath(clipPath)
-            canvas.drawBitmap(movieCoverBitmap!!, null, posterRect, paint)
+
+            val bmp = movieCoverBitmap!!
+            val bmpW = bmp.width.toFloat()
+            val bmpH = bmp.height.toFloat()
+            val targetRatio = posterW / posterH
+            val bmpRatio = bmpW / bmpH
+
+            val srcRect = if (bmpRatio > targetRatio) {
+                val cropW = bmpH * targetRatio
+                val left = (bmpW - cropW) * 0.5f
+                Rect(left.toInt(), 0, (left + cropW).toInt(), bmpH.toInt())
+            } else {
+                val cropH = bmpW / targetRatio
+                val cropTop = (bmpH - cropH) * 0.5f
+                Rect(0, cropTop.toInt(), bmpW.toInt(), (cropTop + cropH).toInt())
+            }
+
+            canvas.drawBitmap(bmp, srcRect, posterRect, bitmapPaint)
             canvas.restore()
         } else {
             paint.color = currentTheme.stubBgColor

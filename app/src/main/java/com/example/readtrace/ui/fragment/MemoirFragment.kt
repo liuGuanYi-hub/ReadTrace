@@ -130,115 +130,22 @@ class MemoirFragment : Fragment() {
             cardAnimeTimeline, cardCoverGallery,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
 
-        loadWorkshopPreviews(view)
+        updateWorkshopBadges(view)
     }
 
     override fun onResume() {
         super.onResume()
-        view?.let { loadWorkshopPreviews(it) }
+        view?.let { updateWorkshopBadges(it) }
     }
 
-    private fun loadWorkshopPreviews(root: View) {
+    private fun updateWorkshopBadges(root: View) {
         val allBooks = databaseHelper.getBooks()
-
-        // 1. 时空穿梭隧道
-        val tunnelBadge = root.findViewById<TextView>(R.id.tunnelCapsuleBadge)
-        tunnelBadge?.text = "⏱️ ${allBooks.size} 颗时空胶囊"
-        val tunnelContainer = root.findViewById<LinearLayout>(R.id.tunnelCoversPreview)
-        if (tunnelContainer != null) {
-            populateCoverPreview(tunnelContainer, allBooks.take(4))
-        }
-
-        // 2. 精神巡礼护照
         val animeList = allBooks.filter { it.mediaType == MediaType.ANIME }
         val gameList = allBooks.filter { it.mediaType == MediaType.GAME }
-        val bookList = allBooks.filter { it.mediaType == MediaType.BOOK }
-        val movieList = allBooks.filter { it.mediaType == MediaType.MOVIE }
-        val musicList = allBooks.filter { it.mediaType == MediaType.MUSIC }
 
-        val passportSub = root.findViewById<TextView>(R.id.passportSubtitle)
-        passportSub?.text = "深蓝烫金首页 · ${animeList.size} 部番剧入境签证 · ${gameList.size} 款游戏白金戳印"
-        val passportContainer = root.findViewById<LinearLayout>(R.id.passportCoversPreview)
-        if (passportContainer != null) {
-            val passportSamples = (animeList.take(2) + gameList.take(2)).ifEmpty { allBooks.take(4) }
-            populateCoverPreview(passportContainer, passportSamples)
-        }
-
-        // 3. 藏书票工坊
-        val exLibrisContainer = root.findViewById<LinearLayout>(R.id.exLibrisCoversPreview)
-        if (exLibrisContainer != null) {
-            populateCoverPreview(exLibrisContainer, bookList.take(4))
-        }
-
-        // 4. 电影票根
-        val movieContainer = root.findViewById<LinearLayout>(R.id.movieCoversPreview)
-        if (movieContainer != null) {
-            populateCoverPreview(movieContainer, movieList.take(4))
-        }
-
-        // 5. 黑胶唱片机
-        val vinylContainer = root.findViewById<LinearLayout>(R.id.vinylCoversPreview)
-        if (vinylContainer != null) {
-            populateCoverPreview(vinylContainer, musicList.take(4))
-        }
-
-        // 6. 游戏全息卡带
-        val gameContainer = root.findViewById<LinearLayout>(R.id.gameCoversPreview)
-        if (gameContainer != null) {
-            populateCoverPreview(gameContainer, gameList.take(4))
-        }
-
-        // 7. 双生微卡
-        val resonanceContainer = root.findViewById<LinearLayout>(R.id.resonanceCoversPreview)
-        if (resonanceContainer != null) {
-            val twinSamples = listOfNotNull(bookList.firstOrNull(), animeList.firstOrNull(), movieList.firstOrNull(), gameList.firstOrNull()).take(4)
-            populateCoverPreview(resonanceContainer, twinSamples)
-        }
-
-        // 8. 追番编年画卷
-        val animeTimelineContainer = root.findViewById<LinearLayout>(R.id.animeTimelineCoversPreview)
-        if (animeTimelineContainer != null) {
-            populateCoverPreview(animeTimelineContainer, animeList.take(4))
-        }
-
-        // 9. 封面画廊
-        val galleryContainer = root.findViewById<LinearLayout>(R.id.galleryCoversPreview)
-        if (galleryContainer != null) {
-            populateCoverPreview(galleryContainer, allBooks.shuffled().take(4))
-        }
+        root.findViewById<TextView>(R.id.tunnelCapsuleBadge)?.text = "⏱️ ${allBooks.size} 颗时空胶囊"
+        root.findViewById<TextView>(R.id.passportSubtitle)?.text = "深蓝烫金首页 · ${animeList.size} 部番剧入境签证 · ${gameList.size} 款游戏白金戳印"
     }
-
-    private fun populateCoverPreview(container: LinearLayout, items: List<Book>) {
-        container.removeAllViews()
-        if (items.isEmpty()) {
-            container.visibility = View.GONE
-            return
-        }
-        container.visibility = View.VISIBLE
-        val ctx = context ?: return
-
-        items.forEach { book ->
-            val cardView = CardView(ctx).apply {
-                radius = dpToPx(6).toFloat()
-                cardElevation = dpToPx(2).toFloat()
-                val params = LinearLayout.LayoutParams(dpToPx(48), dpToPx(72)).apply {
-                    marginEnd = dpToPx(8)
-                }
-                layoutParams = params
-            }
-
-            val iv = ImageView(ctx).apply {
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-            }
-            CoverImageHelper.loadCover(iv, book.coverUrl)
-            cardView.addView(iv)
-            container.addView(cardView)
-        }
-    }
-
-    private fun dpToPx(dp: Int): Int =
-        (dp * resources.displayMetrics.density + 0.5f).toInt()
 
     override fun onDestroyView() {
         databaseHelper.close()

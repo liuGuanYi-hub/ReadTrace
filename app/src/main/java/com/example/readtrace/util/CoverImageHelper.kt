@@ -276,42 +276,101 @@ object CoverImageHelper {
     }
 
     /**
-     * 异步加载封面 Bitmap（优先读内存缓存，其次读文件与网络）
+     * 异步加载封面 Bitmap（简化重载）
      */
     fun loadCoverBitmap(path: String?, onLoaded: (Bitmap?) -> Unit) {
+        loadCoverBitmap(context = null, path = path, reqWidth = 720, reqHeight = 1080, onLoaded = onLoaded)
+    }
+
+    /**
+     * 异步加载封面 Bitmap（支持本地绝对路径、私有目录相对路径、content://、asset、网络 URL 与 LRU 内存/磁盘双重缓存）
+     */
+    fun loadCoverBitmap(context: Context? = null, path: String?, reqWidth: Int = 720, reqHeight: Int = 1080, onLoaded: (Bitmap?) -> Unit) {
         val trimmed = path?.trim()
         if (trimmed.isNullOrEmpty()) {
-            onLoaded(null)
+            mainHandler.post { onLoaded(null) }
             return
         }
 
         val cached = memoryCache.get(trimmed)
-        if (cached != null) {
-            onLoaded(cached)
+        if (cached != null && !cached.isRecycled) {
+            mainHandler.post { onLoaded(cached) }
             return
         }
 
         imageExecutor.execute {
-            val bitmap = if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
-                runCatching {
-                    val url = URL(trimmed)
-                    val conn = (url.openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 5000
-                        readTimeout = 5000
-                        instanceFollowRedirects = true
-                        // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
-                        if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
-                            setRequestProperty("Referer", "https://book.douban.com/")
+            var bitmap: Bitmap? = null
+            val ctx = context?.applicationContext
+
+            if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+                val cacheKey = md5(trimmed)
+                val cacheDir = if (ctx != null) File(ctx.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() } else null
+                val cacheFile = if (cacheDir != null) File(cacheDir, "net_$cacheKey.jpg") else null
+
+                if (cacheFile != null && cacheFile.exists() && cacheFile.length() > 0) {
+                    bitmap = decodeSampledBitmapFromFile(cacheFile.absolutePath, reqWidth, reqHeight)
+                } else {
+                    runCatching {
+                        val url = URL(trimmed)
+                        val conn = (url.openConnection() as HttpURLConnection).apply {
+                            connectTimeout = 8000
+                            readTimeout = 8000
+                            instanceFollowRedirects = true
+                            setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
+                            if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
+                                setRequestProperty("Referer", "https://book.douban.com/")
+                            }
+                        }
+                        if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                            val bytes = conn.inputStream.use { it.readBytes() }
+                            if (cacheFile != null) {
+                                runCatching {
+                                    FileOutputStream(cacheFile).use { out -> out.write(bytes) }
+                                }
+                            }
+                            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                            options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+                            options.inJustDecodeBounds = false
+                            bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
                         }
                     }
-                    val bytes = conn.inputStream.use { it.readBytes() }
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                }.getOrNull()
+                }
+            } else if (trimmed.startsWith("content://", ignoreCase = true) && ctx != null) {
+                runCatching {
+                    ctx.contentResolver.openInputStream(Uri.parse(trimmed))?.use { stream ->
+                        val bytes = stream.readBytes()
+                        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                        options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+                        options.inJustDecodeBounds = false
+                        bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                    }
+                }
+            } else if (trimmed.startsWith("file:///android_asset/", ignoreCase = true) && ctx != null) {
+                val assetPath = trimmed.substring("file:///android_asset/".length)
+                runCatching {
+                    ctx.assets.open(assetPath).use { stream ->
+                        bitmap = BitmapFactory.decodeStream(stream)
+                    }
+                }
             } else {
-                val file = File(trimmed)
-                if (file.exists() && file.isFile) {
-                    decodeSampledBitmapFromFile(file.absolutePath, 300, 300)
-                } else null
+                val directFile = File(trimmed)
+                if (directFile.exists() && directFile.isFile) {
+                    bitmap = decodeSampledBitmapFromFile(directFile.absolutePath, reqWidth, reqHeight)
+                } else if (ctx != null) {
+                    val internalFile = File(ctx.filesDir, "$COVERS_DIR/$trimmed")
+                    if (internalFile.exists() && internalFile.isFile) {
+                        bitmap = decodeSampledBitmapFromFile(internalFile.absolutePath, reqWidth, reqHeight)
+                    } else {
+                        // 尝试从 assets 打开
+                        runCatching {
+                            ctx.assets.open(trimmed).use { stream ->
+                                bitmap = BitmapFactory.decodeStream(stream)
+                            }
+                        }
+                    }
+                }
             }
 
             if (bitmap != null) {

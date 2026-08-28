@@ -118,32 +118,21 @@ class GameCartridgePosterView @JvmOverloads constructor(
 
     fun getTheme(): CartridgeTheme = currentTheme
 
+    private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+        isDither = true
+    }
+
     private fun loadCoverBitmap(url: String) {
         if (url.isBlank()) {
             gameCoverBitmap = null
+            invalidate()
             return
         }
 
-        Thread {
-            try {
-                val bmp = if (url.startsWith("/")) {
-                    val file = File(url)
-                    if (file.exists()) BitmapFactory.decodeFile(url) else null
-                } else if (url.startsWith("http")) {
-                    val stream = java.net.URL(url).openStream()
-                    BitmapFactory.decodeStream(stream)
-                } else null
-
-                if (bmp != null) {
-                    post {
-                        gameCoverBitmap = bmp
-                        invalidate()
-                    }
-                }
-            } catch (_: Exception) {
-                gameCoverBitmap = null
-            }
-        }.start()
+        com.example.readtrace.util.CoverImageHelper.loadCoverBitmap(context, url, 720, 1080) { bmp ->
+            gameCoverBitmap = bmp
+            invalidate()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -154,6 +143,8 @@ class GameCartridgePosterView @JvmOverloads constructor(
     private fun drawCartridge(canvas: Canvas, w: Float, h: Float) {
         // 1. 绘制背景渐变
         val bgShader = LinearGradient(0f, 0f, w, h, currentTheme.bgColors, null, Shader.TileMode.CLAMP)
+        paint.reset()
+        paint.isAntiAlias = true
         paint.shader = bgShader
         paint.style = Paint.Style.FILL
         canvas.drawRect(0f, 0f, w, h, paint)
@@ -263,7 +254,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
                 val top = (bmpH - cropH) * 0.5f
                 Rect(0, top.toInt(), bmpW.toInt(), (top + cropH).toInt())
             }
-            canvas.drawBitmap(bmp, srcRect, coverRect, paint)
+            canvas.drawBitmap(bmp, srcRect, coverRect, bitmapPaint)
             canvas.restore()
         } else {
             paint.color = Color.argb(30, 255, 255, 255)

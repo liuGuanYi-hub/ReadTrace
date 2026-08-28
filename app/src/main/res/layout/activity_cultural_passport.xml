@@ -82,14 +82,16 @@
         android:id="@+id/passportScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
+        android:fillViewport="false"
         android:overScrollMode="never"
         android:scrollbars="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:descendantFocusability="blocksDescendants"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:orientation="vertical"
             android:paddingHorizontal="12dp"
             android:paddingBottom="40dp">
@@ -103,6 +105,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="18dp"
                 android:text="💡 点击任意印章可查看作品全息卡片与六维心智"
                 android:textColor="#A0C4E2"
