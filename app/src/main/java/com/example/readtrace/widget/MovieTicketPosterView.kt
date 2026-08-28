@@ -85,18 +85,6 @@ class MovieTicketPosterView @JvmOverloads constructor(
             Color.parseColor("#F4A261"),
             Color.parseColor("#40D4AF37"),
         ),
-        NEON_MIDNIGHT(
-            "🌆 霓虹午夜",
-            intArrayOf(Color.parseColor("#090A10"), Color.parseColor("#12142B"), Color.parseColor("#1A0B2E")),
-            Color.parseColor("#13172E"),
-            Color.parseColor("#E0F7FA"),
-            Color.parseColor("#80DEEA"),
-            Color.parseColor("#00F5D4"), // 霓虹青
-            Color.parseColor("#0E1122"),
-            Color.parseColor("#5500F5D4"),
-            Color.parseColor("#F72585"),
-            Color.parseColor("#4000F5D4"),
-        ),
         VINTAGE_KRAFT(
             "📜 复古羊皮",
             intArrayOf(Color.parseColor("#F5EBE1"), Color.parseColor("#EBDCC9"), Color.parseColor("#E0CDB8")),

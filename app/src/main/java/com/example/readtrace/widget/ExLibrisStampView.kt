@@ -36,35 +36,24 @@ class ExLibrisStampView @JvmOverloads constructor(
         val borderColor: Int,
         val textPrimary: Int,
         val textSecondary: Int,
-        val sealColor: Int,
     ) {
         PARCHMENT(
             bgColors = intArrayOf(Color.parseColor("#FBF7EE"), Color.parseColor("#EFE6CE")),
             borderColor = Color.parseColor("#7A5835"),
             textPrimary = Color.parseColor("#3D2B1F"),
             textSecondary = Color.parseColor("#8C6D46"),
-            sealColor = Color.parseColor("#A82222"), // 古典酒红封蜡
         ),
         MIDNIGHT(
             bgColors = intArrayOf(Color.parseColor("#151A24"), Color.parseColor("#0A0D14")),
             borderColor = Color.parseColor("#4DEEEA"),
             textPrimary = Color.parseColor("#FFFFFF"),
             textSecondary = Color.parseColor("#88A0C0"),
-            sealColor = Color.parseColor("#4DEEEA"), // 极光青封蜡
         ),
         WOODCUT(
             bgColors = intArrayOf(Color.parseColor("#FFFFFF"), Color.parseColor("#F0F0F0")),
             borderColor = Color.parseColor("#111111"),
             textPrimary = Color.parseColor("#111111"),
             textSecondary = Color.parseColor("#555555"),
-            sealColor = Color.parseColor("#D4AF37"), // 曜金封蜡
-        ),
-        CYBER(
-            bgColors = intArrayOf(Color.parseColor("#081510"), Color.parseColor("#020906")),
-            borderColor = Color.parseColor("#00FF88"),
-            textPrimary = Color.parseColor("#00FF88"),
-            textSecondary = Color.parseColor("#008844"),
-            sealColor = Color.parseColor("#00FF88"), // 荧光绿封蜡
         ),
     }
 
@@ -112,7 +101,6 @@ class ExLibrisStampView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
-    private val sealPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private val cardRect = RectF()
     private val borderPath = Path()
@@ -192,7 +180,6 @@ class ExLibrisStampView @JvmOverloads constructor(
         canvas.drawText(serialNumber, w / 2f, cardRect.bottom - 22f * density, textPaint)
 
         // 9. 绘制右下角 3D 烫金火漆封蜡印章 (Wax Seal Stamp)
-        drawWaxSealStamp(canvas, cardRect.right - 44f * density, cardRect.bottom - 44f * density, 26f * density)
     }
 
     private fun drawEngravedBorders(canvas: Canvas, rect: RectF, density: Float) {
@@ -246,30 +233,6 @@ class ExLibrisStampView @JvmOverloads constructor(
         borderPaint.color = currentTheme.borderColor
         borderPaint.strokeWidth = 1.5f
         canvas.drawRoundRect(artRect, 6f * density, 6f * density, borderPaint)
-    }
-
-    private fun drawWaxSealStamp(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
-        // 1. 火漆外缘微不规则底圆
-        sealPaint.shader = RadialGradient(
-            cx - radius * 0.3f, cy - radius * 0.3f, radius * 1.2f,
-            intArrayOf(Color.WHITE, currentTheme.sealColor, Color.parseColor("#220000")),
-            floatArrayOf(0f, 0.5f, 1.0f),
-            Shader.TileMode.CLAMP,
-        )
-        canvas.drawCircle(cx, cy, radius, sealPaint)
-
-        // 2. 火漆内凹陷环
-        borderPaint.color = Color.parseColor("#44FFFFFF")
-        borderPaint.strokeWidth = 1.5f
-        canvas.drawCircle(cx, cy, radius * 0.75f, borderPaint)
-
-        // 3. 火漆中央 "RT" 钢印
-        textPaint.color = Color.WHITE
-        textPaint.typeface = Typeface.SERIF
-        textPaint.textSize = radius * 0.65f
-        textPaint.isFakeBoldText = true
-        textPaint.letterSpacing = 0f
-        canvas.drawText("RT", cx, cy + (radius * 0.22f), textPaint)
     }
 
     /**

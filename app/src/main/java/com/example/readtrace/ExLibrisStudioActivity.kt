@@ -93,10 +93,6 @@ class ExLibrisStudioActivity : AppCompatActivity() {
             SonicHapticMatrix.playParchmentRustle(this)
             exLibrisStampView.currentTheme = ExLibrisStampView.Theme.WOODCUT
         }
-        findViewById<Button>(R.id.btnThemeCyber).setOnClickListener {
-            SonicHapticMatrix.playParchmentRustle(this)
-            exLibrisStampView.currentTheme = ExLibrisStampView.Theme.CYBER
-        }
 
         // 箴言即时编辑
         etCustomQuote.addTextChangedListener(object : TextWatcher {

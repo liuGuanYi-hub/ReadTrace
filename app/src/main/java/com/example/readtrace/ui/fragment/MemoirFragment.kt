@@ -19,7 +19,6 @@ import com.example.readtrace.GameCartridgePosterActivity
 import com.example.readtrace.MovieTicketPosterActivity
 import com.example.readtrace.R
 import com.example.readtrace.ResonancePosterActivity
-import com.example.readtrace.TimeWarpTunnelActivity
 import com.example.readtrace.VinylCassettePlayerActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
@@ -43,7 +42,6 @@ class MemoirFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         databaseHelper = BookDatabaseHelper.getInstance(requireContext())
 
-        val cardTimeWarpTunnel = view.findViewById<View>(R.id.cardTimeWarpTunnel)
         val cardPassport = view.findViewById<View>(R.id.cardPassport)
         val cardExLibris = view.findViewById<View>(R.id.cardExLibris)
         val cardMovieTicket = view.findViewById<View>(R.id.cardMovieTicket)
@@ -52,10 +50,6 @@ class MemoirFragment : Fragment() {
         val cardResonancePoster = view.findViewById<View>(R.id.cardResonancePoster)
         val cardAnimeTimeline = view.findViewById<View>(R.id.cardAnimeTimeline)
         val cardCoverGallery = view.findViewById<View>(R.id.cardCoverGallery)
-
-        cardTimeWarpTunnel?.setOnClickListener {
-            startActivity(Intent(requireContext(), TimeWarpTunnelActivity::class.java))
-        }
 
         cardPassport?.setOnClickListener {
             startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
@@ -125,7 +119,7 @@ class MemoirFragment : Fragment() {
         }
 
         listOfNotNull<View>(
-            cardTimeWarpTunnel, cardPassport, cardExLibris, cardMovieTicket,
+            cardPassport, cardExLibris, cardMovieTicket,
             cardVinylPlayer, cardGameCartridge, cardResonancePoster,
             cardAnimeTimeline, cardCoverGallery,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
@@ -143,7 +137,6 @@ class MemoirFragment : Fragment() {
         val animeList = allBooks.filter { it.mediaType == MediaType.ANIME }
         val gameList = allBooks.filter { it.mediaType == MediaType.GAME }
 
-        root.findViewById<TextView>(R.id.tunnelCapsuleBadge)?.text = "⏱️ ${allBooks.size} 颗时空胶囊"
         root.findViewById<TextView>(R.id.passportSubtitle)?.text = "深蓝烫金首页 · ${animeList.size} 部番剧入境签证 · ${gameList.size} 款游戏白金戳印"
     }
 
