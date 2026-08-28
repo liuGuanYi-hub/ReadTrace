@@ -117,7 +117,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="serif"
                         android:text="365+"
-                        android:textColor="#4DEEEA"
+                        android:textColor="#88A4B8"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -148,7 +148,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="serif"
                         android:text="42"
-                        android:textColor="#74EE15"
+                        android:textColor="#7FA88B"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -179,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="serif"
                         android:text="98.4%"
-                        android:textColor="#FFE700"
+                        android:textColor="#C8A265"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 

@@ -93,7 +93,7 @@
             android:exported="false" />
         <activity
             android:name=".TimeWarpTunnelActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".MindprintTopologyActivity"
             android:exported="false" />
@@ -166,7 +166,7 @@
         <!-- 🪐 跨媒介认知引力星系展厅 -->
         <activity
             android:name=".CosmicGalaxyActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- 📜 典藏藏书票与生成式艺术工坊 -->
         <activity

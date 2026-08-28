@@ -127,7 +127,7 @@ class TimeWarpTunnelActivity : AppCompatActivity(), SensorEventListener {
 
         timeWarpTunnelView.setData(allBooks, mindprintMap)
 
-        tvTunnelSubtitle.text = "曲速虫洞 · 封存 ${allBooks.size} 颗流光记忆胶囊"
+        tvTunnelSubtitle.text = "漫步岁月 · 封存 ${allBooks.size} 颗记忆流光胶囊"
         tvStatTotalCapsules.text = "${allBooks.size}"
         tvStatTotalDays.text = "${maxOf(30, allBooks.size * 12)}+"
         tvStatResonanceEnergy.text = "98.8%"
