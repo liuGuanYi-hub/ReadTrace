@@ -178,7 +178,7 @@ class BookDetailActivity : AppCompatActivity() {
             exportTimelineAsLongImage()
         }
         findViewById<View>(R.id.detailTopologyLocateBtn)?.setOnClickListener {
-            startActivity(MindprintTopologyActivity.createIntent(this, bookId))
+            startActivity(MindprintConstellationActivity.createIntent(this, bookId))
         }
         findViewById<View>(R.id.detailCompareMindprintBtn).setOnClickListener {
             showCompareMindprintDialog()

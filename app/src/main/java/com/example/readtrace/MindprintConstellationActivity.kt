@@ -66,6 +66,18 @@ class MindprintConstellationActivity : AppCompatActivity() {
 
         configureFilterChips()
         loadConstellationData()
+
+        val targetBookId = intent.getLongExtra(EXTRA_TARGET_BOOK_ID, -1L)
+        if (targetBookId != -1L) {
+            constellationCanvas.post {
+                constellationCanvas.focusOnBook(targetBookId)
+                val targetBook = databaseHelper.getBook(targetBookId)
+                val targetMindprint = databaseHelper.getMindprint(targetBookId)
+                if (targetBook != null && targetMindprint != null) {
+                    showStarDetailCard(targetBook, targetMindprint)
+                }
+            }
+        }
     }
 
     private fun configureFilterChips() {
@@ -201,8 +213,14 @@ class MindprintConstellationActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun createIntent(context: Context): Intent {
-            return Intent(context, MindprintConstellationActivity::class.java)
+        const val EXTRA_TARGET_BOOK_ID = "extra_target_book_id"
+
+        fun createIntent(context: Context, targetBookId: Long? = null): Intent {
+            return Intent(context, MindprintConstellationActivity::class.java).apply {
+                if (targetBookId != null && targetBookId > 0) {
+                    putExtra(EXTRA_TARGET_BOOK_ID, targetBookId)
+                }
+            }
         }
     }
 }
