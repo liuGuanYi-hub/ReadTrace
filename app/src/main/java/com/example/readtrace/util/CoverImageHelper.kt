@@ -22,6 +22,14 @@ import kotlin.math.min
 object CoverImageHelper {
 
     private const val COVERS_DIR = "covers"
+
+    /** APK 内置资产封面前缀：预置作品的封面统一打包在 assets/covers 下，离线可加载 */
+    const val ASSET_COVER_PREFIX = "file:///android_asset/"
+
+    /** 判断封面路径是否指向 APK 内置资产（assets/covers 下的预置封面） */
+    fun isAssetPath(path: String?): Boolean {
+        return path != null && path.trim().startsWith(ASSET_COVER_PREFIX, ignoreCase = true)
+    }
     private const val TARGET_MAX_WIDTH = 720
     private const val TARGET_MAX_HEIGHT = 1080
     private const val THUMB_WIDTH = 300
@@ -152,6 +160,31 @@ object CoverImageHelper {
     }
 
     /**
+     * 安全解码 APK 内置资产封面为下采样缩略图（支持完整资产 URI 与裸相对路径）
+     */
+    fun decodeSampledBitmapFromAsset(context: Context, path: String, reqWidth: Int = THUMB_WIDTH, reqHeight: Int = THUMB_HEIGHT): Bitmap? {
+        return runCatching {
+            val assetPath = if (path.startsWith(ASSET_COVER_PREFIX, ignoreCase = true)) {
+                path.substring(ASSET_COVER_PREFIX.length)
+            } else {
+                path
+            }
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+            if (options.outWidth <= 0 || options.outHeight <= 0) return null
+
+            options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
+            options.inJustDecodeBounds = false
+            options.inPreferredConfig = Bitmap.Config.RGB_565 // 节省 50% 内存
+
+            context.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+        }.getOrElse {
+            memoryCache.evictAll()
+            null
+        }
+    }
+
+    /**
      * 安全删除旧封面文件
      */
     fun deleteCoverFile(path: String?) {
@@ -243,6 +276,9 @@ object CoverImageHelper {
                         }
                     }
                 }
+            } else if (isAssetPath(trimmed)) {
+                // APK 内置资产封面：离线直接从 assets 解码
+                bitmap = decodeSampledBitmapFromAsset(appContext, trimmed)
             } else {
                 val file = File(trimmed)
                 if (file.exists() && file.isFile) {
@@ -347,13 +383,8 @@ object CoverImageHelper {
                         bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
                     }
                 }
-            } else if (trimmed.startsWith("file:///android_asset/", ignoreCase = true) && ctx != null) {
-                val assetPath = trimmed.substring("file:///android_asset/".length)
-                runCatching {
-                    ctx.assets.open(assetPath).use { stream ->
-                        bitmap = BitmapFactory.decodeStream(stream)
-                    }
-                }
+            } else if (isAssetPath(trimmed) && ctx != null) {
+                bitmap = decodeSampledBitmapFromAsset(ctx, trimmed, reqWidth, reqHeight)
             } else {
                 val directFile = File(trimmed)
                 if (directFile.exists() && directFile.isFile) {
