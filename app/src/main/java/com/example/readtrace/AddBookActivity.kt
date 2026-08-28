@@ -38,17 +38,27 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var authorLabel: TextView
     private lateinit var authorInput: EditText
     private lateinit var coverUrlInput: EditText
+    private lateinit var categoryLabel: TextView
     private lateinit var categoryInput: EditText
+    private lateinit var sectionRecordTitle: TextView
+    private lateinit var statusLabel: TextView
     private lateinit var statusInput: Spinner
     private lateinit var ratingInput: EditText
     private lateinit var tagsInput: EditText
+    private lateinit var sectionThoughtsTitle: TextView
+    private lateinit var shortCommentLabel: TextView
     private lateinit var shortCommentInput: EditText
+    private lateinit var reviewLabel: TextView
     private lateinit var reviewInput: EditText
+    private lateinit var sectionCollectionTitle: TextView
     private lateinit var buyChannelInput: EditText
     private lateinit var shelfLocationInput: EditText
+    private lateinit var bindingTypeLabel: TextView
     private lateinit var bindingTypeInput: EditText
     private lateinit var buyPriceInput: EditText
+    private lateinit var startDateLabel: TextView
     private lateinit var startDateInput: TextView
+    private lateinit var finishDateLabel: TextView
     private lateinit var finishDateInput: TextView
     private lateinit var saveButton: TextView
 
@@ -96,9 +106,17 @@ class AddBookActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         editingBookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         bindViews()
+        val extraType = intent.getStringExtra("extra_media_type")
+        if (extraType != null) {
+            runCatching { MediaType.valueOf(extraType) }.getOrNull()?.let {
+                selectedMediaType = it
+            }
+        }
+        updateMediaTypeChips()
+        updateCreatorFields()
         configureStatusInput()
         configureFormMode()
         if (savedInstanceState == null) {
@@ -121,17 +139,27 @@ class AddBookActivity : AppCompatActivity() {
         authorLabel = findViewById(R.id.authorLabel)
         authorInput = findViewById(R.id.authorInput)
         coverUrlInput = findViewById(R.id.coverUrlInput)
+        categoryLabel = findViewById(R.id.categoryLabel)
         categoryInput = findViewById(R.id.categoryInput)
+        sectionRecordTitle = findViewById(R.id.sectionRecordTitle)
+        statusLabel = findViewById(R.id.statusLabel)
         statusInput = findViewById(R.id.statusInput)
         ratingInput = findViewById(R.id.ratingInput)
         tagsInput = findViewById(R.id.tagsInput)
+        sectionThoughtsTitle = findViewById(R.id.sectionThoughtsTitle)
+        shortCommentLabel = findViewById(R.id.shortCommentLabel)
         shortCommentInput = findViewById(R.id.shortCommentInput)
+        reviewLabel = findViewById(R.id.reviewLabel)
         reviewInput = findViewById(R.id.reviewInput)
+        sectionCollectionTitle = findViewById(R.id.sectionCollectionTitle)
         buyChannelInput = findViewById(R.id.buyChannelInput)
         shelfLocationInput = findViewById(R.id.shelfLocationInput)
+        bindingTypeLabel = findViewById(R.id.bindingTypeLabel)
         bindingTypeInput = findViewById(R.id.bindingTypeInput)
         buyPriceInput = findViewById(R.id.buyPriceInput)
+        startDateLabel = findViewById(R.id.startDateLabel)
         startDateInput = findViewById(R.id.startDateInput)
+        finishDateLabel = findViewById(R.id.finishDateLabel)
         finishDateInput = findViewById(R.id.finishDateInput)
         saveButton = findViewById(R.id.saveButton)
 
@@ -188,6 +216,7 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     private fun updateCreatorFields() {
+        // 1. 作者与标题
         authorLabel.text = selectedMediaType.creatorLabel
         authorInput.hint = selectedMediaType.creatorHint
         titleLabel.text = when (selectedMediaType) {
@@ -204,6 +233,127 @@ class AddBookActivity : AppCompatActivity() {
             MediaType.GAME -> "例如：艾尔登法环、黑神话：悟空"
             MediaType.MUSIC -> "例如：真夜中、夜鹿"
         }
+
+        // 2. 分类
+        categoryLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "书籍分类"
+            MediaType.ANIME -> "番剧类型"
+            MediaType.MOVIE -> "影视类型"
+            MediaType.GAME -> "游戏类型"
+            MediaType.MUSIC -> "曲风 / 流派"
+        }
+        categoryInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "如：东亚文学、科幻、哲学"
+            MediaType.ANIME -> "如：热血、治愈、奇幻、日常"
+            MediaType.MOVIE -> "如：剧情、悬疑、科幻、纪录片"
+            MediaType.GAME -> "如：开放世界、动作RPG、类银河恶魔城"
+            MediaType.MUSIC -> "如：J-Pop、后摇、流行、古典"
+        }
+
+        // 3. 记录与状态区域（严格区分阅读/追番/观影/游玩/聆听）
+        sectionRecordTitle.text = when (selectedMediaType) {
+            MediaType.BOOK -> "阅读记录"
+            MediaType.ANIME -> "追番记录"
+            MediaType.MOVIE -> "观影记录"
+            MediaType.GAME -> "游玩记录"
+            MediaType.MUSIC -> "聆听记录"
+        }
+        statusLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "阅读状态"
+            MediaType.ANIME -> "追番状态"
+            MediaType.MOVIE -> "观影状态"
+            MediaType.GAME -> "游玩状态"
+            MediaType.MUSIC -> "聆听状态"
+        }
+        startDateLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "开始阅读"
+            MediaType.ANIME -> "开始追番"
+            MediaType.MOVIE -> "观影日期"
+            MediaType.GAME -> "开始游玩"
+            MediaType.MUSIC -> "初次聆听"
+        }
+        finishDateLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "完成阅读"
+            MediaType.ANIME -> "追完日期"
+            MediaType.MOVIE -> "重温 / 记录日期"
+            MediaType.GAME -> "通关 / 封盘日期"
+            MediaType.MUSIC -> "常听 / 收藏日期"
+        }
+
+        // 4. 感悟与长评区域
+        sectionThoughtsTitle.text = when (selectedMediaType) {
+            MediaType.BOOK -> "留下感受"
+            MediaType.ANIME -> "追番感受"
+            MediaType.MOVIE -> "观影感受"
+            MediaType.GAME -> "游玩感受"
+            MediaType.MUSIC -> "聆听感受"
+        }
+        shortCommentLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "简短评价"
+            MediaType.ANIME -> "名台词 / 短评"
+            MediaType.MOVIE -> "金句 / 短评"
+            MediaType.GAME -> "通关短评"
+            MediaType.MUSIC -> "一句话听感"
+        }
+        shortCommentInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "一句话记下这本书带给你的触动"
+            MediaType.ANIME -> "一句话记下这部番剧带给你的触动或经典名台词"
+            MediaType.MOVIE -> "一句话记下这部电影的感动瞬间或高光台词"
+            MediaType.GAME -> "一句话记下这款游戏的通关心得或世界观触动"
+            MediaType.MUSIC -> "一句话记下这首歌或这张专辑带给你的共鸣"
+        }
+        reviewLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "读后感"
+            MediaType.ANIME -> "追番感悟 / 漫评"
+            MediaType.MOVIE -> "观影感悟 / 影评"
+            MediaType.GAME -> "游玩心得 / 游评"
+            MediaType.MUSIC -> "聆听感悟 / 乐评"
+        }
+        reviewInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "写下详细的长篇读后感或深度书评..."
+            MediaType.ANIME -> "写下详细的漫评、剧情剖析或角色感悟..."
+            MediaType.MOVIE -> "写下详细的影评、镜头美学或观后感..."
+            MediaType.GAME -> "写下详细的游玩心得、剧情体验或关卡设计评价..."
+            MediaType.MUSIC -> "写下详细的乐评、编曲细节或旋律记忆..."
+        }
+        tagsInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "用逗号分隔，如：治愈，成长，经典"
+            MediaType.ANIME -> "用逗号分隔，如：神作，催泪，作画爆炸"
+            MediaType.MOVIE -> "用逗号分隔，如：反转，奥斯卡，视觉震撼"
+            MediaType.GAME -> "用逗号分隔，如：白金，剧情向，第九艺术"
+            MediaType.MUSIC -> "用逗号分隔，如：循环单曲，失眠必听，Live现场"
+        }
+
+        // 5. 实体周边与收藏区域
+        sectionCollectionTitle.text = when (selectedMediaType) {
+            MediaType.BOOK -> "💰 实体馆藏与藏本印记 (选填)"
+            MediaType.ANIME -> "💰 实体周边与光碟印记 (选填)"
+            MediaType.MOVIE -> "💰 实体影碟与纪念周边 (选填)"
+            MediaType.GAME -> "💰 实体卡带与典藏印记 (选填)"
+            MediaType.MUSIC -> "💰 实体黑胶与CD印记 (选填)"
+        }
+        bindingTypeLabel.text = when (selectedMediaType) {
+            MediaType.BOOK -> "装帧版次"
+            MediaType.ANIME -> "发行版本"
+            MediaType.MOVIE -> "载体版本"
+            MediaType.GAME -> "介质版本"
+            MediaType.MUSIC -> "唱片介质"
+        }
+        bindingTypeInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "如：精装锁线 / 平装"
+            MediaType.ANIME -> "如：BD限定版 / 特典"
+            MediaType.MOVIE -> "如：4K UHD蓝光 / 典藏版"
+            MediaType.GAME -> "如：NS卡带 / PS5光盘"
+            MediaType.MUSIC -> "如：黑胶LP / 彩胶 / CD"
+        }
+        shelfLocationInput.hint = when (selectedMediaType) {
+            MediaType.BOOK -> "如：书架第 2 层 A 区"
+            MediaType.ANIME -> "如：手办柜 / 蓝光收纳架"
+            MediaType.MOVIE -> "如：影碟柜 / 收藏盒"
+            MediaType.GAME -> "如：主机抽屉 / 实体盒"
+            MediaType.MUSIC -> "如：黑胶唱机旁 / CD架"
+        }
+
         configureFormMode()
     }
 
@@ -223,6 +373,7 @@ class AddBookActivity : AppCompatActivity() {
                 MediaType.GAME -> "让这段游玩记录更接近现在的感受。"
                 MediaType.MUSIC -> "让这段聆听记录更接近现在的感受。"
             }
+            saveButton.text = "保存修改"
         } else {
             formTitle.text = when (selectedMediaType) {
                 MediaType.BOOK -> "新增书籍"
@@ -237,6 +388,13 @@ class AddBookActivity : AppCompatActivity() {
                 MediaType.MOVIE -> "录入一部光影作品，定格感动瞬间。"
                 MediaType.GAME -> "录入一款游戏，开启通关冒险之旅。"
                 MediaType.MUSIC -> "录入一首歌或一张专辑，记录旋律火花与灵感。"
+            }
+            saveButton.text = when (selectedMediaType) {
+                MediaType.BOOK -> "保存书籍"
+                MediaType.ANIME -> "保存番剧"
+                MediaType.MOVIE -> "保存影视"
+                MediaType.GAME -> "保存游戏"
+                MediaType.MUSIC -> "保存音乐"
             }
         }
     }
@@ -499,11 +657,6 @@ class AddBookActivity : AppCompatActivity() {
         outState.putString(STATE_START_DATE, startDate?.toString())
         outState.putString(STATE_FINISH_DATE, finishDate?.toString())
         super.onSaveInstanceState(outState)
-    }
-
-    override fun onDestroy() {
-        databaseHelper.close()
-        super.onDestroy()
     }
 
     companion object {

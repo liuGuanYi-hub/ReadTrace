@@ -276,6 +276,7 @@
                     android:maxLines="2" />
 
                 <TextView
+                    android:id="@+id/categoryLabel"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="16dp"
                     android:text="@string/field_category" />
@@ -297,11 +298,13 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/sectionRecordTitle"
                     style="@style/ReadTraceFieldLabel"
                     android:text="@string/section_reading"
                     android:textSize="18sp" />
 
                 <TextView
+                    android:id="@+id/statusLabel"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="20dp"
                     android:text="@string/field_status" />
@@ -350,6 +353,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/startDateLabel"
                             style="@style/ReadTraceFieldLabel"
                             android:text="@string/field_start_date" />
 
@@ -384,6 +388,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/finishDateLabel"
                             style="@style/ReadTraceFieldLabel"
                             android:text="@string/field_finish_date" />
 
@@ -421,11 +426,13 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/sectionThoughtsTitle"
                     style="@style/ReadTraceFieldLabel"
                     android:text="@string/section_thoughts"
                     android:textSize="18sp" />
 
                 <TextView
+                    android:id="@+id/shortCommentLabel"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="20dp"
                     android:text="@string/field_short_comment" />
@@ -440,6 +447,7 @@
                     android:minLines="2" />
 
                 <TextView
+                    android:id="@+id/reviewLabel"
                     style="@style/ReadTraceFieldLabel"
                     android:layout_marginTop="16dp"
                     android:text="@string/field_review" />
@@ -464,6 +472,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/sectionCollectionTitle"
                     style="@style/ReadTraceFieldLabel"
                     android:text="💰 实体馆藏与藏本印记 (选填)"
                     android:textSize="18sp" />
@@ -527,6 +536,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/bindingTypeLabel"
                             style="@style/ReadTraceFieldLabel"
                             android:text="装帧版次" />
 
