@@ -6,4 +6,17 @@
     </style>
 
     <style name="Theme.Readtrace" parent="Base.Theme.Readtrace" />
+
+    <!-- 🔮 高定毛玻璃作品选片器 BottomSheet 样式 -->
+    <style name="Theme.ReadTrace.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.ReadTrace.BottomSheet.Modal</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">#141118</item>
+    </style>
+
+    <style name="Widget.ReadTrace.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>

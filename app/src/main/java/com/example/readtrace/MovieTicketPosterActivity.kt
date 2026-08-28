@@ -122,24 +122,21 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             return
         }
 
-        val titles = movies.map { "🎬 《${it.title}》· ${it.author ?: "未知导演"}" }.toTypedArray()
-        val currentIndex = movies.indexOfFirst { it.id == movieId }.takeIf { it >= 0 } ?: 0
-
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🎬 选择要生成票根的电影")
-            .setSingleChoiceItems(titles, currentIndex) { dialog, which ->
-                val selected = movies[which]
+        com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+            fragmentManager = supportFragmentManager,
+            title = "🎬 选择要生成票根的电影",
+            works = movies,
+            selectedWorkId = movieId,
+            onSelected = { selected ->
                 if (selected.id != movieId) {
                     movieId = selected.id
-                    HapticFeedbackEngine.lightClick(this)
+                    HapticFeedbackEngine.ticketTearRipped(this)
                     SpatialAudioEngine.playCartridgeSnap()
                     loadData()
                     Toast.makeText(this, "已切换为《${selected.title}》", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss()
-            }
-            .setNegativeButton("取消", null)
-            .show()
+            },
+        )
     }
 
     private fun loadData() {

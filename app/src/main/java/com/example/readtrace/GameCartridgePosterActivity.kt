@@ -107,24 +107,21 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             return
         }
 
-        val titles = games.map { "🎮 《${it.title}》· ${it.author ?: "未知开发商"}" }.toTypedArray()
-        val currentIndex = games.indexOfFirst { it.id == gameId }.takeIf { it >= 0 } ?: 0
-
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🎮 选择要生成卡带的游戏")
-            .setSingleChoiceItems(titles, currentIndex) { dialog, which ->
-                val selected = games[which]
+        com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+            fragmentManager = supportFragmentManager,
+            title = "🎮 选择要生成卡带的游戏",
+            works = games,
+            selectedWorkId = gameId,
+            onSelected = { selected ->
                 if (selected.id != gameId) {
                     gameId = selected.id
-                    HapticFeedbackEngine.lightClick(this)
+                    HapticFeedbackEngine.cartridgeSnap(this)
                     SpatialAudioEngine.playCartridgeSnap()
                     loadData()
                     Toast.makeText(this, "已切换为《${selected.title}》", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss()
-            }
-            .setNegativeButton("取消", null)
-            .show()
+            },
+        )
     }
 
     private fun loadData() {

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/itemWorkContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="5dp"
+    android:background="@drawable/bg_work_picker_item"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
+
+    <!-- 封面区域 (带圆角与媒介徽标) -->
+    <FrameLayout
+        android:layout_width="50dp"
+        android:layout_height="72dp"
+        android:layout_marginEnd="12dp">
+
+        <ImageView
+            android:id="@+id/itemWorkCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#282233"
+            android:scaleType="centerCrop" />
+
+        <FrameLayout
+            android:id="@+id/itemWorkPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#251F2E"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/itemWorkPlaceholderEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🎮"
+                android:textSize="22sp" />
+        </FrameLayout>
+
+        <!-- 封面左上角媒介胶囊 -->
+        <TextView
+            android:id="@+id/itemWorkMediaBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="3dp"
+            android:background="#CC0E0C12"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="1dp"
+            android:text="🎮"
+            android:textColor="#FFFFFF"
+            android:textSize="9.5sp" />
+    </FrameLayout>
+
+    <!-- 中间信息区域 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/itemWorkTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="《Kingdom Rush》"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/itemWorkAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="创作者: Ironhide Game Studio"
+            android:textColor="#9E988F"
+            android:textSize="12sp" />
+
+        <!-- 标签与状态栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/itemWorkCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="塔防策略"
+                android:textColor="#80DEEA"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/itemWorkScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="⭐ 9.2"
+                android:textColor="#F4A261"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/itemWorkStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="已通关"
+                android:textColor="#9E988F"
+                android:textSize="10.5sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 右侧选中指示器 -->
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp">
+
+        <TextView
+            android:id="@+id/itemWorkSelectedBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_picker_selected_pill"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:text="✦ 选中"
+            android:textColor="#F4A261"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/itemWorkUnselectedRing"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:gravity="center"
+            android:text="○"
+            android:textColor="#4DFFFFFF"
+            android:textSize="17sp" />
+    </FrameLayout>
+</LinearLayout>

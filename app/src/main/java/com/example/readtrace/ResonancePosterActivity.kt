@@ -97,30 +97,26 @@ class ResonancePosterActivity : AppCompatActivity() {
             return
         }
 
-        val titles = allWorks.map { "[${it.mediaType.displayName}] 《${it.title}》" }.toTypedArray()
-        val currentIndex = allWorks.indexOfFirst { it.id == bookAId }.takeIf { it >= 0 } ?: 0
-
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("✨ 选择第 1 部共鸣作品 (Work A)")
-            .setSingleChoiceItems(titles, currentIndex) { dialog, whichA ->
-                dialog.dismiss()
-                val workA = allWorks[whichA]
+        com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+            fragmentManager = supportFragmentManager,
+            title = "✨ 选择第 1 部共鸣作品 (Work A)",
+            works = allWorks,
+            selectedWorkId = bookAId,
+            onSelected = { workA ->
                 showSelectWorkBDialog(workA, allWorks)
-            }
-            .setNegativeButton("取消", null)
-            .show()
+            },
+        )
     }
 
     private fun showSelectWorkBDialog(workA: Book, allWorks: List<Book>) {
         val availableWorksB = allWorks.filter { it.id != workA.id }
-        val titlesB = availableWorksB.map { "[${it.mediaType.displayName}] 《${it.title}》" }.toTypedArray()
-        val currentIndexB = availableWorksB.indexOfFirst { it.id == bookBId }.takeIf { it >= 0 } ?: 0
 
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("✨ 选择第 2 部共鸣作品 (Work B)")
-            .setSingleChoiceItems(titlesB, currentIndexB) { dialog, whichB ->
-                dialog.dismiss()
-                val workB = availableWorksB[whichB]
+        com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
+            fragmentManager = supportFragmentManager,
+            title = "✨ 选择第 2 部共鸣作品 (Work B)",
+            works = availableWorksB,
+            selectedWorkId = bookBId,
+            onSelected = { workB ->
                 bookAId = workA.id
                 bookBId = workB.id
 
@@ -133,9 +129,8 @@ class ResonancePosterActivity : AppCompatActivity() {
                 com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
                 loadData()
                 Toast.makeText(this, "已生成《${workA.title}》与《${workB.title}》的双生共鸣", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("返回重选", { _, _ -> showSelectWorkADialog() })
-            .show()
+            },
+        )
     }
 
     private fun calculateSimilarity(mpA: BookMindprint?, mpB: BookMindprint?): Int {
