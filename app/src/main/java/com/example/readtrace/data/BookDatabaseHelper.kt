@@ -242,14 +242,38 @@ class BookDatabaseHelper(val context: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
-        populatePresetBookRichData(db)
-        populatePresetRichContent(db)
-        seedUserAnimeList(db)
-        seedUserMovieList(db)
-        seedUserGameList(db)
-        seedUserMusicList(db)
-        seedCuratedBookCovers(db)
+        runPresetSeedsOnce(db)
+        // 保持每次开库执行：兜底用户导入的无封面作品，无缺失时仅一次轻量查询，不阻塞主线程 (Keep running on every DB open: fallback for user-imported works without covers, only one lightweight query when nothing is missing, does not block the main thread)
         autoFillMissingCovers(db)
+    }
+
+    /**
+     * 预设播种守卫：同一进程只执行一次，并以数据库版本号为持久化标记。
+     * onOpen 在每次开库都会触发，而全项目 25+ 处各自 new helper，
+     * 若不守卫，每次开库都会在当前线程重放 200+ 条幂等检查，造成高频卡顿/ANR。
+     * 已播种的库每次开库只做一次轻量偏好读取即返回；数据库版本升级时重新播种一次。
+     * (Preset seed guard: runs only once in the same process, using the database version number as a persistent marker.
+     *  onOpen is triggered on every DB open, and there are 25+ places in the project each `new`-ing a helper,
+     *  without the guard, every DB open would replay 200+ idempotent checks on the current thread, causing high-frequency jank/ANR.
+     *  For already-seeded DBs, each DB open only does one lightweight prefs read and returns; when the database version upgrades, seeding runs once again.)
+     */
+    private fun runPresetSeedsOnce(db: SQLiteDatabase) {
+        if (seedChecked) return
+        synchronized(seedLock) {
+            if (seedChecked) return
+            val prefs = context.applicationContext.getSharedPreferences(SEED_PREF, Context.MODE_PRIVATE)
+            if (prefs.getInt(KEY_SEED_VERSION, 0) != DATABASE_VERSION) {
+                populatePresetBookRichData(db)
+                populatePresetRichContent(db)
+                seedUserAnimeList(db)
+                seedUserMovieList(db)
+                seedUserGameList(db)
+                seedUserMusicList(db)
+                seedCuratedBookCovers(db)
+                prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
+            }
+            seedChecked = true
+        }
     }
 
     /**
@@ -3150,6 +3174,15 @@ class BookDatabaseHelper(val context: Context) :
     companion object {
         const val DATABASE_NAME = "readtrace.db"
         const val DATABASE_VERSION = 6
+
+        // 预设播种进程级一次 + 持久化版本号（高频 ANR 修复，见 runPresetSeedsOnce）
+        // (Preset seeding once per process + persistent version number (high-frequency ANR fix, see runPresetSeedsOnce))
+        private const val SEED_PREF = "readtrace_seed"
+        private const val KEY_SEED_VERSION = "seed_version"
+
+        @Volatile
+        private var seedChecked = false
+        private val seedLock = Any()
 
         private const val TABLE_BOOKS = "books"
         private const val TABLE_NOTES = "notes"
