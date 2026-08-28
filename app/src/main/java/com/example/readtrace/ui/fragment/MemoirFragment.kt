@@ -32,7 +32,7 @@ class MemoirFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        databaseHelper = BookDatabaseHelper(requireContext())
+        databaseHelper = BookDatabaseHelper.getInstance(requireContext())
 
         val cardTimeWarpTunnel = view.findViewById<View>(R.id.cardTimeWarpTunnel)
         val cardPassport = view.findViewById<View>(R.id.cardPassport)

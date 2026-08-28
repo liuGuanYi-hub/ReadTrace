@@ -67,6 +67,11 @@ class LibraryFragment : Fragment() {
     private var isGridView: Boolean = false
     private var currentDisplayLimit: Int = 24
 
+    // 内存数据缓存与搜索防抖，避免频繁切标签与按键触发 SQLite 全表扫描
+    private var cachedAllBooks: List<Book> = emptyList()
+    private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var searchRunnable: Runnable? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -77,7 +82,7 @@ class LibraryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        databaseHelper = BookDatabaseHelper(requireContext())
+        databaseHelper = BookDatabaseHelper.getInstance(requireContext())
 
         val prefs = requireContext().getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
         isGridView = prefs.getBoolean("pref_is_grid_view_library", false)
@@ -88,7 +93,12 @@ class LibraryFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        refreshLibrary()
+        refreshLibrary(forceDbReload = true)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchRunnable?.let { searchHandler.removeCallbacks(it) }
     }
 
     private fun initViews(view: View) {
@@ -149,13 +159,23 @@ class LibraryFragment : Fragment() {
                     searchKeyword = query
                     currentDisplayLimit = 24
                     librarySearchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-                    refreshLibrary()
+                    searchRunnable?.let { searchHandler.removeCallbacks(it) }
+                    searchRunnable = Runnable {
+                        if (isAdded) {
+                            refreshLibrary(forceDbReload = false)
+                        }
+                    }
+                    searchHandler.postDelayed(searchRunnable!!, 250)
                 }
             }
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        librarySearchClearButton.setOnClickListener { librarySearchInput.setText("") }
+        librarySearchClearButton.setOnClickListener {
+            librarySearchInput.setText("")
+            searchRunnable?.let { searchHandler.removeCallbacks(it) }
+            refreshLibrary(forceDbReload = false)
+        }
 
         btnLibraryToggleView.setOnClickListener {
             isGridView = !isGridView
@@ -187,7 +207,7 @@ class LibraryFragment : Fragment() {
         currentDisplayLimit = 24
         updateMediaChips()
         updateStatusChips()
-        refreshLibrary()
+        refreshLibrary(forceDbReload = false)
     }
 
     private fun updateMediaChips() {
@@ -211,7 +231,7 @@ class LibraryFragment : Fragment() {
         selectedStatus = status
         currentDisplayLimit = 24
         updateStatusChips()
-        refreshLibrary()
+        refreshLibrary(forceDbReload = false)
     }
 
     private fun updateStatusChips() {
@@ -249,9 +269,11 @@ class LibraryFragment : Fragment() {
         refreshShelfOnly()
     }
 
-    private fun refreshLibrary() {
-        val allBooks = databaseHelper.getBooks()
-        val baseFilteredBooks = allBooks.filter { book ->
+    private fun refreshLibrary(forceDbReload: Boolean = true) {
+        if (forceDbReload || cachedAllBooks.isEmpty()) {
+            cachedAllBooks = databaseHelper.getBooks()
+        }
+        val baseFilteredBooks = cachedAllBooks.filter { book ->
             val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
             val matchesStatus = selectedStatus == null || book.status == selectedStatus
             val matchesKeyword = searchKeyword.isEmpty() ||
@@ -580,11 +602,6 @@ class LibraryFragment : Fragment() {
     }
 
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
-
-    override fun onDestroyView() {
-        databaseHelper.close()
-        super.onDestroyView()
-    }
 
     companion object {
         private val RATING_FORMAT = DecimalFormat("0.#")

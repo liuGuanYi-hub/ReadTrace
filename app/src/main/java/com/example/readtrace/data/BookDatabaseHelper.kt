@@ -3175,6 +3175,15 @@ class BookDatabaseHelper(val context: Context) :
         const val DATABASE_NAME = "readtrace.db"
         const val DATABASE_VERSION = 6
 
+        @Volatile
+        private var instance: BookDatabaseHelper? = null
+
+        fun getInstance(context: Context): BookDatabaseHelper {
+            return instance ?: synchronized(this) {
+                instance ?: BookDatabaseHelper(context.applicationContext).also { instance = it }
+            }
+        }
+
         // 预设播种进程级一次 + 持久化版本号（高频 ANR 修复，见 runPresetSeedsOnce）
         // (Preset seeding once per process + persistent version number (high-frequency ANR fix, see runPresetSeedsOnce))
         private const val SEED_PREF = "readtrace_seed"

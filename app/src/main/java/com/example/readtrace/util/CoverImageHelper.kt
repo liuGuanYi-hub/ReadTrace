@@ -38,7 +38,8 @@ object CoverImageHelper {
         }
     }
 
-    private val imageExecutor = Executors.newFixedThreadPool(3)
+    private val threadCount = max(4, Runtime.getRuntime().availableProcessors())
+    private val imageExecutor = Executors.newFixedThreadPool(threadCount)
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
@@ -165,6 +166,7 @@ object CoverImageHelper {
 
     /**
      * 加载封面到 ImageView，支持内存 LRU 缓存、下采样防 OOM、异步下载与自动磁盘缓存
+     * 主线程零磁盘 I/O，全异步解码与双向 Tag 复用防串图
      */
     fun loadCover(imageView: ImageView, path: String?, placeholderView: View? = null) {
         if (path.isNullOrBlank()) {
@@ -180,108 +182,74 @@ object CoverImageHelper {
 
         val trimmed = path.trim()
 
-        // 1. 优先从内存 LRU 缓存命中
+        // 1. 优先从内存 LRU 缓存命中（主线程 0ms 纯内存返回）
         val cached = memoryCache.get(trimmed)
         if (cached != null && !cached.isRecycled) {
+            imageView.tag = trimmed
             imageView.setImageBitmap(cached)
             imageView.visibility = View.VISIBLE
             placeholderView?.visibility = View.GONE
             return
         }
 
+        // 2. 标记当前 View 期待加载的图片路径，用于防异步串图
         imageView.tag = trimmed
 
-        // 2. 如果是网络 URL (http/https)
-        if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
-            val context = imageView.context.applicationContext
-            val cacheKey = md5(trimmed)
-            val cacheDir = File(context.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
-            val cacheFile = File(cacheDir, "net_$cacheKey.jpg")
-
-            if (cacheFile.exists() && cacheFile.length() > 0) {
-                imageExecutor.execute {
-                    val bitmap = decodeSampledBitmapFromFile(cacheFile.absolutePath)
-                    if (bitmap != null) {
-                        memoryCache.put(trimmed, bitmap)
-                        mainHandler.post {
-                            if (imageView.tag == trimmed) {
-                                imageView.setImageBitmap(bitmap)
-                                imageView.visibility = View.VISIBLE
-                                placeholderView?.visibility = View.GONE
-                            }
-                        }
-                    }
-                }
-                return
-            }
-
-            // 无磁盘缓存，在下载期间显示占位底色或 placeholderView
-            if (placeholderView != null) {
-                imageView.visibility = View.GONE
-                placeholderView.visibility = View.VISIBLE
-            } else {
-                imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
-                imageView.visibility = View.VISIBLE
-            }
-
-            imageExecutor.execute {
-                runCatching {
-                    val url = URL(trimmed)
-                    val connection = (url.openConnection() as HttpURLConnection).apply {
-                        connectTimeout = 8000
-                        readTimeout = 8000
-                        instanceFollowRedirects = true
-                        setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
-                        // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
-                        if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
-                            setRequestProperty("Referer", "https://book.douban.com/")
-                        }
-                    }
-                    if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                        val bytes = connection.inputStream.use { it.readBytes() }
-                        val savedPath = cropAndSaveCoverFromBytes(context, bytes, "net_$cacheKey.jpg")
-                        if (savedPath != null) {
-                            val downloadedBitmap = decodeSampledBitmapFromFile(savedPath)
-                            if (downloadedBitmap != null) {
-                                memoryCache.put(trimmed, downloadedBitmap)
-                                mainHandler.post {
-                                    if (imageView.tag == trimmed) {
-                                        imageView.setImageBitmap(downloadedBitmap)
-                                        imageView.visibility = View.VISIBLE
-                                        placeholderView?.visibility = View.GONE
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }.onFailure {
-                    // 网络失败时保证不会残留空白
-                    mainHandler.post {
-                        if (imageView.tag == trimmed && placeholderView == null) {
-                            imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
-                            imageView.visibility = View.VISIBLE
-                        }
-                    }
-                }
-            }
-            return
+        // 3. 设置默认占位态（不阻塞主线程）
+        if (placeholderView != null) {
+            imageView.visibility = View.GONE
+            placeholderView.visibility = View.VISIBLE
+        } else {
+            imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
+            imageView.visibility = View.VISIBLE
         }
 
-        // 3. 本地文件路径
-        val file = File(trimmed)
-        if (!file.exists() || !file.isFile) {
-            if (placeholderView != null) {
-                imageView.visibility = View.GONE
-                placeholderView.visibility = View.VISIBLE
-            } else {
-                imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
-                imageView.visibility = View.VISIBLE
-            }
-            return
-        }
+        val isNetworkUrl = trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)
+        val appContext = imageView.context.applicationContext
 
+        // 4. 将所有磁盘检查、哈希计算与解码操作完全推入后台线程池
         imageExecutor.execute {
-            val bitmap = decodeSampledBitmapFromFile(file.absolutePath)
+            // View 如果已经被回收复用，直接提前终止
+            if (imageView.tag != trimmed) return@execute
+
+            var bitmap: Bitmap? = null
+
+            if (isNetworkUrl) {
+                val cacheKey = md5(trimmed)
+                val cacheDir = File(appContext.filesDir, COVERS_DIR).apply { if (!exists()) mkdirs() }
+                val cacheFile = File(cacheDir, "net_$cacheKey.jpg")
+
+                if (cacheFile.exists() && cacheFile.length() > 0) {
+                    bitmap = decodeSampledBitmapFromFile(cacheFile.absolutePath)
+                } else {
+                    runCatching {
+                        val url = URL(trimmed)
+                        val connection = (url.openConnection() as HttpURLConnection).apply {
+                            connectTimeout = 8000
+                            readTimeout = 8000
+                            instanceFollowRedirects = true
+                            setRequestProperty("User-Agent", "Mozilla/5.0 (Android; ReadTrace/5.3)")
+                            // 豆瓣图床有防盗链，请求需携带 Referer，否则返回 418
+                            if (url.host.endsWith("doubanio.com") || url.host.endsWith("douban.com")) {
+                                setRequestProperty("Referer", "https://book.douban.com/")
+                            }
+                        }
+                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                            val bytes = connection.inputStream.use { it.readBytes() }
+                            val savedPath = cropAndSaveCoverFromBytes(appContext, bytes, "net_$cacheKey.jpg")
+                            if (savedPath != null) {
+                                bitmap = decodeSampledBitmapFromFile(savedPath)
+                            }
+                        }
+                    }
+                }
+            } else {
+                val file = File(trimmed)
+                if (file.exists() && file.isFile) {
+                    bitmap = decodeSampledBitmapFromFile(file.absolutePath)
+                }
+            }
+
             if (bitmap != null) {
                 memoryCache.put(trimmed, bitmap)
                 mainHandler.post {

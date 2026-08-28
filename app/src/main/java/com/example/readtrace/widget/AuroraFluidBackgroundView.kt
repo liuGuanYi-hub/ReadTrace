@@ -39,6 +39,9 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
 
     private var audioScale: Float = 1.0f
 
+    // 预热单元着色器，避免每帧 4 次 RadialGradient 与 SkShader 堆内存分配
+    private val orbShaders = arrayOfNulls<RadialGradient>(4)
+
     init {
         setWillNotDraw(false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -50,13 +53,27 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
         updateThemePalette()
     }
 
+    private fun rebuildShaders() {
+        for (i in 0 until 4) {
+            val color = colors[i % colors.size]
+            val transparentColor = color and 0x00FFFFFF
+            orbShaders[i] = RadialGradient(
+                0f, 0f, 1f,
+                color, transparentColor,
+                Shader.TileMode.CLAMP,
+            )
+        }
+    }
+
     fun updateThemePalette(darkMode: Boolean = isDarkTheme) {
         colors = com.example.readtrace.util.CircadianLightingEngine.getCircadianColors(isDark = darkMode)
+        rebuildShaders()
         invalidate()
     }
 
     fun setCircadianPhase(phase: com.example.readtrace.util.CircadianLightingEngine.CircadianPhase, darkMode: Boolean = isDarkTheme) {
         colors = com.example.readtrace.util.CircadianLightingEngine.getCircadianColors(phase, isDark = darkMode)
+        rebuildShaders()
         invalidate()
     }
 
@@ -121,17 +138,13 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     }
 
     private fun drawOrb(canvas: Canvas, colorIndex: Int, cx: Float, cy: Float, radius: Float) {
-        val color = colors[colorIndex % colors.size]
-        val transparentColor = color and 0x00FFFFFF
-
-        orbPaint.shader = RadialGradient(
-            cx,
-            cy,
-            radius,
-            color,
-            transparentColor,
-            Shader.TileMode.CLAMP,
-        )
-        canvas.drawCircle(cx, cy, radius, orbPaint)
+        if (radius <= 0f) return
+        val shader = orbShaders[colorIndex % orbShaders.size] ?: return
+        orbPaint.shader = shader
+        canvas.save()
+        canvas.translate(cx, cy)
+        canvas.scale(radius, radius)
+        canvas.drawCircle(0f, 0f, 1f, orbPaint)
+        canvas.restore()
     }
 }

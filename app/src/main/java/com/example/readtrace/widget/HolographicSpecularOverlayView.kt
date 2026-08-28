@@ -40,6 +40,18 @@ class HolographicSpecularOverlayView @JvmOverloads constructor(
         0.0f, 0.20f, 0.40f, 0.50f, 0.60f, 0.80f, 1.0f,
     )
 
+    private val goldColors = intArrayOf(
+        Color.TRANSPARENT,
+        Color.parseColor("#18E0A96D"),
+        Color.parseColor("#30FFFFFF"),
+        Color.TRANSPARENT,
+    )
+    private val goldPositions = floatArrayOf(0f, 0.45f, 0.55f, 1f)
+
+    private val shaderMatrix = android.graphics.Matrix()
+    private var baseRainbowGradient: LinearGradient? = null
+    private var baseGoldGradient: LinearGradient? = null
+
     init {
         setWillNotDraw(false)
     }
@@ -52,55 +64,64 @@ class HolographicSpecularOverlayView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        bounds.set(0f, 0f, w.toFloat(), h.toFloat())
+        val fw = w.toFloat()
+        val fh = h.toFloat()
+        bounds.set(0f, 0f, fw, fh)
         clipPath.reset()
         clipPath.addRoundRect(bounds, cornerRadius, cornerRadius, Path.Direction.CW)
+
+        if (fw > 0f && fh > 0f) {
+            baseRainbowGradient = LinearGradient(
+                -fw * 0.4f,
+                -fh * 0.4f,
+                fw * 1.4f,
+                fh * 1.4f,
+                rainbowColors,
+                colorPositions,
+                Shader.TileMode.CLAMP,
+            )
+            baseGoldGradient = LinearGradient(
+                fw * 0.2f,
+                -fh * 0.2f,
+                fw * 0.8f,
+                fh * 1.2f,
+                goldColors,
+                goldPositions,
+                Shader.TileMode.CLAMP,
+            )
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (width <= 0 || height <= 0) return
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0 || h <= 0) return
 
         canvas.save()
         canvas.clipPath(clipPath)
 
-        val w = width.toFloat()
-        val h = height.toFloat()
-
-        // 1. 正向全息彩虹扫光
-        val centerOffsetX = currentRoll * (w * 0.85f)
-        val centerOffsetY = -currentPitch * (h * 0.85f)
-
-        val startX = -w * 0.4f + centerOffsetX
-        val startY = -h * 0.4f + centerOffsetY
-        val endX = w * 1.4f + centerOffsetX
-        val endY = h * 1.4f + centerOffsetY
-
-        paint.shader = LinearGradient(
-            startX,
-            startY,
-            endX,
-            endY,
-            rainbowColors,
-            colorPositions,
-            Shader.TileMode.CLAMP,
-        )
-        canvas.drawRect(bounds, paint)
+        // 1. 正向全息彩虹扫光（基于 GPU Matrix 位移，零堆内存分配）
+        val rainbow = baseRainbowGradient
+        if (rainbow != null) {
+            val centerOffsetX = currentRoll * (w * 0.85f)
+            val centerOffsetY = -currentPitch * (h * 0.85f)
+            shaderMatrix.setTranslate(centerOffsetX, centerOffsetY)
+            rainbow.setLocalMatrix(shaderMatrix)
+            paint.shader = rainbow
+            canvas.drawRect(bounds, paint)
+        }
 
         // 2. 反向差速全息烫金高光层（裸眼 3D 浮雕深层反光）
-        val reverseOffsetX = -currentRoll * (w * 0.45f)
-        val reverseOffsetY = currentPitch * (h * 0.45f)
-
-        paint.shader = LinearGradient(
-            w * 0.2f + reverseOffsetX,
-            -h * 0.2f + reverseOffsetY,
-            w * 0.8f + reverseOffsetX,
-            h * 1.2f + reverseOffsetY,
-            intArrayOf(Color.TRANSPARENT, Color.parseColor("#18E0A96D"), Color.parseColor("#30FFFFFF"), Color.TRANSPARENT),
-            floatArrayOf(0f, 0.45f, 0.55f, 1f),
-            Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(bounds, paint)
+        val gold = baseGoldGradient
+        if (gold != null) {
+            val reverseOffsetX = -currentRoll * (w * 0.45f)
+            val reverseOffsetY = currentPitch * (h * 0.45f)
+            shaderMatrix.setTranslate(reverseOffsetX, reverseOffsetY)
+            gold.setLocalMatrix(shaderMatrix)
+            paint.shader = gold
+            canvas.drawRect(bounds, paint)
+        }
 
         canvas.restore()
     }
