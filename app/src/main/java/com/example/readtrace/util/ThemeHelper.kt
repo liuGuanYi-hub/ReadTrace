@@ -34,7 +34,7 @@ object ThemeHelper {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putInt(KEY_NIGHT_MODE, newMode)
-            .apply()
+            .commit()
         AppCompatDelegate.setDefaultNightMode(newMode)
         return !currentDark
     }

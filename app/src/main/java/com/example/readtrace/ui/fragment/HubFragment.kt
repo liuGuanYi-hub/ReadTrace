@@ -296,6 +296,7 @@ class HubFragment : Fragment() {
             updateThemeToggleIcon()
             com.example.readtrace.util.ConfettiBurstHelper.burstCenter(requireActivity())
             com.example.readtrace.util.HapticFeedbackEngine.stampImpact(ctx)
+            activity?.recreate()
         }
 
         addBtn.setOnClickListener { startActivity(Intent(requireContext(), AddBookActivity::class.java)) }

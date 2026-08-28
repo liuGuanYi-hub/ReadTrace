@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private var currentTabIndex = TAB_HUB
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        com.example.readtrace.util.ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
