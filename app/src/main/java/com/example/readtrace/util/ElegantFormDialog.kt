@@ -56,7 +56,7 @@ object ElegantFormDialog {
         val titleView = TextView(activity).apply {
             text = title
             textSize = 16.5f
-            setTextColor(Color.WHITE)
+            setTextColor(activity.getColor(R.color.readtrace_ink))
             letterSpacing = 0.02f
         }
         container.addView(titleView)
@@ -77,7 +77,7 @@ object ElegantFormDialog {
             val label = TextView(activity).apply {
                 text = field.label
                 textSize = 12.5f
-                setTextColor(Color.parseColor("#A89F91"))
+                setTextColor(activity.getColor(R.color.readtrace_muted))
                 setPadding(2, if (index == 0) 0 else dp(12), 0, dp(5))
             }
             column.addView(label)
@@ -86,8 +86,8 @@ object ElegantFormDialog {
                 hint = field.hint
                 setText(field.preset)
                 setTextSize(14f)
-                setTextColor(Color.WHITE)
-                setHintTextColor(Color.parseColor("#6B6377"))
+                setTextColor(activity.getColor(R.color.readtrace_ink))
+                setHintTextColor(activity.getColor(R.color.readtrace_muted))
                 inputType = field.inputType
                 minLines = field.minLines
                 gravity = Gravity.TOP or Gravity.START
@@ -110,11 +110,11 @@ object ElegantFormDialog {
             isAllCaps = false
             if (confirm) {
                 setBackgroundResource(R.drawable.bg_chip_picker_selected)
-                setTextColor(Color.parseColor("#2B1A0E"))
+                setTextColor(activity.getColor(R.color.chip_selected_text))
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
             } else {
                 setBackgroundResource(R.drawable.bg_chip_picker_idle)
-                setTextColor(Color.parseColor("#CFC8BD"))
+                setTextColor(activity.getColor(R.color.chip_idle_text))
             }
             layoutParams = LinearLayout.LayoutParams(0, dp(44), 1f).apply {
                 marginEnd = if (confirm) 0 else dp(10)

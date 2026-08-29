@@ -43,7 +43,7 @@ object ElegantChoiceDialog {
         val titleView = TextView(activity).apply {
             text = title
             textSize = 16.5f
-            setTextColor(Color.WHITE)
+            setTextColor(activity.getColor(R.color.readtrace_ink))
             letterSpacing = 0.02f
         }
         container.addView(titleView)
@@ -91,14 +91,14 @@ object ElegantChoiceDialog {
             textCol.addView(TextView(activity).apply {
                 text = choice.label
                 textSize = 14f
-                setTextColor(if (index == selectedIndex) Color.parseColor("#F4A261") else Color.WHITE)
+                setTextColor(activity.getColor(if (index == selectedIndex) R.color.picker_item_stroke_selected else R.color.readtrace_ink))
                 setTypeface(typeface, if (index == selectedIndex) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
             })
             choice.subtitle?.let { sub ->
                 textCol.addView(TextView(activity).apply {
                     text = sub
                     textSize = 11.5f
-                    setTextColor(Color.parseColor("#A89F91"))
+                    setTextColor(activity.getColor(R.color.readtrace_muted))
                     setPadding(0, dp(2), 0, 0)
                 })
             }
@@ -107,7 +107,7 @@ object ElegantChoiceDialog {
             val check = TextView(activity).apply {
                 textSize = 14f
                 text = "✓"
-                setTextColor(Color.parseColor("#2B1A0E"))
+                setTextColor(activity.getColor(R.color.chip_selected_text))
                 setBackgroundResource(R.drawable.bg_check_gold)
                 gravity = Gravity.CENTER
                 visibility = if (index == selectedIndex) View.VISIBLE else View.GONE

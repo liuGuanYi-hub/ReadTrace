@@ -2,7 +2,10 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <gradient android:angle="270" android:startColor="#F4A261" android:endColor="#D96F35" />
+            <gradient
+                android:angle="270"
+                android:startColor="@color/chip_gold_start"
+                android:endColor="@color/chip_gold_end" />
         </shape>
     </item>
     <item

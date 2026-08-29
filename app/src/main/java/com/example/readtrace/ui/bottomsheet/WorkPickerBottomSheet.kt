@@ -139,7 +139,7 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
                 chips.forEach { (c, m) ->
                     val isSelected = m == currentFilterMediaType
                     c.setBackgroundResource(if (isSelected) R.drawable.bg_chip_picker_selected else R.drawable.bg_chip_picker_idle)
-                    c.setTextColor(Color.parseColor(if (isSelected) "#2B1A0E" else "#CFC8BD"))
+                    c.setTextColor(ContextCompat.getColor(requireContext(), if (isSelected) R.color.chip_selected_text else R.color.chip_idle_text))
                     c.paint.isFakeBoldText = isSelected
                 }
                 HapticFeedbackEngine.lightClick(requireContext())

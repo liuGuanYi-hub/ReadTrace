@@ -72,7 +72,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="《Kingdom Rush》"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/readtrace_ink"
             android:textSize="15.5sp"
             android:textStyle="bold" />
 
@@ -84,7 +84,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="创作者: Ironhide Game Studio"
-            android:textColor="#A89F91"
+            android:textColor="@color/readtrace_muted"
             android:textSize="12sp" />
 
         <!-- 标签与状态栏 -->
@@ -103,7 +103,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="2.5dp"
                 android:text="塔防策略"
-                android:textColor="#F0C08A"
+                android:textColor="@color/picker_tag_text"
                 android:textSize="10.5sp" />
 
             <TextView
@@ -112,7 +112,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="★ 9.2"
-                android:textColor="#F4A261"
+                android:textColor="@color/picker_item_stroke_selected"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -122,7 +122,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="已通关"
-                android:textColor="#8C857B"
+                android:textColor="@color/readtrace_muted"
                 android:textSize="10.5sp" />
         </LinearLayout>
     </LinearLayout>
@@ -140,7 +140,7 @@
             android:background="@drawable/bg_check_gold"
             android:gravity="center"
             android:text="✓"
-            android:textColor="#2B1A0E"
+            android:textColor="@color/chip_selected_text"
             android:textSize="15sp"
             android:textStyle="bold"
             android:visibility="gone"

@@ -39,7 +39,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="🎮 选择要生成卡带的游戏"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/readtrace_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -49,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
                 android:text="书库中共 67 款作品 · 点击即刻切换"
-                android:textColor="#A89F91"
+                android:textColor="@color/readtrace_muted"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -63,7 +63,7 @@
             android:background="@drawable/bg_close_glass"
             android:gravity="center"
             android:text="✕"
-            android:textColor="#D8D2C8"
+            android:textColor="@color/close_glass_text"
             android:textSize="13sp" />
     </RelativeLayout>
 
@@ -97,8 +97,8 @@
             android:imeOptions="actionDone"
             android:maxLines="1"
             android:singleLine="true"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#6B6377"
+            android:textColor="@color/readtrace_ink"
+            android:textColorHint="@color/readtrace_muted"
             android:textSize="13.5sp" />
 
         <TextView
@@ -107,7 +107,7 @@
             android:layout_height="24dp"
             android:gravity="center"
             android:text="✕"
-            android:textColor="#9E988F"
+            android:textColor="@color/readtrace_muted"
             android:textSize="12sp"
             android:visibility="gone" />
     </LinearLayout>
@@ -136,7 +136,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="全部"
-                android:textColor="#2B1A0E"
+                android:textColor="@color/chip_selected_text"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -149,7 +149,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="📚 书籍"
-                android:textColor="#CFC8BD"
+                android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
             <TextView
@@ -161,7 +161,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="🌸 番剧"
-                android:textColor="#CFC8BD"
+                android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
             <TextView
@@ -173,7 +173,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="🎬 电影"
-                android:textColor="#CFC8BD"
+                android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
             <TextView
@@ -185,7 +185,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="🎮 游戏"
-                android:textColor="#CFC8BD"
+                android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
             <TextView
@@ -197,7 +197,7 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
                 android:text="💿 音乐"
-                android:textColor="#CFC8BD"
+                android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -238,7 +238,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="未检索到匹配的精神印记"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/readtrace_ink"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -247,7 +247,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="可尝试输入其他关键词或切换媒介分类"
-                android:textColor="#9E988F"
+                android:textColor="@color/readtrace_muted"
                 android:textSize="12sp" />
         </LinearLayout>
     </FrameLayout>

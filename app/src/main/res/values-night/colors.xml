@@ -24,4 +24,37 @@
     <color name="readtrace_gold_soft">#26E5C07B</color>
     <!-- 主页竖向滚动条滑块（夜间：暖白高不透明，常驻显示，在深色背景上清晰可见） -->
     <color name="readtrace_scrollbar_thumb">#CCD8D4C8</color>
+    <color name="picker_surface_start">#231D2E</color>
+    <color name="picker_surface_center">#16121D</color>
+    <color name="picker_surface_end">#0C0A11</color>
+    <color name="picker_surface_stroke">#2EFFFFFF</color>
+    <color name="dialog_surface_start">#221C2C</color>
+    <color name="dialog_surface_end">#120F19</color>
+    <color name="dialog_stroke">#2EFFFFFF</color>
+    <color name="picker_item_bg">#1B1724</color>
+    <color name="picker_item_stroke">#24FFFFFF</color>
+    <color name="picker_item_bg_selected">#2A2118</color>
+    <color name="picker_item_stroke_selected">#F4A261</color>
+    <color name="picker_item_glow_stroke">#30F4A261</color>
+    <color name="search_bg">#1C1725</color>
+    <color name="search_bg_focused">#241D2F</color>
+    <color name="search_stroke">#322841</color>
+    <color name="search_stroke_focused">#66F4A261</color>
+    <color name="chip_idle_bg">#12FFFFFF</color>
+    <color name="chip_idle_stroke">#29FFFFFF</color>
+    <color name="chip_idle_text">#CFC8BD</color>
+    <color name="chip_selected_text">#2B1A0E</color>
+    <color name="chip_gold_start">#F4A261</color>
+    <color name="chip_gold_end">#E07840</color>
+    <color name="picker_handle">#47FFFFFF</color>
+    <color name="close_glass_bg">#16FFFFFF</color>
+    <color name="close_glass_stroke">#2EFFFFFF</color>
+    <color name="close_glass_text">#D8D2C8</color>
+    <color name="form_input_bg">#181420</color>
+    <color name="form_input_bg_focused">#1F1A28</color>
+    <color name="form_input_stroke">#2C2438</color>
+    <color name="form_input_stroke_focused">#66F4A261</color>
+    <color name="picker_tag_bg">#22F4A261</color>
+    <color name="picker_tag_text">#F0C08A</color>
+    <color name="picker_cover_placeholder">#251F2E</color>
 </resources>
