@@ -124,6 +124,24 @@ class MainActivity : AppCompatActivity() {
         updateTabStyles(index)
     }
 
+    /** 首屏动画结束后逐个预热其余底部页（add+hide），消除首次切换时的布局膨胀卡顿 */
+    private fun preloadRemainingTabs() {
+        val remaining = listOf(TAB_LIBRARY, TAB_GALAXY, TAB_MEMOIR, TAB_PROFILE).filter { it != currentTabIndex }
+        remaining.forEachIndexed { idx, index ->
+            window.decorView.postDelayed({
+                if (index == currentTabIndex) return@postDelayed
+                val existing = fragments[index] ?: supportFragmentManager.findFragmentByTag("tag_tab_$index")
+                if (existing != null && existing.isAdded) return@postDelayed
+                val f = createFragment(index)
+                fragments[index] = f
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.fragmentContainer, f, "tag_tab_$index")
+                    .hide(f)
+                    .commitAllowingStateLoss()
+            }, idx * 400L)
+        }
+    }
+
     private fun createFragment(index: Int): Fragment {
         return when (index) {
             TAB_HUB -> HubFragment()

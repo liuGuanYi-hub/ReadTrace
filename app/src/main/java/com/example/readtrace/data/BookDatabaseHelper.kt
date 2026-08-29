@@ -1938,6 +1938,25 @@ class BookDatabaseHelper(val context: Context) :
         }
     }
 
+    // 书籍列表内存缓存：底部导航各页切换时的高频读取命中内存（任何书籍写操作即失效）
+    @Volatile
+    private var bookListCache: List<Book>? = null
+
+    /** 高频展示场景用：优先命中内存缓存；任何书籍写操作都会使其失效 */
+    fun getCachedBooks(): List<Book> {
+        bookListCache?.let { return it }
+        synchronized(this) {
+            bookListCache?.let { return it }
+            val fresh = getBooks()
+            bookListCache = fresh
+            return fresh
+        }
+    }
+
+    private fun invalidateBookCache() {
+        bookListCache = null
+    }
+
     fun insertBook(book: Book): Long {
         val now = currentTimestamp()
         val values = book.toContentValues().apply {
@@ -1946,7 +1965,9 @@ class BookDatabaseHelper(val context: Context) :
             put(COLUMN_IS_DELETED, 0)
             putNull(COLUMN_DELETED_AT)
         }
-        return writableDatabase.insertOrThrow(TABLE_BOOKS, null, values)
+        val newId = writableDatabase.insertOrThrow(TABLE_BOOKS, null, values)
+        invalidateBookCache()
+        return newId
     }
 
     fun getBooks(status: BookStatus? = null): List<Book> {
@@ -1993,12 +2014,14 @@ class BookDatabaseHelper(val context: Context) :
         val values = book.toContentValues().apply {
             put(COLUMN_UPDATED_AT, currentTimestamp())
         }
-        return writableDatabase.update(
+        val rows = writableDatabase.update(
             TABLE_BOOKS,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(book.id.toString(), "0"),
-        ) > 0
+        )
+        invalidateBookCache()
+        return rows > 0
     }
 
     fun archiveBook(bookId: Long): Boolean {
@@ -2009,12 +2032,14 @@ class BookDatabaseHelper(val context: Context) :
             put(COLUMN_DELETED_AT, now)
             put(COLUMN_UPDATED_AT, now)
         }
-        return writableDatabase.update(
+        val rows = writableDatabase.update(
             TABLE_BOOKS,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(bookId.toString(), "0"),
-        ) > 0
+        )
+        invalidateBookCache()
+        return rows > 0
     }
 
     /**
@@ -2028,12 +2053,14 @@ class BookDatabaseHelper(val context: Context) :
             putNull(COLUMN_DELETED_AT)
             put(COLUMN_UPDATED_AT, now)
         }
-        return writableDatabase.update(
+        val rows = writableDatabase.update(
             TABLE_BOOKS,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(bookId.toString(), "1"),
-        ) > 0
+        )
+        invalidateBookCache()
+        return rows > 0
     }
 
     /**
@@ -2078,6 +2105,7 @@ class BookDatabaseHelper(val context: Context) :
             // 3. 删除书籍记录
             val deleted = db.delete(TABLE_BOOKS, "$COLUMN_ID = ?", arrayOf(bookId.toString())) > 0
             db.setTransactionSuccessful()
+            invalidateBookCache()
             return deleted
         } finally {
             db.endTransaction()

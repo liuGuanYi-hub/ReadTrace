@@ -52,9 +52,47 @@ class ProfileFragment : Fragment() {
         setupListeners()
     }
 
+    private val refreshExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private val refreshHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
     override fun onResume() {
         super.onResume()
-        refreshProfileData()
+        refreshProfileDataAsync()
+    }
+
+    /** 个人页聚合查询较重（年度人格跨表聚合 + 画廊精选），移至后台线程，渲染回主线程 */
+    private fun refreshProfileDataAsync() {
+        refreshExecutor.execute {
+            val allBooks = databaseHelper.getCachedBooks()
+            val persona = databaseHelper.getAnnualMindprintPersona()
+            val featuredCount = databaseHelper.getGalleryFeaturedWorks(24).size
+            refreshHandler.post {
+                if (!isAdded || view == null) return@post
+                renderProfileData(allBooks, persona, featuredCount)
+            }
+        }
+    }
+
+    private fun renderProfileData(allBooks: List<com.example.readtrace.model.Book>, persona: com.example.readtrace.model.ReadingPersona?, featuredCount: Int) {
+        profileSummaryText.text = "已沉淀 ${allBooks.size} 部文化藏品 · 记录心智演化轨迹"
+
+        if (persona != null) {
+            annualPersonaPanel.visibility = View.VISIBLE
+            annualPersonaBadge.text = persona.personaTitle
+            annualPersonaDesc.text = "${persona.personaDesc}（已深度量化分析 ${persona.finishedBooksCount} 部作品）"
+            annualMindprintRadar.setMindprint(persona.avgMindprint, animate = false)
+        } else {
+            annualPersonaPanel.visibility = View.GONE
+        }
+
+        val badges = MilestoneBadgeHelper.calculateBadges(databaseHelper)
+        val unlockedCount = badges.count { it.isUnlocked }
+        profileBadgeSummary.text = "已解锁 $unlockedCount / ${badges.size} 枚专属精神荣誉勋章"
+        profileGallerySummary.text = if (featuredCount > 0) {
+            "基于 OpenGL 的 360° 环形悬浮立体展台（已精选 $featuredCount 部藏品）"
+        } else {
+            "基于 OpenGL 的 360° 环形悬浮立体展台与全息封面流"
+        }
     }
 
     private fun initViews(view: View) {
@@ -100,29 +138,4 @@ class ProfileFragment : Fragment() {
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
-    private fun refreshProfileData() {
-        val allBooks = databaseHelper.getBooks()
-        profileSummaryText.text = "已沉淀 ${allBooks.size} 部文化藏品 · 记录心智演化轨迹"
-
-        val persona = databaseHelper.getAnnualMindprintPersona()
-        if (persona != null) {
-            annualPersonaPanel.visibility = View.VISIBLE
-            annualPersonaBadge.text = persona.personaTitle
-            annualPersonaDesc.text = "${persona.personaDesc}（已深度量化分析 ${persona.finishedBooksCount} 部作品）"
-            annualMindprintRadar.setMindprint(persona.avgMindprint, animate = false)
-        } else {
-            annualPersonaPanel.visibility = View.GONE
-        }
-
-        val badges = MilestoneBadgeHelper.calculateBadges(databaseHelper)
-        val unlockedCount = badges.count { it.isUnlocked }
-        profileBadgeSummary.text = "已解锁 $unlockedCount / ${badges.size} 枚专属精神荣誉勋章"
-
-        val featuredCount = databaseHelper.getGalleryFeaturedWorks(24).size
-        profileGallerySummary.text = if (featuredCount > 0) {
-            "基于 OpenGL 的 360° 环形悬浮立体展台（已精选 $featuredCount 部藏品）"
-        } else {
-            "基于 OpenGL 的 360° 环形悬浮立体展台与全息封面流"
-        }
-    }
 }

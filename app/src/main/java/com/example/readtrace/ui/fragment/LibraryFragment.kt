@@ -271,7 +271,7 @@ class LibraryFragment : Fragment() {
 
     private fun refreshLibrary(forceDbReload: Boolean = true) {
         if (forceDbReload || cachedAllBooks.isEmpty()) {
-            cachedAllBooks = databaseHelper.getBooks()
+            cachedAllBooks = databaseHelper.getCachedBooks()
         }
         val baseFilteredBooks = cachedAllBooks.filter { book ->
             val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
@@ -347,7 +347,7 @@ class LibraryFragment : Fragment() {
 
     private fun refreshShelfOnly(baseBooks: List<Book>? = null) {
         val candidates = baseBooks ?: run {
-            val allBooks = databaseHelper.getBooks()
+            val allBooks = databaseHelper.getCachedBooks()
             allBooks.filter { book ->
                 val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
                 val matchesStatus = selectedStatus == null || book.status == selectedStatus

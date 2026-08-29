@@ -56,7 +56,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardExLibris?.setOnClickListener {
-            val firstBook = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.BOOK }
+            val firstBook = databaseHelper.getCachedBooks().firstOrNull { it.mediaType == MediaType.BOOK }
             if (firstBook != null) {
                 startActivity(ExLibrisStudioActivity.createIntent(requireContext(), firstBook.id))
             } else {
@@ -65,7 +65,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardMovieTicket?.setOnClickListener {
-            val firstMovie = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.MOVIE }
+            val firstMovie = databaseHelper.getCachedBooks().firstOrNull { it.mediaType == MediaType.MOVIE }
             if (firstMovie != null) {
                 startActivity(MovieTicketPosterActivity.createIntent(requireContext(), firstMovie.id))
             } else {
@@ -74,7 +74,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardVinylPlayer?.setOnClickListener {
-            val firstMusic = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.MUSIC }
+            val firstMusic = databaseHelper.getCachedBooks().firstOrNull { it.mediaType == MediaType.MUSIC }
             if (firstMusic != null) {
                 startActivity(VinylCassettePlayerActivity.createIntent(requireContext(), firstMusic.id))
             } else {
@@ -83,7 +83,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardGameCartridge?.setOnClickListener {
-            val firstGame = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.GAME }
+            val firstGame = databaseHelper.getCachedBooks().firstOrNull { it.mediaType == MediaType.GAME }
             if (firstGame != null) {
                 startActivity(GameCartridgePosterActivity.createIntent(requireContext(), firstGame.id))
             } else {
@@ -92,7 +92,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardResonancePoster?.setOnClickListener {
-            val allBooks = databaseHelper.getBooks()
+            val allBooks = databaseHelper.getCachedBooks()
             val bookA = allBooks.firstOrNull { it.mediaType == MediaType.BOOK }
             val animeB = allBooks.firstOrNull { it.mediaType == MediaType.ANIME }
             if (bookA != null && animeB != null) {
@@ -133,7 +133,7 @@ class MemoirFragment : Fragment() {
     }
 
     private fun updateWorkshopBadges(root: View) {
-        val allBooks = databaseHelper.getBooks()
+        val allBooks = databaseHelper.getCachedBooks()
         val animeList = allBooks.filter { it.mediaType == MediaType.ANIME }
         val gameList = allBooks.filter { it.mediaType == MediaType.GAME }
 
