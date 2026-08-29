@@ -102,8 +102,10 @@ class BookDatabaseHelper(val context: Context) :
             }
         }
         if (oldVersion < 9) {
-            // v9：新增本地音频曲目表（黑胶音乐馆真实播放）
+            // v9：新增本地音频曲目表（黑胶音乐馆真实播放）；
+            // 全库评分统一为 4 星（8.0 分）基准
             createAudioTracksTable(database)
+            database.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
         }
         if (oldVersion < 7) {
             // v7：无表结构变更；预置封面由外网链接/打包资产统一改写为内网封面键，
@@ -306,6 +308,8 @@ class BookDatabaseHelper(val context: Context) :
                 seedUserMusicList(db)
                 seedCuratedBookCovers(db)
                 migrateCoversToLanKeys(db)
+                // 预置作品评分统一 4 星基准（8.0 分）
+                db.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
             seedChecked = true
@@ -3396,7 +3400,7 @@ class BookDatabaseHelper(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 8
+        const val DATABASE_VERSION = 9
 
         @Volatile
         private var instance: BookDatabaseHelper? = null
