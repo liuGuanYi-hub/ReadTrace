@@ -1947,14 +1947,10 @@ class BookDatabaseHelper(val context: Context) :
         }
     }
 
-    // 书籍列表内存缓存：底部导航各页切换时的高频读取命中内存（任何书籍写操作即失效）
-    @Volatile
-    private var bookListCache: List<Book>? = null
-
     /** 高频展示场景用：优先命中内存缓存；任何书籍写操作都会使其失效 */
     fun getCachedBooks(): List<Book> {
         bookListCache?.let { return it }
-        synchronized(this) {
+        synchronized(bookListCacheLock) {
             bookListCache?.let { return it }
             val fresh = getBooks()
             bookListCache = fresh
@@ -3394,6 +3390,11 @@ class BookDatabaseHelper(val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
+
+        // 书籍列表内存缓存：全项目共享（BookDatabaseHelper 存在多实例，缓存必须全局，否则写后失效无法跨实例传播）
+        @Volatile
+        private var bookListCache: List<Book>? = null
+        private val bookListCacheLock = Any()
         const val TABLE_AUDIO_TRACKS = "audio_tracks"
         const val COLUMN_AUDIO_BOOK_ID = "book_id"
         const val COLUMN_AUDIO_ORDER = "track_order"
