@@ -22,6 +22,8 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ElegantChoiceDialog
+import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.util.FloatingBack
 import java.text.DecimalFormat
 import java.time.OffsetDateTime
@@ -289,59 +291,32 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun showAddCharacterDialog() {
-        val dialogView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(40, 20, 40, 20)
-        }
-
-        val nameInput = EditText(this).apply {
-            hint = "角色姓名 (如：小狐狸)"
-            textSize = 14f
-        }
-        val roleInput = EditText(this).apply {
-            hint = "身份/阵营/头衔 (如：启蒙导师 · 麦田守望者)"
-            textSize = 13f
-        }
-        val emojiInput = EditText(this).apply {
-            hint = "角色 Emoji (如：🦊 / 👑 / 🌹)"
-            setText("👤")
-            textSize = 14f
-        }
-        val descInput = EditText(this).apply {
-            hint = "人物生平与性格简述..."
-            textSize = 13f
-        }
-        val relInput = EditText(this).apply {
-            hint = "与主角或其他人物的核心羁绊关系..."
-            textSize = 13f
-        }
-
-        dialogView.addView(nameInput)
-        dialogView.addView(roleInput)
-        dialogView.addView(emojiInput)
-        dialogView.addView(descInput)
-        dialogView.addView(relInput)
-
-        AlertDialog.Builder(this)
-            .setTitle("👥 添加人物角色")
-            .setView(dialogView)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton("保存角色") { _, _ ->
-                val name = nameInput.text.toString().trim()
-                if (name.isNotEmpty()) {
-                    val character = com.example.readtrace.model.BookCharacter(
-                        bookId = bookId,
-                        name = name,
-                        roleTitle = roleInput.text.toString().trim().ifBlank { null },
-                        avatarEmoji = emojiInput.text.toString().trim().ifBlank { "👤" },
-                        description = descInput.text.toString().trim().ifBlank { null },
-                        relationship = relInput.text.toString().trim().ifBlank { null },
-                    )
-                    databaseHelper.insertCharacter(character)
-                    renderCharacters(databaseHelper.getCharacters(bookId))
-                }
+        ElegantFormDialog.show(
+            this,
+            title = "👥 添加人物角色",
+            confirmText = "保存角色",
+            fields = listOf(
+                ElegantFormDialog.Field("name", "👤 角色姓名", "如：小狐狸", required = true),
+                ElegantFormDialog.Field("role", "🎭 身份 / 阵营 / 头衔", "如：启蒙导师 · 麦田守望者"),
+                ElegantFormDialog.Field("emoji", "✨ 角色 Emoji", "如：🦊 / 👑 / 🌹", preset = "👤"),
+                ElegantFormDialog.Field("desc", "📖 人物生平与性格简述", "他们是谁，经历了什么...", minLines = 3),
+                ElegantFormDialog.Field("rel", "🔗 与主角或其他人物的核心羁绊", "如：亦师亦友 / 宿命之敌...", minLines = 2),
+            ),
+        ) { v ->
+            val name = v.getValue("name")
+            if (name.isNotEmpty()) {
+                val character = com.example.readtrace.model.BookCharacter(
+                    bookId = bookId,
+                    name = name,
+                    roleTitle = v.getValue("role").ifBlank { null },
+                    avatarEmoji = v.getValue("emoji").ifBlank { "👤" },
+                    description = v.getValue("desc").ifBlank { null },
+                    relationship = v.getValue("rel").ifBlank { null },
+                )
+                databaseHelper.insertCharacter(character)
+                renderCharacters(databaseHelper.getCharacters(bookId))
             }
-            .show()
+        }
     }
 
     private fun renderOutlines(outlines: List<com.example.readtrace.model.BookOutline>) {
@@ -393,56 +368,36 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun showAddOutlineDialog() {
-        val dialogView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(40, 20, 40, 20)
-        }
-
-        val orderInput = EditText(this).apply {
-            hint = "章节序号 (如：1)"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText("${databaseHelper.getOutlines(bookId).size + 1}")
-            textSize = 14f
-        }
-        val titleInput = EditText(this).apply {
-            hint = "章节名称 (如：荒原中的相遇与羊的肖像)"
-            textSize = 14f
-        }
-        val summaryInput = EditText(this).apply {
-            hint = "核心情节 / 大纲概要..."
-            textSize = 13f
-        }
-        val takeawaysInput = EditText(this).apply {
-            hint = "思想精髓 / 脑图脉络要点 (选填)..."
-            textSize = 13f
-        }
-
-        dialogView.addView(orderInput)
-        dialogView.addView(titleInput)
-        dialogView.addView(summaryInput)
-        dialogView.addView(takeawaysInput)
-
-        AlertDialog.Builder(this)
-            .setTitle("🗺️ 添加章节大纲与脑图")
-            .setView(dialogView)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton("保存大纲") { _, _ ->
-                val title = titleInput.text.toString().trim()
-                val summary = summaryInput.text.toString().trim()
-                val order = orderInput.text.toString().trim().toIntOrNull() ?: 1
-                if (title.isNotEmpty() && summary.isNotEmpty()) {
-                    val outline = com.example.readtrace.model.BookOutline(
-                        bookId = bookId,
-                        chapterOrder = order,
-                        title = title,
-                        summary = summary,
-                        keyTakeaways = takeawaysInput.text.toString().trim().ifBlank { null },
-                    )
-                    databaseHelper.insertOutline(outline)
-                    renderOutlines(databaseHelper.getOutlines(bookId))
-                }
+        ElegantFormDialog.show(
+            this,
+            title = "🗺️ 添加章节大纲与脑图",
+            confirmText = "保存大纲",
+            fields = listOf(
+                ElegantFormDialog.Field(
+                    "order", "🔢 章节序号", "如：1",
+                    preset = "${databaseHelper.getOutlines(bookId).size + 1}",
+                    inputType = android.text.InputType.TYPE_CLASS_NUMBER,
+                ),
+                ElegantFormDialog.Field("title", "📖 章节名称", "如：荒原中的相遇与羊的肖像", required = true),
+                ElegantFormDialog.Field("summary", "🧭 核心情节 / 大纲概要", "这一章发生了什么，推进了什么...", minLines = 3, required = true),
+                ElegantFormDialog.Field("takeaways", "💡 思想精髓 / 脑图脉络要点 (选填)", "值得反复回味的要点...", minLines = 2),
+            ),
+        ) { v ->
+            val title = v.getValue("title")
+            val summary = v.getValue("summary")
+            val order = v.getValue("order").toIntOrNull() ?: 1
+            if (title.isNotEmpty() && summary.isNotEmpty()) {
+                val outline = com.example.readtrace.model.BookOutline(
+                    bookId = bookId,
+                    chapterOrder = order,
+                    title = title,
+                    summary = summary,
+                    keyTakeaways = v.getValue("takeaways").ifBlank { null },
+                )
+                databaseHelper.insertOutline(outline)
+                renderOutlines(databaseHelper.getOutlines(bookId))
             }
-            .show()
+        }
     }
 
     private fun renderMindprint(mindprint: com.example.readtrace.model.BookMindprint) {
@@ -470,65 +425,36 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun showEditMindprintDialog() {
         val current = databaseHelper.getMindprint(bookId)
-        val dialogView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(40, 20, 40, 20)
+        fun preset(score: Double) = String.format(Locale.getDefault(), "%.1f", score)
+        val numberInput = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        ElegantFormDialog.show(
+            this,
+            title = "🕸️ 调整六维心智评分",
+            confirmText = "保存评分",
+            fields = listOf(
+                ElegantFormDialog.Field("depth", "🧠 思想深度 (1~10)", "当前 ${preset(current.depthScore)}", preset = preset(current.depthScore), inputType = numberInput),
+                ElegantFormDialog.Field("artistry", "🖋️ 文笔意境 (1~10)", "当前 ${preset(current.artistryScore)}", preset = preset(current.artistryScore), inputType = numberInput),
+                ElegantFormDialog.Field("emotion", "❤️ 情感共鸣 (1~10)", "当前 ${preset(current.emotionScore)}", preset = preset(current.emotionScore), inputType = numberInput),
+                ElegantFormDialog.Field("logic", "📐 逻辑构架 (1~10)", "当前 ${preset(current.logicScore)}", preset = preset(current.logicScore), inputType = numberInput),
+                ElegantFormDialog.Field("difficulty", "⛰️ 阅读门槛 (1~10)", "当前 ${preset(current.difficultyScore)}", preset = preset(current.difficultyScore), inputType = numberInput),
+                ElegantFormDialog.Field("healing", "🌿 心灵治愈 (1~10)", "当前 ${preset(current.healingScore)}", preset = preset(current.healingScore), inputType = numberInput),
+            ),
+        ) { v ->
+            fun parseScore(raw: String, fallback: Double): Double =
+                raw.trim().toDoubleOrNull()?.coerceIn(1.0, 10.0) ?: fallback
+
+            val newMindprint = current.copy(
+                depthScore = parseScore(v.getValue("depth"), current.depthScore),
+                artistryScore = parseScore(v.getValue("artistry"), current.artistryScore),
+                emotionScore = parseScore(v.getValue("emotion"), current.emotionScore),
+                logicScore = parseScore(v.getValue("logic"), current.logicScore),
+                difficultyScore = parseScore(v.getValue("difficulty"), current.difficultyScore),
+                healingScore = parseScore(v.getValue("healing"), current.healingScore),
+            )
+            databaseHelper.saveMindprint(newMindprint)
+            renderMindprint(databaseHelper.getMindprint(bookId))
+            Toast.makeText(this, "六维心智评分已更新", Toast.LENGTH_SHORT).show()
         }
-
-        fun createScoreInput(label: String, initScore: Double): Pair<TextView, EditText> {
-            val tv = TextView(this).apply {
-                text = "$label (当前: $initScore)"
-                textSize = 13f
-                setTextColor(getColor(R.color.readtrace_ink))
-                setPadding(0, 12, 0, 4)
-            }
-            val et = EditText(this).apply {
-                inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                setText(String.format(Locale.getDefault(), "%.1f", initScore))
-                textSize = 14f
-            }
-            return tv to et
-        }
-
-        val (depthTv, depthEt) = createScoreInput("🧠 思想深度 (1~10)", current.depthScore)
-        val (artistryTv, artistryEt) = createScoreInput("🖋️ 文笔意境 (1~10)", current.artistryScore)
-        val (emotionTv, emotionEt) = createScoreInput("❤️ 情感共鸣 (1~10)", current.emotionScore)
-        val (logicTv, logicEt) = createScoreInput("📐 逻辑构架 (1~10)", current.logicScore)
-        val (difficultyTv, difficultyEt) = createScoreInput("⛰️ 阅读门槛 (1~10)", current.difficultyScore)
-        val (healingTv, healingEt) = createScoreInput("🌿 心灵治愈 (1~10)", current.healingScore)
-
-        val scroll = android.widget.ScrollView(this).apply {
-            addView(dialogView.apply {
-                addView(depthTv); addView(depthEt)
-                addView(artistryTv); addView(artistryEt)
-                addView(emotionTv); addView(emotionEt)
-                addView(logicTv); addView(logicEt)
-                addView(difficultyTv); addView(difficultyEt)
-                addView(healingTv); addView(healingEt)
-            })
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("🕸️ 调整六维心智评分")
-            .setView(scroll)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton("保存评分") { _, _ ->
-                fun parseScore(et: EditText, fallback: Double): Double =
-                    et.text.toString().trim().toDoubleOrNull()?.coerceIn(1.0, 10.0) ?: fallback
-
-                val newMindprint = current.copy(
-                    depthScore = parseScore(depthEt, current.depthScore),
-                    artistryScore = parseScore(artistryEt, current.artistryScore),
-                    emotionScore = parseScore(emotionEt, current.emotionScore),
-                    logicScore = parseScore(logicEt, current.logicScore),
-                    difficultyScore = parseScore(difficultyEt, current.difficultyScore),
-                    healingScore = parseScore(healingEt, current.healingScore),
-                )
-                databaseHelper.saveMindprint(newMindprint)
-                renderMindprint(databaseHelper.getMindprint(bookId))
-                Toast.makeText(this, "六维心智评分已更新", Toast.LENGTH_SHORT).show()
-            }
-            .show()
     }
 
     private fun showCompareMindprintDialog() {
@@ -538,33 +464,36 @@ class BookDetailActivity : AppCompatActivity() {
             return
         }
 
-        val items = mutableListOf("✦ 取消对比 (恢复单作品雷达)")
-        items.addAll(allBooks.map { "《${it.title}》· ${it.author ?: "未知作者"}" })
+        val choices = mutableListOf(
+            ElegantChoiceDialog.Choice("取消对比", "恢复单作品心智雷达", "✦"),
+        )
+        choices.addAll(allBooks.map { ElegantChoiceDialog.Choice("《${it.title}》", it.author ?: "未知作者") })
 
-        AlertDialog.Builder(this)
-            .setTitle("🔍 选择要对比的心智作品")
-            .setItems(items.toTypedArray()) { _, which ->
-                val currentMindprint = databaseHelper.getMindprint(bookId)
-                val currentTitle = currentBook?.title ?: "当前作品"
-                val radarView = findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.detailMindprintRadar)
+        ElegantChoiceDialog.show(
+            this,
+            title = "🔍 选择要对比的心智作品",
+            choices = choices,
+        ) { which ->
+            val currentMindprint = databaseHelper.getMindprint(bookId)
+            val currentTitle = currentBook?.title ?: "当前作品"
+            val radarView = findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.detailMindprintRadar)
 
-                if (which == 0) {
-                    radarView?.setMindprint(currentMindprint, animate = true)
-                    Toast.makeText(this, "已恢复单作品心智雷达", Toast.LENGTH_SHORT).show()
-                } else {
-                    val targetBook = allBooks[which - 1]
-                    val targetMindprint = databaseHelper.getMindprint(targetBook.id)
-                    radarView?.setComparison(
-                        currentTitle,
-                        currentMindprint,
-                        targetBook.title,
-                        targetMindprint,
-                        animate = true,
-                    )
-                    Toast.makeText(this, "已开启《$currentTitle》与《${targetBook.title}》双书心智对照", Toast.LENGTH_SHORT).show()
-                }
+            if (which == 0) {
+                radarView?.setMindprint(currentMindprint, animate = true)
+                Toast.makeText(this, "已恢复单作品心智雷达", Toast.LENGTH_SHORT).show()
+            } else {
+                val targetBook = allBooks[which - 1]
+                val targetMindprint = databaseHelper.getMindprint(targetBook.id)
+                radarView?.setComparison(
+                    currentTitle,
+                    currentMindprint,
+                    targetBook.title,
+                    targetMindprint,
+                    animate = true,
+                )
+                Toast.makeText(this, "已开启《$currentTitle》与《${targetBook.title}》双书心智对照", Toast.LENGTH_SHORT).show()
             }
-            .show()
+        }
     }
 
     private fun renderLocations(locations: List<com.example.readtrace.model.BookLocation>) {
@@ -1345,9 +1274,16 @@ class BookDetailActivity : AppCompatActivity() {
             params.topMargin = dpToPx(if (index == 0) 14 else 10)
             item.layoutParams = params
             item.setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle("笔记印记操作")
-                    .setItems(arrayOf("🎨 生成专属金句海报", "✏️ 编辑笔记", "📦 归档至回收站")) { _, which ->
+                ElegantChoiceDialog.show(
+                    this,
+                    title = "✦ 笔记印记操作",
+                    choices = listOf(
+                        ElegantChoiceDialog.Choice("生成专属金句海报", "把这段文字做成可分享的纪念海报", "🎨"),
+                        ElegantChoiceDialog.Choice("编辑笔记", "修改这条笔记的内容与出处", "✏️"),
+                        ElegantChoiceDialog.Choice("归档至回收站", "移入回收站，可随时恢复", "📦"),
+                    ),
+                ) { which ->
+
                         when (which) {
                             0 -> {
                                 currentBook?.let { book ->
@@ -1369,7 +1305,6 @@ class BookDetailActivity : AppCompatActivity() {
                             2 -> confirmArchiveNote(note)
                         }
                     }
-                    .show()
             }
             item.setOnLongClickListener {
                 confirmArchiveNote(note)
@@ -1471,16 +1406,14 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun showSelectWidgetThemeDialog() {
         val themes = com.example.readtrace.model.WidgetCardTheme.values()
-        val items = themes.map { "${it.displayName}\n${it.description}" }.toTypedArray()
+        ElegantChoiceDialog.show(
+            this,
+            title = "🎨 选择锁屏微卡 / 小组件主题",
+            choices = themes.map { ElegantChoiceDialog.Choice(it.displayName, it.description) },
+        ) { which ->
+            exportMindprintWidgetCard(themes[which])
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("🎨 选择锁屏微卡 / 小组件主题")
-            .setItems(items) { _, which ->
-                val selectedTheme = themes[which]
-                exportMindprintWidgetCard(selectedTheme)
-            }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
     }
 
     private fun exportMindprintWidgetCard(theme: com.example.readtrace.model.WidgetCardTheme = com.example.readtrace.model.WidgetCardTheme.ALABASTER_PAPER) {

@@ -6,17 +6,18 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_work_picker_bottom_sheet"
     android:orientation="vertical"
-    android:paddingTop="12dp">
+    android:paddingTop="10dp">
 
     <!-- 顶部居中拉手 -->
     <View
-        android:layout_width="44dp"
-        android:layout_height="4.5dp"
+        android:layout_width="38dp"
+        android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:background="#4DFFFFFF" />
+        android:background="@drawable/bg_sheet_handle" />
 
     <!-- 顶栏标题与统计 -->
     <RelativeLayout
+        android:id="@+id/pickerHeaderBlock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="20dp"
@@ -28,24 +29,27 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/btnWorkPickerClose"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/txtWorkPickerTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="🎮 选择要生成卡带的游戏"
                 android:textColor="#FFFFFF"
-                android:textSize="17sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtWorkPickerCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:text="书库中共 67 款作品 · 点击即刻切换"
-                android:textColor="#9E988F"
+                android:textColor="#A89F91"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -55,25 +59,26 @@
             android:layout_height="32dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/bg_status_chip"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/bg_close_glass"
             android:gravity="center"
             android:text="✕"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textColor="#D8D2C8"
+            android:textSize="13sp" />
     </RelativeLayout>
 
     <!-- 搜索过滤栏 -->
     <LinearLayout
+        android:id="@+id/pickerSearchBlock"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="44dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="10dp"
         android:background="@drawable/bg_work_picker_search"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="7dp">
+        android:paddingHorizontal="14dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -84,7 +89,7 @@
         <EditText
             android:id="@+id/etWorkPickerSearch"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:background="@null"
@@ -112,7 +117,7 @@
         android:id="@+id/scrollWorkPickerMediaTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="6dp"
+        android:layout_marginBottom="8dp"
         android:overScrollMode="never"
         android:paddingHorizontal="16dp"
         android:scrollbars="none">
@@ -127,81 +132,82 @@
                 android:id="@+id/chipMediaAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_status_chip_selected"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:background="@drawable/bg_chip_picker_selected"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="全部"
-                android:textColor="#FFFFFF"
-                android:textSize="11.5sp"
+                android:textColor="#2B1A0E"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/chipMediaBook"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_status_chip"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_picker_idle"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="📚 书籍"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="11.5sp" />
+                android:textColor="#CFC8BD"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/chipMediaAnime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_status_chip"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_picker_idle"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="🌸 番剧"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="11.5sp" />
+                android:textColor="#CFC8BD"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/chipMediaMovie"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_status_chip"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_picker_idle"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="🎬 电影"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="11.5sp" />
+                android:textColor="#CFC8BD"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/chipMediaGame"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_status_chip"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_picker_idle"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="🎮 游戏"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="11.5sp" />
+                android:textColor="#CFC8BD"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/chipMediaMusic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_status_chip"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="5dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_picker_idle"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="7dp"
                 android:text="💿 音乐"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="11.5sp" />
+                android:textColor="#CFC8BD"
+                android:textSize="12sp" />
         </LinearLayout>
     </HorizontalScrollView>
 
     <!-- 作品列表 / 空态占位 -->
     <FrameLayout
+        android:id="@+id/pickerListBlock"
         android:layout_width="match_parent"
-        android:layout_height="420dp"
-        android:paddingBottom="16dp">
+        android:layout_height="430dp"
+        android:paddingBottom="18dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvWorkPickerList"
@@ -209,7 +215,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            android:paddingVertical="4dp" />
+            android:paddingVertical="6dp" />
 
         <!-- 搜索无结果空态 -->
         <LinearLayout
@@ -225,21 +231,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🌌"
-                android:textSize="40sp" />
+                android:textSize="42sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:text="未检索到匹配的精神印记"
                 android:textColor="#FFFFFF"
-                android:textSize="14.5sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:text="可尝试输入其他关键词或切换媒介分类"
                 android:textColor="#9E988F"
                 android:textSize="12sp" />

@@ -1,6 +1,8 @@
 package com.example.readtrace.ui.bottomsheet
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.animation.OvershootInterpolator
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -109,6 +111,16 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
         }
 
         applyFilter()
+
+        // 内容区块依次渐入上浮（handle → header → search → chips → list）
+        listOf(
+            view.findViewById<View>(R.id.pickerHeaderBlock),
+            view.findViewById<View>(R.id.pickerSearchBlock),
+            view.findViewById<View>(R.id.scrollWorkPickerMediaTabs),
+            view.findViewById<View>(R.id.pickerListBlock),
+        ).forEachIndexed { index, block ->
+            ViewAnimationHelper.staggerFadeIn(block, index, baseDelay = 60L, duration = 360L)
+        }
     }
 
     private fun setupMediaFilterChips(root: View) {
@@ -126,8 +138,9 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
                 currentFilterMediaType = media
                 chips.forEach { (c, m) ->
                     val isSelected = m == currentFilterMediaType
-                    c.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-                    c.setTextColor(ContextCompat.getColor(requireContext(), if (isSelected) R.color.white else R.color.readtrace_ink))
+                    c.setBackgroundResource(if (isSelected) R.drawable.bg_chip_picker_selected else R.drawable.bg_chip_picker_idle)
+                    c.setTextColor(Color.parseColor(if (isSelected) "#2B1A0E" else "#CFC8BD"))
+                    c.paint.isFakeBoldText = isSelected
                 }
                 HapticFeedbackEngine.lightClick(requireContext())
                 applyFilter()
@@ -251,11 +264,22 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
                 // 选中态高光切换
                 if (isSelected) {
                     container.setBackgroundResource(R.drawable.bg_work_picker_item_selected)
-                    badgeSelected.visibility = View.VISIBLE
+                    if (badgeSelected.visibility != View.VISIBLE) {
+                        badgeSelected.visibility = View.VISIBLE
+                        badgeSelected.scaleX = 0.2f
+                        badgeSelected.scaleY = 0.2f
+                        badgeSelected.animate()
+                            .scaleX(1f).scaleY(1f)
+                            .setDuration(260L)
+                            .setInterpolator(OvershootInterpolator(2.2f))
+                            .start()
+                    }
                     ringUnselected.visibility = View.GONE
                 } else {
                     container.setBackgroundResource(R.drawable.bg_work_picker_item)
                     badgeSelected.visibility = View.GONE
+                    badgeSelected.scaleX = 1f
+                    badgeSelected.scaleY = 1f
                     ringUnselected.visibility = View.VISIBLE
                 }
             }
