@@ -39,6 +39,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 与 release 共用正式签名，避免调试装机与正式包互相覆盖时签名冲突；
+            // 本地无 keystore.properties（如 CI）时回退默认调试签名。
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
