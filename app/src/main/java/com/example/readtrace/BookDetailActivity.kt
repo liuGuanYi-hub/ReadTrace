@@ -425,36 +425,125 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun showEditMindprintDialog() {
         val current = databaseHelper.getMindprint(bookId)
-        fun preset(score: Double) = String.format(Locale.getDefault(), "%.1f", score)
-        val numberInput = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-        ElegantFormDialog.show(
-            this,
-            title = "🕸️ 调整六维心智评分",
-            confirmText = "保存评分",
-            fields = listOf(
-                ElegantFormDialog.Field("depth", "🧠 思想深度 (1~10)", "当前 ${preset(current.depthScore)}", preset = preset(current.depthScore), inputType = numberInput),
-                ElegantFormDialog.Field("artistry", "🖋️ 文笔意境 (1~10)", "当前 ${preset(current.artistryScore)}", preset = preset(current.artistryScore), inputType = numberInput),
-                ElegantFormDialog.Field("emotion", "❤️ 情感共鸣 (1~10)", "当前 ${preset(current.emotionScore)}", preset = preset(current.emotionScore), inputType = numberInput),
-                ElegantFormDialog.Field("logic", "📐 逻辑构架 (1~10)", "当前 ${preset(current.logicScore)}", preset = preset(current.logicScore), inputType = numberInput),
-                ElegantFormDialog.Field("difficulty", "⛰️ 阅读门槛 (1~10)", "当前 ${preset(current.difficultyScore)}", preset = preset(current.difficultyScore), inputType = numberInput),
-                ElegantFormDialog.Field("healing", "🌿 心灵治愈 (1~10)", "当前 ${preset(current.healingScore)}", preset = preset(current.healingScore), inputType = numberInput),
-            ),
-        ) { v ->
-            fun parseScore(raw: String, fallback: Double): Double =
-                raw.trim().toDoubleOrNull()?.coerceIn(1.0, 10.0) ?: fallback
+        val density = resources.displayMetrics.density
+        fun px(v: Int) = (v * density).toInt()
 
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(px(22), px(18), px(22), px(20))
+            setBackgroundResource(R.drawable.bg_elegant_dialog)
+        }
+        container.addView(TextView(this).apply {
+            text = "🕸️ 调整六维心智评分"
+            textSize = 16.5f
+            setTextColor(getColor(R.color.readtrace_ink))
+            setPadding(0, 0, 0, px(4))
+        })
+        container.addView(TextView(this).apply {
+            text = "拖动滑条即可，松手即保存"
+            textSize = 11.5f
+            setTextColor(getColor(R.color.readtrace_muted))
+            setPadding(0, 0, 0, px(6))
+        })
+
+        data class Row(val seek: android.widget.SeekBar, val valueView: TextView, val label: String)
+        val rows = mutableListOf<Row>()
+
+        fun addRow(label: String, score: Double) {
+            val head = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, px(10), 0, px(2))
+            }
+            head.addView(TextView(this).apply {
+                text = label
+                textSize = 13f
+                setTextColor(getColor(R.color.readtrace_ink))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            val valueView = TextView(this).apply {
+                text = String.format(java.util.Locale.getDefault(), "%.1f", score)
+                textSize = 13.5f
+                setTextColor(getColor(R.color.readtrace_accent))
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+            }
+            head.addView(valueView)
+            container.addView(head)
+
+            val seek = android.widget.SeekBar(this).apply {
+                max = 90
+                progress = ((score - 1.0) * 10).toInt().coerceIn(0, 90)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+            }
+            seek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(sb: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (fromUser) valueView.text = String.format(java.util.Locale.getDefault(), "%.1f", 1.0 + progress / 10.0)
+                }
+                override fun onStartTrackingTouch(sb: android.widget.SeekBar?) {}
+                override fun onStopTrackingTouch(sb: android.widget.SeekBar?) {}
+            })
+            container.addView(seek)
+            rows += Row(seek, valueView, label)
+        }
+
+        addRow("🧠 思想深度", current.depthScore)
+        addRow("🖋️ 文笔意境", current.artistryScore)
+        addRow("❤️ 情感共鸣", current.emotionScore)
+        addRow("📐 逻辑构架", current.logicScore)
+        addRow("⛰️ 阅读门槛", current.difficultyScore)
+        addRow("🌿 心灵治愈", current.healingScore)
+
+        // 保存按钮（金色胶囊，松手即存即生效）
+        val btnSave = TextView(this).apply {
+            text = "保存评分"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            isAllCaps = false
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setBackgroundResource(R.drawable.bg_chip_picker_selected)
+            setTextColor(getColor(R.color.chip_selected_text))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, px(44),
+            ).apply { topMargin = px(16) }
+        }
+        container.addView(btnSave)
+
+        val dialog = android.app.Dialog(this).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(android.widget.ScrollView(this@BookDetailActivity).apply {
+                addView(container)
+            })
+            window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setLayout((resources.displayMetrics.widthPixels * 0.9f).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
+                setGravity(android.view.Gravity.CENTER)
+            }
+        }
+
+        container.alpha = 0f
+        container.translationY = px(28).toFloat()
+        container.animate().alpha(1f).translationY(0f).setDuration(300L).start()
+
+        btnSave.setOnClickListener {
+            fun scoreOf(row: Row): Double = 1.0 + row.seek.progress / 10.0
             val newMindprint = current.copy(
-                depthScore = parseScore(v.getValue("depth"), current.depthScore),
-                artistryScore = parseScore(v.getValue("artistry"), current.artistryScore),
-                emotionScore = parseScore(v.getValue("emotion"), current.emotionScore),
-                logicScore = parseScore(v.getValue("logic"), current.logicScore),
-                difficultyScore = parseScore(v.getValue("difficulty"), current.difficultyScore),
-                healingScore = parseScore(v.getValue("healing"), current.healingScore),
+                depthScore = scoreOf(rows[0]),
+                artistryScore = scoreOf(rows[1]),
+                emotionScore = scoreOf(rows[2]),
+                logicScore = scoreOf(rows[3]),
+                difficultyScore = scoreOf(rows[4]),
+                healingScore = scoreOf(rows[5]),
             )
             databaseHelper.saveMindprint(newMindprint)
             renderMindprint(databaseHelper.getMindprint(bookId))
-            Toast.makeText(this, "六维心智评分已更新", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@BookDetailActivity, "六维心智评分已更新", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
+
+        dialog.show()
     }
 
     private fun showCompareMindprintDialog() {

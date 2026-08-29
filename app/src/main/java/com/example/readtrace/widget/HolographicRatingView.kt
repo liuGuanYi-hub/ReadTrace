@@ -80,7 +80,8 @@ class HolographicRatingView @JvmOverloads constructor(
         }
 
         isRecorded = true
-        targetScore = score
+        // 外部传入 1~10 存储值，统一换算为 5 星制展示
+        targetScore = (score / 2.0).coerceIn(0.0, 5.0)
 
         if (!animate) {
             currentDisplayScore = targetScore
@@ -223,7 +224,7 @@ class HolographicRatingView @JvmOverloads constructor(
         canvas.drawText(scoreStr, currentX, centerY + h * 0.18f, textPaint)
 
         val scoreTextWidth = textPaint.measureText(scoreStr)
-        canvas.drawText("/ 10.0", currentX + scoreTextWidth + 8f, centerY + h * 0.16f, subTextPaint)
+        canvas.drawText("/ 5.0", currentX + scoreTextWidth + 8f, centerY + h * 0.16f, subTextPaint)
     }
 
     private fun drawSingleStar(canvas: Canvas, cx: Float, cy: Float, radius: Float, isFull: Boolean, isHalf: Boolean) {

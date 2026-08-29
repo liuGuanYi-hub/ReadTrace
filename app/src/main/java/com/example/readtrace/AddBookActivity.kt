@@ -584,6 +584,22 @@ class AddBookActivity : AppCompatActivity() {
             }
         }.onSuccess { saved ->
             if (saved) {
+                // 新作品自动生成六维心智（继承主评分），零填写成本；门槛保持中值 5.0
+                if (!isEditing) {
+                    val seed = (rating ?: 8.0).coerceIn(1.0, 10.0)
+                    databaseHelper.saveMindprint(
+                        com.example.readtrace.model.BookMindprint(
+                            bookId = book.id,
+                            depthScore = seed,
+                            artistryScore = seed,
+                            emotionScore = seed,
+                            logicScore = seed,
+                            difficultyScore = 5.0,
+                            healingScore = seed,
+                        ),
+                    )
+                }
+
                 // 如果是编辑模式且更换了封面，清理原旧封面文件
                 if (initialCoverPath != null && initialCoverPath != finalCoverUrl) {
                     CoverImageHelper.deleteCoverFile(initialCoverPath)
