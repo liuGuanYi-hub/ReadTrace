@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放页底部控制中枢卡片：半透明深色玻璃，融入星空舞台 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/player_card" />
+    <corners android:radius="22dp" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/player_card_stroke" />
+</shape>

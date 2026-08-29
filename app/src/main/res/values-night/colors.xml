@@ -57,4 +57,18 @@
     <color name="picker_tag_bg">#22F4A261</color>
     <color name="picker_tag_text">#F0C08A</color>
     <color name="picker_cover_placeholder">#251F2E</color>
+
+    <!-- 黑胶唱机播放页专用色牌（夜间：更深邂的午夜舞台基调） -->
+    <color name="player_surface">#07090D</color>
+    <color name="player_card">#8C11151C</color>
+    <color name="player_card_stroke">#21FFFFFF</color>
+    <color name="player_glass">#1AFFFFFF</color>
+    <color name="player_glass_pressed">#30FFFFFF</color>
+    <color name="player_glass_stroke">#2BFFFFFF</color>
+    <color name="player_text_primary">#EEF1F5</color>
+    <color name="player_text_muted">#8B97A9</color>
+    <color name="player_play_text">#2B1A0E</color>
+    <color name="player_gold_start">#E8934F</color>
+    <color name="player_gold_end">#D96F35</color>
+    <color name="player_gold_pressed">#B85E2E</color>
 </resources>

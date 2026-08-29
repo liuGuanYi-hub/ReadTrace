@@ -57,4 +57,18 @@
     <color name="picker_tag_bg">#1AE8934F</color>
     <color name="picker_tag_text">#B26A2E</color>
     <color name="picker_cover_placeholder">#EAE2D5</color>
+
+    <!-- 黑胶唱机播放页专用色牌（日间：保持沉浸舞台基调，为明亮模式预留整套替换入口） -->
+    <color name="player_surface">#0D1117</color>
+    <color name="player_card">#80161B22</color>
+    <color name="player_card_stroke">#26FFFFFF</color>
+    <color name="player_glass">#22FFFFFF</color>
+    <color name="player_glass_pressed">#38FFFFFF</color>
+    <color name="player_glass_stroke">#33FFFFFF</color>
+    <color name="player_text_primary">#F2F4F7</color>
+    <color name="player_text_muted">#96A2B4</color>
+    <color name="player_play_text">#2B1A0E</color>
+    <color name="player_gold_start">#F4A261</color>
+    <color name="player_gold_end">#E07840</color>
+    <color name="player_gold_pressed">#C96A38</color>
 </resources>

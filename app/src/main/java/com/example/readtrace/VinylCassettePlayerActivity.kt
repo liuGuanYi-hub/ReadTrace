@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -29,7 +30,6 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
-import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
 import com.example.readtrace.widget.VinylTurntableView
@@ -88,12 +88,22 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var audioFocusRequest: AudioFocusRequest? = null
     private lateinit var audioManager: AudioManager
 
-    private val importAudioLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments(),
-    ) { uris ->
-        if (!uris.isNullOrEmpty()) {
-            importAudioFiles(uris)
-        }
+    // ===== 网易云 15s 试听状态 =====
+    private var previewActive = false
+    private var previewElapsedMs = 0L
+    private var previewResumeAtMs = 0L
+    private var isFetchingPreview = false
+    private var previewRetryAfterError = false
+
+    private val previewStopRunnable = Runnable {
+        if (!previewActive) return@Runnable
+        previewActive = false
+        mediaPlayer?.runCatching { if (isPlaying) pause() }
+        isPlaying = false
+        setPlayingUi(false)
+        val track = currentAudioTracks.getOrNull(currentAudioIndex)
+        val secs = if (track != null && isVipPreviewTrack(track)) 30 else 15
+        Toast.makeText(this, "💽 $secs 秒试听结束，唱针归位", Toast.LENGTH_SHORT).show()
     }
 
     private val playRunnable = object : Runnable {
@@ -132,7 +142,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         initSensors()
         loadPlaylist()
         setupListeners()
-        setupImportAudioButton()
     }
 
     private fun initViews() {
@@ -154,6 +163,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
         btnAmbientSound = findViewById(R.id.btnAmbientSound)
         btnOpenNetease = findViewById(R.id.btnOpenNetease)
+
 
         FloatingBack.install(this)
     }
@@ -222,17 +232,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     playlist = allMusic
                     val idx = playlist.indexOfFirst { it.id == track.id }
                     if (idx != -1) {
+                        val keepPlaying = isPlaying
                         currentIndex = idx
                         renderCurrentTrack()
-                        if (!isPlaying) {
-                            togglePlayState()
-                        } else {
-                            if (isCassetteMode) {
-                                cassetteDeckView.togglePlay(true)
-                            } else {
-                                vinylTurntableView.togglePlay(true)
-                            }
-                        }
+                        switchWork(keepPlaying)
                         Toast.makeText(this, "正在播放: 《${track.title}》", Toast.LENGTH_SHORT).show()
                     }
                 },
@@ -265,27 +268,19 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             togglePlayState()
         }
 
-        // 上一曲 / 下一曲
+        // 上一曲 / 下一曲：切到新作品时立即释放旧音源，避免继续播放上一首
         btnPrevTrack.setOnClickListener {
             triggerHapticClick()
-            if (currentAudioTracks.size > 1 && currentAudioIndex > 0) {
-                playAudioAt(currentAudioIndex - 1)
-            } else {
-                currentIndex = if (currentIndex - 1 < 0) playlist.size - 1 else currentIndex - 1
-                renderCurrentTrack()
-                if (isPlaying) startPlaybackOfCurrentWork(0)
-            }
+            currentIndex = if (currentIndex - 1 < 0) playlist.size - 1 else currentIndex - 1
+            renderCurrentTrack()
+            switchWork(isPlaying)
         }
 
         btnNextTrack.setOnClickListener {
             triggerHapticClick()
-            if (currentAudioIndex < currentAudioTracks.size - 1) {
-                playAudioAt(currentAudioIndex + 1)
-            } else {
-                currentIndex = (currentIndex + 1) % playlist.size
-                renderCurrentTrack()
-                if (isPlaying) startPlaybackOfCurrentWork(0)
-            }
+            currentIndex = (currentIndex + 1) % playlist.size
+            renderCurrentTrack()
+            switchWork(isPlaying)
         }
 
         // 33 RPM / 45 RPM 转速切换
@@ -349,65 +344,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun setupImportAudioButton() {
-        findViewById<TextView>(R.id.btnImportAudio)?.setOnClickListener {
-            triggerHapticClick()
-            com.example.readtrace.util.ElegantChoiceDialog.show(
-                this,
-                title = "🎵 添加音频到当前作品",
-                choices = listOf(
-                    com.example.readtrace.util.ElegantChoiceDialog.Choice(
-                        "添加在线音频链接",
-                        "粘贴音频直链 URL（网盘 / 自建服务器 / NAS）",
-                        "🌐",
-                    ),
-                    com.example.readtrace.util.ElegantChoiceDialog.Choice(
-                        "导入本地音频文件",
-                        "从手机存储选择 mp3 / flac / wav / m4a",
-                        "📁",
-                    ),
-                ),
-            ) { which ->
-                if (which == 0) showOnlineUrlDialog() else openAudioFilePicker()
-            }
-        }
-    }
-
-    /** 在线音频：关联直链 URL，联网即流式播放 */
-    private fun showOnlineUrlDialog() {
-        com.example.readtrace.util.ElegantFormDialog.show(
-            this,
-            title = "🌐 添加在线音频",
-            confirmText = "保存并播放",
-            fields = listOf(
-                ElegantFormDialog.Field("url", "🔗 音频直链 URL", "http(s):// 开头的音频文件地址", required = true),
-                ElegantFormDialog.Field("name", "🎵 曲目名称 (选填)", "如：夜航星"),
-            ),
-        ) { v ->
-            val url = v.getValue("url").trim()
-            if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) {
-                Toast.makeText(this, "URL 需以 http(s):// 开头", Toast.LENGTH_SHORT).show()
-                showOnlineUrlDialog()
-                return@show
-            }
-            val work = playlist.getOrNull(currentIndex) ?: return@show
-            val name = v.getValue("name").trim().ifBlank { url.substringAfterLast('/') }
-            val order = databaseHelper.getAudioTracks(work.id).size
-            databaseHelper.insertAudioTrack(
-                com.example.readtrace.model.AudioTrackItem(
-                    bookId = work.id,
-                    trackOrder = order,
-                    title = name,
-                    fileUri = url,
-                ),
-            )
-            currentAudioTracks = databaseHelper.getAudioTracks(work.id)
-            Toast.makeText(this, "已添加《$name》，缓冲后开始播放", Toast.LENGTH_SHORT).show()
-            isPlaying = true
-            playAudioAt(order.coerceAtMost(currentAudioTracks.lastIndex))
-        }
-    }
-
     private fun setPlayingUi(playing: Boolean) {
         if (playing) {
             tvPlayPauseLabel.text = "⏸ 暂停聆听"
@@ -437,32 +373,124 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             val mp = mediaPlayer!!
             isPlaying = if (mp.isPlaying) {
                 mp.pause()
+                pausePreviewTimer()
                 false
             } else {
                 mp.start()
                 requestAudioFocus()
                 handler.post(playRunnable)
+                resumePreviewTimerIfAny()
                 true
             }
             setPlayingUi(isPlaying)
         } else {
-            // 尚未加载本地音频：加载当前作品曲目（无曲目时自动弹文件选择器）
+            // 尚未加载音频：加载当前作品曲目（无曲目时自动联网取试听）
             isPlaying = true
             startPlaybackOfCurrentWork(0)
         }
     }
 
-    /** 加载当前音乐作品的本地曲目并从 fromIndex 开始播放；无曲目时自动弹导入 */
+    /** 加载当前音乐作品的曲目并从 fromIndex 开始播放；无曲目时自动联网检索试听源 */
     private fun startPlaybackOfCurrentWork(fromIndex: Int) {
         val work = playlist.getOrNull(currentIndex) ?: return
         val tracks = databaseHelper.getAudioTracks(work.id)
         if (tracks.isEmpty()) {
-            Toast.makeText(this, "《${work.title}》还未关联音频，选择本地文件导入", Toast.LENGTH_LONG).show()
-            openAudioFilePicker()
+            fetchNeteasePreview(work)
             return
         }
         currentAudioTracks = tracks
         playAudioAt(fromIndex.coerceIn(0, tracks.lastIndex))
+    }
+
+    /**
+     * 切换到新作品：立即释放旧音源并重置进度，避免切歌后仍播放上一首；
+     * 若切歌前处于播放状态，则自动开始检索播放新作品。
+     */
+    private fun switchWork(autoPlay: Boolean) {
+        releaseMediaPlayer()
+        currentAudioTracks = emptyList()
+        currentAudioIndex = 0
+        totalSecondsMs = 0L
+        isPlaying = autoPlay
+        setPlayingUi(false)
+        tvPlayPauseLabel.text = "▶ 开始放唱"
+        tvCurrentTime.text = formatMs(0)
+        tvTotalTime.text = formatMs(0)
+        playerSeekBar.progress = 0
+        cassetteDeckView.progress = 0f
+        if (autoPlay) startPlaybackOfCurrentWork(0)
+    }
+
+    /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底） */
+    private fun fetchNeteasePreview(work: Book) {
+        if (isFetchingPreview) return
+        isFetchingPreview = true
+        tvPlayPauseLabel.text = "⏳ 联网取试听中..."
+        Toast.makeText(this, "正在为《${work.title}》联网检索试听片段...", Toast.LENGTH_SHORT).show()
+        com.example.readtrace.util.NeteasePreviewHelper.fetchPlayablePreview(work.title, work.author) { result ->
+            isFetchingPreview = false
+            if (isDestroyed) return@fetchPlayablePreview
+            if (result == null) {
+                Toast.makeText(this, "《${work.title}》暂无可播放试听源", Toast.LENGTH_LONG).show()
+                tvPlayPauseLabel.text = "▶ 开始放唱"
+                isPlaying = false
+                setPlayingUi(false)
+                return@fetchPlayablePreview
+            }
+            val order = databaseHelper.getAudioTracks(work.id).size
+            val suffix = if (result.isVip) "30s VIP 试听" else "15s 试听"
+            databaseHelper.insertAudioTrack(
+                com.example.readtrace.model.AudioTrackItem(
+                    bookId = work.id,
+                    trackOrder = order,
+                    title = "${result.songName} · $suffix",
+                    fileUri = result.streamUrl,
+                ),
+            )
+            currentAudioTracks = databaseHelper.getAudioTracks(work.id)
+            playAudioAt(currentAudioTracks.lastIndex)
+        }
+    }
+
+    /** 曲目是否为在线试听（外链带时间戳，失效后应删除重取） */
+    private fun isNeteasePreviewTrack(track: com.example.readtrace.model.AudioTrackItem): Boolean {
+        return track.title.endsWith("15s 试听") || track.title.endsWith("30s VIP 试听")
+    }
+
+    /** 曲目是否为会员歌兜底试听（限播 30 秒） */
+    private fun isVipPreviewTrack(track: com.example.readtrace.model.AudioTrackItem): Boolean {
+        return track.title.endsWith("30s VIP 试听")
+    }
+
+    private fun previewLimitFor(track: com.example.readtrace.model.AudioTrackItem): Long {
+        return if (isVipPreviewTrack(track)) PREVIEW_LIMIT_VIP_MS else PREVIEW_LIMIT_MS
+    }
+
+    private fun startPreviewTimer() {
+        val track = currentAudioTracks.getOrNull(currentAudioIndex) ?: return
+        previewActive = true
+        previewResumeAtMs = SystemClock.elapsedRealtime()
+        val remaining = (previewLimitFor(track) - previewElapsedMs).coerceAtLeast(0L)
+        handler.removeCallbacks(previewStopRunnable)
+        handler.postDelayed(previewStopRunnable, remaining)
+    }
+
+    private fun pausePreviewTimer() {
+        if (previewActive) {
+            previewElapsedMs += SystemClock.elapsedRealtime() - previewResumeAtMs
+            handler.removeCallbacks(previewStopRunnable)
+        }
+    }
+
+    /** 试听时间耗尽后再按播放：从头重放本曲的试听片段 */
+    private fun resumePreviewTimerIfAny() {
+        val track = currentAudioTracks.getOrNull(currentAudioIndex) ?: return
+        if (!isNeteasePreviewTrack(track)) return
+        if (previewElapsedMs >= previewLimitFor(track)) {
+            previewElapsedMs = 0L
+            mediaPlayer?.seekTo(0)
+        }
+        startPreviewTimer()
     }
 
     private fun playAudioAt(index: Int) {
@@ -492,6 +520,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     mp.start()
                     setPlayingUi(true)
                     handler.post(playRunnable)
+                    if (isNeteasePreviewTrack(track)) {
+                        previewElapsedMs = 0L
+                        startPreviewTimer()
+                    }
                 } else {
                     setPlayingUi(false)
                 }
@@ -501,6 +533,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             }
             setOnErrorListener { _, what, extra ->
                 Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)，文件可能已失效", Toast.LENGTH_LONG).show()
+                // 试听外链带时间戳会过期失效：自动移除旧链接并重新联网取试听，避免反复报错
+                if (isNeteasePreviewTrack(track)) {
+                    databaseHelper.deleteAudioTrack(track.id)
+                    val work = playlist.getOrNull(currentIndex)
+                    if (work != null) fetchNeteasePreview(work)
+                }
                 true
             }
             prepareAsync()
@@ -520,57 +558,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         currentIndex = (currentIndex + 1) % playlist.size
         renderCurrentTrack()
         startPlaybackOfCurrentWork(0)
-    }
-
-    private fun openAudioFilePicker() {
-        runCatching {
-            importAudioLauncher.launch(arrayOf("audio/*", "application/ogg"))
-        }.onFailure {
-            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun importAudioFiles(uris: List<Uri>) {
-        if (playlist.isEmpty()) return
-        val work = playlist[currentIndex]
-        var order = databaseHelper.getAudioTracks(work.id).size
-        val startIndex = order
-        uris.forEach { uri ->
-            runCatching {
-                contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION,
-                )
-            }
-            val name = queryAudioDisplayName(uri) ?: "曲目 ${order + 1}"
-            databaseHelper.insertAudioTrack(
-                com.example.readtrace.model.AudioTrackItem(
-                    bookId = work.id,
-                    trackOrder = order,
-                    title = name,
-                    fileUri = uri.toString(),
-                ),
-            )
-            order++
-        }
-        Toast.makeText(this, "已导入 ${uris.size} 首曲目到《${work.title}》", Toast.LENGTH_SHORT).show()
-        // 导入后自动开始播放新导入的第一首
-        currentAudioTracks = databaseHelper.getAudioTracks(work.id)
-        isPlaying = true
-        playAudioAt(startIndex.coerceAtMost(currentAudioTracks.lastIndex))
-    }
-
-    private fun queryAudioDisplayName(uri: Uri): String? {
-        return runCatching {
-            var name: String? = null
-            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                if (idx >= 0 && cursor.moveToFirst()) {
-                    name = cursor.getString(idx)
-                }
-            }
-            name?.substringBeforeLast('.')?.trim()?.takeIf { it.isNotEmpty() }
-        }.getOrNull()
     }
 
     private fun requestAudioFocus(): Boolean {
@@ -597,6 +584,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
         mediaPlayer = null
         handler.removeCallbacks(playRunnable)
+        handler.removeCallbacks(previewStopRunnable)
+        previewActive = false
+        previewElapsedMs = 0L
     }
 
     private fun formatMs(ms: Long): String {
@@ -633,6 +623,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(playRunnable)
+        handler.removeCallbacks(previewStopRunnable)
         releaseMediaPlayer()
         abandonAudioFocus()
     }
@@ -658,6 +649,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     companion object {
         const val EXTRA_BOOK_ID = "extra_book_id"
+
+        /** 免费曲目试听片段的限播时长（约 15 秒） */
+        const val PREVIEW_LIMIT_MS = 15_000L
+
+        /** 会员曲目兜底试听片段的限播时长（约 30 秒） */
+        const val PREVIEW_LIMIT_VIP_MS = 30_000L
 
         fun createIntent(context: Context, bookId: Long): Intent {
             return Intent(context, VinylCassettePlayerActivity::class.java).apply {

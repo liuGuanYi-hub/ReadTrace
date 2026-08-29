@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 播放页核心播放/暂停大胶囊：暖金渐变，与星空舞台的金曲主题呼应，按压加深 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape>
+            <gradient
+                android:angle="0"
+                android:endColor="@color/player_gold_pressed"
+                android:startColor="@color/player_gold_pressed" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:angle="0"
+                android:endColor="@color/player_gold_end"
+                android:startColor="@color/player_gold_start" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+</selector>
