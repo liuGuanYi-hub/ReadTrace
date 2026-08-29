@@ -82,6 +82,7 @@ class HubFragment : Fragment() {
     private lateinit var statTotalValue: TextView
     private lateinit var statReadingValue: TextView
     private lateinit var statFinishedValue: TextView
+    private lateinit var statWishlistValue: TextView
     private lateinit var statAverageValue: TextView
 
     // 四大媒介 Bento 展馆
@@ -213,6 +214,7 @@ class HubFragment : Fragment() {
         statTotalValue = view.findViewById(R.id.statTotalValue)
         statReadingValue = view.findViewById(R.id.statReadingValue)
         statFinishedValue = view.findViewById(R.id.statFinishedValue)
+        statWishlistValue = view.findViewById(R.id.statWishlistValue)
         statAverageValue = view.findViewById(R.id.statAverageValue)
 
         // 四大媒介
@@ -394,9 +396,11 @@ class HubFragment : Fragment() {
         val finished = allBooks.count { it.status == BookStatus.FINISHED }
         val rated = allBooks.mapNotNull { it.rating }
 
+        val wishlist = total - reading - finished
         statTotalValue.text = total.toString()
         statReadingValue.text = reading.toString()
         statFinishedValue.text = finished.toString()
+        statWishlistValue.text = wishlist.toString()
         statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
 
         val phase = com.example.readtrace.util.CircadianLightingEngine.getCurrentPhase()

@@ -579,6 +579,31 @@
                         android:textColor="@color/readtrace_muted"
                         android:textSize="12sp" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/statWishlistValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans"
+                        android:textColor="@color/readtrace_gold_accent"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:text="18" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="想看"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
