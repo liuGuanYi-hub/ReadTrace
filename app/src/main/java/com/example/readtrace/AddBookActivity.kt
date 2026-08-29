@@ -158,6 +158,7 @@ class AddBookActivity : AppCompatActivity() {
         )
         starHint = findViewById(R.id.starHint)
         setupStarRating()
+        applyCompactMode()
         tagsInput = findViewById(R.id.tagsInput)
         sectionThoughtsTitle = findViewById(R.id.sectionThoughtsTitle)
         shortCommentLabel = findViewById(R.id.shortCommentLabel)
@@ -657,7 +658,36 @@ class AddBookActivity : AppCompatActivity() {
         starHint.text = "${selectedStars.toInt()} 星 · ${labels[selectedStars.toInt()]}"
     }
 
-    private fun parseRating(): Double? = selectedStars * 2.0 // 底层仍存 1~10，5 星制 = 星数 × 2
+    private fun parseRating(): Double? = selectedStars * 2.0
+
+    /** 两步式记录：新增模式默认只展示核心字段，其余折叠待「补充详细信息」展开 */
+    private val collapsedViewIds = listOf(
+        R.id.coverPickerContainer,
+        R.id.authorLabel, R.id.authorInput,
+        R.id.coverUrlLabel, R.id.coverUrlInput,
+        R.id.categoryLabel, R.id.categoryInput,
+        R.id.tagsLabel, R.id.tagsInput,
+        R.id.startDateLabel, R.id.startDateInput, R.id.clearStartDateButton,
+        R.id.finishDateLabel, R.id.finishDateInput, R.id.clearFinishDateButton,
+        R.id.cardCollection,
+        R.id.shortCommentLabel, R.id.shortCommentInput,
+        R.id.reviewLabel, R.id.reviewInput,
+    )
+
+    private fun applyCompactMode() {
+        if (editingBookId != NO_BOOK_ID) return // 编辑模式永远完整表单
+        collapsedViewIds.forEach { id -> findViewById<View?>(id)?.visibility = View.GONE }
+        findViewById<View?>(R.id.btnExpandForm)?.visibility = View.VISIBLE
+        // 极简默认：在读 · 今天开始
+        statusInput.setSelection(BookStatus.values().indexOf(BookStatus.READING))
+        startDate = java.time.LocalDate.now()
+        findViewById<View?>(R.id.btnExpandForm)?.setOnClickListener { expandFullForm() }
+    }
+
+    private fun expandFullForm() {
+        collapsedViewIds.forEach { id -> findViewById<View?>(id)?.visibility = View.VISIBLE }
+        findViewById<View?>(R.id.btnExpandForm)?.visibility = View.GONE
+    } // 底层仍存 1~10，5 星制 = 星数 × 2
 
     private fun parseTags(raw: String): List<String> =
         raw.split(TAG_SEPARATOR)

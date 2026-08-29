@@ -152,6 +152,20 @@ class HubFragment : Fragment() {
         initViews(view)
         setupListeners()
         setupGyroscopeParallax()
+
+        // 卡片滚动进场：进入视口渐入上浮
+        com.example.readtrace.util.ScrollReveal.attach(
+            view.findViewById(R.id.hubScroll),
+            listOf(
+                view.findViewById(R.id.heroCuratorialContainer),
+                view.findViewById(R.id.parchmentQuoteRibbon),
+                view.findViewById(R.id.hubCardBook),
+                view.findViewById(R.id.hubCardAnime),
+                view.findViewById(R.id.hubCardMovie),
+                view.findViewById(R.id.hubCardGame),
+                view.findViewById(R.id.hubCardMusic),
+            ),
+        )
     }
 
     private fun setupGyroscopeParallax() {
@@ -273,6 +287,11 @@ class HubFragment : Fragment() {
             activity?.recreate()
         }
 
+        addBtn.setOnLongClickListener {
+            showQuickRecordDialog()
+            true
+        }
+
         addBtn.setOnClickListener { startActivity(Intent(requireContext(), AddBookActivity::class.java)) }
         importPresetBtn.setOnClickListener { showImportCsvDialog() }
         trashBtn.setOnClickListener { startActivity(TrashActivity.createIntent(requireContext())) }
@@ -387,6 +406,137 @@ class HubFragment : Fragment() {
         if (::auroraBackgroundView.isInitialized) {
             auroraBackgroundView.updateThemePalette(isDark)
         }
+    }
+
+    /** 极速记录：只填书名（可选媒介），其余全自动默认，即填即入库 */
+    private fun showQuickRecordDialog() {
+        val ctx = requireContext()
+        val density = resources.displayMetrics.density
+        fun px(v: Int) = (v * density).toInt()
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(px(22), px(18), px(22), px(20))
+            setBackgroundResource(R.drawable.bg_elegant_dialog)
+        }
+        container.addView(TextView(ctx).apply {
+            text = "⚡ 极速记录"
+            textSize = 16.5f
+            setTextColor(requireContext().getColor(R.color.readtrace_ink))
+        })
+        container.addView(TextView(ctx).apply {
+            text = "只填名字，默认在读 · 4 星 · 今天开始"
+            textSize = 11.5f
+            setTextColor(requireContext().getColor(R.color.readtrace_muted))
+            setPadding(0, px(3), 0, px(10))
+        })
+
+        val nameInput = android.widget.EditText(ctx).apply {
+            hint = "作品名称 *"
+            setTextSize(14f)
+            setTextColor(requireContext().getColor(R.color.readtrace_ink))
+            setHintTextColor(requireContext().getColor(R.color.readtrace_muted))
+            setBackgroundResource(R.drawable.bg_form_input)
+            setPadding(px(13), px(10), px(13), px(10))
+            setSingleLine()
+        }
+        container.addView(nameInput)
+
+        var selectedMedia = com.example.readtrace.model.MediaType.BOOK
+        val chipRow = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, px(12), 0, 0)
+        }
+        val mediaChips = listOf(
+            "📚" to com.example.readtrace.model.MediaType.BOOK,
+            "🌸" to com.example.readtrace.model.MediaType.ANIME,
+            "🎬" to com.example.readtrace.model.MediaType.MOVIE,
+            "🎮" to com.example.readtrace.model.MediaType.GAME,
+            "💿" to com.example.readtrace.model.MediaType.MUSIC,
+        )
+        val chipViews = mutableListOf<TextView>()
+        mediaChips.forEach { (emoji, media) ->
+            val chip = TextView(ctx).apply {
+                text = emoji
+                textSize = 17f
+                gravity = android.view.Gravity.CENTER
+                setBackgroundResource(
+                    if (media == selectedMedia) R.drawable.bg_chip_picker_selected else R.drawable.bg_chip_picker_idle,
+                )
+                layoutParams = LinearLayout.LayoutParams(px(40), px(36)).apply { marginEnd = px(8) }
+                setOnClickListener {
+                    selectedMedia = media
+                    mediaChips.forEachIndexed { i, (_, m) ->
+                        chipViews[i].setBackgroundResource(
+                            if (m == selectedMedia) R.drawable.bg_chip_picker_selected else R.drawable.bg_chip_picker_idle,
+                        )
+                    }
+                }
+            }
+            chipViews.add(chip)
+            chipRow.addView(chip)
+        }
+        container.addView(chipRow)
+
+        val btnSave = TextView(ctx).apply {
+            text = "收 入 藏"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            isAllCaps = false
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setBackgroundResource(R.drawable.bg_chip_picker_selected)
+            setTextColor(requireContext().getColor(R.color.chip_selected_text))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, px(44),
+            ).apply { topMargin = px(16) }
+        }
+        container.addView(btnSave)
+
+        val dialog = android.app.Dialog(ctx).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(container)
+            window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setLayout((resources.displayMetrics.widthPixels * 0.9f).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
+                setGravity(android.view.Gravity.CENTER)
+            }
+        }
+        container.alpha = 0f
+        container.translationY = px(28).toFloat()
+        container.animate().alpha(1f).translationY(0f).setDuration(280L).start()
+
+        btnSave.setOnClickListener {
+            val title = nameInput.text.toString().trim()
+            if (title.isEmpty()) {
+                nameInput.animate().translationX(-px(6).toFloat()).setDuration(50)
+                    .withEndAction { nameInput.animate().translationX(px(6).toFloat()).setDuration(50).withEndAction { nameInput.animate().translationX(0f).setDuration(50).start() }.start() }
+                    .start()
+                return@setOnClickListener
+            }
+            val today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+            val book = com.example.readtrace.model.Book(
+                title = title,
+                status = com.example.readtrace.model.BookStatus.READING,
+                mediaType = selectedMedia,
+                rating = 8.0,
+                startDate = today,
+            )
+            val newId = databaseHelper.insertBook(book)
+            val seed = 8.0
+            databaseHelper.saveMindprint(
+                com.example.readtrace.model.BookMindprint(
+                    bookId = newId,
+                    depthScore = seed, artistryScore = seed, emotionScore = seed,
+                    logicScore = seed, difficultyScore = 5.0, healingScore = seed,
+                ),
+            )
+            dialog.dismiss()
+            refreshDashboard()
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(ctx)
+            Toast.makeText(ctx, "⚡ 已收入藏《$title》，可稍后补充详情", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show()
+        nameInput.requestFocus()
     }
 
     private fun refreshDashboard() {

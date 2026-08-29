@@ -22,6 +22,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.util.ElegantChoiceDialog
 import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.util.FloatingBack
@@ -95,8 +96,9 @@ class BookDetailActivity : AppCompatActivity() {
         fun updateNavTabs(activeTab: TextView) {
             listOf(navOverview, navTimeline, navCharacters, navNotes).forEach {
                 val isSelected = it == activeTab
-                it.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+                it.setBackgroundResource(if (isSelected) R.drawable.bg_detail_tab_selected else R.drawable.bg_status_chip)
                 it.setTextColor(getColor(if (isSelected) R.color.white else R.color.readtrace_ink))
+                if (isSelected) ViewAnimationHelper.playCardBounce(it)
             }
         }
 

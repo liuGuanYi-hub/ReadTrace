@@ -96,6 +96,19 @@ class LibraryFragment : Fragment() {
         refreshLibrary(forceDbReload = true)
     }
 
+    private fun setupPullRefresh() {
+        val swipe = view?.findViewById<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.swipeRefresh) ?: return
+        swipe.setColorSchemeResources(R.color.readtrace_accent)
+        swipe.setProgressBackgroundColorSchemeColor(
+            androidx.core.content.ContextCompat.getColor(requireContext(), R.color.readtrace_parchment),
+        )
+        swipe.setOnRefreshListener {
+            refreshLibrary(forceDbReload = true)
+            swipe.postDelayed({ swipe.isRefreshing = false }, 450L)
+        }
+    }
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         searchRunnable?.let { searchHandler.removeCallbacks(it) }
@@ -409,6 +422,7 @@ class LibraryFragment : Fragment() {
                     p.marginEnd = dpToPx(4)
                     layoutParams = p
                 }
+                ViewAnimationHelper.staggerFadeIn(leftCard, rowIndex * 2)
                 rowLayout.addView(leftCard)
 
                 if (pair.size > 1) {
@@ -417,6 +431,7 @@ class LibraryFragment : Fragment() {
                         p.marginStart = dpToPx(4)
                         layoutParams = p
                     }
+                    ViewAnimationHelper.staggerFadeIn(rightCard, rowIndex * 2 + 1)
                     rowLayout.addView(rightCard)
                 } else {
                     val emptySpace = View(ctx).apply {

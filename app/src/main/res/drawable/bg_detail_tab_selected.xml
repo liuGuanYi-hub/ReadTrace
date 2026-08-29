@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="@color/readtrace_chip_selected" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item
+        android:gravity="bottom|center_horizontal"
+        android:width="26dp"
+        android:height="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/readtrace_gold_accent" />
+            <corners android:radius="2dp" />
+        </shape>
+    </item>
+</layer-list>

@@ -217,7 +217,7 @@
             android:overScrollMode="never"
             android:paddingVertical="6dp" />
 
-        <!-- 搜索无结果空态 -->
+        <!-- 搜索无结果空态（线稿插画） -->
         <LinearLayout
             android:id="@+id/layoutWorkPickerEmpty"
             android:layout_width="wrap_content"
@@ -227,11 +227,9 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🌌"
-                android:textSize="42sp" />
+            <com.example.readtrace.widget.EmptyStateView
+                android:layout_width="150dp"
+                android:layout_height="120dp" />
 
             <TextView
                 android:layout_width="wrap_content"

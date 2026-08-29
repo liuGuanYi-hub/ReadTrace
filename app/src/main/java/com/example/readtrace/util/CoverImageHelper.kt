@@ -261,6 +261,8 @@ object CoverImageHelper {
         if (cached != null && !cached.isRecycled) {
             imageView.tag = trimmed
             imageView.setImageBitmap(cached)
+            imageView.alpha = 0f
+            imageView.animate().alpha(1f).setDuration(180L).start()
             imageView.visibility = View.VISIBLE
             placeholderView?.visibility = View.GONE
             return
@@ -311,6 +313,8 @@ object CoverImageHelper {
                 mainHandler.post {
                     if (imageView.tag == trimmed) {
                         imageView.setImageBitmap(bitmap)
+                        imageView.alpha = 0f
+                        imageView.animate().alpha(1f).setDuration(180L).start()
                         imageView.visibility = View.VISIBLE
                         placeholderView?.visibility = View.GONE
                     }

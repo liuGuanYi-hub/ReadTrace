@@ -165,6 +165,18 @@ class MainActivity : AppCompatActivity() {
         currentTabIndex = index
         updateTabStyles(index)
         moveNavIndicator(index, animate = true)
+
+        // 目标页淡入上浮转场
+        targetFragment.view?.let { v ->
+            v.alpha = 0f
+            v.translationY = 14f * resources.displayMetrics.density
+            v.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(220L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        }
     }
 
     /** 首屏动画结束后逐个预热其余底部页（add+hide），消除首次切换时的布局膨胀卡顿 */
