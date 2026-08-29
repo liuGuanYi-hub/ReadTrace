@@ -364,7 +364,7 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 // 状态标签或评分
                 val isFinished = book.status == BookStatus.FINISHED
                 val badgeText = if (isFinished) {
-                    book.rating?.let { "★ $it" } ?: "🌸 已补完"
+                    book.rating?.let { "★ ${it / 2.0}" } ?: "🌸 已补完"
                 } else {
                     "🌟 想追"
                 }

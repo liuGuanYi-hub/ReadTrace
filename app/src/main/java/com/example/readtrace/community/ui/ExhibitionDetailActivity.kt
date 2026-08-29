@@ -134,7 +134,7 @@ class ExhibitionDetailActivity : AppCompatActivity() {
             }
 
             val ratingView = TextView(this).apply {
-                text = "★ ${book.rating ?: "-"}"
+                text = "★ ${book.rating?.div(2.0) ?: "-"}"
                 textSize = 14f
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 setTextColor(getColor(R.color.readtrace_accent))

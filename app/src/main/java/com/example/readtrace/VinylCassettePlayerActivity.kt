@@ -7,6 +7,11 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,6 +29,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
 import com.example.readtrace.widget.VinylTurntableView
@@ -72,17 +78,30 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var rotationSensor: Sensor? = null
 
-    // 模拟播放时间循环
+    // ===== 真实播放引擎状态 =====
     private val handler = Handler(Looper.getMainLooper())
-    private var currentSeconds = 0
-    private val totalSeconds = 232 // 03:52
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentAudioTracks: List<com.example.readtrace.model.AudioTrackItem> = emptyList()
+    private var currentAudioIndex = 0
+    private var totalSecondsMs = 0L
+    private var wasPlayingBeforeSeek = false
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private lateinit var audioManager: AudioManager
+
+    private val importAudioLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (!uris.isNullOrEmpty()) {
+            importAudioFiles(uris)
+        }
+    }
 
     private val playRunnable = object : Runnable {
         override fun run() {
-            if (isPlaying) {
-                currentSeconds = (currentSeconds + 1) % totalSeconds
+            val mp = mediaPlayer
+            if (isPlaying && mp != null) {
                 updatePlaybackProgress()
-                handler.postDelayed(this, 1000L)
+                handler.postDelayed(this, 500L)
             }
         }
     }
@@ -108,10 +127,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
 
         databaseHelper = BookDatabaseHelper(this)
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         initViews()
         initSensors()
         loadPlaylist()
         setupListeners()
+        setupImportAudioButton()
     }
 
     private fun initViews() {
@@ -202,7 +223,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     val idx = playlist.indexOfFirst { it.id == track.id }
                     if (idx != -1) {
                         currentIndex = idx
-                        currentSeconds = 0
                         renderCurrentTrack()
                         if (!isPlaying) {
                             togglePlayState()
@@ -248,19 +268,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         // 上一曲 / 下一曲
         btnPrevTrack.setOnClickListener {
             triggerHapticClick()
-            if (playlist.isNotEmpty()) {
+            if (currentAudioTracks.size > 1 && currentAudioIndex > 0) {
+                playAudioAt(currentAudioIndex - 1)
+            } else {
                 currentIndex = if (currentIndex - 1 < 0) playlist.size - 1 else currentIndex - 1
-                currentSeconds = 0
                 renderCurrentTrack()
+                if (isPlaying) startPlaybackOfCurrentWork(0)
             }
         }
 
         btnNextTrack.setOnClickListener {
             triggerHapticClick()
-            if (playlist.isNotEmpty()) {
+            if (currentAudioIndex < currentAudioTracks.size - 1) {
+                playAudioAt(currentAudioIndex + 1)
+            } else {
                 currentIndex = (currentIndex + 1) % playlist.size
-                currentSeconds = 0
                 renderCurrentTrack()
+                if (isPlaying) startPlaybackOfCurrentWork(0)
             }
         }
 
@@ -290,13 +314,21 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         // 进度拖动
         playerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    currentSeconds = (totalSeconds * (progress / 100f)).toInt()
-                    updatePlaybackProgress()
+                if (fromUser && totalSecondsMs > 0) {
+                    tvCurrentTime.text = formatMs((totalSecondsMs * progress / 100f).toLong())
                 }
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                wasPlayingBeforeSeek = mediaPlayer?.isPlaying == true
+                mediaPlayer?.pause()
+            }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                if (totalSecondsMs > 0) {
+                    val targetMs = (totalSecondsMs * (seekBar?.progress ?: 0) / 100f).toLong()
+                    mediaPlayer?.seekTo(targetMs.toInt())
+                }
+                if (wasPlayingBeforeSeek) mediaPlayer?.start()
+            }
         })
     }
 
@@ -317,10 +349,67 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun togglePlayState() {
-        isPlaying = !isPlaying
+    private fun setupImportAudioButton() {
+        findViewById<TextView>(R.id.btnImportAudio)?.setOnClickListener {
+            triggerHapticClick()
+            com.example.readtrace.util.ElegantChoiceDialog.show(
+                this,
+                title = "🎵 添加音频到当前作品",
+                choices = listOf(
+                    com.example.readtrace.util.ElegantChoiceDialog.Choice(
+                        "添加在线音频链接",
+                        "粘贴音频直链 URL（网盘 / 自建服务器 / NAS）",
+                        "🌐",
+                    ),
+                    com.example.readtrace.util.ElegantChoiceDialog.Choice(
+                        "导入本地音频文件",
+                        "从手机存储选择 mp3 / flac / wav / m4a",
+                        "📁",
+                    ),
+                ),
+            ) { which ->
+                if (which == 0) showOnlineUrlDialog() else openAudioFilePicker()
+            }
+        }
+    }
 
-        if (isPlaying) {
+    /** 在线音频：关联直链 URL，联网即流式播放 */
+    private fun showOnlineUrlDialog() {
+        com.example.readtrace.util.ElegantFormDialog.show(
+            this,
+            title = "🌐 添加在线音频",
+            confirmText = "保存并播放",
+            fields = listOf(
+                ElegantFormDialog.Field("url", "🔗 音频直链 URL", "http(s):// 开头的音频文件地址", required = true),
+                ElegantFormDialog.Field("name", "🎵 曲目名称 (选填)", "如：夜航星"),
+            ),
+        ) { v ->
+            val url = v.getValue("url").trim()
+            if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) {
+                Toast.makeText(this, "URL 需以 http(s):// 开头", Toast.LENGTH_SHORT).show()
+                showOnlineUrlDialog()
+                return@show
+            }
+            val work = playlist.getOrNull(currentIndex) ?: return@show
+            val name = v.getValue("name").trim().ifBlank { url.substringAfterLast('/') }
+            val order = databaseHelper.getAudioTracks(work.id).size
+            databaseHelper.insertAudioTrack(
+                com.example.readtrace.model.AudioTrackItem(
+                    bookId = work.id,
+                    trackOrder = order,
+                    title = name,
+                    fileUri = url,
+                ),
+            )
+            currentAudioTracks = databaseHelper.getAudioTracks(work.id)
+            Toast.makeText(this, "已添加《$name》，缓冲后开始播放", Toast.LENGTH_SHORT).show()
+            isPlaying = true
+            playAudioAt(order.coerceAtMost(currentAudioTracks.lastIndex))
+        }
+    }
+
+    private fun setPlayingUi(playing: Boolean) {
+        if (playing) {
             tvPlayPauseLabel.text = "⏸ 暂停聆听"
             if (!isCassetteMode) {
                 com.example.readtrace.util.HapticFeedbackEngine.needleDropCrackle(this)
@@ -333,7 +422,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             cassetteDeckView.togglePlay(true)
             particleBackgroundView.setPlaying(true)
             com.example.readtrace.util.AudioReactiveAuroraEngine.startAudioSync()
-            handler.post(playRunnable)
         } else {
             com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
             tvPlayPauseLabel.text = "▶ 开始放唱"
@@ -341,18 +429,189 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             cassetteDeckView.togglePlay(false)
             particleBackgroundView.setPlaying(false)
             com.example.readtrace.util.AudioReactiveAuroraEngine.stopAudioSync()
-            handler.removeCallbacks(playRunnable)
         }
     }
 
-    private fun updatePlaybackProgress() {
-        val curMin = currentSeconds / 60
-        val curSec = currentSeconds % 60
-        tvCurrentTime.text = String.format("%02d:%02d", curMin, curSec)
+    private fun togglePlayState() {
+        if (mediaPlayer != null && currentAudioTracks.isNotEmpty()) {
+            val mp = mediaPlayer!!
+            isPlaying = if (mp.isPlaying) {
+                mp.pause()
+                false
+            } else {
+                mp.start()
+                requestAudioFocus()
+                handler.post(playRunnable)
+                true
+            }
+            setPlayingUi(isPlaying)
+        } else {
+            // 尚未加载本地音频：加载当前作品曲目（无曲目时自动弹文件选择器）
+            isPlaying = true
+            startPlaybackOfCurrentWork(0)
+        }
+    }
 
-        val prog = currentSeconds.toFloat() / totalSeconds.toFloat()
-        playerSeekBar.progress = (prog * 100).toInt()
-        cassetteDeckView.progress = prog
+    /** 加载当前音乐作品的本地曲目并从 fromIndex 开始播放；无曲目时自动弹导入 */
+    private fun startPlaybackOfCurrentWork(fromIndex: Int) {
+        val work = playlist.getOrNull(currentIndex) ?: return
+        val tracks = databaseHelper.getAudioTracks(work.id)
+        if (tracks.isEmpty()) {
+            Toast.makeText(this, "《${work.title}》还未关联音频，选择本地文件导入", Toast.LENGTH_LONG).show()
+            openAudioFilePicker()
+            return
+        }
+        currentAudioTracks = tracks
+        playAudioAt(fromIndex.coerceIn(0, tracks.lastIndex))
+    }
+
+    private fun playAudioAt(index: Int) {
+        val track = currentAudioTracks.getOrNull(index) ?: return
+        currentAudioIndex = index
+        releaseMediaPlayer()
+
+        if (!requestAudioFocus()) {
+            Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
+        }
+
+        mediaPlayer = MediaPlayer().apply {
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build(),
+            )
+            setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
+            setOnPreparedListener { mp ->
+                totalSecondsMs = mp.duration.toLong()
+                if (track.durationMs <= 0) {
+                    databaseHelper.updateAudioTrackDuration(track.id, totalSecondsMs)
+                }
+                updatePlaybackProgress()
+                if (isPlaying) {
+                    mp.start()
+                    setPlayingUi(true)
+                    handler.post(playRunnable)
+                } else {
+                    setPlayingUi(false)
+                }
+            }
+            setOnCompletionListener {
+                playNextAuto()
+            }
+            setOnErrorListener { _, what, extra ->
+                Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)，文件可能已失效", Toast.LENGTH_LONG).show()
+                true
+            }
+            prepareAsync()
+            tvPlayPauseLabel.text = "⏳ 缓冲中..."
+        }
+
+        if (!isPlaying) {
+            isPlaying = true
+            setPlayingUi(true)
+        }
+        // 曲目信息联动
+        tvTrackArtistInfo.text = "—— 正在播放 ${index + 1}/${currentAudioTracks.size} · ${track.title}"
+    }
+
+    /** 单部作品曲目播完：自动切下一部音乐作品并续播 */
+    private fun playNextAuto() {
+        currentIndex = (currentIndex + 1) % playlist.size
+        renderCurrentTrack()
+        startPlaybackOfCurrentWork(0)
+    }
+
+    private fun openAudioFilePicker() {
+        runCatching {
+            importAudioLauncher.launch(arrayOf("audio/*", "application/ogg"))
+        }.onFailure {
+            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun importAudioFiles(uris: List<Uri>) {
+        if (playlist.isEmpty()) return
+        val work = playlist[currentIndex]
+        var order = databaseHelper.getAudioTracks(work.id).size
+        val startIndex = order
+        uris.forEach { uri ->
+            runCatching {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION,
+                )
+            }
+            val name = queryAudioDisplayName(uri) ?: "曲目 ${order + 1}"
+            databaseHelper.insertAudioTrack(
+                com.example.readtrace.model.AudioTrackItem(
+                    bookId = work.id,
+                    trackOrder = order,
+                    title = name,
+                    fileUri = uri.toString(),
+                ),
+            )
+            order++
+        }
+        Toast.makeText(this, "已导入 ${uris.size} 首曲目到《${work.title}》", Toast.LENGTH_SHORT).show()
+        // 导入后自动开始播放新导入的第一首
+        currentAudioTracks = databaseHelper.getAudioTracks(work.id)
+        isPlaying = true
+        playAudioAt(startIndex.coerceAtMost(currentAudioTracks.lastIndex))
+    }
+
+    private fun queryAudioDisplayName(uri: Uri): String? {
+        return runCatching {
+            var name: String? = null
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0 && cursor.moveToFirst()) {
+                    name = cursor.getString(idx)
+                }
+            }
+            name?.substringBeforeLast('.')?.trim()?.takeIf { it.isNotEmpty() }
+        }.getOrNull()
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        val request = audioFocusRequest ?: AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build(),
+            )
+            .build()
+            .also { audioFocusRequest = it }
+        return audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    private fun abandonAudioFocus() {
+        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+    }
+
+    private fun releaseMediaPlayer() {
+        mediaPlayer?.run {
+            runCatching { stop() }
+            runCatching { release() }
+        }
+        mediaPlayer = null
+        handler.removeCallbacks(playRunnable)
+    }
+
+    private fun formatMs(ms: Long): String {
+        val totalSec = ms / 1000
+        return String.format("%02d:%02d", totalSec / 60, totalSec % 60)
+    }
+
+    private fun updatePlaybackProgress() {
+        val curMs = (mediaPlayer?.currentPosition ?: 0).toLong()
+        val totalMs = if (totalSecondsMs > 0) totalSecondsMs else 1L
+        tvCurrentTime.text = formatMs(curMs)
+        tvTotalTime.text = formatMs(totalMs)
+        val prog = (curMs * 100f / totalMs).toInt().coerceIn(0, 100)
+        playerSeekBar.progress = prog
+        cassetteDeckView.progress = prog / 100f
     }
 
     private fun triggerHapticClick() {
@@ -374,6 +633,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(playRunnable)
+        releaseMediaPlayer()
+        abandonAudioFocus()
     }
 
     override fun onSensorChanged(event: SensorEvent) {

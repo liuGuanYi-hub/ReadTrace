@@ -43,7 +43,9 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var sectionRecordTitle: TextView
     private lateinit var statusLabel: TextView
     private lateinit var statusInput: Spinner
-    private lateinit var ratingInput: EditText
+    private lateinit var starViews: List<TextView>
+    private lateinit var starHint: TextView
+    private var selectedStars: Double = 4.0 // 默认 4 星
     private lateinit var tagsInput: EditText
     private lateinit var sectionThoughtsTitle: TextView
     private lateinit var shortCommentLabel: TextView
@@ -147,7 +149,15 @@ class AddBookActivity : AppCompatActivity() {
         sectionRecordTitle = findViewById(R.id.sectionRecordTitle)
         statusLabel = findViewById(R.id.statusLabel)
         statusInput = findViewById(R.id.statusInput)
-        ratingInput = findViewById(R.id.ratingInput)
+        starViews = listOf(
+            findViewById(R.id.star1),
+            findViewById(R.id.star2),
+            findViewById(R.id.star3),
+            findViewById(R.id.star4),
+            findViewById(R.id.star5),
+        )
+        starHint = findViewById(R.id.starHint)
+        setupStarRating()
         tagsInput = findViewById(R.id.tagsInput)
         sectionThoughtsTitle = findViewById(R.id.sectionThoughtsTitle)
         shortCommentLabel = findViewById(R.id.shortCommentLabel)
@@ -406,7 +416,10 @@ class AddBookActivity : AppCompatActivity() {
         categoryInput.setText(book.category.orEmpty())
         configureStatusInput()
         statusInput.setSelection(BookStatus.values().indexOf(book.status))
-        ratingInput.setText(book.rating?.let { RATING_FORMAT.format(it) }.orEmpty())
+        book.rating?.let { r ->
+            selectedStars = (r / 2.0).toInt().coerceIn(1, 5).toDouble()
+            renderStarSelection()
+        }
         tagsInput.setText(book.tags.joinToString("，"))
         shortCommentInput.setText(book.shortComment.orEmpty())
         reviewInput.setText(book.review.orEmpty())
@@ -523,13 +536,7 @@ class AddBookActivity : AppCompatActivity() {
             return
         }
 
-        val rating = parseRating() ?: if (ratingInput.text.toString().isBlank()) {
-            null
-        } else {
-            ratingInput.error = getString(R.string.error_rating)
-            ratingInput.requestFocus()
-            return
-        }
+        val rating = parseRating() // 5 星点选恒有值（默认 4 星）
 
         val selectedStartDate = startDate
         val selectedFinishDate = finishDate
@@ -612,12 +619,29 @@ class AddBookActivity : AppCompatActivity() {
         saveButton.alpha = 1f
     }
 
-    private fun parseRating(): Double? {
-        val raw = ratingInput.text.toString().trim()
-        if (raw.isEmpty()) return null
-        if (!RATING_PATTERN.matches(raw)) return null
-        return raw.toDoubleOrNull()?.takeIf { it in 1.0..10.0 }
+    private fun setupStarRating() {
+        starViews.forEachIndexed { index, star ->
+            star.setOnClickListener {
+                selectedStars = (index + 1).toDouble()
+                renderStarSelection()
+                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            }
+        }
+        renderStarSelection()
     }
+
+    private fun renderStarSelection() {
+        starViews.forEachIndexed { index, star ->
+            star.setTextColor(
+                if (index < selectedStars.toInt()) android.graphics.Color.parseColor("#F4A261")
+                else android.graphics.Color.parseColor("#3A3630"),
+            )
+        }
+        val labels = listOf("", "尚可", "一般", "喜欢", "力荐", "此生挚爱")
+        starHint.text = "${selectedStars.toInt()} 星 · ${labels[selectedStars.toInt()]}"
+    }
+
+    private fun parseRating(): Double? = selectedStars * 2.0 // 底层仍存 1~10，5 星制 = 星数 × 2
 
     private fun parseTags(raw: String): List<String> =
         raw.split(TAG_SEPARATOR)
@@ -630,7 +654,6 @@ class AddBookActivity : AppCompatActivity() {
 
     private fun clearErrors() {
         titleInput.error = null
-        ratingInput.error = null
         startDateInput.error = null
         finishDateInput.error = null
     }

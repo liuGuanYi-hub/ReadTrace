@@ -554,7 +554,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
         textY += h * 0.042f
         textPaint.color = currentTheme.subTextColor
         textPaint.textSize = h * 0.022f
-        val ratingStr = "★★★★★  ${movie.rating ?: 5.0} 分"
+        val ratingStr = "★★★★☆  ${movie.rating?.div(2.0) ?: 4.0} 分"
         val ratingY = textY
         canvas.drawText(ratingStr, infoLeft, textY, textPaint)
 

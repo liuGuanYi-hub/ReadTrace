@@ -401,7 +401,7 @@ class HubFragment : Fragment() {
         animateStatCountUp(statReadingValue, reading, 1)
         animateStatCountUp(statFinishedValue, finished, 2)
         animateStatCountUp(statWishlistValue, wishlist, 3)
-        statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
+        statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average() / 2.0)}"
 
 
         val phase = com.example.readtrace.util.CircadianLightingEngine.getCurrentPhase()
@@ -499,7 +499,7 @@ class HubFragment : Fragment() {
             }
 
             val rating = featuredBook.rating
-            heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating)} · 精神典藏" else "✦ 重点策展推荐"
+            heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating / 2.0)} · 精神典藏" else "✦ 重点策展推荐"
 
             val quote = featuredBook.shortComment?.takeIf { it.isNotBlank() }
                 ?: featuredBook.review?.takeIf { it.isNotBlank() }

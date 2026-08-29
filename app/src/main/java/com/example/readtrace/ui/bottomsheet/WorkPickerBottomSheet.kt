@@ -258,7 +258,7 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
 
                 // 标签与状态
                 txtCategory.text = book.category ?: "典藏"
-                txtScore.text = "⭐ ${String.format(java.util.Locale.US, "%.1f", book.rating)}"
+                txtScore.text = "⭐ ${String.format(java.util.Locale.US, "%.1f", (book.rating ?: 0.0) / 2.0)}"
                 txtStatus.text = book.status.displayName
 
                 // 选中态高光切换

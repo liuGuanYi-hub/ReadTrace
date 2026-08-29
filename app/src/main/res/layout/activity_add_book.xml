@@ -319,13 +319,47 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/field_rating" />
 
-                <EditText
-                    android:id="@+id/ratingInput"
-                    style="@style/ReadTraceInput"
-                    android:digits="0123456789."
-                    android:hint="@string/hint_rating"
-                    android:inputType="numberDecimal"
-                    android:maxLines="1" />
+                <LinearLayout
+                    android:id="@+id/starRatingRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/star1"
+                        style="@style/StarPickItem"
+                        android:text="★" />
+
+                    <TextView
+                        android:id="@+id/star2"
+                        style="@style/StarPickItem"
+                        android:text="★" />
+
+                    <TextView
+                        android:id="@+id/star3"
+                        style="@style/StarPickItem"
+                        android:text="★" />
+
+                    <TextView
+                        android:id="@+id/star4"
+                        style="@style/StarPickItem"
+                        android:text="★" />
+
+                    <TextView
+                        android:id="@+id/star5"
+                        style="@style/StarPickItem"
+                        android:text="★" />
+
+                    <TextView
+                        android:id="@+id/starHint"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="4 星 · 力荐"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
                 <TextView
                     style="@style/ReadTraceFieldLabel"

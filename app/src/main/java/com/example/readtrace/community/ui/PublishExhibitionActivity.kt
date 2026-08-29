@@ -121,7 +121,7 @@ class PublishExhibitionActivity : AppCompatActivity() {
             }
 
             val metaView = TextView(this).apply {
-                text = "${book.category ?: "精选"} · ★${book.rating ?: "-"}"
+                text = "${book.category ?: "精选"} · ★${book.rating?.div(2.0) ?: "-"}"
                 textSize = 12f
                 setTextColor(getColor(R.color.readtrace_muted))
             }

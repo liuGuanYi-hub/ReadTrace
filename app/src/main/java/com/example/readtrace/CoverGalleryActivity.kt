@@ -259,7 +259,7 @@ class CoverGalleryActivity : AppCompatActivity() {
 
                 val author = book.author.takeUnless { it.isNullOrBlank() } ?: "未知作者"
                 val category = book.category.takeUnless { it.isNullOrBlank() } ?: "作品"
-                val ratingStr = book.rating?.let { "★ ${String.format(java.util.Locale.CHINA, "%.1f", it)}" } ?: "未评分"
+                val ratingStr = book.rating?.let { "★ ${String.format(java.util.Locale.CHINA, "%.1f", it / 2.0)}" } ?: "未评分"
                 galleryBookMeta.text = "$author · $category · $ratingStr"
 
                 val quote = book.shortComment.takeUnless { it.isNullOrBlank() }

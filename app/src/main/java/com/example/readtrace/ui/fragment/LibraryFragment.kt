@@ -586,7 +586,7 @@ class LibraryFragment : Fragment() {
         titleText.text = book.title
         authorText.text = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
         statusBadge.text = book.status.getDisplayName(book.mediaType)
-        ratingText.text = "★ ${book.rating ?: 5.0}"
+        ratingText.text = "★ ${book.rating?.div(2.0) ?: 2.5}"
 
         val mp = databaseHelper.getMindprint(book.id)
         radarView.setMindprint(mp, animate = false)

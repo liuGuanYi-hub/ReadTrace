@@ -66,6 +66,7 @@ class BookDatabaseHelper(val context: Context) :
         createOutlinesTable(database)
         createLocationsTable(database)
         createMindprintsTable(database)
+        createAudioTracksTable(database)
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -99,6 +100,10 @@ class BookDatabaseHelper(val context: Context) :
             runCatching {
                 database.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_MEDIA_TYPE = 'music' WHERE $COLUMN_MEDIA_TYPE = 'podcast'")
             }
+        }
+        if (oldVersion < 9) {
+            // v9：新增本地音频曲目表（黑胶音乐馆真实播放）
+            createAudioTracksTable(database)
         }
         if (oldVersion < 7) {
             // v7：无表结构变更；预置封面由外网链接/打包资产统一改写为内网封面键，
@@ -2042,6 +2047,80 @@ class BookDatabaseHelper(val context: Context) :
         return rows > 0
     }
 
+    private fun createAudioTracksTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_AUDIO_TRACKS (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_AUDIO_BOOK_ID INTEGER NOT NULL,
+                $COLUMN_AUDIO_ORDER INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_AUDIO_TITLE TEXT NOT NULL,
+                $COLUMN_AUDIO_URI TEXT NOT NULL,
+                $COLUMN_AUDIO_DURATION INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY ($COLUMN_AUDIO_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+    }
+
+    fun getAudioTracks(bookId: Long): List<com.example.readtrace.model.AudioTrackItem> {
+        val tracks = mutableListOf<com.example.readtrace.model.AudioTrackItem>()
+        readableDatabase.query(
+            TABLE_AUDIO_TRACKS,
+            null,
+            "$COLUMN_AUDIO_BOOK_ID = ?",
+            arrayOf(bookId.toString()),
+            null, null,
+            "$COLUMN_AUDIO_ORDER ASC, $COLUMN_ID ASC",
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                tracks += com.example.readtrace.model.AudioTrackItem(
+                    id = cursor.getLong(0),
+                    bookId = cursor.getLong(1),
+                    trackOrder = cursor.getInt(2),
+                    title = cursor.getString(3) ?: "未命名曲目",
+                    fileUri = cursor.getString(4) ?: continue,
+                    durationMs = cursor.getLong(5),
+                )
+            }
+        }
+        return tracks
+    }
+
+    fun insertAudioTrack(track: com.example.readtrace.model.AudioTrackItem): Long {
+        invalidateBookCache()
+        return writableDatabase.insert(
+            TABLE_AUDIO_TRACKS,
+            null,
+            android.content.ContentValues().apply {
+                put(COLUMN_AUDIO_BOOK_ID, track.bookId)
+                put(COLUMN_AUDIO_ORDER, track.trackOrder)
+                put(COLUMN_AUDIO_TITLE, track.title)
+                put(COLUMN_AUDIO_URI, track.fileUri)
+                put(COLUMN_AUDIO_DURATION, track.durationMs)
+            },
+        )
+    }
+
+    fun updateAudioTrackDuration(trackId: Long, durationMs: Long) {
+        writableDatabase.update(
+            TABLE_AUDIO_TRACKS,
+            android.content.ContentValues().apply { put(COLUMN_AUDIO_DURATION, durationMs) },
+            "$COLUMN_ID = ?",
+            arrayOf(trackId.toString()),
+        )
+    }
+
+    fun deleteAudioTrack(trackId: Long) {
+        invalidateBookCache()
+        writableDatabase.delete(TABLE_AUDIO_TRACKS, "$COLUMN_ID = ?", arrayOf(trackId.toString()))
+    }
+
+    fun deleteAudioTracksOfBook(bookId: Long) {
+        invalidateBookCache()
+        writableDatabase.delete(TABLE_AUDIO_TRACKS, "$COLUMN_AUDIO_BOOK_ID = ?", arrayOf(bookId.toString()))
+    }
+
     /**
      * 恢复已归档的书籍
      */
@@ -3311,7 +3390,13 @@ class BookDatabaseHelper(val context: Context) :
 
     companion object {
         const val DATABASE_NAME = "readtrace.db"
-        const val DATABASE_VERSION = 7
+        const val TABLE_AUDIO_TRACKS = "audio_tracks"
+        const val COLUMN_AUDIO_BOOK_ID = "book_id"
+        const val COLUMN_AUDIO_ORDER = "track_order"
+        const val COLUMN_AUDIO_TITLE = "title"
+        const val COLUMN_AUDIO_URI = "file_uri"
+        const val COLUMN_AUDIO_DURATION = "duration_ms"
+        const val DATABASE_VERSION = 8
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

@@ -72,6 +72,19 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/btnImportAudio"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_status_chip"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:text="＋ 音频"
+                android:textColor="#FFFFFF"
+                android:textSize="11.5sp"
+                android:textStyle="bold" />
+
+            <TextView
                 android:id="@+id/btnToggleMode"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"

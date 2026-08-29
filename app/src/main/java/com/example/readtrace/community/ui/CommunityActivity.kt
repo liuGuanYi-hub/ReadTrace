@@ -178,7 +178,7 @@ class CommunityActivity : AppCompatActivity() {
             booksContainer.removeAllViews()
             exhibition.curatedBooks.take(3).forEach { book ->
                 val pill = TextView(this).apply {
-                    text = "${book.mediaType.emoji} ${book.title} ★${book.rating ?: "-"}"
+                    text = "${book.mediaType.emoji} ${book.title} ★${book.rating?.div(2.0) ?: "-"}"
                     textSize = 11f
                     setPadding(20, 8, 20, 8)
                     setBackgroundResource(R.drawable.bg_status_pill)

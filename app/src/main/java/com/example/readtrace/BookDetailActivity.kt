@@ -823,7 +823,7 @@ class BookDetailActivity : AppCompatActivity() {
                     type = com.example.readtrace.model.TimelineEventType.FINISH_REVIEW,
                     timestamp = if (finishValid) finishDate + "T23:59:59" else book.updatedAt,
                     title = finishTitle,
-                    subtitle = book.rating?.let { "个人评分：★ $it / 5.0" } ?: book.mediaType.finishedLabel,
+                    subtitle = book.rating?.let { "个人评分：★ ${RATING_FORMAT.format(it / 2.0)} / 5.0" } ?: book.mediaType.finishedLabel,
                     content = book.review?.takeIf { it.isNotBlank() } ?: book.shortComment,
                     extraMeta = "精神沉淀与思想烙印",
                     pendingTime = book.finishDate != null && !finishValid,
@@ -1200,7 +1200,10 @@ class BookDetailActivity : AppCompatActivity() {
             if (CoverImageHelper.isLanCoverKey(book.coverUrl)) "国内图源封面（联网自动加载）" else valueOrFallback(book.coverUrl)
         findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
         findViewById<TextView>(R.id.detailRating).text = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it))
+            val stars = (it / 2.0)
+            val full = stars.toInt()
+            val starText = "★".repeat(full) + "☆".repeat((5 - full).coerceAtLeast(0))
+            "$starText  ${RATING_FORMAT.format(stars)} / 5"
         } ?: getString(R.string.not_recorded)
         findViewById<TextView>(R.id.detailTags).text =
             if (book.tags.isEmpty()) {
