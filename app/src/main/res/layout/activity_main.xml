@@ -18,8 +18,8 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 底部悬浮毛玻璃导航栏 (Floating M3/iOS Pill Nav Bar) -->
-    <LinearLayout
-        android:id="@+id/bottomNavBar"
+    <FrameLayout
+        android:id="@+id/bottomNavBarShell"
         android:layout_width="0dp"
         android:layout_height="64dp"
         android:layout_marginStart="16dp"
@@ -27,14 +27,27 @@
         android:layout_marginBottom="16dp"
         android:background="@drawable/bg_bottom_nav_bar"
         android:elevation="14dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:weightSum="5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
+
+        <!-- 滑动选中指示胶囊（位于 Tab 层之下，切换时弹性滑移） -->
+        <View
+            android:id="@+id/navIndicator"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="5dp"
+            android:background="@drawable/bg_nav_tab_active" />
+
+        <LinearLayout
+            android:id="@+id/bottomNavBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:weightSum="5">
 
         <!-- Tab 1: 🏛️ 展馆 (Hub) -->
         <LinearLayout
@@ -182,7 +195,8 @@
                 android:textColor="@color/readtrace_muted"
                 android:textSize="10.5sp" />
         </LinearLayout>
-    </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
 
     <!-- 🎞️ 模拟胶片感光颗粒与抗断层噪点层 (FilmGrainOverlayView) -->
     <com.example.readtrace.widget.FilmGrainOverlayView

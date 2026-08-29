@@ -2,7 +2,9 @@ package com.example.readtrace
 
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +23,7 @@ import com.example.readtrace.util.ViewAnimationHelper
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tabHub: LinearLayout
+    private lateinit var navIndicator: View
     private lateinit var tabLibrary: LinearLayout
     private lateinit var tabGalaxy: LinearLayout
     private lateinit var tabMemoir: LinearLayout
@@ -91,7 +94,46 @@ class MainActivity : AppCompatActivity() {
         listOf(tabHub, tabLibrary, tabGalaxy, tabMemoir, tabProfile).forEach {
             ViewAnimationHelper.attachSpringTouch(it, 0.92f)
         }
+
+        navIndicator = findViewById(R.id.navIndicator)
+        // 布局完成后把指示胶囊定位到初始 Tab（不动画）
+        tabHub.post { moveNavIndicator(currentTabIndex, animate = false) }
     }
+
+    /** 滑动选中指示胶囊：弹性移动到目标 Tab 下方 */
+    private fun moveNavIndicator(index: Int, animate: Boolean) {
+        if (!::navIndicator.isInitialized) return
+        val tab = when (index) {
+            TAB_HUB -> tabHub
+            TAB_LIBRARY -> tabLibrary
+            TAB_GALAXY -> tabGalaxy
+            TAB_MEMOIR -> tabMemoir
+            else -> tabProfile
+        }
+        tab.post {
+            if (!::navIndicator.isInitialized) return@post
+            val shell = navIndicator.parent as? FrameLayout ?: return@post
+            val lp = navIndicator.layoutParams as FrameLayout.LayoutParams
+            val targetWidth = tab.width - shell.paddingStart - shell.paddingEnd - dp(4)
+            if (targetWidth <= 0) return@post
+            if (lp.width != targetWidth) {
+                lp.width = targetWidth
+                navIndicator.layoutParams = lp
+            }
+            val targetX = shell.paddingStart + tab.x + dp(2)
+            if (animate) {
+                navIndicator.animate()
+                    .translationX(targetX)
+                    .setDuration(300L)
+                    .setInterpolator(OvershootInterpolator(1.1f))
+                    .start()
+            } else {
+                navIndicator.translationX = targetX
+            }
+        }
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
     private fun selectTab(index: Int) {
         val transaction = supportFragmentManager.beginTransaction()
@@ -122,6 +164,7 @@ class MainActivity : AppCompatActivity() {
         transaction.commitAllowingStateLoss()
         currentTabIndex = index
         updateTabStyles(index)
+        moveNavIndicator(index, animate = true)
     }
 
     /** 首屏动画结束后逐个预热其余底部页（add+hide），消除首次切换时的布局膨胀卡顿 */
@@ -164,7 +207,7 @@ class MainActivity : AppCompatActivity() {
 
         tabViews.forEach { (tabLayout, label, index) ->
             val isSelected = index == selectedIndex
-            tabLayout.setBackgroundResource(if (isSelected) R.drawable.bg_nav_tab_active else 0)
+            tabLayout.setBackgroundResource(0)
             label.setTextColor(
                 ContextCompat.getColor(
                     this,

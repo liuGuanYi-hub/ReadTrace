@@ -397,11 +397,12 @@ class HubFragment : Fragment() {
         val rated = allBooks.mapNotNull { it.rating }
 
         val wishlist = total - reading - finished
-        statTotalValue.text = total.toString()
-        statReadingValue.text = reading.toString()
-        statFinishedValue.text = finished.toString()
-        statWishlistValue.text = wishlist.toString()
+        animateStatCountUp(statTotalValue, total, 0)
+        animateStatCountUp(statReadingValue, reading, 1)
+        animateStatCountUp(statFinishedValue, finished, 2)
+        animateStatCountUp(statWishlistValue, wishlist, 3)
         statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
+
 
         val phase = com.example.readtrace.util.CircadianLightingEngine.getCurrentPhase()
         if (::heroCuratorialBadge.isInitialized) {
@@ -458,6 +459,23 @@ class HubFragment : Fragment() {
         )
 
         renderMemoryCard()
+    }
+
+    private val lastStatValues = intArrayOf(-1, -1, -1, -1)
+
+    /** 总览数字滚动动画：仅在数值变化时从 0 滚动到目标值 */
+    private fun animateStatCountUp(view: TextView, target: Int, slot: Int) {
+        if (lastStatValues.getOrNull(slot) == target) {
+            view.text = target.toString()
+            return
+        }
+        lastStatValues[slot] = target
+        android.animation.ValueAnimator.ofInt(0, target).apply {
+            duration = 550L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener { view.text = (it.animatedValue as Int).toString() }
+            start()
+        }
     }
 
     private fun renderHeroCuratorialCard(allBooks: List<Book>) {
