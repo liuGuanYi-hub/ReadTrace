@@ -13,14 +13,12 @@ App 运行时按 `assets/cover_cdn_map.json` 中的「封面键 → 图源 URL�
 | media.steampowered.com（Steam 官方） | 65 | 全部游戏封面，与 Steam 商店同源 |
 | img*.doubanio.com（豆瓣） | 29 | 书籍封面原链，App 自动携带 Referer |
 | pX.music.126.net（网易云） | 14 | 专辑封面原链 |
-| APK 内置资产 | 5 | 通用兜底占位图，离线可用 |
-| cdn.jsdelivr.net（GitHub 仓库直读） | 40 | 书籍等无国内对应条目的封面；App 内置 cdn/gcore/testingcf 三镜像自动轮询 |
+| APK 内置资产 | 45 | 40 张无国内图源的封面 + 5 张通用兜底占位图，离线可用 |
 
 ## 为什么保留本目录
 
-`cdn.jsdelivr.net/gh/liuGuanYi-hub/ReadTrace@main/cover_server/covers/` 直接读取
-GitHub 仓库中的这些文件，为 40 张没有国内对应图源的封面提供兜底服务，同时保留
-全部原图存档（含原始 bgm.tv 图，可用于将来更换图源）。
+保留全部原图存档（含原始 bgm.tv 图），可用于将来更换图源或重新生成映射表。
+无国内图源的 40 张封面已随 commit `4378674` 打包进 APK 内置资产。
 
 ## 更换图源
 
