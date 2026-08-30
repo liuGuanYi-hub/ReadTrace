@@ -20,6 +20,13 @@
   git -c credential.helper= -c "credential.helper=F:/work/git/Git/mingw64/bin/git-credential-manager.exe" push origin main
   ```
 
+## 本机 Git 环境坑（2026-08-30 踩过）
+- `.git/refs` 下的引用文件会偶发被删除 → 表现为 `not a git repository` / `bad object HEAD` / `unknown revision origin/main`
+- 恢复步骤：① `find .git/refs` 确认为空 → ② 从 `.git/logs/HEAD` 末尾取 main 的最后 SHA → ③ `mkdir -p .git/refs/heads && echo <sha> > .git/refs/heads/main` → ④ `git reset --mixed HEAD` 重建索引（**不要**用 --hard，会丢未提交改动）
+- 对象库若也损坏（pack 文件丢失）：`git fetch origin` 可从远程拉回全部对象（前提是都已 push）
+- 强推历史改提交信息用 `--force-with-lease=refs/heads/main:<远程当前SHA>`（本地远程跟踪引用常失效，`--force-with-lease` 不带参数会报 stale info）
+- 改提交信息脚本化做法：`GIT_SEQUENCE_EDITOR`（改 pick→reword/drop）+ `GIT_EDITOR`（按内容 sed 替换）驱动 `git rebase -i <base>`；rebase 前必须先 `git checkout --` 清掉未提交改动，改完再拷回
+
 ## 敏感信息
 - 网易云 MUSIC_U Cookie 存放于 `不要放进git/`（已在 .gitignore 忽略）
 - 排查接口时如需使用，禁止明文输出，用完删除临时文件，绝不入库
