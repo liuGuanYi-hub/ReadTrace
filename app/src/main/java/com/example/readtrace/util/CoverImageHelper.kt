@@ -52,7 +52,14 @@ object CoverImageHelper {
             val entries = org.json.JSONObject(text)
             val result = mutableMapOf<String, String>()
             for (name in entries.keys()) {
-                result["covers/$name"] = entries.getString(name)
+                // 兼容两种键格式：历史版本键已含 covers/ 前缀，直接使用；
+                // 若为裸文件名则统一补前缀，避免生成 covers/covers/xxx 双前缀导致查找永久 miss
+                val key = if (name.startsWith(LAN_COVER_KEY_PREFIX, ignoreCase = true)) {
+                    name
+                } else {
+                    "$LAN_COVER_KEY_PREFIX$name"
+                }
+                result[key] = entries.getString(name)
             }
             result
         }.getOrDefault(emptyMap()).also { cdnMap = it }
@@ -411,7 +418,10 @@ object CoverImageHelper {
         val cacheFile = File(cacheDir, "net_${md5(cacheKeyFor)}.jpg")
 
         if (cacheFile.exists() && cacheFile.length() > 0) {
-            return decodeSampledBitmapFromFile(cacheFile.absolutePath, reqWidth, reqHeight)
+            val cached = decodeSampledBitmapFromFile(cacheFile.absolutePath, reqWidth, reqHeight)
+            if (cached != null) return cached
+            // 缓存文件损坏（历史版本曾先落盘后校验，坏数据会永久残留）→ 删除后走重新下载
+            runCatching { cacheFile.delete() }
         }
 
         return runCatching {
@@ -430,12 +440,13 @@ object CoverImageHelper {
                     }
                     if (conn.responseCode != HttpURLConnection.HTTP_OK) continue
                     val bytes = conn.inputStream.use { it.readBytes() }
-                    runCatching {
-                        FileOutputStream(cacheFile).use { out -> out.write(bytes) }
-                    }
+                    // 先校验字节确为有效图片，再落盘缓存，防止坏响应（如运营商劫持返回的 HTML）污染缓存
                     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
                     if (options.outWidth <= 0) continue
+                    runCatching {
+                        FileOutputStream(cacheFile).use { out -> out.write(bytes) }
+                    }
                     options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight)
                     options.inJustDecodeBounds = false
                     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
