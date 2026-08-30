@@ -55,6 +55,8 @@ object NeteasePreviewHelper {
     private const val KEY_MUSIC_U = "netease_music_u"
     /** 包含匹配允许的最大长度差比例（防短词被长标题误命中） */
     private const val MAX_NAME_LENGTH_RATIO = 2f
+    /** 歌单列表中排除的系统歌单类型：20=年度歌单，5=我喜欢的音乐 */
+    private val EXCLUDED_SPECIAL_TYPES = setOf(5, 20)
 
     /** 读取用户绑定的网易云 MUSIC_U Cookie（未绑定为 null） */
     fun getMusicUCookie(context: Context?): String? {
@@ -88,7 +90,7 @@ object NeteasePreviewHelper {
     fun isBound(context: Context?): Boolean = getMusicUCookie(context) != null
 
     /**
-     * 拉取当前登录用户的**自创歌单**（「我喜欢的音乐」置顶，排除年度歌单等系统生成歌单）。
+     * 拉取当前登录用户的**自创歌单**（排除年度歌单 specialType=20、我喜欢的音乐 specialType=5 等系统内容）。
      * 未绑定 Cookie / 接口异常时返回 null。
      */
     fun fetchUserPlaylists(context: Context, onResult: (List<UserPlaylist>?) -> Unit) {
@@ -107,14 +109,14 @@ object NeteasePreviewHelper {
                 (0 until arr.length()).mapNotNull { i ->
                     val p = arr.optJSONObject(i) ?: return@mapNotNull null
                     val creatorId = p.optJSONObject("creator")?.optLong("userId") ?: -1L
-                    // 只保留自创歌单，排除年度歌单（specialType=20）等系统生成内容
-                    if (creatorId != uid || p.optInt("specialType") == 20) return@mapNotNull null
+                    // 只保留自创歌单：排除年度歌单（20）与我喜欢的音乐（5）等系统内容
+                    if (creatorId != uid || p.optInt("specialType") in EXCLUDED_SPECIAL_TYPES) return@mapNotNull null
                     UserPlaylist(
                         id = p.optLong("id"),
                         name = p.optString("name"),
                         trackCount = p.optInt("trackCount"),
                     )
-                }.sortedByDescending { it.name.contains("喜欢的音乐") }
+                }
             }.getOrNull()
             handler.post { onResult(result) }
         }.start()
