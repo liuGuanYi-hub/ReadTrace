@@ -22,7 +22,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
-import com.example.readtrace.util.ConfettiBurstHelper
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
@@ -95,9 +94,8 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             if (isTorn) {
                 HapticFeedbackEngine.ticketTearRipped(this)
                 SpatialAudioEngine.playTicketTear()
-                ConfettiBurstHelper.burst(this, seamX, seamY)
                 btnToggleTicketTear.text = "✨ 磁吸复原票根"
-                Toast.makeText(this, "🎟️ 已完成撕票入场 · 齿轮顿挫与微粒裂变", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "🎟️ 已完成撕票入场 · 齿轮顿挫反馈", Toast.LENGTH_SHORT).show()
             } else {
                 HapticFeedbackEngine.cartridgeSnap(this)
                 SpatialAudioEngine.playCartridgeSnap()

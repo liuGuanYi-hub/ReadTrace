@@ -28,7 +28,6 @@ object SonicHapticMatrix {
     fun playWaxSealThud(context: Context) {
         HapticFeedbackEngine.stampImpact(context)
         SpatialAudioEngine.playStampThud()
-        ConfettiBurstHelper.burstCenter(context as? android.app.Activity ?: return)
     }
 
     /**
@@ -37,7 +36,6 @@ object SonicHapticMatrix {
     fun playTicketPerforationRip(context: Context) {
         HapticFeedbackEngine.ticketTearRipped(context)
         SpatialAudioEngine.playTicketTear()
-        ConfettiBurstHelper.burstCenter(context as? android.app.Activity ?: return)
     }
 
     /**
@@ -46,6 +44,5 @@ object SonicHapticMatrix {
     fun playCartridgeSnap(context: Context) {
         HapticFeedbackEngine.cartridgeSnap(context)
         SpatialAudioEngine.playCartridgeSnap()
-        ConfettiBurstHelper.burstCenter(context as? android.app.Activity ?: return)
     }
 }

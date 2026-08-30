@@ -25,7 +25,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
-import com.example.readtrace.util.ConfettiBurstHelper
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.SpatialAudioEngine
@@ -87,7 +86,6 @@ class CulturalPassportActivity : AppCompatActivity() {
         culturalPassportView.onStampClickListener = { book, screenX, screenY ->
             HapticFeedbackEngine.stampImpact(this)
             SpatialAudioEngine.playStampThud()
-            ConfettiBurstHelper.burst(this, screenX, screenY)
             window.decorView.postDelayed({
                 if (!isFinishing && !isDestroyed) {
                     showStampDetailDialog(book)
