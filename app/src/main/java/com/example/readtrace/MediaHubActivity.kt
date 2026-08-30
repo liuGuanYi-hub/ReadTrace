@@ -162,7 +162,11 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusReading.text = "在读"
                 hubStatusFinished.text = "读完"
                 hubStatusWishlist.text = "想读"
-                btnHubSpecialFeature.visibility = View.GONE
+                btnHubSpecialFeature.visibility = View.VISIBLE
+                btnHubSpecialFeature.text = "📜 阅历画卷"
+                btnHubSpecialFeature.setOnClickListener {
+                    startActivity(MediaTimelineScrollActivity.createIntent(this, MediaType.BOOK))
+                }
                 btnHubPassport.visibility = View.GONE
             }
             MediaType.ANIME -> {
@@ -170,9 +174,10 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusReading.text = "追番中"
                 hubStatusFinished.text = "已补完"
                 hubStatusWishlist.text = "想追"
-                btnHubSpecialFeature.text = "📜 编年画卷"
+                btnHubSpecialFeature.visibility = View.VISIBLE
+                btnHubSpecialFeature.text = "📜 追番画卷"
                 btnHubSpecialFeature.setOnClickListener {
-                    startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
+                    startActivity(MediaTimelineScrollActivity.createIntent(this, MediaType.ANIME))
                 }
                 btnHubPassport.text = "🛂 追番签证"
                 btnHubPassport.setOnClickListener {
@@ -184,6 +189,7 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusReading.text = "在看"
                 hubStatusFinished.text = "已看"
                 hubStatusWishlist.text = "想看"
+                btnHubSpecialFeature.visibility = View.VISIBLE
                 btnHubSpecialFeature.text = "🎟️ 电影票根"
                 btnHubSpecialFeature.setOnClickListener {
                     val firstMovie = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.MOVIE }
@@ -200,6 +206,7 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusReading.text = "游玩中"
                 hubStatusFinished.text = "白金通关"
                 hubStatusWishlist.text = "想玩"
+                btnHubSpecialFeature.visibility = View.VISIBLE
                 btnHubSpecialFeature.text = "🕹️ 全息卡带"
                 btnHubSpecialFeature.setOnClickListener {
                     val firstGame = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.GAME }
@@ -239,7 +246,7 @@ class MediaHubActivity : AppCompatActivity() {
         }
 
         btnHubExportScroll.setOnClickListener {
-            Toast.makeText(this, "正在生成长图...", Toast.LENGTH_SHORT).show()
+            startActivity(MediaTimelineScrollActivity.createIntent(this, targetMediaType))
         }
         updateViewModeButton()
     }

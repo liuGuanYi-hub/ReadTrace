@@ -1174,7 +1174,7 @@ class BookDetailActivity : AppCompatActivity() {
                 read3DBtn.text = "🌸 追番编年画卷"
                 read3DBtn.visibility = View.VISIBLE
                 read3DBtn.setOnClickListener {
-                    startActivity(Intent(this, AnimeTimelineScrollActivity::class.java))
+                    startActivity(MediaTimelineScrollActivity.createIntent(this, MediaType.ANIME))
                 }
                 quotePosterBtn.text = "🛂 追番入境签证"
                 quotePosterBtn.setOnClickListener {

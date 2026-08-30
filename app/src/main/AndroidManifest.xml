@@ -22,6 +22,9 @@
             android:name=".MediaHubActivity"
             android:exported="false" />
         <activity
+            android:name=".MediaTimelineScrollActivity"
+            android:exported="true" />
+        <activity
             android:name=".AnimeTimelineScrollActivity"
             android:exported="false" />
         <activity

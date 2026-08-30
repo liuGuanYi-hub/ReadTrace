@@ -17,6 +17,7 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.example.readtrace.AddBookActivity
 import com.example.readtrace.AnimeTimelineScrollActivity
+import com.example.readtrace.MediaTimelineScrollActivity
 import com.example.readtrace.BackupActivity
 import com.example.readtrace.BookDetailActivity
 import com.example.readtrace.CulturalPassportActivity
@@ -360,7 +361,7 @@ class HubFragment : Fragment() {
         hubCardAnime.setOnClickListener { openAnimeHub() }
         btnEnterAnimeHub.setOnClickListener { openAnimeHub() }
         btnQuickAnimeTimeline.setOnClickListener {
-            startActivity(Intent(requireContext(), AnimeTimelineScrollActivity::class.java))
+            startActivity(MediaTimelineScrollActivity.createIntent(requireContext(), MediaType.ANIME))
         }
         btnQuickAnimePassport.setOnClickListener {
             startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))

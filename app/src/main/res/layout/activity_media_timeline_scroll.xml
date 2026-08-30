@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:orientation="vertical">
+
+    <!-- 顶部操作导航栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="48dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/scrollMainTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📜 全景编年史 · 心智画卷"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="16.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/scrollSubTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="全景时光 · 沉淀精神坐标"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnToggleScrollTheme"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_status_chip"
+            android:gravity="center"
+            android:text="🌓"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/btnShareScroll"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_status_chip_selected"
+            android:gravity="center"
+            android:paddingHorizontal="14dp"
+            android:text="📤 导出分享"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 媒介分类切换 Chip 栏 -->
+    <HorizontalScrollView
+        android:id="@+id/mediaChipScroller"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="10dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/mediaChipGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipMediaAll"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_status_chip_selected"
+                android:paddingHorizontal="12dp"
+                android:text="✨ 全部全景"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMediaBook"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="12dp"
+                android:text="📚 书籍"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMediaAnime"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="12dp"
+                android:text="🌸 番剧"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMediaMovie"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="12dp"
+                android:text="🎬 影视"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMediaGame"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="12dp"
+                android:text="🎮 游戏"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMediaMusic"
+                style="@style/ReadTraceStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_status_chip"
+                android:paddingHorizontal="12dp"
+                android:text="💿 音乐"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#15000000" />
+
+    <!-- 滚动画卷容器 -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <com.example.readtrace.widget.MediaTimelineScrollView
+            android:id="@+id/mediaTimelineScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
