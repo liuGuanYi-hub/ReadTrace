@@ -126,7 +126,11 @@ class HubFragment : Fragment() {
     // 时光深处的回响
     private lateinit var memoryPanel: View
     private lateinit var memoryTitle: TextView
+    private lateinit var memoryMediaBadge: TextView
+    private lateinit var memoryBookCover: ImageView
+    private lateinit var memoryCoverPlaceholder: TextView
     private lateinit var memoryBookTitle: TextView
+    private lateinit var memoryBookMeta: TextView
     private lateinit var memoryBookQuote: TextView
 
     private val selectCsvLauncher = registerForActivityResult(
@@ -164,6 +168,7 @@ class HubFragment : Fragment() {
                 view.findViewById(R.id.hubCardMovie),
                 view.findViewById(R.id.hubCardGame),
                 view.findViewById(R.id.hubCardMusic),
+                view.findViewById(R.id.memoryPanel),
             ),
         )
     }
@@ -174,6 +179,7 @@ class HubFragment : Fragment() {
         gyroscopeHelper.bind3DParallax(heroBookCover, maxRotation = 14f, maxTranslation = 16f)
         gyroscopeHelper.bindHolographicSpecular(heroSpecularOverlay)
         gyroscopeHelper.bind3DParallax(parchmentQuoteRibbon, maxRotation = 5f, maxTranslation = 8f)
+        gyroscopeHelper.bind3DParallax(memoryBookCover, maxRotation = 10f, maxTranslation = 12f)
         gyroscopeHelper.bindLifecycle(viewLifecycleOwner.lifecycle)
     }
 
@@ -273,7 +279,11 @@ class HubFragment : Fragment() {
         // 记忆面板
         memoryPanel = view.findViewById(R.id.memoryPanel)
         memoryTitle = view.findViewById(R.id.memoryTitle)
+        memoryMediaBadge = view.findViewById(R.id.memoryMediaBadge)
+        memoryBookCover = view.findViewById(R.id.memoryBookCover)
+        memoryCoverPlaceholder = view.findViewById(R.id.memoryCoverPlaceholder)
         memoryBookTitle = view.findViewById(R.id.memoryBookTitle)
+        memoryBookMeta = view.findViewById(R.id.memoryBookMeta)
         memoryBookQuote = view.findViewById(R.id.memoryBookQuote)
     }
 
@@ -751,10 +761,42 @@ class HubFragment : Fragment() {
             return
         }
         val memoryBook = memoryPair.first
+        val memoryReason = memoryPair.second
         memoryPanel.visibility = View.VISIBLE
-        memoryBookTitle.text = "《${memoryBook.title}》· ${memoryBook.author ?: "未知作者"}"
-        val quote = memoryPair.second.ifBlank { memoryBook.shortComment ?: "重温那段在字里行间沉淀的记忆时光。" }
+
+        val isYearsAgo = memoryReason.contains("年前")
+        memoryTitle.text = if (isYearsAgo) "🕰️ 那年今日 · 时光印记" else "🕰️ 时光深处的印记"
+        memoryMediaBadge.text = "${memoryBook.mediaType.emoji} ${memoryBook.mediaType.displayName}"
+
+        memoryBookTitle.text = "《${memoryBook.title}》"
+
+        val authorStr = memoryBook.author?.takeIf { it.isNotBlank() } ?: "经典创作者"
+        val ratingVal = memoryBook.rating
+        val ratingStr = if (ratingVal != null && ratingVal > 0) " · ★ ${RATING_FORMAT.format(ratingVal / 2.0)}" else ""
+        val categoryStr = memoryBook.category?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""
+        memoryBookMeta.text = "$authorStr$categoryStr$ratingStr"
+
+        val quote = if (memoryReason.isNotBlank() && isYearsAgo) {
+            "⏳ $memoryReason"
+        } else {
+            val raw = memoryBook.shortComment?.takeIf { it.isNotBlank() }
+                ?: memoryBook.review?.takeIf { it.isNotBlank() }
+                ?: memoryReason.ifBlank { "曾在心底泛起涟漪的经典作品。" }
+            if (raw.startsWith("“")) raw else "“$raw”"
+        }
         memoryBookQuote.text = quote
+
+        if (!memoryBook.coverUrl.isNullOrBlank()) {
+            memoryBookCover.visibility = View.VISIBLE
+            memoryCoverPlaceholder.visibility = View.GONE
+            CoverImageHelper.loadCover(memoryBookCover, memoryBook.coverUrl)
+        } else {
+            memoryBookCover.visibility = View.GONE
+            memoryCoverPlaceholder.visibility = View.VISIBLE
+            memoryCoverPlaceholder.text = "${memoryBook.mediaType.emoji}\n${memoryBook.title.take(4)}"
+        }
+
+        ViewAnimationHelper.attachSpringTouch(memoryPanel)
         memoryPanel.setOnClickListener {
             startActivity(BookDetailActivity.createIntent(requireContext(), memoryBook.id))
         }
