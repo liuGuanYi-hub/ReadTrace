@@ -138,7 +138,7 @@
                 android:layout_marginTop="6dp"
                 android:ellipsize="end"
                 android:gravity="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:text="—— ヨルシカ 《晴る》"
                 android:textColor="#8C6E40"
                 android:textSize="12sp"
