@@ -308,7 +308,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnSpeedToggle.setOnClickListener {
             triggerHapticClick()
             val is33 = btnSpeedToggle.text.contains("33")
-            btnSpeedToggle.text = if (is33) "45 RPM" else "33 RPM"
+            btnSpeedToggle.text = if (is33) "45" else "33"
             Toast.makeText(this, if (is33) "切换至 45 RPM 典藏高保真转速" else "切换至 33 1/3 RPM 标准密纹转速", Toast.LENGTH_SHORT).show()
         }
 

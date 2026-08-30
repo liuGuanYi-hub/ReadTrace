@@ -203,13 +203,11 @@ object NeteasePreviewHelper {
         val all = searchSongCandidates(query, musicU)
         // 三级匹配兜底（防错别字/专辑无名曲等场景，宁可宽一格也不放无关歌）：
         // ① 曲名匹配（最准）② 专辑名匹配（作品按专辑录入时用）③ 歌手名强匹配（错别字如"沉/沈"时兜底）
-        // T2/T3 属于弱信号，必须有歌手信息作约束，否则宁可不播
-        val hasArtist = stripArtistAlias(artist) != null
         val matched = when {
             all.any { nameMatches(it.name, cleanTitle) } ->
                 all.filter { nameMatches(it.name, cleanTitle) }
                     .sortedByDescending { artistBonus(it.artists, artist) }
-            hasArtist && all.any { nameMatches(it.album, cleanTitle) } ->
+            all.any { nameMatches(it.album, cleanTitle) } ->
                 all.filter { nameMatches(it.album, cleanTitle) }
                     .sortedByDescending { artistBonus(it.artists, artist) }
             artistStrongMatches(artist, all) ->
@@ -356,16 +354,18 @@ object NeteasePreviewHelper {
 
     /**
      * 曲名/专辑名相关性判断：归一化（去空格/括号/大小写/常见标点）后全等，
-     * 或长度比例 ≤2 的前提下互相包含——比例守卫用于挡掉
-     * "沉香学" 被包含在 "豫剧(秦雪梅)--老爹爹莫动怒你暂且息愤-----凤立沉香学唱" 这类误命中。
+     * 或标题 ≥4 字且长度比例 ≤2 时互相包含——短标题只接受全等，避免
+     * "沈香学" 被 "沉香" 等短词误命中。
      */
     private fun nameMatches(songName: String, title: String): Boolean {
         val n = normalize(songName)
         val t = normalize(title)
         if (n.isEmpty() || t.isEmpty()) return false
         if (n == t) return true
-        val ratio = maxOf(n.length, t.length).toFloat() / minOf(n.length, t.length).toFloat()
-        if (ratio > MAX_NAME_LENGTH_RATIO) return false
+        val maxLen = maxOf(n.length, t.length)
+        val minLen = minOf(n.length, t.length)
+        if (minLen < 4) return false
+        if (maxLen.toFloat() / minLen.toFloat() > MAX_NAME_LENGTH_RATIO) return false
         return n.contains(t) || t.contains(n)
     }
 
