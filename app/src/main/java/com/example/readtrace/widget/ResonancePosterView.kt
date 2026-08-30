@@ -11,6 +11,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -28,13 +29,14 @@ import kotlin.math.sin
 /**
  * 🌌 跨媒介双生共鸣典藏长卷视图 (ResonancePosterView)
  *
- * 核心架构：【全宽巨幕双生艺术展卷 (Full-Bleed Grand Curation Scroll)】
- * 1. 【第一幕】：作品 A · ALPHA 巨幕海报展台 (全宽 980px 巨幅实体大封面 940x1260，彻底消灭左右空黑死区)；
- * 2. 【第二幕】：作品 B · OMEGA 巨幕海报展台 (全宽 980px 巨幅实体大封面 940x1260，彻底消灭左右空黑死区)；
- * 3. 【第三幕】：双星交汇 · 深度共鸣数据与六维雷达大中枢：
- *    - 4 维心智基因能量双轨对比矩阵 (思想、文笔、情感、治愈)；
- *    - 160px 超大双层叠加六维引力雷达枢纽；
- *    - 实体复古打孔撕票副券 (ADMIT TWO + 联名档案 + 条形码 + 契印)。
+ * 核心升级：【封面壁纸画廊式纯粹大图展卷 · 极致排版与高清大字】
+ * 参考《阅痕》封面壁纸画廊核心美学：
+ * 1. 2:3 巨幅实体艺术封面 (角标悬浮半透明徽章)；
+ * 2. 居中超大醒目作品标题 (38sp 加粗白字，一眼看清)；
+ * 3. 居中优雅次级信息流 (作者 · 载体类型 · ★ 评分)；
+ * 4. 居中金色/琥珀色典雅斜体金句 (22sp 斜体流光排版，呼吸感充足，告别一切多余格子)；
+ * 5. 第三幕集中引爆双星 4 维心智基因对比矩阵与 160px 超大六维引力雷达中枢；
+ * 6. 底部实体复古打孔撕票副券 (ADMIT TWO + 条形码 + 双生契印)。
  */
 class ResonancePosterView @JvmOverloads constructor(
     context: Context,
@@ -61,8 +63,8 @@ class ResonancePosterView @JvmOverloads constructor(
             "🌌 黑曜星云",
             intArrayOf(Color.parseColor("#0E0C0B"), Color.parseColor("#17131A"), Color.parseColor("#0C0E14")),
             Color.parseColor("#18141C"),
-            Color.parseColor("#221B29"),
-            Color.parseColor("#F5EFE6"),
+            Color.parseColor("#201A26"),
+            Color.parseColor("#FFFFFF"),
             Color.parseColor("#A8A196"),
             Color.parseColor("#F4A261"), // 琥珀金
             Color.parseColor("#A855F7"), // 幻夜紫
@@ -92,7 +94,7 @@ class ResonancePosterView @JvmOverloads constructor(
             intArrayOf(Color.parseColor("#080B10"), Color.parseColor("#0D1424"), Color.parseColor("#140A1E")),
             Color.parseColor("#0F172A"),
             Color.parseColor("#16223A"),
-            Color.parseColor("#E0F7FA"),
+            Color.parseColor("#FFFFFF"),
             Color.parseColor("#80DEEA"),
             Color.parseColor("#00F5D4"), // 荧光青
             Color.parseColor("#F72585"), // 霓虹粉
@@ -107,7 +109,7 @@ class ResonancePosterView @JvmOverloads constructor(
             intArrayOf(Color.parseColor("#1E1110"), Color.parseColor("#2C1518"), Color.parseColor("#14101A")),
             Color.parseColor("#2B181B"),
             Color.parseColor("#381E23"),
-            Color.parseColor("#FFF3E0"),
+            Color.parseColor("#FFFFFF"),
             Color.parseColor("#FFCCBC"),
             Color.parseColor("#FF7A00"), // 晚霞橙
             Color.parseColor("#FF007F"), // 玫瑰红
@@ -153,12 +155,12 @@ class ResonancePosterView @JvmOverloads constructor(
     }
 
     companion object {
-        private const val TICKET_ASPECT = 4.18f
+        private const val TICKET_ASPECT = 4.35f
         private const val PADDING_RATIO = 0.025f
         private const val MAIN_RATIO = 0.932f
 
         private const val EXPORT_WIDTH = 1080
-        private const val EXPORT_HEIGHT = 4514
+        private const val EXPORT_HEIGHT = 4698
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -287,7 +289,7 @@ class ResonancePosterView @JvmOverloads constructor(
         canvas.drawLine(box.left + box.notchRadius, box.splitY, box.right - box.notchRadius, box.splitY, paint)
         paint.pathEffect = null
 
-        // 3. 绘制主票区域（全宽巨幕三幕式纵向双生艺术展卷）
+        // 3. 绘制主票区域（画廊式纯粹大图展卷）
         drawThreeActMainSection(canvas, box, scale, t)
 
         // 4. 绘制底部副券区域（ADMIT TWO 印章 + 联名作品 + 条形码 + 契印）
@@ -316,10 +318,10 @@ class ResonancePosterView @JvmOverloads constructor(
     }
 
     /**
-     * 全宽巨幕三幕式纵向双生艺术展卷：
-     * Act 1: 作品 A · ALPHA 巨幕海报展台 (全宽 940x1260 实体大封面，消除左右空黑死区)
-     * Act 2: 作品 B · OMEGA 巨幕海报展台 (全宽 940x1260 实体大封面，消除左右空黑死区)
-     * Act 3: 双星交汇 · 深度共鸣数据与六维雷达大中枢 (4维能量对比矩阵 + 160px 超大六维雷达 + 箴言)
+     * 画廊式纯粹大图三幕式纵向双生艺术展卷：
+     * Act 1: 作品 A · ALPHA 画廊级展台 (巨幅封面 + 居中高清大标题 + 次级信息 + 优雅金色金句)
+     * Act 2: 作品 B · OMEGA 画廊级展台 (巨幅封面 + 居中高清大标题 + 次级信息 + 优雅金色金句)
+     * Act 3: 双星交汇 · 深度共鸣数据与六维雷达大中枢
      */
     private fun drawThreeActMainSection(canvas: Canvas, box: TicketBox, scale: Float, t: PosterTheme) {
         val pad = box.width * 0.036f
@@ -370,11 +372,11 @@ class ResonancePosterView @JvmOverloads constructor(
         canvas.drawText(badgeText, box.left + w * 0.5f, badgeTop + badgeH * 0.68f, textPaint)
 
         // =========================================================================
-        // 【第一幕】：作品 A · ALPHA 巨幕海报展台 (全宽满幅 940x1260 实体大封面)
+        // 【第一幕】：作品 A · ALPHA 画廊级展台 (参考壁纸画廊设计)
         // =========================================================================
         val act1Top = badgeTop + badgeH + 18f * scale
-        val act1H = 1480f * scale
-        drawFullBleedHeroCard(
+        val act1H = 1520f * scale
+        drawGalleryStyleWorkShowcase(
             canvas = canvas,
             left = cardLeft,
             top = act1Top,
@@ -384,22 +386,22 @@ class ResonancePosterView @JvmOverloads constructor(
             book = bookA,
             coverBitmap = cachedCoverA,
             accentColor = t.accentAColor,
-            dimensionTag = "🪐 NO.01 · ALPHA 维度神殿",
+            dimensionTag = "🪐 NO.01 · ALPHA",
             t = t,
         )
 
         // 贯通过渡连接光束 1 ➔ 2
         val trans1_Y1 = act1Top + act1H + 8f * scale
-        val trans1_Y2 = trans1_Y1 + 28f * scale
+        val trans1_Y2 = trans1_Y1 + 32f * scale
         val beamCX = box.left + w * 0.5f
         drawEnergyConnector(canvas, beamCX, trans1_Y1, trans1_Y2, t.accentAColor, t.accentBColor, scale)
 
         // =========================================================================
-        // 【第二幕】：作品 B · OMEGA 巨幕海报展台 (全宽满幅 940x1260 实体大封面)
+        // 【第二幕】：作品 B · OMEGA 画廊级展台 (参考壁纸画廊设计)
         // =========================================================================
         val act2Top = trans1_Y2 + 8f * scale
-        val act2H = 1480f * scale
-        drawFullBleedHeroCard(
+        val act2H = 1520f * scale
+        drawGalleryStyleWorkShowcase(
             canvas = canvas,
             left = cardLeft,
             top = act2Top,
@@ -409,13 +411,13 @@ class ResonancePosterView @JvmOverloads constructor(
             book = bookB,
             coverBitmap = cachedCoverB,
             accentColor = t.accentBColor,
-            dimensionTag = "✨ NO.02 · OMEGA 维度神殿",
+            dimensionTag = "✨ NO.02 · OMEGA",
             t = t,
         )
 
         // 贯通过渡连接光束 2 ➔ 3
         val trans2_Y1 = act2Top + act2H + 8f * scale
-        val trans2_Y2 = trans2_Y1 + 28f * scale
+        val trans2_Y2 = trans2_Y1 + 32f * scale
         drawEnergyConnector(canvas, beamCX, trans2_Y1, trans2_Y2, t.accentBColor, t.accentAColor, scale)
 
         // =========================================================================
@@ -437,9 +439,13 @@ class ResonancePosterView @JvmOverloads constructor(
     }
 
     /**
-     * 绘制全宽巨幕单作品神殿大卡盒 (Full-Bleed 2:3 实体大封面 940x1260，彻底消除左右空黑死区)
+     * 绘制【封面壁纸画廊式】单作品展台：
+     * 1. 2:3 巨幅艺术封面 + 悬浮胶囊角标；
+     * 2. 居中超大作品标题 (36sp 加粗白字)；
+     * 3. 居中次级信息 (作者 · 类型 · ★ 评分)；
+     * 4. 居中金色典雅斜体金句 (21sp 斜体金色，大字清晰，呼吸感充足，完全无死板多余格子)。
      */
-    private fun drawFullBleedHeroCard(
+    private fun drawGalleryStyleWorkShowcase(
         canvas: Canvas,
         left: Float,
         top: Float,
@@ -455,44 +461,26 @@ class ResonancePosterView @JvmOverloads constructor(
         if (book == null) return
         val cardRect = RectF(left, top, left + width, top + height)
 
-        // 1. 卡片底色与高光边框
+        // 1. 卡片外层流光大底座 (优雅微弧度)
         paint.style = Paint.Style.FILL
         paint.color = t.cardBgColor
-        canvas.drawRoundRect(cardRect, 18f * scale, 18f * scale, paint)
+        canvas.drawRoundRect(cardRect, 20f * scale, 20f * scale, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.8f * scale
         paint.color = Color.argb(160, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-        canvas.drawRoundRect(cardRect, 18f * scale, 18f * scale, paint)
+        canvas.drawRoundRect(cardRect, 20f * scale, 20f * scale, paint)
 
-        // 2. 顶部维度胶囊与媒介评分
-        val headerY = top + 34f * scale
-        textPaint.textAlign = Paint.Align.LEFT
-        textPaint.textSize = 20f * scale
-        textPaint.isFakeBoldText = true
-        textPaint.color = accentColor
-        canvas.drawText(dimensionTag, left + 20f * scale, headerY, textPaint)
-
-        val rating = book.rating ?: 0.0
-        val ratingStr = if (rating > 0.0) String.format(Locale.US, "%.1f", rating) else "4.9"
-        val headerMeta = "${book.mediaType.emoji} ${book.category ?: "典藏"} · ⭐ $ratingStr · ${book.status.displayName}"
-        textPaint.textAlign = Paint.Align.RIGHT
-        textPaint.textSize = 18f * scale
-        textPaint.isFakeBoldText = false
-        textPaint.color = t.subTextColor
-        canvas.drawText(headerMeta, cardRect.right - 20f * scale, headerY, textPaint)
-
-        // 3. 全宽满幅 2:3 实体精装大封面 (宽 940 * 高 1250，占满卡片宽度，左右无空白！)
-        val innerPad = 16f * scale
-        val coverW = width - innerPad * 2
-        val coverH = 1220f * scale
-        val coverL = left + innerPad
-        val coverT = top + 50f * scale
+        // 2. 2:3 巨幅实体大封面 (宽 800 * 高 1200，居中居上，比例典雅)
+        val coverW = width - 48f * scale
+        val coverH = 1160f * scale
+        val coverL = cardRect.centerX() - coverW * 0.5f
+        val coverT = top + 24f * scale
         val coverRect = RectF(coverL, coverT, coverL + coverW, coverT + coverH)
 
         if (coverBitmap != null && !coverBitmap.isRecycled) {
             canvas.save()
-            val clipPath = Path().apply { addRoundRect(coverRect, 14f * scale, 14f * scale, Path.Direction.CW) }
+            val clipPath = Path().apply { addRoundRect(coverRect, 16f * scale, 16f * scale, Path.Direction.CW) }
             canvas.clipPath(clipPath)
 
             val bmpW = coverBitmap.width.toFloat()
@@ -514,29 +502,62 @@ class ResonancePosterView @JvmOverloads constructor(
         } else {
             paint.style = Paint.Style.FILL
             paint.color = Color.argb(40, 255, 255, 255)
-            canvas.drawRoundRect(coverRect, 14f * scale, 14f * scale, paint)
+            canvas.drawRoundRect(coverRect, 16f * scale, 16f * scale, paint)
 
             textPaint.textAlign = Paint.Align.CENTER
             textPaint.textSize = 80f * scale
             canvas.drawText(book.mediaType.emoji, coverRect.centerX(), coverRect.centerY() + 28f * scale, textPaint)
         }
 
-        // 封面高光描边
+        // 封面高光外描边
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.6f * scale
         paint.color = Color.argb(160, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-        canvas.drawRoundRect(coverRect, 14f * scale, 14f * scale, paint)
+        canvas.drawRoundRect(coverRect, 16f * scale, 16f * scale, paint)
 
-        // 4. 作品大标题 (居中加粗，大字号排版)
-        val textPad = 18f * scale
-        val contentW = (width - textPad * 2).toInt().coerceAtLeast(100)
+        // 2.1 封面左上角浮动胶囊：[ 🪐 NO.01 · ALPHA ]
+        val tagW = 190f * scale
+        val tagH = 34f * scale
+        val tagRect = RectF(coverL + 14f * scale, coverT + 14f * scale, coverL + 14f * scale + tagW, coverT + 14f * scale + tagH)
+        paint.style = Paint.Style.FILL
+        paint.color = Color.argb(190, 18, 16, 24)
+        canvas.drawRoundRect(tagRect, tagH * 0.5f, tagH * 0.5f, paint)
 
-        val titleY = coverRect.bottom + 20f * scale
+        textPaint.textAlign = Paint.Align.CENTER
+        textPaint.textSize = 17f * scale
+        textPaint.isFakeBoldText = true
+        textPaint.color = accentColor
+        canvas.drawText(dimensionTag, tagRect.centerX(), tagRect.centerY() + 6f * scale, textPaint)
+
+        // 2.2 封面右上角浮动胶囊：[ 🎮 游戏 · ★ 8.0 ] (完美复刻封面壁纸画廊)
+        val rating = book.rating ?: 0.0
+        val ratingStr = if (rating > 0.0) String.format(Locale.US, "%.1f", rating) else "4.9"
+        val mediaText = "${book.mediaType.emoji} ${book.mediaType.displayName} · ★ $ratingStr"
+        textPaint.textSize = 17f * scale
+        textPaint.isFakeBoldText = true
+        val mediaW = textPaint.measureText(mediaText) + 28f * scale
+        val mediaRect = RectF(coverRect.right - 14f * scale - mediaW, coverT + 14f * scale, coverRect.right - 14f * scale, coverT + 14f * scale + tagH)
+
+        paint.style = Paint.Style.FILL
+        paint.color = Color.argb(190, 18, 16, 24)
+        canvas.drawRoundRect(mediaRect, tagH * 0.5f, tagH * 0.5f, paint)
+
+        textPaint.color = Color.WHITE
+        canvas.drawText(mediaText, mediaRect.centerX(), mediaRect.centerY() + 6f * scale, textPaint)
+
+        // =========================================================================
+        // 3. 封面下方：居中高清大标题 + 优雅次级信息 + 金色典雅斜体金句 (壁纸画廊风格)
+        // =========================================================================
+        val contentCenterX = cardRect.centerX()
+        val contentW = (width - 48f * scale).toInt()
+
+        // 3.1 居中超大作品标题 (40sp 加粗大白字，顶级清晰度)
+        val titleY = coverRect.bottom + 46f * scale
         staticTextPaint.color = t.textColor
-        staticTextPaint.textSize = 30f * scale
+        staticTextPaint.textSize = 40f * scale
         staticTextPaint.isFakeBoldText = true
 
-        val fullTitle = "《${book.title}》"
+        val fullTitle = book.title
         val titleLayout = StaticLayout.Builder.obtain(
             fullTitle,
             0,
@@ -550,64 +571,53 @@ class ResonancePosterView @JvmOverloads constructor(
             .build()
 
         canvas.save()
-        canvas.translate(left + textPad, titleY)
+        canvas.translate(left + 24f * scale, titleY)
         titleLayout.draw(canvas)
         canvas.restore()
 
-        // 5. 创作者与标签
-        val infoY = titleY + titleLayout.height + 10f * scale
+        // 3.2 居中次级信息 (作者 · 细分类型 · ★ 评分)
+        val metaY = titleY + titleLayout.height + 16f * scale
         textPaint.textAlign = Paint.Align.CENTER
-        textPaint.textSize = 18f * scale
+        textPaint.textSize = 23f * scale
         textPaint.isFakeBoldText = false
         textPaint.color = t.subTextColor
-        val tagStr = book.tags.filter { it.isNotBlank() }.take(2).joinToString(" ") { "#$it" }
-        val authorText = if (tagStr.isNotBlank()) "创作者: ${book.author ?: "佚名"} · $tagStr" else "创作者: ${book.author ?: "佚名"}"
-        val authorEllip = TextUtils.ellipsize(authorText, TextPaint(textPaint), width - textPad * 2, TextUtils.TruncateAt.END).toString()
-        canvas.drawText(authorEllip, cardRect.centerX(), infoY, textPaint)
 
-        // 6. 底部精选金句铭刻卡盒 (自适应居中排版)
-        val quoteBoxTop = infoY + 14f * scale
-        val quoteBoxH = (cardRect.bottom - 16f * scale - quoteBoxTop).coerceAtLeast(75f * scale)
-        val quoteBoxRect = RectF(left + textPad, quoteBoxTop, cardRect.right - textPad, quoteBoxTop + quoteBoxH)
+        val metaText = "${book.author ?: "佚名"} · ${book.category ?: "典藏作品"} · ★ $ratingStr"
+        val metaEllip = TextUtils.ellipsize(metaText, TextPaint(textPaint), width - 48f * scale, TextUtils.TruncateAt.END).toString()
+        canvas.drawText(metaEllip, contentCenterX, metaY + 20f * scale, textPaint)
 
-        paint.style = Paint.Style.FILL
-        paint.color = t.quoteBgColor
-        canvas.drawRoundRect(quoteBoxRect, 12f * scale, 12f * scale, paint)
-
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1.0f * scale
-        paint.color = Color.argb(80, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
-        canvas.drawRoundRect(quoteBoxRect, 12f * scale, 12f * scale, paint)
-
+        // 3.3 居中金色/琥珀色典雅斜体金句 (24sp 斜体大字，大字清晰，呼吸感充足！)
+        val quoteY = metaY + 54f * scale
         val rawQuote = book.shortComment.takeUnless { it.isNullOrBlank() }
             ?: book.review.takeUnless { it.isNullOrBlank() }
             ?: "精神印记，静默于灵魂深处。"
-        val quote = if (rawQuote.startsWith("“") || rawQuote.startsWith("\"")) rawQuote else "“$rawQuote”"
+        val cleanQuote = rawQuote.trim('“', '”', '"', ' ')
+        val formattedQuote = "“$cleanQuote”"
 
-        val quotePadX = 16f * scale
-        val quoteW = (quoteBoxRect.width() - quotePadX * 2).toInt().coerceAtLeast(100)
-
-        staticTextPaint.color = t.textColor
-        staticTextPaint.textSize = 16.5f * scale
+        staticTextPaint.color = accentColor
+        staticTextPaint.textSize = 24f * scale
         staticTextPaint.isFakeBoldText = false
+        staticTextPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
 
+        val quoteLayoutW = (width - 64f * scale).toInt().coerceAtLeast(100)
         val quoteLayout = StaticLayout.Builder.obtain(
-            quote,
+            formattedQuote,
             0,
-            quote.length,
+            formattedQuote.length,
             staticTextPaint,
-            quoteW,
+            quoteLayoutW,
         )
             .setAlignment(Layout.Alignment.ALIGN_CENTER)
             .setMaxLines(2)
             .setEllipsize(TextUtils.TruncateAt.END)
             .build()
 
-        val textOffsetY = (quoteBoxH - quoteLayout.height) * 0.5f
         canvas.save()
-        canvas.translate(quoteBoxRect.left + quotePadX, quoteBoxRect.top + textOffsetY.coerceAtLeast(5f * scale))
+        canvas.translate(left + 32f * scale, quoteY)
         quoteLayout.draw(canvas)
         canvas.restore()
+
+        staticTextPaint.typeface = Typeface.DEFAULT
     }
 
     /**
@@ -646,12 +656,12 @@ class ResonancePosterView @JvmOverloads constructor(
         // 1. 中枢大背景与流光边框
         paint.style = Paint.Style.FILL
         paint.color = t.cardBgColor
-        canvas.drawRoundRect(rect, 18f * scale, 18f * scale, paint)
+        canvas.drawRoundRect(rect, 20f * scale, 20f * scale, paint)
 
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 1.8f * scale
         paint.color = Color.argb(120, 255, 255, 255)
-        canvas.drawRoundRect(rect, 18f * scale, 18f * scale, paint)
+        canvas.drawRoundRect(rect, 20f * scale, 20f * scale, paint)
 
         // 2. 中枢大标题与图例
         val headY = top + 34f * scale
