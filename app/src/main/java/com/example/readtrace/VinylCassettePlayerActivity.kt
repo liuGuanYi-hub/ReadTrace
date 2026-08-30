@@ -32,6 +32,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.ui.bottomsheet.CloudMusicPickerBottomSheet
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
@@ -510,12 +511,20 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 Toast.makeText(this, "未读到自创歌单，请确认 Cookie 有效或已重新登录", Toast.LENGTH_LONG).show()
                 return@fetchUserPlaylists
             }
-            val labels = playlists.map { "${it.name} · ${it.trackCount} 首" }.toTypedArray()
-            AlertDialog.Builder(this)
-                .setTitle("☁️ 我的歌单（${playlists.size}）")
-                .setItems(labels) { _, which -> loadCloudTrackList(playlists[which]) }
-                .setNegativeButton("取消", null)
-                .show()
+            val items = playlists.mapIndexed { index, pl ->
+                CloudMusicPickerBottomSheet.PickerItem(
+                    id = pl.id,
+                    title = pl.name,
+                    subtitle = "${pl.trackCount} 首 · 歌单 #${index + 1}",
+                    emoji = "☁️",
+                )
+            }
+            CloudMusicPickerBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                title = "☁️ 我的歌单（${playlists.size}）",
+                items = items,
+                onSelected = { which -> loadCloudTrackList(playlists[which]) },
+            )
         }
     }
 
@@ -527,20 +536,26 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 Toast.makeText(this, "《${playlist.name}》没有可读曲目", Toast.LENGTH_LONG).show()
                 return@fetchPlaylistTracks
             }
-            val labels = tracks.mapIndexed { i, t ->
+            val items = tracks.mapIndexed { i, t ->
                 val artist = t.artists.ifBlank { "" }
-                "${i + 1}. ${t.name}${if (artist.isNotBlank()) " · $artist" else ""}"
-            }.toTypedArray()
-            AlertDialog.Builder(this)
-                .setTitle("《${playlist.name}》共 ${tracks.size} 首")
-                .setItems(labels) { _, which ->
+                CloudMusicPickerBottomSheet.PickerItem(
+                    id = t.id,
+                    title = t.name,
+                    subtitle = if (artist.isNotBlank()) "${i + 1}. $artist" else "${i + 1}. 未知艺术家",
+                    emoji = if (i % 2 == 0) "🎵" else "💿",
+                )
+            }
+            CloudMusicPickerBottomSheet.show(
+                fragmentManager = supportFragmentManager,
+                title = "《${playlist.name}》共 ${tracks.size} 首",
+                items = items,
+                onSelected = { which ->
                     cloudTracks = tracks
                     cloudPlaylistName = playlist.name
                     cloudIndex = which
                     playCloudTrack()
-                }
-                .setNegativeButton("取消", null)
-                .show()
+                },
+            )
         }
     }
 

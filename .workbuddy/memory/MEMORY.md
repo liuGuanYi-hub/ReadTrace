@@ -8,11 +8,23 @@
 - 每次发版同步产出项目根目录 `ReadTrace_<version>.apk`
 
 ## 打包命令
+- 构建前必须指定 JDK：`export JAVA_HOME="C:/Users/ZZD/.jdks/dragonwell-ex-21.0.9"`
+  （旧的 `F:/work/JDK/...` 路径已失效；本机 JDK 都在 `C:/Users/ZZD/.jdks` 下：dragonwell-ex-21.0.9 / ms-17.0.16 / corretto-1.8.0_472）
 - 本机 Gradle 并行构建会在 `D:\gradle-home\caches\...\transforms\<hash>.lock` 报「拒绝访问」，必须串行：
   ```
   ./gradlew :app:assembleRelease --max-workers=1
   ```
 - WorkBuddy 沙箱下构建会失败，需 `dangerouslyDisableSandbox` 执行
+- 产物路径 `app/build/outputs/apk/release/app-release.apk`，拷到项目根 `ReadTrace_<version>.apk`（*.apk 已被 .gitignore 忽略，不入库）
+
+## 本机 Android 环境
+- adb 不在 PATH：`F:/Android/sdk/platform-tools/adb.exe`（SDK 根目录见 `local.properties` = `F:\Android\sdk`）
+- 模拟器：`F:/Android/sdk/emulator/emulator.exe -avd Medium_Phone -gpu host -no-snapshot-load`
+
+## UI 验证方法（模型看不了截图）
+- 截图无法被模型读取，改用 `adb shell uiautomator dump /sdcard/ui.xml` + `adb pull` 后用 Python 解析 XML 的 `bounds`/`text`
+- 判断文本被截断：单行 TextView 高度只有 1 行，且估算文本宽度 > 可用宽度 ⇒ 被 `ellipsize` 切掉
+- 像素→dp 换算：用已知 dp 的控件反推 density（36dp 控件实测 95px ⇒ density ≈ 2.64）
 
 ## Git 推送凭据
 - 全局 `credential.helper` 指向的 WorkBuddy 便携版 GCM 会段错误，push 时临时覆盖：
