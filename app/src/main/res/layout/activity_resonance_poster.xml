@@ -38,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_status_chip"
+                android:background="@drawable/bg_dark_chip"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="7dp"
                 android:text="🔄 自选双星"
@@ -98,7 +98,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="选择海报艺术主题："
-            android:textColor="#9E988F"
+            android:textColor="#C5BCAD"
             android:textSize="12.5sp"
             android:textStyle="bold" />
 
@@ -129,11 +129,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_status_chip"
+                android:background="@drawable/bg_dark_chip"
                 android:gravity="center"
                 android:paddingVertical="8dp"
                 android:text="📜 宣纸"
-                android:textColor="@color/readtrace_ink"
+                android:textColor="#EAE2D5"
                 android:textSize="12sp" />
 
             <TextView
@@ -142,11 +142,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_status_chip"
+                android:background="@drawable/bg_dark_chip"
                 android:gravity="center"
                 android:paddingVertical="8dp"
                 android:text="⚡ 赛博"
-                android:textColor="@color/readtrace_ink"
+                android:textColor="#EAE2D5"
                 android:textSize="12sp" />
 
             <TextView
@@ -155,11 +155,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_status_chip"
+                android:background="@drawable/bg_dark_chip"
                 android:gravity="center"
                 android:paddingVertical="8dp"
                 android:text="🌅 晚霞"
-                android:textColor="@color/readtrace_ink"
+                android:textColor="#EAE2D5"
                 android:textSize="12sp" />
         </LinearLayout>
 

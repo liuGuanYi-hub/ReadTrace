@@ -1,6 +1,7 @@
 package com.example.readtrace.ui.fragment
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -129,8 +130,8 @@ class ConstellationFragment : Fragment() {
             filterResonance to (currentFilter == ConstellationFilter.CrossMediaResonance),
         )
         chips.forEach { (chip, isSelected) ->
-            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-            chip.setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
+            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+            chip.setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#D0D8E8"))
         }
     }
 

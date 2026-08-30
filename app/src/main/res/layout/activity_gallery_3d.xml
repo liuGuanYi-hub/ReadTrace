@@ -70,24 +70,26 @@
                 android:id="@+id/themeWarm"
                 style="@style/ReadTraceStatusChip"
                 android:layout_marginStart="6dp"
+                android:background="@drawable/bg_dark_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:text="@string/gallery_theme_warm"
-                android:textColor="#C8D6E5"
+                android:textColor="#E0E6ED"
                 android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/themeZen"
                 style="@style/ReadTraceStatusChip"
                 android:layout_marginStart="6dp"
+                android:background="@drawable/bg_dark_chip"
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:text="@string/gallery_theme_zen"
-                android:textColor="#C8D6E5"
+                android:textColor="#E0E6ED"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

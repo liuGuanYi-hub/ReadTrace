@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色页面通用选中状态胶囊：翠玉墨绿底 + 明亮高光描边 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#3A6348" />
+    <stroke
+        android:width="1.2dp"
+        android:color="#80A5D6A7" />
+    <corners android:radius="20dp" />
+</shape>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色页面输入框背景：暗色磨砂质感 + 高亮细微描边 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#24FFFFFF" />
+    <stroke
+        android:width="1.2dp"
+        android:color="#44FFFFFF" />
+    <corners android:radius="14dp" />
+</shape>

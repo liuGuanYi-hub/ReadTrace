@@ -121,11 +121,11 @@ class CulturalPassportActivity : AppCompatActivity() {
         currentTab = tab
         val isAnime = tab == MediaType.ANIME
 
-        tabPassportAnime.setBackgroundResource(if (isAnime) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-        tabPassportAnime.setTextColor(if (isAnime) Color.WHITE else Color.parseColor("#C5BCAD"))
+        tabPassportAnime.setBackgroundResource(if (isAnime) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+        tabPassportAnime.setTextColor(if (isAnime) Color.WHITE else Color.parseColor("#E0D8C8"))
 
-        tabPassportGame.setBackgroundResource(if (!isAnime) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-        tabPassportGame.setTextColor(if (!isAnime) Color.WHITE else Color.parseColor("#C5BCAD"))
+        tabPassportGame.setBackgroundResource(if (!isAnime) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+        tabPassportGame.setTextColor(if (!isAnime) Color.WHITE else Color.parseColor("#E0D8C8"))
 
         culturalPassportView.setTab(tab)
         passportScrollView.post {

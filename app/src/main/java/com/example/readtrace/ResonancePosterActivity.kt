@@ -172,8 +172,8 @@ class ResonancePosterActivity : AppCompatActivity() {
             tab.setOnClickListener {
                 themes.forEach { (t, th) ->
                     val isSelected = th == theme
-                    t.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-                    t.setTextColor(ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink))
+                    t.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+                    t.setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#EAE2D5"))
                 }
                 resonancePosterView.setTheme(theme)
             }

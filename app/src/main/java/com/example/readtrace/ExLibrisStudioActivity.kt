@@ -3,6 +3,7 @@ package com.example.readtrace
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -10,6 +11,7 @@ import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
@@ -81,18 +83,26 @@ class ExLibrisStudioActivity : AppCompatActivity() {
         com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnSwitch)
 
         // 主题滤镜切换
-        findViewById<Button>(R.id.btnThemeParchment).setOnClickListener {
+        val btnParchment = findViewById<TextView>(R.id.btnThemeParchment)
+        val btnMidnight = findViewById<TextView>(R.id.btnThemeMidnight)
+        val btnWoodcut = findViewById<TextView>(R.id.btnThemeWoodcut)
+
+        btnParchment?.setOnClickListener {
             SonicHapticMatrix.playParchmentRustle(this)
             exLibrisStampView.currentTheme = ExLibrisStampView.Theme.PARCHMENT
+            updateThemeButtonsUI()
         }
-        findViewById<Button>(R.id.btnThemeMidnight).setOnClickListener {
+        btnMidnight?.setOnClickListener {
             SonicHapticMatrix.playParchmentRustle(this)
             exLibrisStampView.currentTheme = ExLibrisStampView.Theme.MIDNIGHT
+            updateThemeButtonsUI()
         }
-        findViewById<Button>(R.id.btnThemeWoodcut).setOnClickListener {
+        btnWoodcut?.setOnClickListener {
             SonicHapticMatrix.playParchmentRustle(this)
             exLibrisStampView.currentTheme = ExLibrisStampView.Theme.WOODCUT
+            updateThemeButtonsUI()
         }
+        updateThemeButtonsUI()
 
         // 箴言即时编辑
         etCustomQuote.addTextChangedListener(object : TextWatcher {
@@ -152,6 +162,25 @@ class ExLibrisStudioActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "导出失败: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun updateThemeButtonsUI() {
+        val btnParchment = findViewById<TextView>(R.id.btnThemeParchment)
+        val btnMidnight = findViewById<TextView>(R.id.btnThemeMidnight)
+        val btnWoodcut = findViewById<TextView>(R.id.btnThemeWoodcut)
+        val current = exLibrisStampView.currentTheme
+
+        val isParchment = current == ExLibrisStampView.Theme.PARCHMENT
+        btnParchment?.setBackgroundResource(if (isParchment) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+        btnParchment?.setTextColor(if (isParchment) Color.WHITE else Color.parseColor("#FFE6AA"))
+
+        val isMidnight = current == ExLibrisStampView.Theme.MIDNIGHT
+        btnMidnight?.setBackgroundResource(if (isMidnight) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+        btnMidnight?.setTextColor(if (isMidnight) Color.WHITE else Color.parseColor("#4DEEEA"))
+
+        val isWoodcut = current == ExLibrisStampView.Theme.WOODCUT
+        btnWoodcut?.setBackgroundResource(if (isWoodcut) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+        btnWoodcut?.setTextColor(if (isWoodcut) Color.WHITE else Color.parseColor("#EAE2D5"))
     }
 
     companion object {

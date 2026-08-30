@@ -171,8 +171,8 @@ class MovieTicketPosterActivity : AppCompatActivity() {
                 text = theme.displayName
                 textSize = 13f
                 setPadding(dpToPx(12f), dpToPx(6f), dpToPx(12f), dpToPx(6f))
-                setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-                setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#C5BCAD"))
+                setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
+                setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#E0D8C8"))
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,

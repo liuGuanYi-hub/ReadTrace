@@ -68,11 +68,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_status_chip"
+            android:background="@drawable/bg_dark_chip"
             android:gravity="center"
             android:paddingVertical="8dp"
             android:text="🎮 游戏通关签证 (50+款)"
-            android:textColor="#C5BCAD"
+            android:textColor="#E0D8C8"
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>

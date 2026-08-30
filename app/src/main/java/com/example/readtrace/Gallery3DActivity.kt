@@ -2,6 +2,7 @@ package com.example.readtrace
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.view.View
@@ -179,10 +180,10 @@ class Gallery3DActivity : AppCompatActivity() {
         themeViews.forEach { (view, theme) ->
             val isCurrent = theme == selected
             view.setBackgroundResource(
-                if (isCurrent) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+                if (isCurrent) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip,
             )
             view.setTextColor(
-                ContextCompat.getColor(this, if (isCurrent) R.color.white else R.color.readtrace_muted),
+                if (isCurrent) Color.WHITE else Color.parseColor("#E0E6ED"),
             )
         }
     }
