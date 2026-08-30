@@ -89,6 +89,11 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
             exportAndShareScroll()
         }
 
+        timelineScrollView.onBookClickListener = { book ->
+            val intent = BookDetailActivity.createIntent(this, book.id)
+            startActivity(intent)
+        }
+
         setupMediaChips()
         updateChipSelectionUI()
         loadTimelineData()

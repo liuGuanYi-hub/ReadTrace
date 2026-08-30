@@ -7,12 +7,16 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.HapticFeedbackEngine
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 open class MediaTimelineScrollView @JvmOverloads constructor(
@@ -34,6 +38,20 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
     var groupedByYear: Map<String, List<Book>> = emptyMap()
         protected set
 
+    /** 封面位图内存缓存 */
+    private val coverBitmaps = ConcurrentHashMap<String, Bitmap>()
+
+    /** 点击与长按监听器 */
+    var onBookClickListener: ((Book) -> Unit)? = null
+    var onBookLongClickListener: ((Book) -> Unit)? = null
+
+    /** 点击检测热区记录 (RectF to Book) */
+    private val cardHitboxes = mutableListOf<Pair<RectF, Book>>()
+    private var downX = 0f
+    private var downY = 0f
+    private var downTime = 0L
+    private val touchSlop = 20f
+
     // 绘制画笔
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -42,6 +60,7 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
     private val quotePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val titlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val metaPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
     companion object {
         /** 标题字号相对画布宽度的比例 */
@@ -50,29 +69,27 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         /** meta / 短评字号相对画布宽度的比例 */
         private const val BODY_TEXT_RATIO = 0.022f
 
-        /** 无短评时卡片的基础高度 */
-        private const val BASE_CARD_HEIGHT = 100f
+        /** 封面宽度相对卡片宽度的比例（约 18% ~ 22%） */
+        private const val COVER_WIDTH_RATIO = 0.18f
 
-        /** meta 区顶部相对卡片顶部的偏移 */
-        private const val META_TOP_OFFSET = 50f
+        /** 封面标准 2:3 高宽比 */
+        private const val COVER_ASPECT_RATIO = 1.48f
 
-        /** 短评区顶部相对卡片顶部的偏移 */
-        private const val QUOTE_TOP_OFFSET = 80f
+        /** 卡片内边距 */
+        private const val CARD_PAD_X = 14f
+        private const val CARD_PAD_Y = 14f
 
-        /** 卡片底部内边距（短评下沿到卡片底） */
-        private const val QUOTE_BOTTOM_PADDING = 12f
-
-        /** 短评最多显示的行数，超出截断加省略号 */
-        private const val QUOTE_MAX_LINES = 3
+        /** 封面与右侧文本的间距 */
+        private const val COVER_TEXT_GAP = 16f
 
         /** 卡片之间的垂直间距 */
-        private const val CARD_GAP = 12f
-
-        /** 标题区顶部相对卡片顶部的偏移（StaticLayout 绘制原点） */
-        private const val TITLE_TOP_OFFSET = 6f
+        private const val CARD_GAP = 14f
 
         /** 标题最多显示的行数，超出截断加省略号 */
         private const val TITLE_MAX_LINES = 2
+
+        /** 短评最多显示的行数，超出截断加省略号 */
+        private const val QUOTE_MAX_LINES = 2
 
         /** StaticLayout 行间距附加值（标题/meta/短评） */
         private const val TITLE_LINE_SPACING = 3f
@@ -93,6 +110,19 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
             list.filter { it.mediaType == mediaType }
         } else {
             list
+        }
+
+        // 异步预加载所有封面图片
+        bookList.forEach { book ->
+            val url = book.coverUrl?.trim().orEmpty()
+            if (url.isNotBlank() && !coverBitmaps.containsKey(url)) {
+                CoverImageHelper.loadCoverBitmap(context, url, 200, 300) { bmp ->
+                    if (bmp != null) {
+                        coverBitmaps[url] = bmp
+                        postInvalidate()
+                    }
+                }
+            }
         }
 
         val groups = LinkedHashMap<String, MutableList<Book>>()
@@ -181,16 +211,32 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         return null
     }
 
-    /** 短评金句在卡片内的最大可绘宽度（右侧预留评分标签区域） */
-    private fun quoteMaxWidth(canvasWidth: Float): Float =
-        (canvasWidth - 45f) - (90f + 24f) - 18f - 130f
+    private fun getCoverDimensions(cardWidth: Float): Pair<Float, Float> {
+        val coverW = (cardWidth * COVER_WIDTH_RATIO).coerceIn(60f, 160f)
+        val coverH = coverW * COVER_ASPECT_RATIO
+        return coverW to coverH
+    }
 
-    /** 标题在卡片内的最大可绘宽度（右侧同样预留评分标签区域） */
-    private fun titleMaxWidth(canvasWidth: Float): Float = quoteMaxWidth(canvasWidth)
+    private fun rightContentMaxWidth(canvasWidth: Float): Float {
+        val axisX = 90f
+        val cardLeft = axisX + 24f
+        val cardRight = canvasWidth - 45f
+        val cardWidth = cardRight - cardLeft
+        val (coverW, _) = getCoverDimensions(cardWidth)
+        return (cardWidth - CARD_PAD_X * 2f - coverW - COVER_TEXT_GAP).coerceAtLeast(80f)
+    }
 
-    /** meta 行最大可绘宽度（与评分标签不同水平区，仅减去左右内边距） */
-    private fun metaMaxWidth(canvasWidth: Float): Float =
-        (canvasWidth - 45f) - (90f + 24f) - 18f - 18f
+    /** 标题在卡片内的最大可绘宽度（右侧预留评分标签区域） */
+    private fun titleMaxWidth(canvasWidth: Float): Float {
+        val contentW = rightContentMaxWidth(canvasWidth)
+        return (contentW - 90f).coerceAtLeast(60f)
+    }
+
+    /** meta 行最大可绘宽度 */
+    private fun metaMaxWidth(canvasWidth: Float): Float = rightContentMaxWidth(canvasWidth)
+
+    /** 短评金句在卡片内的最大可绘宽度 */
+    private fun quoteMaxWidth(canvasWidth: Float): Float = rightContentMaxWidth(canvasWidth)
 
     /**
      * 为某部作品构建短评金句的多行 [StaticLayout]。
@@ -273,27 +319,29 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         val titleLayout: StaticLayout,
         val metaLayout: StaticLayout,
         val quoteLayout: StaticLayout?,
-        val metaTop: Float,
-        val quoteTop: Float,
+        val coverWidth: Float,
+        val coverHeight: Float,
         val height: Float,
     )
 
     private fun cardLayoutFor(book: Book, canvasWidth: Float): CardLayout {
+        val axisX = 90f
+        val cardLeft = axisX + 24f
+        val cardRight = canvasWidth - 45f
+        val cardWidth = cardRight - cardLeft
+        val (coverW, coverH) = getCoverDimensions(cardWidth)
+
         val titleLayout = titleLayoutFor(book, canvasWidth)
         val metaLayout = metaLayoutFor(book, canvasWidth)
         val quoteLayout = quoteLayoutFor(book, canvasWidth)
 
-        val singleTitleHeight = titlePaint.fontSpacing + TITLE_LINE_SPACING
-        val extraTitleHeight = max(0f, titleLayout.height - singleTitleHeight)
-
-        val metaTop = META_TOP_OFFSET + extraTitleHeight
-        val quoteTop = QUOTE_TOP_OFFSET + extraTitleHeight
-        val height = if (quoteLayout != null) {
-            quoteTop + quoteLayout.height + QUOTE_BOTTOM_PADDING
-        } else {
-            BASE_CARD_HEIGHT + extraTitleHeight
+        var textContentH = titleLayout.height + 4f + metaLayout.height
+        if (quoteLayout != null) {
+            textContentH += 6f + quoteLayout.height
         }
-        return CardLayout(titleLayout, metaLayout, quoteLayout, metaTop, quoteTop, height)
+
+        val height = max(coverH, textContentH) + CARD_PAD_Y * 2f
+        return CardLayout(titleLayout, metaLayout, quoteLayout, coverW, coverH, height)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -460,6 +508,7 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         // 3. 中轴时光线与各年份作品卡片
         val axisX = 90f
         var currentY = 270f
+        cardHitboxes.clear()
 
         groupedByYear.forEach { (year, books) ->
             // 年份标题与发光时间节点
@@ -487,42 +536,81 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
                 val cardHeight = cardLayout.height
                 val cardBottom = cardTop + cardHeight
 
-                // 卡片底色
+                // 记录点击热区
+                cardHitboxes.add(RectF(cardLeft, cardTop, cardRight, cardBottom) to book)
+
+                // 1. 卡片底色
                 cardPaint.style = Paint.Style.FILL
                 cardPaint.color = if (dark) Color.parseColor("#221D1A") else Color.parseColor("#FFFFFF")
                 cardPaint.alpha = if (dark) 220 else 240
                 canvas.drawRoundRect(RectF(cardLeft, cardTop, cardRight, cardBottom), 14f, 14f, cardPaint)
 
-                // 卡片微边框
+                // 2. 卡片微边框
                 cardPaint.style = Paint.Style.STROKE
                 cardPaint.strokeWidth = 1.2f
                 cardPaint.color = if (dark) Color.parseColor("#3D342E") else Color.parseColor("#E8E2D9")
                 canvas.drawRoundRect(RectF(cardLeft, cardTop, cardRight, cardBottom), 14f, 14f, cardPaint)
 
+                // 3. 左侧封面绘制
+                val coverLeft = cardLeft + CARD_PAD_X
+                val coverTop = cardTop + CARD_PAD_Y
+                val coverRight = coverLeft + cardLayout.coverWidth
+                val coverBottom = coverTop + cardLayout.coverHeight
+                val coverRect = RectF(coverLeft, coverTop, coverRight, coverBottom)
+
+                val bmp = book.coverUrl?.trim()?.let { coverBitmaps[it] }
+                if (bmp != null && !bmp.isRecycled) {
+                    val roundPath = Path().apply {
+                        addRoundRect(coverRect, 8f, 8f, Path.Direction.CW)
+                    }
+                    canvas.save()
+                    canvas.clipPath(roundPath)
+                    val srcRect = Rect(0, 0, bmp.width, bmp.height)
+                    canvas.drawBitmap(bmp, srcRect, coverRect, imagePaint)
+                    canvas.restore()
+
+                    // 封面微金边
+                    cardPaint.style = Paint.Style.STROKE
+                    cardPaint.strokeWidth = 1f
+                    cardPaint.color = if (dark) Color.parseColor("#443830") else Color.parseColor("#DDD4C7")
+                    canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
+                } else {
+                    // 优雅古风占位底色
+                    cardPaint.style = Paint.Style.FILL
+                    cardPaint.color = if (dark) Color.parseColor("#2A2420") else Color.parseColor("#EFECE6")
+                    canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
+
+                    cardPaint.style = Paint.Style.STROKE
+                    cardPaint.strokeWidth = 1f
+                    cardPaint.color = if (dark) Color.parseColor("#443830") else Color.parseColor("#DDD4C7")
+                    canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
+
+                    // 居中绘制媒介 Emoji 与前两个字
+                    textPaint.textAlign = Paint.Align.CENTER
+                    textPaint.isFakeBoldText = false
+                    textPaint.textSize = cardLayout.coverWidth * 0.34f
+                    canvas.drawText(book.mediaType.emoji, coverRect.centerX(), coverRect.centerY() - 4f, textPaint)
+
+                    textPaint.textSize = cardLayout.coverWidth * 0.20f
+                    textPaint.color = secondaryText
+                    val shortTitle = book.title.take(2)
+                    canvas.drawText(shortTitle, coverRect.centerX(), coverRect.centerY() + cardLayout.coverWidth * 0.28f, textPaint)
+                }
+
+                // 4. 右侧内容区绘制
+                val textLeft = coverRight + COVER_TEXT_GAP
+                var textY = cardTop + CARD_PAD_Y
+
                 // 标题（StaticLayout 多行自动换行，最多 2 行）
                 titlePaint.color = primaryText
                 canvas.save()
-                canvas.translate(cardLeft + 18f, cardTop + TITLE_TOP_OFFSET)
+                canvas.translate(textLeft, textY)
                 cardLayout.titleLayout.draw(canvas)
                 canvas.restore()
 
-                // 作者与分类（单行 StaticLayout，超宽自动省略号）
-                metaPaint.color = secondaryText
-                canvas.save()
-                canvas.translate(cardLeft + 18f, cardTop + cardLayout.metaTop)
-                cardLayout.metaLayout.draw(canvas)
-                canvas.restore()
+                textY += cardLayout.titleLayout.height + 4f
 
-                // 短评金句（StaticLayout 多行自动换行，最多 3 行）
-                cardLayout.quoteLayout?.let { layout ->
-                    quotePaint.color = if (dark) Color.parseColor("#C8B8A6") else Color.parseColor("#5A4E45")
-                    canvas.save()
-                    canvas.translate(cardLeft + 18f, cardTop + cardLayout.quoteTop)
-                    layout.draw(canvas)
-                    canvas.restore()
-                }
-
-                // 状态标签或评分
+                // 状态标签或评分小徽章（位于标题行右侧顶端）
                 val (badgeText, badgeColor) = when (book.status) {
                     BookStatus.FINISHED -> {
                         val ratingStr = book.rating?.let { "★ ${it / 2.0}" } ?: when (book.mediaType) {
@@ -557,7 +645,25 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
                     BookStatus.PAUSED -> "⏸️ 搁置" to secondaryText
                     BookStatus.DROPPED -> "✖️ 弃置" to secondaryText
                 }
-                drawSmallTag(canvas, cardRight - 85f, cardTop + 28f, badgeText, badgeColor, dark)
+                drawSmallTag(canvas, cardRight - 55f, cardTop + CARD_PAD_Y + 12f, badgeText, badgeColor, dark)
+
+                // 作者与分类（单行 StaticLayout，超宽自动省略号）
+                metaPaint.color = secondaryText
+                canvas.save()
+                canvas.translate(textLeft, textY)
+                cardLayout.metaLayout.draw(canvas)
+                canvas.restore()
+
+                textY += cardLayout.metaLayout.height + 6f
+
+                // 短评金句（StaticLayout 多行自动换行，最多 2 行）
+                cardLayout.quoteLayout?.let { layout ->
+                    quotePaint.color = if (dark) Color.parseColor("#C8B8A6") else Color.parseColor("#5A4E45")
+                    canvas.save()
+                    canvas.translate(textLeft, textY)
+                    layout.draw(canvas)
+                    canvas.restore()
+                }
 
                 currentY += cardHeight + CARD_GAP
             }
@@ -588,6 +694,37 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
 
         // 底部居中印章
         drawChinatownSeal(canvas, canvasWidth / 2f - 28f, currentY + 20f, bottomSeal1, bottomSeal2)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.x
+                downY = event.y
+                downTime = System.currentTimeMillis()
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                val dx = Math.abs(event.x - downX)
+                val dy = Math.abs(event.y - downY)
+                val dt = System.currentTimeMillis() - downTime
+                if (dx < touchSlop && dy < touchSlop && dt < 450) {
+                    val clicked = cardHitboxes.firstOrNull { it.first.contains(event.x, event.y) }
+                    if (clicked != null) {
+                        performClick()
+                        HapticFeedbackEngine.lightClick(context)
+                        onBookClickListener?.invoke(clicked.second)
+                        return true
+                    }
+                }
+            }
+        }
+        return super.onTouchEvent(event)
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 
     private data class HexaTheme(
