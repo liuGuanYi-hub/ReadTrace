@@ -59,10 +59,7 @@ class ResonancePosterActivity : AppCompatActivity() {
 
         initViews()
         loadData()
-
-        val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
-        gyroscopeHelper.bind3DParallax(resonancePosterView, maxRotation = 10f, maxTranslation = 14f)
-        gyroscopeHelper.bindLifecycle(lifecycle)
+        // 已移除陀螺仪 3D 视差：倾斜手机时票券会被平移/旋转，顶部露出深色底，被误认为空白（导出图不受影响）
     }
 
     private fun initViews() {
@@ -70,7 +67,6 @@ class ResonancePosterActivity : AppCompatActivity() {
         resonancePosterView.setOnClickListener {
             com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
             com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
-            com.example.readtrace.util.ConfettiBurstHelper.burstCenter(this)
         }
 
         FloatingBack.install(this)
@@ -223,7 +219,7 @@ class ResonancePosterActivity : AppCompatActivity() {
     private fun savePosterToGallery() {
         runCatching {
             Toast.makeText(this, "正在保存 1080P 超清微卡至相册...", Toast.LENGTH_SHORT).show()
-            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 2480)
+            val bitmap = resonancePosterView.exportUltraHdBitmap()
             val filename = "ReadTrace_TwinResonance_${System.currentTimeMillis()}.png"
             val resolver = contentResolver
 
@@ -260,7 +256,7 @@ class ResonancePosterActivity : AppCompatActivity() {
     private fun exportAndSharePoster() {
         runCatching {
             Toast.makeText(this, "正在生成 1080P 双生共鸣超清微卡...", Toast.LENGTH_SHORT).show()
-            val bitmap = resonancePosterView.exportUltraHdBitmap(1080, 2480)
+            val bitmap = resonancePosterView.exportUltraHdBitmap()
             val cacheFile = File(cacheDir, "readtrace_twin_resonance_${System.currentTimeMillis()}.png")
             FileOutputStream(cacheFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
