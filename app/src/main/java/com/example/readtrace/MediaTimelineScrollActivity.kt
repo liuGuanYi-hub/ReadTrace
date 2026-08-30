@@ -94,6 +94,15 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         loadTimelineData()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val newMediaVal = intent.getStringExtra(EXTRA_MEDIA_TYPE)
+        selectedMediaType = newMediaVal?.let { MediaType.fromDatabaseValue(it) }
+        updateChipSelectionUI()
+        loadTimelineData()
+    }
+
     private fun setupMediaChips() {
         chipAll.setOnClickListener { selectMediaType(null) }
         chipBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
