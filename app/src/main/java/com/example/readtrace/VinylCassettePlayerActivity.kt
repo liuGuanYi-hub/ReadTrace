@@ -16,11 +16,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -305,6 +308,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             triggerHapticClick()
             openInNeteaseMusic()
         }
+        // 长按绑定网易云会员 Cookie：VIP 曲目可直接取完整直链持续播放
+        btnOpenNetease.setOnLongClickListener {
+            triggerHapticClick()
+            showVipBindingDialog()
+            true
+        }
 
         // 进度拖动
         playerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -421,13 +430,13 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (autoPlay) startPlaybackOfCurrentWork(0)
     }
 
-    /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底） */
+    /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底；绑定会员 Cookie 后 VIP 曲可完整播放） */
     private fun fetchNeteasePreview(work: Book) {
         if (isFetchingPreview) return
         isFetchingPreview = true
-        tvPlayPauseLabel.text = "⏳ 联网取试听中..."
+        tvPlayPauseLabel.text = "⏳ 取曲中..."
         Toast.makeText(this, "正在为《${work.title}》联网检索试听片段...", Toast.LENGTH_SHORT).show()
-        com.example.readtrace.util.NeteasePreviewHelper.fetchPlayablePreview(work.title, work.author) { result ->
+        com.example.readtrace.util.NeteasePreviewHelper.fetchPlayablePreview(this, work.title, work.author) { result ->
             isFetchingPreview = false
             if (isDestroyed) return@fetchPlayablePreview
             if (result == null) {
@@ -438,7 +447,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 return@fetchPlayablePreview
             }
             val order = databaseHelper.getAudioTracks(work.id).size
-            val suffix = if (result.isVip) "30s VIP 试听" else "15s 试听"
+            val suffix = when {
+                result.isFullSong -> "完整播放"
+                result.isVip -> "30s VIP 试听"
+                else -> "15s 试听"
+            }
             databaseHelper.insertAudioTrack(
                 com.example.readtrace.model.AudioTrackItem(
                     bookId = work.id,
@@ -450,6 +463,42 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             currentAudioTracks = databaseHelper.getAudioTracks(work.id)
             playAudioAt(currentAudioTracks.lastIndex)
         }
+    }
+
+    /**
+     * 长按「去网易云播放」：绑定/解除网易云会员 Cookie（MUSIC_U）。
+     * 绑定后会员曲目可直接取完整直链持续播放；Cookie 仅存应用私有目录，不上传不落日志。
+     */
+    private fun showVipBindingDialog() {
+        val helper = com.example.readtrace.util.NeteasePreviewHelper
+        val current = helper.getMusicUCookie(this)
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setText(current)
+            hint = "粘贴 MUSIC_U 的值"
+            setSingleLine(true)
+        }
+        val bound = !current.isNullOrBlank()
+        AlertDialog.Builder(this)
+            .setTitle(if (bound) "🎵 会员已绑定（长按管理）" else "🎵 绑定网易云会员")
+            .setMessage(
+                "电脑浏览器登录 music.163.com → F12 打开开发者工具 → Application → Cookies → "
+                    + "复制 MUSIC_U 的值粘贴到下面。\n绑定后 VIP 曲目可直接完整播放，不再限 15s/30s 试听。\n"
+                    + "Cookie 只保存在本机应用私有目录，不会上传或写日志。\n清空内容点保存即解除绑定。"
+            )
+            .setView(input)
+            .setPositiveButton("保存") { _, _ ->
+                val value = input.text.toString().trim()
+                if (value.isEmpty()) {
+                    helper.setMusicUCookie(this, null)
+                    Toast.makeText(this, "已解除会员绑定", Toast.LENGTH_SHORT).show()
+                } else {
+                    helper.setMusicUCookie(this, value)
+                    Toast.makeText(this, "会员绑定成功，VIP 曲目将完整播放 🎧", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
 
     /** 曲目是否为在线试听（外链带时间戳，失效后应删除重取） */
