@@ -260,19 +260,38 @@
             </LinearLayout>
 
             <!-- 外部真实播放跳转：拉起网易云音乐搜索当前曲目 -->
-            <TextView
-                android:id="@+id/btnOpenNetease"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_gravity="center_horizontal"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/bg_player_chip"
                 android:gravity="center"
-                android:paddingHorizontal="16dp"
-                android:text="☁️ 去网易云播放"
-                android:textColor="#4DEEEA"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnCloudPlaylist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_player_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:text="☁️ 我的歌单"
+                    android:textColor="#4DEEEA"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnOpenNetease"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_player_chip"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:text="🔍 去网易云搜索"
+                    android:textColor="#4DEEEA"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

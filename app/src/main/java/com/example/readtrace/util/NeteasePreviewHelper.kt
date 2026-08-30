@@ -34,10 +34,21 @@ object NeteasePreviewHelper {
 
     private data class Candidate(val id: Long, val name: String, val artists: String, val album: String)
 
+    /** 用户歌单摘要 */
+    data class UserPlaylist(val id: Long, val name: String, val trackCount: Int)
+
+    /** 歌单内曲目（未取链，播放时再按 id 取直链，避免链接过期） */
+    data class PlaylistTrack(val id: Long, val name: String, val artists: String, val album: String)
+
     private const val SEARCH_URL = "https://music.163.com/api/cloudsearch/pc"
     private const val PLAYER_URL_API = "https://music.163.com/api/song/enhance/player/url"
     private const val KG_SEARCH_URL = "http://mobilecdn.kugou.com/api/v3/search/song"
     private const val KG_PLAY_INFO_URL = "http://m.kugou.com/app/i/getSongInfo.php"
+    private const val ACCOUNT_URL = "https://music.163.com/api/nuser/account/get"
+    private const val USER_PLAYLIST_URL = "https://music.163.com/api/user/playlist"
+    /** 歌单详情必须带 s=8，否则「我喜欢的音乐」这类 specialType=5 的歌单返回空曲目 */
+    private const val PLAYLIST_DETAIL_URL = "https://music.163.com/api/playlist/detail"
+    private const val PLAYLIST_DETAIL_SUFFIX = "&s=8"
     private const val UA =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
     private const val PREFS_NAME = "readtrace_player_prefs"
@@ -69,6 +80,100 @@ object NeteasePreviewHelper {
         Regex("MUSIC_U[=: ]+([A-Za-z0-9]{16,})").find(text)?.let { return it.groupValues[1] }
         // 无键名的整段文本：取最长的纯字母数字连续段兜底
         return Regex("[A-Za-z0-9]{16,}").findAll(text).maxByOrNull { it.value.length }?.value
+    }
+
+    // ---------------------------------------------------------------- 用户歌单（需会员 Cookie）
+
+    /** 是否已绑定会员 Cookie */
+    fun isBound(context: Context?): Boolean = getMusicUCookie(context) != null
+
+    /**
+     * 拉取当前登录用户的**自创歌单**（「我喜欢的音乐」置顶，排除年度歌单等系统生成歌单）。
+     * 未绑定 Cookie / 接口异常时返回 null。
+     */
+    fun fetchUserPlaylists(context: Context, onResult: (List<UserPlaylist>?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        val musicU = getMusicUCookie(context) ?: run {
+            handler.post { onResult(null) }
+            return
+        }
+        Thread {
+            val result = runCatching {
+                val uid = fetchAccountUid(musicU) ?: return@runCatching null
+                val url = "$USER_PLAYLIST_URL?uid=$uid&limit=200"
+                val json = JSONObject(readUtf8(httpGet(url, referer = "https://music.163.com/", musicU = musicU)))
+                if (json.optInt("code") != 200) return@runCatching null
+                val arr = json.optJSONArray("playlist") ?: return@runCatching null
+                (0 until arr.length()).mapNotNull { i ->
+                    val p = arr.optJSONObject(i) ?: return@mapNotNull null
+                    val creatorId = p.optJSONObject("creator")?.optLong("userId") ?: -1L
+                    // 只保留自创歌单，排除年度歌单（specialType=20）等系统生成内容
+                    if (creatorId != uid || p.optInt("specialType") == 20) return@mapNotNull null
+                    UserPlaylist(
+                        id = p.optLong("id"),
+                        name = p.optString("name"),
+                        trackCount = p.optInt("trackCount"),
+                    )
+                }.sortedByDescending { it.name.contains("喜欢的音乐") }
+            }.getOrNull()
+            handler.post { onResult(result) }
+        }.start()
+    }
+
+    /** 拉取指定歌单的曲目列表（接口单次上限 1000 首）；直链在播放时按 id 现取，避免过期 */
+    fun fetchPlaylistTracks(context: Context, playlistId: Long, onResult: (List<PlaylistTrack>?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        val musicU = getMusicUCookie(context) ?: run {
+            handler.post { onResult(null) }
+            return
+        }
+        Thread {
+            val result = runCatching {
+                val url = "$PLAYLIST_DETAIL_URL?id=$playlistId$PLAYLIST_DETAIL_SUFFIX"
+                val json = JSONObject(readUtf8(httpGet(url, referer = "https://music.163.com/", musicU = musicU)))
+                if (json.optInt("code") != 200) return@runCatching null
+                val tracks = json.optJSONObject("result")?.optJSONArray("tracks") ?: return@runCatching null
+                (0 until tracks.length()).mapNotNull { i ->
+                    val t = tracks.optJSONObject(i) ?: return@mapNotNull null
+                    val id = t.optLong("id")
+                    if (id <= 0) return@mapNotNull null
+                    val artists = t.optJSONArray("artists")?.let { ar ->
+                        (0 until ar.length()).mapNotNull { j ->
+                            ar.optJSONObject(j)?.optString("name")?.takeIf { it.isNotBlank() }
+                        }.joinToString("/")
+                    } ?: ""
+                    PlaylistTrack(id, t.optString("name"), artists, t.optJSONObject("album")?.optString("name") ?: "")
+                }
+            }.getOrNull()
+            handler.post { onResult(result) }
+        }.start()
+    }
+
+    /** 按曲目 id 取可播放直链（会员 Cookie 下为完整曲目） */
+    fun fetchTrackStreamUrl(context: Context, track: PlaylistTrack, onResult: (String?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        val musicU = getMusicUCookie(context) ?: run {
+            handler.post { onResult(null) }
+            return
+        }
+        Thread {
+            val url = runCatching {
+                resolveNeteaseUrls(
+                    listOf(Candidate(track.id, track.name, track.artists, track.album)),
+                    track.name,
+                    musicU,
+                )?.streamUrl
+            }.getOrNull()
+            handler.post { onResult(url) }
+        }.start()
+    }
+
+    /** 取当前登录用户 uid */
+    private fun fetchAccountUid(musicU: String): Long? {
+        val json = JSONObject(readUtf8(httpGet(ACCOUNT_URL, referer = "https://music.163.com/", musicU = musicU)))
+        if (json.optInt("code") != 200) return null
+        return (json.optJSONObject("account")?.optLong("id")
+            ?: json.optJSONObject("profile")?.optLong("userId"))?.takeIf { it > 0 }
     }
 
     /**

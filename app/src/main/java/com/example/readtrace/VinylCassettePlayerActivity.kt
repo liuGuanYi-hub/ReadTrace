@@ -76,6 +76,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var btnSpeedToggle: TextView
     private lateinit var btnAmbientSound: TextView
     private lateinit var btnOpenNetease: TextView
+    private lateinit var btnCloudPlaylist: TextView
+
+    // 网易云我的歌单播放态（有值时上一曲/下一曲/连播都在歌单内进行）
+    private var cloudTracks: List<com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack> = emptyList()
+    private var cloudIndex = -1
+    private var cloudPlaylistName: String? = null
 
     // 传感器
     private var sensorManager: SensorManager? = null
@@ -166,6 +172,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
         btnAmbientSound = findViewById(R.id.btnAmbientSound)
         btnOpenNetease = findViewById(R.id.btnOpenNetease)
+        btnCloudPlaylist = findViewById(R.id.btnCloudPlaylist)
 
 
         FloatingBack.install(this)
@@ -274,6 +281,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         // 上一曲 / 下一曲：切到新作品时立即释放旧音源，避免继续播放上一首
         btnPrevTrack.setOnClickListener {
             triggerHapticClick()
+            // 云歌单模式：在歌单内前后切歌
+            if (cloudTracks.isNotEmpty()) {
+                cloudIndex = if (cloudIndex - 1 < 0) cloudTracks.size - 1 else cloudIndex - 1
+                playCloudTrack()
+                return@setOnClickListener
+            }
             currentIndex = if (currentIndex - 1 < 0) playlist.size - 1 else currentIndex - 1
             renderCurrentTrack()
             switchWork(isPlaying)
@@ -281,6 +294,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
         btnNextTrack.setOnClickListener {
             triggerHapticClick()
+            if (cloudTracks.isNotEmpty()) {
+                cloudIndex = (cloudIndex + 1) % cloudTracks.size
+                playCloudTrack()
+                return@setOnClickListener
+            }
             currentIndex = (currentIndex + 1) % playlist.size
             renderCurrentTrack()
             switchWork(isPlaying)
@@ -301,6 +319,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             val ambient = ambientModes[currentAmbientIndex]
             btnAmbientSound.text = ambient
             Toast.makeText(this, "伴随声场：$ambient", Toast.LENGTH_SHORT).show()
+        }
+
+        // 我的歌单：绑定会员 Cookie 后直接播自己歌单里的完整曲目
+        btnCloudPlaylist.setOnClickListener {
+            triggerHapticClick()
+            showCloudPlaylistPicker()
         }
 
         // 外部真实播放：拉起网易云音乐搜索当前曲目（无版权音频内置，跳转外部播放）
@@ -392,6 +416,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 true
             }
             setPlayingUi(isPlaying)
+        } else if (cloudTracks.isNotEmpty()) {
+            // 云歌单模式尚未加载音源（或取链失败后重试）
+            isPlaying = true
+            playCloudTrack()
         } else {
             // 尚未加载音频：加载当前作品曲目（无曲目时自动联网取试听）
             isPlaying = true
@@ -462,6 +490,128 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             )
             currentAudioTracks = databaseHelper.getAudioTracks(work.id)
             playAudioAt(currentAudioTracks.lastIndex)
+        }
+    }
+
+    // ------------------------------------------------------------ 网易云「我的歌单」播放
+
+    /** 选择自创歌单 → 选择曲目 → 在唱机内完整播放，支持上一曲/下一曲与自动连播 */
+    private fun showCloudPlaylistPicker() {
+        val helper = com.example.readtrace.util.NeteasePreviewHelper
+        if (!helper.isBound(this)) {
+            Toast.makeText(this, "请先绑定网易云会员 Cookie（长按右侧搜索键）", Toast.LENGTH_LONG).show()
+            showVipBindingDialog()
+            return
+        }
+        Toast.makeText(this, "正在载入我的歌单...", Toast.LENGTH_SHORT).show()
+        helper.fetchUserPlaylists(this) { playlists ->
+            if (isDestroyed) return@fetchUserPlaylists
+            if (playlists.isNullOrEmpty()) {
+                Toast.makeText(this, "未读到自创歌单，请确认 Cookie 有效或已重新登录", Toast.LENGTH_LONG).show()
+                return@fetchUserPlaylists
+            }
+            val labels = playlists.map { "${it.name} · ${it.trackCount} 首" }.toTypedArray()
+            AlertDialog.Builder(this)
+                .setTitle("☁️ 我的歌单（${playlists.size}）")
+                .setItems(labels) { _, which -> loadCloudTrackList(playlists[which]) }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+    }
+
+    private fun loadCloudTrackList(playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist) {
+        Toast.makeText(this, "正在载入《${playlist.name}》...", Toast.LENGTH_SHORT).show()
+        com.example.readtrace.util.NeteasePreviewHelper.fetchPlaylistTracks(this, playlist.id) { tracks ->
+            if (isDestroyed) return@fetchPlaylistTracks
+            if (tracks.isNullOrEmpty()) {
+                Toast.makeText(this, "《${playlist.name}》没有可读曲目", Toast.LENGTH_LONG).show()
+                return@fetchPlaylistTracks
+            }
+            val labels = tracks.mapIndexed { i, t ->
+                val artist = t.artists.ifBlank { "" }
+                "${i + 1}. ${t.name}${if (artist.isNotBlank()) " · $artist" else ""}"
+            }.toTypedArray()
+            AlertDialog.Builder(this)
+                .setTitle("《${playlist.name}》共 ${tracks.size} 首")
+                .setItems(labels) { _, which ->
+                    cloudTracks = tracks
+                    cloudPlaylistName = playlist.name
+                    cloudIndex = which
+                    playCloudTrack()
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+    }
+
+    /** 播放当前云歌单曲目（直链现取现用，避免过期） */
+    private fun playCloudTrack() {
+        val track = cloudTracks.getOrNull(cloudIndex)
+        if (track == null) {
+            Toast.makeText(this, "歌单曲目已失效，请重新选择", Toast.LENGTH_SHORT).show()
+            return
+        }
+        releaseMediaPlayer()
+        tvPlayPauseLabel.text = "⏳ 取曲中..."
+        tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}"
+        com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
+            if (isDestroyed) return@fetchTrackStreamUrl
+            if (url.isNullOrBlank()) {
+                Toast.makeText(this, "《${track.name}》暂无可播放源", Toast.LENGTH_SHORT).show()
+                tvPlayPauseLabel.text = "▶ 开始放唱"
+                setPlayingUi(false)
+                return@fetchTrackStreamUrl
+            }
+            playCloudUrl(url, track)
+        }
+    }
+
+    private fun playCloudUrl(url: String, track: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack) {
+        if (!requestAudioFocus()) {
+            Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
+        }
+        mediaPlayer = MediaPlayer().apply {
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build(),
+            )
+            setDataSource(url)
+            setOnPreparedListener { mp ->
+                totalSecondsMs = mp.duration.toLong()
+                updatePlaybackProgress()
+                if (isPlaying) {
+                    mp.start()
+                    setPlayingUi(true)
+                    handler.post(playRunnable)
+                } else {
+                    setPlayingUi(false)
+                }
+            }
+            setOnCompletionListener {
+                // 云歌单内自动连播下一首
+                if (cloudTracks.isNotEmpty()) {
+                    cloudIndex = (cloudIndex + 1) % cloudTracks.size
+                    playCloudTrack()
+                } else {
+                    playNextAuto()
+                }
+            }
+            setOnErrorListener { _, what, extra ->
+                Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)", Toast.LENGTH_LONG).show()
+                true
+            }
+            prepareAsync()
+        }
+        isPlaying = true
+        tvPlayPauseLabel.text = "⏳ 缓冲中..."
+        val artist = track.artists.ifBlank { "" }
+        tvTrackArtistInfo.text =
+            "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}${if (artist.isNotBlank()) " · $artist" else ""}"
+        val plName = cloudPlaylistName
+        if (!plName.isNullOrBlank()) {
+            tvPlayerSubtitle.text = "☁️ $plName · Hi-Res 模拟声场"
         }
     }
 
