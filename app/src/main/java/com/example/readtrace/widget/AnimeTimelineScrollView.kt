@@ -77,20 +77,43 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         private const val BODY_LINE_SPACING = 2f
     }
 
+    private val yearRegex = Regex("""\b(19\d{2}|20\d{2}|21\d{2})\b""")
+    private val yearWithSuffixRegex = Regex("""(19\d{2}|20\d{2}|21\d{2})年""")
+
+    fun getAnimeList(): List<Book> = animeList
+
     fun setAnimeData(list: List<Book>) {
         this.animeList = list.filter { it.mediaType == MediaType.ANIME }
-        
-        // 按照年份或状态进行结构化分组
+
         val groups = LinkedHashMap<String, MutableList<Book>>()
-        
-        // 1. 已补完作品按年份提取
-        animeList.filter { it.status == BookStatus.FINISHED }.forEach { book ->
-            val year = extractYearFromBook(book)
-            groups.getOrPut(year) { mutableListOf() }.add(book)
-        }
-        
-        // 2. 想追待看作品
+
+        val nonWishlist = animeList.filter { it.status != BookStatus.WISHLIST }
         val wishlist = animeList.filter { it.status == BookStatus.WISHLIST }
+
+        // 年份分组映射 (按 Int 升序自动排序，不设 1995-2024 限制，早期与未来年份作品均可自然纳入)
+        val yearGroups = java.util.TreeMap<Int, MutableList<Book>>()
+        val noYearList = mutableListOf<Book>()
+
+        nonWishlist.forEach { book ->
+            val year = extractYearInt(book)
+            if (year != null) {
+                yearGroups.getOrPut(year) { mutableListOf() }.add(book)
+            } else {
+                noYearList.add(book)
+            }
+        }
+
+        // 1. 年份编年组（按年份升序严格排列）
+        yearGroups.forEach { (year, books) ->
+            groups["$year 年"] = books
+        }
+
+        // 2. 无明确年份的已读与在追作品
+        if (noYearList.isNotEmpty()) {
+            groups["经典追番 · 岁月流金"] = noYearList
+        }
+
+        // 3. 想追待看作品
         if (wishlist.isNotEmpty()) {
             groups["待看清单 · 想追"] = wishlist.toMutableList()
         }
@@ -100,17 +123,27 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         invalidate()
     }
 
-    private fun extractYearFromBook(book: Book): String {
-        // 从 tags 中查找带有 "年" 的标签，如 "1995年"
-        val tagYear = book.tags.firstOrNull { it.contains("年") }
-        if (tagYear != null) return tagYear
-
-        // 从 startDate 中提取
-        val date = book.startDate.orEmpty()
-        if (date.length >= 4 && date.substring(0, 4).toIntOrNull() != null) {
-            return "${date.substring(0, 4)} 年"
+    private fun extractYearInt(book: Book): Int? {
+        // 1. 从 tags 中查找，如 "1988年", "1979", "2026年"
+        for (tag in book.tags) {
+            val matchSuffix = yearWithSuffixRegex.find(tag)
+            if (matchSuffix != null) return matchSuffix.groupValues[1].toIntOrNull()
+            val match = yearRegex.find(tag)
+            if (match != null) return match.groupValues[1].toIntOrNull()
         }
-        return "经典追番"
+        // 2. 从 startDate (如 "1984-03-11" 或 "2025")
+        val startYear = yearRegex.find(book.startDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        if (startYear != null) return startYear
+
+        // 3. 从 finishDate (如 "2026-05-01")
+        val finishYear = yearRegex.find(book.finishDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        if (finishYear != null) return finishYear
+
+        // 4. 从 category (如 "1980年代机甲")
+        val catYear = yearRegex.find(book.category.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        if (catYear != null) return catYear
+
+        return null
     }
 
     /** 短评金句在卡片内的最大可绘宽度（右侧预留评分标签区域） */
@@ -285,15 +318,36 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
         // 红色朱砂印章
         drawChinatownSeal(canvas, canvasWidth - 110f, 65f, "追番", "印记")
 
+        // 动态计算年份跨度与副标题
+        val allYears = animeList.mapNotNull { extractYearInt(it) }
+        val minYear = allYears.minOrNull()
+        val maxYear = allYears.maxOrNull()
+
+        val spanSubtitle = if (minYear != null && maxYear != null) {
+            if (minYear == maxYear) {
+                "$minYear 年 · 沉淀 ${animeList.size} 座精神坐标"
+            } else {
+                val span = maxYear - minYear + 1
+                "$minYear ~ $maxYear · 历经 $span 载光阴 · 沉淀 ${animeList.size} 座精神坐标"
+            }
+        } else {
+            "全景追番编年史 · 沉淀 ${animeList.size} 座精神坐标"
+        }
+
         textPaint.isFakeBoldText = false
         textPaint.textSize = canvasWidth * 0.030f
         textPaint.color = secondaryText
-        canvas.drawText("1995 ~ 2024 · 历经三十载光阴 · 沉淀七十一座精神坐标", canvasWidth / 2f, 150f, textPaint)
+        canvas.drawText(spanSubtitle, canvasWidth / 2f, 150f, textPaint)
 
         // 统计胶囊条
         val finishedCount = animeList.count { it.status == BookStatus.FINISHED }
+        val readingCount = animeList.count { it.status == BookStatus.READING }
         val wishlistCount = animeList.count { it.status == BookStatus.WISHLIST }
-        val statText = "🌸 补完 $finishedCount 部   ·   🌟 想追 $wishlistCount 部   ·   💮 精神印记共鸣"
+        val statText = if (readingCount > 0) {
+            "🌸 补完 $finishedCount 部   ·   📖 在追 $readingCount 部   ·   🌟 想追 $wishlistCount 部"
+        } else {
+            "🌸 补完 $finishedCount 部   ·   🌟 想追 $wishlistCount 部   ·   💮 精神印记共鸣"
+        }
         drawCapsuleBadge(canvas, canvasWidth / 2f, 205f, statText, accentGold, dark)
 
         // 3. 中轴时光线与各年份番剧
@@ -362,13 +416,16 @@ class AnimeTimelineScrollView @JvmOverloads constructor(
                 }
 
                 // 状态标签或评分
-                val isFinished = book.status == BookStatus.FINISHED
-                val badgeText = if (isFinished) {
-                    book.rating?.let { "★ ${it / 2.0}" } ?: "🌸 已补完"
-                } else {
-                    "🌟 想追"
+                val (badgeText, badgeColor) = when (book.status) {
+                    BookStatus.FINISHED -> {
+                        val ratingStr = book.rating?.let { "★ ${it / 2.0}" } ?: "🌸 已补完"
+                        ratingStr to sakuraColor
+                    }
+                    BookStatus.READING -> "📖 追番中" to (if (dark) Color.parseColor("#81C784") else Color.parseColor("#3A6348"))
+                    BookStatus.WISHLIST -> "🌟 想追" to accentGold
+                    BookStatus.PAUSED -> "⏸️ 搁置" to secondaryText
+                    BookStatus.DROPPED -> "✖️ 弃追" to secondaryText
                 }
-                val badgeColor = if (isFinished) sakuraColor else accentGold
                 drawSmallTag(canvas, cardRight - 85f, cardTop + 28f, badgeText, badgeColor, dark)
 
                 currentY += cardHeight + CARD_GAP

@@ -438,7 +438,11 @@ class CulturalPassportView @JvmOverloads constructor(
         canvas.drawText(cleanTitle, cx, titleY, textPaint)
 
         // 5. 最底部：年份与审核通过签注 (Year & Approval Date)
-        val year = item.tags.firstOrNull { it.contains("年") }?.replace("年", "") ?: "2024"
+        val yearRegex = Regex("""\b(19\d{2}|20\d{2}|21\d{2})\b""")
+        val year = item.tags.mapNotNull { yearRegex.find(it)?.groupValues?.get(1) }.firstOrNull()
+            ?: yearRegex.find(item.startDate.orEmpty())?.groupValues?.get(1)
+            ?: yearRegex.find(item.finishDate.orEmpty())?.groupValues?.get(1)
+            ?: "年代"
         val dateY = titleY + cellW * 0.11f
         textPaint.color = Color.argb(200, Color.red(color), Color.green(color), Color.blue(color))
         textPaint.textSize = cellW * 0.088f

@@ -138,6 +138,37 @@ class MemoirFragment : Fragment() {
         val gameList = allBooks.filter { it.mediaType == MediaType.GAME }
 
         root.findViewById<TextView>(R.id.passportSubtitle)?.text = "深蓝烫金首页 · ${animeList.size} 部番剧入境签证 · ${gameList.size} 款游戏白金戳印"
+
+        // 动态计算追番编年长卷信息（支持任意历史与未来年份）
+        val yearRegex = Regex("""\b(19\d{2}|20\d{2}|21\d{2})\b""")
+        val allYears = animeList.mapNotNull { book ->
+            book.tags.mapNotNull { yearRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }.firstOrNull()
+                ?: yearRegex.find(book.startDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+                ?: yearRegex.find(book.finishDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        }
+        val minYear = allYears.minOrNull()
+        val maxYear = allYears.maxOrNull()
+
+        val (titleStr, subtitleStr, spanBadgeStr) = if (minYear != null && maxYear != null) {
+            val span = maxYear - minYear + 1
+            val yearRange = if (minYear == maxYear) "$minYear" else "$minYear-$maxYear"
+            Triple(
+                "📜 追番编年画卷 ($yearRange)",
+                "纵览 $span 年追番史 · 和纸材质 · 1080P 超清全景长图导出",
+                "⏳ $yearRange · ${span}年",
+            )
+        } else {
+            Triple(
+                "📜 追番编年画卷",
+                "纵览全景追番史 · 和纸材质 · 1080P 超清全景长图导出",
+                "⏳ 跨越编年时光",
+            )
+        }
+
+        root.findViewById<TextView>(R.id.animeTimelineTitle)?.text = titleStr
+        root.findViewById<TextView>(R.id.animeTimelineSubtitle)?.text = subtitleStr
+        root.findViewById<TextView>(R.id.animeTimelineCountBadge)?.text = "🌸 ${animeList.size} 部动漫"
+        root.findViewById<TextView>(R.id.animeTimelineSpanBadge)?.text = spanBadgeStr
     }
 
     override fun onDestroyView() {

@@ -32,7 +32,7 @@
                 android:id="@+id/scrollSubTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1995 ~ 2024 · 71 部精神坐标"
+                android:text="全景追番编年史 · 精神坐标"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp" />
         </LinearLayout>

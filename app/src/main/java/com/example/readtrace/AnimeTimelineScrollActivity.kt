@@ -62,7 +62,21 @@ class AnimeTimelineScrollActivity : AppCompatActivity() {
         val allBooks = databaseHelper.getBooks()
         val animeList = allBooks.filter { it.mediaType == MediaType.ANIME }
 
-        scrollSubTitle.text = "共收录 ${animeList.size} 部精神坐标"
+        val yearRegex = Regex("""\b(19\d{2}|20\d{2}|21\d{2})\b""")
+        val allYears = animeList.mapNotNull { book ->
+            book.tags.mapNotNull { yearRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }.firstOrNull()
+                ?: yearRegex.find(book.startDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+                ?: yearRegex.find(book.finishDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        }
+        val minYear = allYears.minOrNull()
+        val maxYear = allYears.maxOrNull()
+        val timeSpanStr = if (minYear != null && maxYear != null) {
+            if (minYear == maxYear) "$minYear 年" else "$minYear ~ $maxYear"
+        } else {
+            "全景时光"
+        }
+
+        scrollSubTitle.text = "$timeSpanStr · 共收录 ${animeList.size} 部精神坐标"
         timelineScrollView.setAnimeData(animeList)
     }
 
@@ -85,11 +99,27 @@ class AnimeTimelineScrollActivity : AppCompatActivity() {
                     file,
                 )
 
+                val allBooks = databaseHelper.getBooks().filter { it.mediaType == MediaType.ANIME }
+                val yearRegex = Regex("""\b(19\d{2}|20\d{2}|21\d{2})\b""")
+                val allYears = allBooks.mapNotNull { book ->
+                    book.tags.mapNotNull { yearRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }.firstOrNull()
+                        ?: yearRegex.find(book.startDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+                        ?: yearRegex.find(book.finishDate.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+                }
+                val minYear = allYears.minOrNull()
+                val maxYear = allYears.maxOrNull()
+                val shareSpan = if (minYear != null && maxYear != null) {
+                    val span = maxYear - minYear + 1
+                    "历经 $span 载光阴 ($minYear~$maxYear)"
+                } else {
+                    "全景追番编年史"
+                }
+
                 runOnUiThread {
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "image/png"
                         putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_TEXT, "✨ 这是我在《阅痕》生成的追番编年史心智画卷，记录了三十载精神共鸣。")
+                        putExtra(Intent.EXTRA_TEXT, "✨ 这是我在《阅痕》生成的追番编年史心智画卷，记录了${shareSpan}的精神共鸣与 ${allBooks.size} 部作品坐标。")
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     startActivity(Intent.createChooser(shareIntent, "分享我的追番心智画卷"))
