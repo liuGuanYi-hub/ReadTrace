@@ -22,9 +22,19 @@
 - 模拟器：`F:/Android/sdk/emulator/emulator.exe -avd Medium_Phone -gpu host -no-snapshot-load`
 
 ## UI 验证方法（模型看不了截图）
-- 截图无法被模型读取，改用 `adb shell uiautomator dump /sdcard/ui.xml` + `adb pull` 后用 Python 解析 XML 的 `bounds`/`text`
+- 截图无法被模型读取，用两套手段：
+  1. `adb shell uiautomator dump /sdcard/ui.xml` + `adb pull` + Python 解析 `bounds`/`text`（适合原生控件）
+     - 报 `could not get idle state` 时改用 `uiautomator dump --compressed`（稳定得多）
+     - 自定义 View 无文本节点会被压缩丢弃，改用手段 2
+  2. `adb exec-out screencap -p > x.png` + Python(PIL) 做**亮度分带**：逐行统计亮度>阈值的像素，得到「内容条带 y 区间 + x 范围/中心」，可核对自定义绘制的版式；必要时降采样成字符图粗看
 - 判断文本被截断：单行 TextView 高度只有 1 行，且估算文本宽度 > 可用宽度 ⇒ 被 `ellipsize` 切掉
 - 像素→dp 换算：用已知 dp 的控件反推 density（36dp 控件实测 95px ⇒ density ≈ 2.64）
+
+## Android 自定义绘制踩过的坑（2026-08-30）
+- `StaticLayout` 会自己按 `setAlignment` 计算行偏移，传入的画笔若 `textAlign=CENTER` 会把每行再居中一次，整段左偏半行宽 → 必须传 `TextPaint(src).apply { textAlign = Paint.Align.LEFT }`
+- 需要 `TextUtils.ellipsize` 时，画笔字段要声明成 `TextPaint` 而不是 `Paint`，否则报 `Argument type mismatch`
+- 自定义 View 想锁定宽高比：`onMeasure` 里按期望比例算高度，绘制时再「等比缩放 + 居中」适配实际可用空间
+- 父 `LinearLayout` 里若还有兄弟控件（说明文字/按钮），自定义 View 必须保持 `0dp + layout_weight=1`；改成 `wrap_content` 会吃掉全部剩余空间把兄弟挤没
 
 ## Git 推送凭据
 - 全局 `credential.helper` 指向的 WorkBuddy 便携版 GCM 会段错误，push 时临时覆盖：

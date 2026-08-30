@@ -322,10 +322,62 @@
                     android:layout_marginTop="20dp"
                     android:text="@string/field_status" />
 
-                <Spinner
-                    android:id="@+id/statusInput"
-                    style="@style/ReadTraceInput"
-                    android:spinnerMode="dropdown" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/statusChipGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipStatusWishlist"
+                            style="@style/ReadTraceStatusChip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="🌟 想读" />
+
+                        <TextView
+                            android:id="@+id/chipStatusReading"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/bg_status_chip_selected"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="📖 在读"
+                            android:textColor="@color/white" />
+
+                        <TextView
+                            android:id="@+id/chipStatusFinished"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="✅ 已读" />
+
+                        <TextView
+                            android:id="@+id/chipStatusPaused"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="⏸️ 暂停" />
+
+                        <TextView
+                            android:id="@+id/chipStatusDropped"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="✖️ 弃读" />
+                    </LinearLayout>
+                </HorizontalScrollView>
 
                 <TextView
                     style="@style/ReadTraceFieldLabel"

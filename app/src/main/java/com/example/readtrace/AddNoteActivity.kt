@@ -5,26 +5,28 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.ElegantConfirmDialog
 import com.example.readtrace.util.FloatingBack
+import com.example.readtrace.util.HapticFeedbackEngine
 
 class AddNoteActivity : AppCompatActivity() {
     private lateinit var databaseHelper: BookDatabaseHelper
     private lateinit var formTitle: TextView
     private lateinit var formSubtitle: TextView
-    private lateinit var noteTypeInput: Spinner
+    private lateinit var chipTypeNote: TextView
+    private lateinit var chipTypeQuote: TextView
+    private var selectedNoteType: NoteType = NoteType.NOTE
     private lateinit var contentInput: EditText
     private lateinit var pageInput: EditText
     private lateinit var chapterInput: EditText
@@ -49,7 +51,6 @@ class AddNoteActivity : AppCompatActivity() {
         editingNoteId = intent.getLongExtra(EXTRA_NOTE_ID, NO_NOTE_ID)
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         bindViews()
-        configureTypeInput()
         configureFormMode()
         updateMediaTypeLabels()
         if (savedInstanceState == null) {
@@ -65,7 +66,8 @@ class AddNoteActivity : AppCompatActivity() {
     private fun bindViews() {
         formTitle = findViewById(R.id.formTitle)
         formSubtitle = findViewById(R.id.formSubtitle)
-        noteTypeInput = findViewById(R.id.noteTypeInput)
+        chipTypeNote = findViewById(R.id.chipTypeNote)
+        chipTypeQuote = findViewById(R.id.chipTypeQuote)
         contentInput = findViewById(R.id.contentInput)
         pageInput = findViewById(R.id.pageInput)
         chapterInput = findViewById(R.id.chapterInput)
@@ -73,14 +75,26 @@ class AddNoteActivity : AppCompatActivity() {
         archiveButton = findViewById(R.id.archiveButton)
     }
 
-    private fun configureTypeInput() {
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            NoteType.values().map { it.displayName },
+    private fun selectNoteType(type: NoteType) {
+        selectedNoteType = type
+        HapticFeedbackEngine.lightClick(this)
+        updateNoteTypeSelectionUI()
+    }
+
+    private fun updateNoteTypeSelectionUI() {
+        val chips = listOf(
+            chipTypeNote to NoteType.NOTE,
+            chipTypeQuote to NoteType.QUOTE,
         )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        noteTypeInput.adapter = adapter
+        chips.forEach { (chip, type) ->
+            val isSelected = selectedNoteType == type
+            chip.setBackgroundResource(
+                if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+            )
+            chip.setTextColor(
+                ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink),
+            )
+        }
     }
 
     private fun configureFormMode() {
@@ -148,7 +162,8 @@ class AddNoteActivity : AppCompatActivity() {
 
         bookId = note.bookId
         updateMediaTypeLabels()
-        noteTypeInput.setSelection(NoteType.values().indexOf(note.noteType))
+        selectedNoteType = note.noteType
+        updateNoteTypeSelectionUI()
         contentInput.setText(note.content)
         pageInput.setText(note.page.orEmpty())
         chapterInput.setText(note.chapter.orEmpty())
@@ -156,6 +171,10 @@ class AddNoteActivity : AppCompatActivity() {
 
     private fun configureActions() {
         FloatingBack.install(this)
+        chipTypeNote.setOnClickListener { selectNoteType(NoteType.NOTE) }
+        chipTypeQuote.setOnClickListener { selectNoteType(NoteType.QUOTE) }
+        updateNoteTypeSelectionUI()
+
         saveButton.setOnClickListener { saveNote() }
         archiveButton.setOnClickListener { confirmArchive() }
     }
@@ -171,7 +190,7 @@ class AddNoteActivity : AppCompatActivity() {
         val note = Note(
             id = editingNoteId.takeIf { it != NO_NOTE_ID } ?: 0,
             bookId = bookId,
-            noteType = NoteType.values()[noteTypeInput.selectedItemPosition],
+            noteType = selectedNoteType,
             content = content,
             page = pageInput.normalizedText(),
             chapter = chapterInput.normalizedText(),
@@ -213,11 +232,13 @@ class AddNoteActivity : AppCompatActivity() {
     }
 
     private fun confirmArchive() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.note_archive_confirm_title)
-            .setMessage(R.string.note_archive_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_archive) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "📦 " + getString(R.string.note_archive_confirm_title),
+            message = getString(R.string.note_archive_confirm_message),
+            confirmText = getString(R.string.action_archive),
+            isDanger = true,
+            onConfirm = {
                 val archived = runCatching {
                     databaseHelper.archiveNote(editingNoteId)
                 }.getOrDefault(false)
@@ -227,8 +248,8 @@ class AddNoteActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.note_archive_failed, Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            },
+        )
     }
 
     private fun restoreSaveButton() {

@@ -7,10 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +23,7 @@ import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.FloatingBack
+import com.example.readtrace.util.HapticFeedbackEngine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -42,7 +41,12 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var categoryInput: EditText
     private lateinit var sectionRecordTitle: TextView
     private lateinit var statusLabel: TextView
-    private lateinit var statusInput: Spinner
+    private lateinit var chipStatusWishlist: TextView
+    private lateinit var chipStatusReading: TextView
+    private lateinit var chipStatusFinished: TextView
+    private lateinit var chipStatusPaused: TextView
+    private lateinit var chipStatusDropped: TextView
+    private var selectedStatus: BookStatus = BookStatus.READING
     private lateinit var starViews: List<TextView>
     private lateinit var starHint: TextView
     private var selectedStars: Double = 4.0 // 默认 4 星
@@ -122,7 +126,8 @@ class AddBookActivity : AppCompatActivity() {
         }
         updateMediaTypeChips()
         updateCreatorFields()
-        configureStatusInput()
+        updateStatusChipsText()
+        updateStatusSelectionUI()
         configureFormMode()
         if (savedInstanceState == null) {
             loadBookForEditing()
@@ -148,7 +153,11 @@ class AddBookActivity : AppCompatActivity() {
         categoryInput = findViewById(R.id.categoryInput)
         sectionRecordTitle = findViewById(R.id.sectionRecordTitle)
         statusLabel = findViewById(R.id.statusLabel)
-        statusInput = findViewById(R.id.statusInput)
+        chipStatusWishlist = findViewById(R.id.chipStatusWishlist)
+        chipStatusReading = findViewById(R.id.chipStatusReading)
+        chipStatusFinished = findViewById(R.id.chipStatusFinished)
+        chipStatusPaused = findViewById(R.id.chipStatusPaused)
+        chipStatusDropped = findViewById(R.id.chipStatusDropped)
         starViews = listOf(
             findViewById(R.id.star1),
             findViewById(R.id.star2),
@@ -208,7 +217,8 @@ class AddBookActivity : AppCompatActivity() {
         selectedMediaType = mediaType
         updateMediaTypeChips()
         updateCreatorFields()
-        configureStatusInput()
+        updateStatusChipsText()
+        updateStatusSelectionUI()
     }
 
     private fun updateMediaTypeChips() {
@@ -415,8 +425,9 @@ class AddBookActivity : AppCompatActivity() {
         initialCoverPath = book.coverUrl
         updateCoverPreview()
         categoryInput.setText(book.category.orEmpty())
-        configureStatusInput()
-        statusInput.setSelection(BookStatus.values().indexOf(book.status))
+        selectedStatus = book.status
+        updateStatusChipsText()
+        updateStatusSelectionUI()
         book.rating?.let { r ->
             selectedStars = (r / 2.0).toInt().coerceIn(1, 5).toDouble()
             renderStarSelection()
@@ -445,17 +456,60 @@ class AddBookActivity : AppCompatActivity() {
         finishDate?.let { showSelectedDate(finishDateInput, it) }
     }
 
-    private fun configureStatusInput() {
-        val currentSelectedPosition = if (statusInput.adapter != null) statusInput.selectedItemPosition else 0
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            BookStatus.values().map { it.getDisplayName(selectedMediaType) },
+    private fun selectStatus(status: BookStatus) {
+        selectedStatus = status
+        HapticFeedbackEngine.lightClick(this)
+        updateStatusSelectionUI()
+    }
+
+    private fun updateStatusSelectionUI() {
+        val chips = listOf(
+            chipStatusWishlist to BookStatus.WISHLIST,
+            chipStatusReading to BookStatus.READING,
+            chipStatusFinished to BookStatus.FINISHED,
+            chipStatusPaused to BookStatus.PAUSED,
+            chipStatusDropped to BookStatus.DROPPED,
         )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        statusInput.adapter = adapter
-        if (currentSelectedPosition in 0 until adapter.count) {
-            statusInput.setSelection(currentSelectedPosition)
+        chips.forEach { (chip, status) ->
+            val isSelected = selectedStatus == status
+            chip.setBackgroundResource(
+                if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+            )
+            chip.setTextColor(
+                ContextCompat.getColor(this, if (isSelected) R.color.white else R.color.readtrace_ink),
+            )
+        }
+    }
+
+    private fun updateStatusChipsText() {
+        chipStatusWishlist.text = when (selectedMediaType) {
+            MediaType.BOOK -> "🌟 想读"
+            MediaType.ANIME -> "🌟 想追"
+            MediaType.MOVIE -> "🌟 想看"
+            MediaType.GAME -> "🌟 想玩"
+            MediaType.MUSIC -> "🌟 想听"
+        }
+        chipStatusReading.text = when (selectedMediaType) {
+            MediaType.BOOK -> "📖 在读"
+            MediaType.ANIME -> "📖 追番中"
+            MediaType.MOVIE -> "🍿 在看"
+            MediaType.GAME -> "🕹️ 游玩中"
+            MediaType.MUSIC -> "🎧 在听"
+        }
+        chipStatusFinished.text = when (selectedMediaType) {
+            MediaType.BOOK -> "✅ 读完"
+            MediaType.ANIME -> "🌸 补完"
+            MediaType.MOVIE -> "🎬 已看"
+            MediaType.GAME -> "🏆 白金"
+            MediaType.MUSIC -> "💿 听完"
+        }
+        chipStatusPaused.text = "⏸️ 搁置"
+        chipStatusDropped.text = when (selectedMediaType) {
+            MediaType.BOOK -> "✖️ 弃读"
+            MediaType.ANIME -> "✖️ 弃追"
+            MediaType.MOVIE -> "✖️ 弃看"
+            MediaType.GAME -> "✖️ 弃玩"
+            MediaType.MUSIC -> "✖️ 弃听"
         }
     }
 
@@ -466,6 +520,15 @@ class AddBookActivity : AppCompatActivity() {
         mediaTypeMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
         mediaTypeGame.setOnClickListener { selectMediaType(MediaType.GAME) }
         mediaTypeMusic.setOnClickListener { selectMediaType(MediaType.MUSIC) }
+
+        chipStatusWishlist.setOnClickListener { selectStatus(BookStatus.WISHLIST) }
+        chipStatusReading.setOnClickListener { selectStatus(BookStatus.READING) }
+        chipStatusFinished.setOnClickListener { selectStatus(BookStatus.FINISHED) }
+        chipStatusPaused.setOnClickListener { selectStatus(BookStatus.PAUSED) }
+        chipStatusDropped.setOnClickListener { selectStatus(BookStatus.DROPPED) }
+
+        updateStatusChipsText()
+        updateStatusSelectionUI()
 
         coverPickerContainer.setOnClickListener {
             pickImageLauncher.launch("image/*")
@@ -560,7 +623,7 @@ class AddBookActivity : AppCompatActivity() {
             author = authorInput.normalizedText(),
             coverUrl = finalCoverUrl,
             category = categoryInput.normalizedText(),
-            status = BookStatus.values()[statusInput.selectedItemPosition],
+            status = selectedStatus,
             mediaType = selectedMediaType,
             rating = rating,
             tags = parseTags(tagsInput.text.toString()),
@@ -679,7 +742,9 @@ class AddBookActivity : AppCompatActivity() {
         collapsedViewIds.forEach { id -> findViewById<View?>(id)?.visibility = View.GONE }
         findViewById<View?>(R.id.btnExpandForm)?.visibility = View.VISIBLE
         // 极简默认：在读 · 今天开始
-        statusInput.setSelection(BookStatus.values().indexOf(BookStatus.READING))
+        selectedStatus = BookStatus.READING
+        updateStatusChipsText()
+        updateStatusSelectionUI()
         startDate = java.time.LocalDate.now()
         findViewById<View?>(R.id.btnExpandForm)?.setOnClickListener { expandFullForm() }
     }

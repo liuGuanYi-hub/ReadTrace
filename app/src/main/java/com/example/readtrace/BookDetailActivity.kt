@@ -11,7 +11,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,6 +23,7 @@ import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.util.ElegantChoiceDialog
+import com.example.readtrace.util.ElegantConfirmDialog
 import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.util.FloatingBack
 import java.text.DecimalFormat
@@ -275,15 +275,17 @@ class BookDetailActivity : AppCompatActivity() {
 
             val delBtn = item.findViewById<View>(R.id.charDeleteBtn)
             delBtn.setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle("删除角色")
-                    .setMessage("确定要从人物谱中移除「${char.name}」吗？")
-                    .setNegativeButton(R.string.action_cancel, null)
-                    .setPositiveButton("删除") { _, _ ->
+                ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "👤 删除人物角色",
+                    message = "确定要从人物谱中移除「${char.name}」吗？",
+                    confirmText = "删除",
+                    isDanger = true,
+                    onConfirm = {
                         databaseHelper.deleteCharacter(char.id)
                         renderCharacters(databaseHelper.getCharacters(bookId))
-                    }
-                    .show()
+                    },
+                )
             }
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(item, 0.97f)
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(delBtn)
@@ -352,15 +354,17 @@ class BookDetailActivity : AppCompatActivity() {
 
             val delBtn = item.findViewById<View>(R.id.outlineDeleteBtn)
             delBtn.setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle("删除章节大纲")
-                    .setMessage("确定要删除「${outline.title}」的大纲吗？")
-                    .setNegativeButton(R.string.action_cancel, null)
-                    .setPositiveButton("删除") { _, _ ->
+                ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "📖 删除章节大纲",
+                    message = "确定要删除「${outline.title}」的大纲吗？",
+                    confirmText = "删除",
+                    isDanger = true,
+                    onConfirm = {
                         databaseHelper.deleteOutline(outline.id)
                         renderOutlines(databaseHelper.getOutlines(bookId))
-                    }
-                    .show()
+                    },
+                )
             }
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(item, 0.97f)
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(delBtn)
@@ -631,15 +635,17 @@ class BookDetailActivity : AppCompatActivity() {
             }
 
             item.findViewById<View>(R.id.locationDeleteBtn).setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle("删除空间地标")
-                    .setMessage("确定要移除地标「${loc.name}」吗？")
-                    .setNegativeButton(R.string.action_cancel, null)
-                    .setPositiveButton("删除") { _, _ ->
+                ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "🗺️ 删除空间地标",
+                    message = "确定要移除地标「${loc.name}」吗？",
+                    confirmText = "删除",
+                    isDanger = true,
+                    onConfirm = {
                         databaseHelper.deleteLocation(loc.id)
                         renderLocations(databaseHelper.getLocations(bookId))
-                    }
-                    .show()
+                    },
+                )
             }
 
             container.addView(item)
@@ -683,60 +689,33 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun showAddLocationDialog() {
-        val dialogView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(40, 20, 40, 20)
-        }
-
-        val nameInput = EditText(this).apply {
-            hint = "地标名称 (如：B-612小行星 / 贝克街221B)"
-            textSize = 14f
-        }
-        val typeInput = EditText(this).apply {
-            hint = "空间类型 (如：🪐 架空星际 / 🏙️ 现实都市 / 🌲 荒原自然)"
-            setText("🏙️ 现实都市")
-            textSize = 13f
-        }
-        val descInput = EditText(this).apply {
-            hint = "空间环境与景观描写..."
-            textSize = 13f
-        }
-        val sigInput = EditText(this).apply {
-            hint = "核心情节发生与象征意义..."
-            textSize = 13f
-        }
-        val coordInput = EditText(this).apply {
-            hint = "空间方位 / 坐标 (选填，如：撒哈拉沙漠腹地)..."
-            textSize = 13f
-        }
-
-        dialogView.addView(nameInput)
-        dialogView.addView(typeInput)
-        dialogView.addView(descInput)
-        dialogView.addView(sigInput)
-        dialogView.addView(coordInput)
-
-        AlertDialog.Builder(this)
-            .setTitle("🗺️ 添加空间叙事地标")
-            .setView(dialogView)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton("保存地标") { _, _ ->
-                val name = nameInput.text.toString().trim()
-                if (name.isNotEmpty()) {
-                    val location = com.example.readtrace.model.BookLocation(
-                        bookId = bookId,
-                        name = name,
-                        locationType = typeInput.text.toString().trim().ifBlank { "🏙️ 现实都市" },
-                        description = descInput.text.toString().trim().ifBlank { null },
-                        significance = sigInput.text.toString().trim().ifBlank { null },
-                        coordinates = coordInput.text.toString().trim().ifBlank { null },
-                    )
-                    databaseHelper.insertLocation(location)
-                    renderLocations(databaseHelper.getLocations(bookId))
-                    currentBook?.let { refreshTimelineOnly(it) }
-                }
+        ElegantFormDialog.show(
+            this,
+            title = "🗺️ 添加空间叙事地标",
+            confirmText = "保存地标",
+            fields = listOf(
+                ElegantFormDialog.Field("name", "📍 地标名称", "如：B-612小行星 / 贝克街221B", required = true),
+                ElegantFormDialog.Field("type", "🪐 空间类型", "如：🪐 架空星际 / 🏙️ 现实都市 / 🌲 荒原自然", preset = "🏙️ 现实都市"),
+                ElegantFormDialog.Field("desc", "📖 空间环境与景观描写", "描述这里的风貌与氛围...", minLines = 2),
+                ElegantFormDialog.Field("sig", "💡 核心情节发生与象征意义", "在这里发生了什么重要事件...", minLines = 2),
+                ElegantFormDialog.Field("coord", "🌐 空间方位 / 坐标 (选填)", "如：撒哈拉沙漠腹地 / 经纬度"),
+            ),
+        ) { v ->
+            val name = v.getValue("name")
+            if (name.isNotEmpty()) {
+                val location = com.example.readtrace.model.BookLocation(
+                    bookId = bookId,
+                    name = name,
+                    locationType = v.getValue("type").ifBlank { "🏙️ 现实都市" },
+                    description = v.getValue("desc").ifBlank { null },
+                    significance = v.getValue("sig").ifBlank { null },
+                    coordinates = v.getValue("coord").ifBlank { null },
+                )
+                databaseHelper.insertLocation(location)
+                renderLocations(databaseHelper.getLocations(bookId))
+                currentBook?.let { refreshTimelineOnly(it) }
             }
-            .show()
+        }
     }
 
     private enum class TimelineFilter {
@@ -1042,14 +1021,15 @@ class BookDetailActivity : AppCompatActivity() {
             fos?.close()
 
             if (success) {
-                AlertDialog.Builder(this)
-                    .setTitle("🎉 时间轴长图已生成")
-                    .setMessage("全息心路长图已成功保存至系统相册！是否立即分享给书友？")
-                    .setNegativeButton("稍后再说", null)
-                    .setPositiveButton("🔗 立即分享") { _, _ ->
-                        shareTimelineBitmap(bitmap)
-                    }
-                    .show()
+                ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "🎉 时间轴长图已生成",
+                    message = "全息心路长图已成功保存至系统相册！是否立即分享给书友？",
+                    confirmText = "🔗 立即分享",
+                    cancelText = "稍后再说",
+                    isDanger = false,
+                    onConfirm = { shareTimelineBitmap(bitmap) },
+                )
             } else {
                 Toast.makeText(this, "导出长图失败，请稍后重试", Toast.LENGTH_SHORT).show()
             }
@@ -1413,11 +1393,13 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun confirmArchiveNote(note: Note) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.note_archive_confirm_title)
-            .setMessage(R.string.note_archive_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_archive) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "📦 " + getString(R.string.note_archive_confirm_title),
+            message = getString(R.string.note_archive_confirm_message),
+            confirmText = getString(R.string.action_archive),
+            isDanger = true,
+            onConfirm = {
                 val archived = runCatching {
                     databaseHelper.archiveNote(note.id)
                 }.getOrDefault(false)
@@ -1427,8 +1409,8 @@ class BookDetailActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.note_archive_failed, Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            },
+        )
     }
 
     private fun dpToPx(value: Int): Int =
@@ -1436,14 +1418,16 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun confirmArchive() {
         val book = currentBook ?: return
-        AlertDialog.Builder(this)
-            .setTitle(R.string.archive_confirm_title)
-            .setMessage(R.string.archive_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_archive) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "📦 " + getString(R.string.archive_confirm_title),
+            message = getString(R.string.archive_confirm_message),
+            confirmText = getString(R.string.action_archive),
+            isDanger = true,
+            onConfirm = {
                 archiveBook(book.id)
-            }
-            .show()
+            },
+        )
     }
 
     private fun archiveBook(id: Long) {

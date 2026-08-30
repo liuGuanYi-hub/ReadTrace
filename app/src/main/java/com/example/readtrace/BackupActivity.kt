@@ -8,12 +8,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.BackupHelper
+import com.example.readtrace.util.ElegantConfirmDialog
 import com.example.readtrace.util.FloatingBack
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -138,20 +138,25 @@ class BackupActivity : AppCompatActivity() {
                 return
             }
 
-            AlertDialog.Builder(this)
-                .setTitle("确认导入备份？")
-                .setMessage("检测到来自【$exportedAt】的备份，包含 ${items.size} 部作品及 ${items.sumOf { it.second.size }} 条笔记。\n\n导入将自动匹配合并现有数据，是否继续？")
-                .setPositiveButton("立即合入") { _, _ ->
+            ElegantConfirmDialog.show(
+                activity = this,
+                title = "📦 确认导入备份？",
+                message = "检测到来自【$exportedAt】的备份，包含 ${items.size} 部作品及 ${items.sumOf { it.second.size }} 条笔记。\n\n导入将自动匹配合并现有数据，是否继续？",
+                confirmText = "立即合入",
+                isDanger = false,
+                onConfirm = {
                     val (importedWorks, importedNotes) = databaseHelper.importFullBackup(items)
                     refreshStats()
-                    AlertDialog.Builder(this)
-                        .setTitle("🎉 恢复完成")
-                        .setMessage(getString(R.string.backup_import_success_format, importedWorks, importedNotes))
-                        .setPositiveButton("确定", null)
-                        .show()
-                }
-                .setNegativeButton("取消", null)
-                .show()
+                    ElegantConfirmDialog.show(
+                        activity = this,
+                        title = "🎉 恢复完成",
+                        message = getString(R.string.backup_import_success_format, importedWorks, importedNotes),
+                        confirmText = "我知道了",
+                        showCancel = false,
+                        onConfirm = {},
+                    )
+                },
+            )
         }.onFailure {
             Toast.makeText(this, R.string.backup_import_failed, Toast.LENGTH_LONG).show()
         }
@@ -166,20 +171,25 @@ class BackupActivity : AppCompatActivity() {
                     return
                 }
 
-                AlertDialog.Builder(this)
-                    .setTitle("确认导入 CSV 清单？")
-                    .setMessage("检测到 CSV 清单包含 ${records.size} 部作品记录（含评分、金句与心智模型）。\n\n导入将自动匹配合并现有作品，是否继续？")
-                    .setPositiveButton("立即导入") { _, _ ->
+                ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "📑 确认导入 CSV 清单？",
+                    message = "检测到 CSV 清单包含 ${records.size} 部作品记录（含评分、金句与心智模型）。\n\n导入将自动匹配合并现有作品，是否继续？",
+                    confirmText = "立即导入",
+                    isDanger = false,
+                    onConfirm = {
                         val count = databaseHelper.importParsedRecords(records)
                         refreshStats()
-                        AlertDialog.Builder(this)
-                            .setTitle("🎉 导入完成")
-                            .setMessage("成功合入/更新 $count 部作品记录！")
-                            .setPositiveButton("确定", null)
-                            .show()
-                    }
-                    .setNegativeButton("取消", null)
-                    .show()
+                        ElegantConfirmDialog.show(
+                            activity = this,
+                            title = "🎉 导入完成",
+                            message = "成功合入/更新 $count 部作品记录！",
+                            confirmText = "我知道了",
+                            showCancel = false,
+                            onConfirm = {},
+                        )
+                    },
+                )
             } ?: run {
                 Toast.makeText(this, "无法读取 CSV 文件", Toast.LENGTH_SHORT).show()
             }

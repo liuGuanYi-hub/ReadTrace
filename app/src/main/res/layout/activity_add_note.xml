@@ -83,10 +83,38 @@
                     android:layout_marginTop="20dp"
                     android:text="@string/field_note_type" />
 
-                <Spinner
-                    android:id="@+id/noteTypeInput"
-                    style="@style/ReadTraceInput"
-                    android:spinnerMode="dropdown" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/noteTypeChipGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/chipTypeNote"
+                            style="@style/ReadTraceStatusChip"
+                            android:background="@drawable/bg_status_chip_selected"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="💭 随想 / 思考"
+                            android:textColor="@color/white" />
+
+                        <TextView
+                            android:id="@+id/chipTypeQuote"
+                            style="@style/ReadTraceStatusChip"
+                            android:layout_marginStart="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="🌟 原文摘录 / 经典台词" />
+                    </LinearLayout>
+                </HorizontalScrollView>
 
                 <TextView
                     style="@style/ReadTraceFieldLabel"

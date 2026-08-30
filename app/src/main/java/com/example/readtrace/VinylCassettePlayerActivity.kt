@@ -18,12 +18,10 @@ import android.os.Looper
 import android.os.SystemClock
 import android.text.InputType
 import android.view.View
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -34,6 +32,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.ui.bottomsheet.CloudMusicPickerBottomSheet
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.widget.AudioVisualizerParticleView
 import com.example.readtrace.widget.CassetteDeckView
 import com.example.readtrace.widget.VinylTurntableView
@@ -637,34 +636,32 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private fun showVipBindingDialog() {
         val helper = com.example.readtrace.util.NeteasePreviewHelper
         val current = helper.getMusicUCookie(this)
-        val input = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            setText(current)
-            hint = "粘贴 MUSIC_U 的值"
-            setSingleLine(true)
-        }
         val bound = !current.isNullOrBlank()
-        AlertDialog.Builder(this)
-            .setTitle(if (bound) "🎵 会员已绑定（长按管理）" else "🎵 绑定网易云会员")
-            .setMessage(
-                "电脑浏览器登录 music.163.com → F12 打开开发者工具 → Application → Cookies → "
-                    + "复制 MUSIC_U 的值粘贴到下面（直接粘贴整段 Cookie 文本也可以，会自动提取）。\n"
-                    + "绑定后 VIP 曲目可直接完整播放，不再限 15s/30s 试听。\n"
-                    + "Cookie 只保存在本机应用私有目录，不会上传或写日志。\n清空内容点保存即解除绑定。"
-            )
-            .setView(input)
-            .setPositiveButton("保存") { _, _ ->
-                val value = helper.extractMusicU(input.text.toString())
-                if (value.isNullOrEmpty()) {
-                    helper.setMusicUCookie(this, null)
-                    Toast.makeText(this, "已解除会员绑定", Toast.LENGTH_SHORT).show()
-                } else {
-                    helper.setMusicUCookie(this, value)
-                    Toast.makeText(this, "会员绑定成功，VIP 曲目将完整播放 🎧", Toast.LENGTH_LONG).show()
-                }
+
+        ElegantFormDialog.show(
+            this,
+            title = if (bound) "🎵 网易云会员配置" else "🎵 绑定网易云会员",
+            confirmText = "保存配置",
+            fields = listOf(
+                ElegantFormDialog.Field(
+                    key = "cookie",
+                    label = "🔑 MUSIC_U Cookie 凭据",
+                    hint = "粘贴 MUSIC_U 值或整段 Cookie 文本（清空并保存即可解绑）",
+                    preset = current.orEmpty(),
+                    minLines = 3,
+                ),
+            ),
+        ) { values ->
+            val raw = values.getValue("cookie")
+            val value = helper.extractMusicU(raw)
+            if (value.isNullOrEmpty()) {
+                helper.setMusicUCookie(this, null)
+                Toast.makeText(this, "已解除会员绑定", Toast.LENGTH_SHORT).show()
+            } else {
+                helper.setMusicUCookie(this, value)
+                Toast.makeText(this, "会员绑定成功，VIP 曲目将完整播放 🎧", Toast.LENGTH_LONG).show()
             }
-            .setNegativeButton("取消", null)
-            .show()
+        }
     }
 
     /** 曲目是否为在线试听（外链带时间戳，失效后应删除重取） */

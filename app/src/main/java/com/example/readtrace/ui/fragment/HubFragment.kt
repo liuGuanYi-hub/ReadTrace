@@ -1,6 +1,5 @@
 package com.example.readtrace.ui.fragment
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -34,6 +33,7 @@ import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ElegantChoiceDialog
 import com.example.readtrace.util.ThemeHelper
 import com.example.readtrace.util.ViewAnimationHelper
 import java.text.DecimalFormat
@@ -804,28 +804,29 @@ class HubFragment : Fragment() {
     }
 
     private fun showImportCsvDialog() {
-        val options = arrayOf(
-            "📚 导入预设名著经典 (54 本)",
-            "🌸 导入预设追番史 (70 部)",
-            "🎬 导入预设经典电影 (11 部)",
-            "🎮 导入预设 Steam 游戏 (67 款)",
-            "🌟 一键全量合入 (202 部神作)",
-            "📂 选择本地 CSV 文件...",
+        val act = activity ?: return
+        val choices = listOf(
+            ElegantChoiceDialog.Choice("📚 导入预设名著经典", "收录 54 本豆瓣高分传世名著书单"),
+            ElegantChoiceDialog.Choice("🌸 导入预设追番史", "收录 70 部 Bangumi 高分经典动漫"),
+            ElegantChoiceDialog.Choice("🎬 导入预设经典电影", "收录 11 部 IMDb / 豆瓣影史神作"),
+            ElegantChoiceDialog.Choice("🎮 导入预设 Steam 游戏", "收录 67 款高分沉浸式主机与 PC 佳作"),
+            ElegantChoiceDialog.Choice("🌟 一键全量合入", "瞬间导入全部 202 部精神财富清单"),
+            ElegantChoiceDialog.Choice("📂 选择本地 CSV 文件...", "从设备存储中挑选自定义 CSV 格式数据"),
         )
-        AlertDialog.Builder(requireContext())
-            .setTitle("📥 批量导入精神清单")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单")
-                    1 -> importAssetCsv("preset_anime.csv", MediaType.ANIME, "追番清单")
-                    2 -> importAssetCsv("preset_movies.csv", MediaType.MOVIE, "电影清单")
-                    3 -> importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单")
-                    4 -> importAllPresetCsvs()
-                    5 -> selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv"))
-                }
+        ElegantChoiceDialog.show(
+            activity = act,
+            title = "📥 批量导入精神清单",
+            choices = choices,
+        ) { which ->
+            when (which) {
+                0 -> importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单")
+                1 -> importAssetCsv("preset_anime.csv", MediaType.ANIME, "追番清单")
+                2 -> importAssetCsv("preset_movies.csv", MediaType.MOVIE, "电影清单")
+                3 -> importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单")
+                4 -> importAllPresetCsvs()
+                5 -> selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv"))
             }
-            .setNegativeButton("取消", null)
-            .show()
+        }
     }
 
     private fun importAssetCsv(assetFileName: String, defaultMedia: MediaType, categoryName: String) {

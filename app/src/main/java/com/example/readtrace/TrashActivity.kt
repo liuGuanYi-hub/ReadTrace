@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -19,6 +18,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.ArchivedNoteItem
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.util.ElegantConfirmDialog
 import com.example.readtrace.util.FloatingBack
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -188,11 +188,13 @@ class TrashActivity : AppCompatActivity() {
     }
 
     private fun confirmHardDeleteBook(book: Book) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.hard_delete_confirm_title)
-            .setMessage(getString(R.string.hard_delete_confirm_message))
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_hard_delete) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "⚠️ " + getString(R.string.hard_delete_confirm_title),
+            message = getString(R.string.hard_delete_confirm_message),
+            confirmText = getString(R.string.action_hard_delete),
+            isDanger = true,
+            onConfirm = {
                 val deleted = databaseHelper.hardDeleteBook(book.id)
                 if (deleted) {
                     Toast.makeText(this, R.string.hard_delete_book_success, Toast.LENGTH_SHORT).show()
@@ -200,16 +202,18 @@ class TrashActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.hard_delete_book_failed, Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            },
+        )
     }
 
     private fun confirmHardDeleteNote(note: com.example.readtrace.model.Note) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.hard_delete_note_confirm_title)
-            .setMessage(R.string.hard_delete_note_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_hard_delete) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "⚠️ " + getString(R.string.hard_delete_note_confirm_title),
+            message = getString(R.string.hard_delete_note_confirm_message),
+            confirmText = getString(R.string.action_hard_delete),
+            isDanger = true,
+            onConfirm = {
                 val deleted = databaseHelper.hardDeleteNote(note.id)
                 if (deleted) {
                     Toast.makeText(this, R.string.hard_delete_note_success, Toast.LENGTH_SHORT).show()
@@ -217,16 +221,18 @@ class TrashActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.hard_delete_note_failed, Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            },
+        )
     }
 
     private fun confirmClearAllTrash() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.clear_all_trash_confirm_title)
-            .setMessage(R.string.clear_all_trash_confirm_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_clear_all_trash) { _, _ ->
+        ElegantConfirmDialog.show(
+            activity = this,
+            title = "🧹 " + getString(R.string.clear_all_trash_confirm_title),
+            message = getString(R.string.clear_all_trash_confirm_message),
+            confirmText = getString(R.string.action_clear_all_trash),
+            isDanger = true,
+            onConfirm = {
                 val (booksCount, notesCount) = databaseHelper.clearAllTrash()
                 if (booksCount > 0 || notesCount > 0) {
                     Toast.makeText(
@@ -238,8 +244,8 @@ class TrashActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, R.string.clear_trash_empty, Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            },
+        )
     }
 
     private fun formatDeletedAt(value: String?): String {
