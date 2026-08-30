@@ -130,8 +130,11 @@ class ConstellationFragment : Fragment() {
             filterResonance to (currentFilter == ConstellationFilter.CrossMediaResonance),
         )
         chips.forEach { (chip, isSelected) ->
-            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_dark_chip)
-            chip.setTextColor(if (isSelected) Color.WHITE else Color.parseColor("#D0D8E8"))
+            // 未选中态用日夜自适应胶囊与墨色文字，避免明亮模式下对比度过低
+            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+            chip.setTextColor(
+                if (isSelected) Color.WHITE else ContextCompat.getColor(ctx, R.color.readtrace_ink),
+            )
         }
     }
 

@@ -102,9 +102,9 @@
                     style="@style/ReadTraceStatusChip"
                     android:layout_height="30dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_dark_chip"
+                    android:background="@drawable/bg_status_chip"
                     android:text="文学 📚"
-                    android:textColor="#D0D8E8"
+                    android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp" />
 
                 <TextView
@@ -112,9 +112,9 @@
                     style="@style/ReadTraceStatusChip"
                     android:layout_height="30dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_dark_chip"
+                    android:background="@drawable/bg_status_chip"
                     android:text="番剧 🌸"
-                    android:textColor="#D0D8E8"
+                    android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp" />
 
                 <TextView
@@ -122,9 +122,9 @@
                     style="@style/ReadTraceStatusChip"
                     android:layout_height="30dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_dark_chip"
+                    android:background="@drawable/bg_status_chip"
                     android:text="影视 🎬"
-                    android:textColor="#D0D8E8"
+                    android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp" />
 
                 <TextView
@@ -132,9 +132,9 @@
                     style="@style/ReadTraceStatusChip"
                     android:layout_height="30dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_dark_chip"
+                    android:background="@drawable/bg_status_chip"
                     android:text="游戏 🎮"
-                    android:textColor="#D0D8E8"
+                    android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp" />
 
                 <TextView
@@ -142,9 +142,9 @@
                     style="@style/ReadTraceStatusChip"
                     android:layout_height="30dp"
                     android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_dark_chip"
+                    android:background="@drawable/bg_status_chip"
                     android:text="双生共鸣 ✨"
-                    android:textColor="#D0D8E8"
+                    android:textColor="@color/readtrace_ink"
                     android:textSize="11.5sp" />
             </LinearLayout>
         </HorizontalScrollView>
