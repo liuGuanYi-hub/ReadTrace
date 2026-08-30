@@ -470,7 +470,7 @@ class LibraryFragment : Fragment() {
         card.findViewById<TextView>(R.id.bookCardAuthor).text = book.author ?: getString(R.string.unknown_author)
 
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it))
+            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
         } ?: getString(R.string.unrated)
         card.findViewById<TextView>(R.id.bookCardMeta).visibility = View.GONE
         card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
@@ -533,7 +533,7 @@ class LibraryFragment : Fragment() {
         card.findViewById<TextView>(R.id.bookGridAuthor).text = book.author ?: getString(R.string.unknown_author)
 
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it))
+            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
         } ?: getString(R.string.unrated)
         card.findViewById<TextView>(R.id.bookGridRating).text = ratingLabel
 

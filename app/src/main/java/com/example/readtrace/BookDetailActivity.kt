@@ -1484,7 +1484,7 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun buildHeroMeta(book: Book): String {
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it))
+            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
         } ?: getString(R.string.not_recorded)
         return listOfNotNull(
             book.status.getDisplayName(book.mediaType),
