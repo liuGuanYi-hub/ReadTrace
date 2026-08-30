@@ -60,7 +60,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- 中部票根预览区域（撑满剩余空间，消除留白） -->
+    <!-- 中部票根预览区域（票根按 1:2.2 锁定比例，视图按内容自适应高度） -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -72,6 +72,7 @@
         android:paddingEnd="12dp"
         android:paddingBottom="8dp">
 
+            <!-- 权重占用剩余空间，票根按 1:2.2 在内部居中，不再拉伸 -->
             <com.example.readtrace.widget.MovieTicketPosterView
                 android:id="@+id/movieTicketPosterView"
                 android:layout_width="match_parent"
