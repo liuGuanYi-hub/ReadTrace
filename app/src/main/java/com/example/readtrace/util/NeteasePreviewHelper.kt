@@ -32,7 +32,7 @@ object NeteasePreviewHelper {
         val isFullSong: Boolean = false,
     )
 
-    private data class Candidate(val id: Long, val name: String, val artists: String)
+    private data class Candidate(val id: Long, val name: String, val artists: String, val album: String)
 
     private const val SEARCH_URL = "https://music.163.com/api/cloudsearch/pc"
     private const val PLAYER_URL_API = "https://music.163.com/api/song/enhance/player/url"
@@ -42,6 +42,8 @@ object NeteasePreviewHelper {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
     private const val PREFS_NAME = "readtrace_player_prefs"
     private const val KEY_MUSIC_U = "netease_music_u"
+    /** 包含匹配允许的最大长度差比例（防短词被长标题误命中） */
+    private const val MAX_NAME_LENGTH_RATIO = 2f
 
     /** 读取用户绑定的网易云 MUSIC_U Cookie（未绑定为 null） */
     fun getMusicUCookie(context: Context?): String? {
@@ -54,6 +56,19 @@ object NeteasePreviewHelper {
     fun setMusicUCookie(context: Context, value: String?) {
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_MUSIC_U, value?.trim()?.takeIf { it.isNotEmpty() }).apply()
+    }
+
+    /**
+     * 从用户粘贴的任意文本中提取 MUSIC_U 值。
+     * 支持三种输入：裸值（32~ 位字母数字）/ "MUSIC_U=xxx" 键值对 / 整段 cookies.txt 或 Cookie 头。
+     * 提取不出时返回 null。
+     */
+    fun extractMusicU(input: String): String? {
+        val text = input.trim()
+        if (text.isEmpty()) return null
+        Regex("MUSIC_U[=: ]+([A-Za-z0-9]{16,})").find(text)?.let { return it.groupValues[1] }
+        // 无键名的整段文本：取最长的纯字母数字连续段兜底
+        return Regex("[A-Za-z0-9]{16,}").findAll(text).maxByOrNull { it.value.length }?.value
     }
 
     /**
@@ -79,16 +94,46 @@ object NeteasePreviewHelper {
         val query = if (artist.isNullOrBlank()) cleanTitle else "$cleanTitle $artist"
         val musicU = getMusicUCookie(context)
         val all = searchSongCandidates(query, musicU)
-        // 只保留曲名匹配的候选；歌手匹配仅用于排序加权，不作硬性过滤（翻唱/合唱等场景歌手写法多样）
-        val matched = all.filter { nameMatches(it.name, cleanTitle) }
-            .sortedByDescending { artistBonus(it.artists, artist) }
+        // 三级匹配兜底（防错别字/专辑无名曲等场景，宁可宽一格也不放无关歌）：
+        // ① 曲名匹配（最准）② 专辑名匹配（作品按专辑录入时用）③ 歌手名强匹配（错别字如"沉/沈"时兜底）
+        // T2/T3 属于弱信号，必须有歌手信息作约束，否则宁可不播
+        val hasArtist = stripArtistAlias(artist) != null
+        val matched = when {
+            all.any { nameMatches(it.name, cleanTitle) } ->
+                all.filter { nameMatches(it.name, cleanTitle) }
+                    .sortedByDescending { artistBonus(it.artists, artist) }
+            hasArtist && all.any { nameMatches(it.album, cleanTitle) } ->
+                all.filter { nameMatches(it.album, cleanTitle) }
+                    .sortedByDescending { artistBonus(it.artists, artist) }
+            artistStrongMatches(artist, all) ->
+                all.filter { artistStrongMatches(artist, it) }
+            else -> emptyList()
+        }
         if (matched.isEmpty()) return null
         // 批量取链一次拿到全部候选的播放地址与会员状态
         return resolveNeteaseUrls(matched, cleanTitle, musicU)
             ?: kugouFallback(query, cleanTitle, artist)
     }
 
-    /** 返回候选列表（含曲名与歌手，用于相关性过滤） */
+    /** 歌手名强匹配：归一化后与候选歌手互相包含（兼容"ずっと真夜中でいい。"vs"ずっと真夜中でいいのに。"这类写法差异） */
+    private fun artistStrongMatches(wantArtist: String?, candidates: List<Candidate>): Boolean {
+        val want = stripArtistAlias(wantArtist) ?: return false
+        return candidates.any { artistBonus(it.artists, want) == 1 }
+    }
+
+    private fun artistStrongMatches(wantArtist: String?, candidate: Candidate): Boolean {
+        val want = stripArtistAlias(wantArtist) ?: return false
+        return artistBonus(candidate.artists, want) == 1
+    }
+
+    /** 去掉歌手字段里的括号别名（如"(ZUTOMAYO)"）并归一化，空则返回 null */
+    private fun stripArtistAlias(artist: String?): String? {
+        val cleaned = artist?.replace(Regex("[（(].*?[)）]"), "")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: return null
+        return normalize(cleaned).takeIf { it.isNotEmpty() }
+    }
+
+    /** 返回候选列表（含曲名/专辑/歌手，用于相关性过滤） */
     private fun searchSongCandidates(query: String, musicU: String?): List<Candidate> {
         val url = "$SEARCH_URL?s=${URLEncoder.encode(query, "UTF-8")}&type=1&limit=20"
         val conn = httpGet(url, referer = "https://music.163.com/", musicU = musicU)
@@ -106,7 +151,8 @@ object NeteasePreviewHelper {
                         ar.optJSONObject(j)?.optString("name")?.takeIf { it.isNotBlank() }
                     }.joinToString("/")
                 } ?: ""
-                Candidate(id, song.optString("name"), artists)
+                val album = song.optJSONObject("al")?.optString("name") ?: ""
+                Candidate(id, song.optString("name"), artists, album)
             }
         } finally {
             conn.disconnect()
@@ -152,7 +198,7 @@ object NeteasePreviewHelper {
         }
     }
 
-    /** 会员歌兜底：转酷狗曲库搜索同名曲目并取可播放直链（按 30s 试听播放），同样只接受曲名匹配的候选 */
+    /** 会员歌兜底：转酷狗曲库搜索同名曲目并取可播放直链（按 30s 试听播放），与网易云侧同套三级匹配 */
     private fun kugouFallback(query: String, displayTitle: String, artist: String?): PreviewResult? {
         val searchUrl =
             "$KG_SEARCH_URL?keyword=${URLEncoder.encode(query, "UTF-8")}&page=1&pagesize=5"
@@ -161,18 +207,27 @@ object NeteasePreviewHelper {
             if (searchConn.responseCode != HttpURLConnection.HTTP_OK) return null
             val info = JSONObject(readUtf8(searchConn)).optJSONObject("data")?.optJSONArray("info")
                 ?: return null
-            (0 until info.length()).mapNotNull { i ->
+            data class KgCandidate(val hash: String, val name: String, val album: String, val singer: String)
+            val items = (0 until info.length()).mapNotNull { i ->
                 val item = info.optJSONObject(i) ?: return@mapNotNull null
                 val hash = item.optString("hash").takeIf { it.isNotBlank() } ?: return@mapNotNull null
-                val name = item.optString("songname").ifBlank { item.optString("songName") }
-                val singer = item.optString("singername")
-                // 曲名不匹配的直接淘汰，防止兜底到无关歌
-                if (nameMatches(name, displayTitle)) {
-                    (hash to name) to artistBonus(singer, artist)
-                } else {
-                    null
-                }
-            }.sortedByDescending { it.second }.map { it.first }
+                KgCandidate(
+                    hash,
+                    item.optString("songname").ifBlank { item.optString("songName") },
+                    item.optString("AlbumName"),
+                    item.optString("singername"),
+                )
+            }
+            val wantArtist = stripArtistAlias(artist)
+            val tiers = listOf(
+                items.filter { nameMatches(it.name, displayTitle) },
+                items.filter { nameMatches(it.album, displayTitle) },
+                if (wantArtist != null) items.filter { artistBonus(it.singer, wantArtist) == 1 } else emptyList(),
+            )
+            // 三级依次取第一个非空的，再按歌手加权排序
+            (tiers.firstOrNull { it.isNotEmpty() } ?: emptyList())
+                .sortedByDescending { artistBonus(it.singer, wantArtist) }
+                .map { it.hash to it.name }
         } finally {
             searchConn.disconnect()
         }
@@ -193,13 +248,18 @@ object NeteasePreviewHelper {
     }
 
     /**
-     * 曲名相关性判断：归一化（去空格/括号/大小写/常见标点）后全等或互相包含。
+     * 曲名/专辑名相关性判断：归一化（去空格/括号/大小写/常见标点）后全等，
+     * 或长度比例 ≤2 的前提下互相包含——比例守卫用于挡掉
+     * "沉香学" 被包含在 "豫剧(秦雪梅)--老爹爹莫动怒你暂且息愤-----凤立沉香学唱" 这类误命中。
      */
     private fun nameMatches(songName: String, title: String): Boolean {
         val n = normalize(songName)
         val t = normalize(title)
         if (n.isEmpty() || t.isEmpty()) return false
-        return n == t || n.contains(t) || t.contains(n)
+        if (n == t) return true
+        val ratio = maxOf(n.length, t.length).toFloat() / minOf(n.length, t.length).toFloat()
+        if (ratio > MAX_NAME_LENGTH_RATIO) return false
+        return n.contains(t) || t.contains(n)
     }
 
     /** 歌手匹配加权：1 = 双方任一包含，0 = 不匹配或歌手缺失（仅排序用，不作硬过滤） */

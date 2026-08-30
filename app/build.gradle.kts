@@ -19,8 +19,8 @@ android {
         applicationId = "com.example.readtrace"
         minSdk = 31
         targetSdk = 37
-        versionCode = 13
-        versionName = "4.2.5"
+        versionCode = 14
+        versionName = "4.2.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

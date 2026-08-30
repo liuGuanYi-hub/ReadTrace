@@ -483,13 +483,14 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             .setTitle(if (bound) "🎵 会员已绑定（长按管理）" else "🎵 绑定网易云会员")
             .setMessage(
                 "电脑浏览器登录 music.163.com → F12 打开开发者工具 → Application → Cookies → "
-                    + "复制 MUSIC_U 的值粘贴到下面。\n绑定后 VIP 曲目可直接完整播放，不再限 15s/30s 试听。\n"
+                    + "复制 MUSIC_U 的值粘贴到下面（直接粘贴整段 Cookie 文本也可以，会自动提取）。\n"
+                    + "绑定后 VIP 曲目可直接完整播放，不再限 15s/30s 试听。\n"
                     + "Cookie 只保存在本机应用私有目录，不会上传或写日志。\n清空内容点保存即解除绑定。"
             )
             .setView(input)
             .setPositiveButton("保存") { _, _ ->
-                val value = input.text.toString().trim()
-                if (value.isEmpty()) {
+                val value = helper.extractMusicU(input.text.toString())
+                if (value.isNullOrEmpty()) {
                     helper.setMusicUCookie(this, null)
                     Toast.makeText(this, "已解除会员绑定", Toast.LENGTH_SHORT).show()
                 } else {

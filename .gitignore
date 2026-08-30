@@ -2,6 +2,9 @@ node_modules/
 dist/
 .vite/
 
+# 本地敏感凭据目录（存放网易云 Cookie 等，绝不入库）
+不要放进git/
+
 .gradle/
 .idea/
 build/
