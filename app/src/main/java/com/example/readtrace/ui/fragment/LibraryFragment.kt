@@ -11,10 +11,12 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -35,6 +37,10 @@ import kotlin.math.roundToInt
 class LibraryFragment : Fragment() {
 
     private lateinit var databaseHelper: BookDatabaseHelper
+
+    private lateinit var libraryScroll: ScrollView
+    private lateinit var btnLibraryScrollTop: View
+    private var isScrollTopVisible: Boolean = false
 
     private lateinit var btnLibraryAdd: View
     private lateinit var mediaChipAll: TextView
@@ -120,6 +126,8 @@ class LibraryFragment : Fragment() {
         libraryTagGroup = view.findViewById(R.id.libraryTagGroup)
         libraryTagAll = view.findViewById(R.id.libraryTagAll)
 
+        libraryScroll = view.findViewById(R.id.libraryScroll)
+        btnLibraryScrollTop = view.findViewById(R.id.btnLibraryScrollTop)
         libraryCountText = view.findViewById(R.id.libraryCountText)
         btnLibraryToggleView = view.findViewById(R.id.btnLibraryToggleView)
         btnLibraryExportScroll = view.findViewById(R.id.btnLibraryExportScroll)
@@ -135,6 +143,14 @@ class LibraryFragment : Fragment() {
                 selectedMediaType?.let { putExtra("extra_default_media_type", it.databaseValue) }
             }
             startActivity(intent)
+        }
+
+        libraryScroll.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            updateScrollTopButton(scrollY)
+        }
+
+        btnLibraryScrollTop.setOnClickListener {
+            libraryScroll.smoothScrollTo(0, 0)
         }
 
         mediaChipAll.setOnClickListener { selectMediaType(null) }
@@ -192,7 +208,7 @@ class LibraryFragment : Fragment() {
         }
 
         listOfNotNull<View>(
-            btnLibraryAdd, btnLibraryToggleView, btnLibraryExportScroll,
+            btnLibraryAdd, btnLibraryToggleView, btnLibraryExportScroll, btnLibraryScrollTop,
             mediaChipAll, mediaChipBook, mediaChipAnime, mediaChipMovie, mediaChipGame, mediaChipMusic,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
@@ -458,6 +474,50 @@ class LibraryFragment : Fragment() {
             }
             ViewAnimationHelper.attachSpringTouch(loadMoreBtn)
             libraryBooksContainer.addView(loadMoreBtn)
+        }
+
+        libraryScroll.post {
+            if (isAdded) {
+                updateScrollTopButton(libraryScroll.scrollY)
+            }
+        }
+    }
+
+    private fun updateScrollTopButton(scrollY: Int) {
+        val screenHeight = if (libraryScroll.height > 0) libraryScroll.height else resources.displayMetrics.heightPixels
+        val shouldShow = scrollY > screenHeight
+        if (shouldShow != isScrollTopVisible) {
+            isScrollTopVisible = shouldShow
+            btnLibraryScrollTop.animate().cancel()
+            if (shouldShow) {
+                btnLibraryScrollTop.visibility = View.VISIBLE
+                btnLibraryScrollTop.alpha = 0f
+                btnLibraryScrollTop.scaleX = 0.85f
+                btnLibraryScrollTop.scaleY = 0.85f
+                btnLibraryScrollTop.translationY = dpToPx(10).toFloat()
+                btnLibraryScrollTop.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .translationY(0f)
+                    .setDuration(220L)
+                    .setInterpolator(DecelerateInterpolator(1.8f))
+                    .start()
+            } else {
+                btnLibraryScrollTop.animate()
+                    .alpha(0f)
+                    .scaleX(0.85f)
+                    .scaleY(0.85f)
+                    .translationY(dpToPx(10).toFloat())
+                    .setDuration(180L)
+                    .setInterpolator(DecelerateInterpolator(1.5f))
+                    .withEndAction {
+                        if (!isScrollTopVisible) {
+                            btnLibraryScrollTop.visibility = View.GONE
+                        }
+                    }
+                    .start()
+            }
         }
     }
 

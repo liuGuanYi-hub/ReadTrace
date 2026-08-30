@@ -385,4 +385,44 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <!-- 🚀 悬浮回到顶部胶囊按钮 -->
+    <LinearLayout
+        android:id="@+id/btnLibraryScrollTop"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="92dp"
+        android:background="@drawable/bg_fab_back_to_top"
+        android:clickable="true"
+        android:elevation="8dp"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans"
+            android:text="↑"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:fontFamily="sans"
+            android:text="顶部"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
