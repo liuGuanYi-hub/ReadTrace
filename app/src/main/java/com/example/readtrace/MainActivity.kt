@@ -19,6 +19,7 @@ import com.example.readtrace.ui.fragment.LibraryFragment
 import com.example.readtrace.ui.fragment.MemoirFragment
 import com.example.readtrace.ui.fragment.ProfileFragment
 import com.example.readtrace.util.ViewAnimationHelper
+import com.example.readtrace.widget.FluidSpotlightNavBar
 
 class MainActivity : AppCompatActivity() {
 
@@ -96,6 +97,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         navIndicator = findViewById(R.id.navIndicator)
+        val bottomNavBarShell = findViewById<FluidSpotlightNavBar>(R.id.bottomNavBarShell)
+        bottomNavBarShell?.onTabSelectedListener = { tabIndex ->
+            selectTab(tabIndex)
+        }
+
         // 布局完成后把指示胶囊定位到初始 Tab（不动画）
         tabHub.post { moveNavIndicator(currentTabIndex, animate = false) }
     }

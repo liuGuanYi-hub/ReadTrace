@@ -17,8 +17,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 底部悬浮毛玻璃导航栏 (Floating M3/iOS Pill Nav Bar) -->
-    <FrameLayout
+    <!-- 底部悬浮毛玻璃导航栏 (Floating M3/iOS Pill Nav Bar + 鸿蒙流光寻迹) -->
+    <com.example.readtrace.widget.FluidSpotlightNavBar
         android:id="@+id/bottomNavBarShell"
         android:layout_width="0dp"
         android:layout_height="64dp"
@@ -196,7 +196,7 @@
                 android:textSize="10.5sp" />
         </LinearLayout>
         </LinearLayout>
-    </FrameLayout>
+    </com.example.readtrace.widget.FluidSpotlightNavBar>
 
     <!-- 🎞️ 模拟胶片感光颗粒与抗断层噪点层 (FilmGrainOverlayView) -->
     <com.example.readtrace.widget.FilmGrainOverlayView

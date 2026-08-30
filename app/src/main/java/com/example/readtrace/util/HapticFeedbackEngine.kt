@@ -179,4 +179,21 @@ object HapticFeedbackEngine {
             }
         }
     }
+
+    /**
+     * 8. 🌟 鸿蒙流光导航刷动棘轮微震 (Ultra-Fine Dock Brush Ratchet Tick)
+     * 带来极其清脆细腻的指尖拨动与齿轮阻尼感。
+     */
+    fun dockBrushRatchetTick(context: Context) {
+        safeVibrate(context) { vibrator ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(10, 80))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(10L)
+            }
+        }
+    }
 }
