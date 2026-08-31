@@ -123,10 +123,12 @@ class DiscoverActivity : AppCompatActivity() {
 
         adapter = SubjectAdapter(
             onItemClicked = { subject, position ->
+                android.util.Log.d("DiscoverBatch", "click pos=$position sel=$selectionMode title=${subject.displayTitle}")
                 HapticFeedbackEngine.cartridgeSnap(this)
                 if (selectionMode) toggleSelection(subject, position) else openSubjectPreview(subject)
             },
             onItemLongClicked = { subject, position ->
+                android.util.Log.d("DiscoverBatch", "longclick pos=$position sel=$selectionMode owned=${isOwned(subject)} title=${subject.displayTitle}")
                 // 长按进入批量模式并选中该条目（已收藏条目不可选）
                 if (!selectionMode) enterSelectionMode()
                 if (!isOwned(subject)) toggleSelection(subject, position)
@@ -358,9 +360,13 @@ class DiscoverActivity : AppCompatActivity() {
     }
 
     private fun toggleSelection(subject: BangumiSubject, position: Int) {
-        if (isOwned(subject)) return
+        if (isOwned(subject)) {
+            android.util.Log.d("DiscoverBatch", "toggle skip owned: ${subject.displayTitle}")
+            return
+        }
         val key = keyOf(subject)
         if (!selectedKeys.remove(key)) selectedKeys.add(key)
+        android.util.Log.d("DiscoverBatch", "toggle $key size=${selectedKeys.size}")
         updateBatchBar()
         adapter.notifyItemChanged(position)
     }
@@ -682,10 +688,12 @@ class DiscoverActivity : AppCompatActivity() {
             init {
                 itemView.setOnClickListener {
                     val pos = bindingAdapterPosition
+                    android.util.Log.d("DiscoverBatch", "holder click pos=$pos inItems=${pos in items.indices}")
                     if (pos in items.indices) onItemClicked(items[pos], pos)
                 }
                 itemView.setOnLongClickListener {
                     val pos = bindingAdapterPosition
+                    android.util.Log.d("DiscoverBatch", "holder longclick pos=$pos")
                     if (pos in items.indices) onItemLongClicked(items[pos], pos) else false
                 }
                 quickAdd.setOnClickListener {
