@@ -58,7 +58,6 @@ class LibraryFragment : Fragment() {
     private lateinit var statusChipWishlist: TextView
     private lateinit var libraryTagScroller: HorizontalScrollView
     private lateinit var libraryTagGroup: LinearLayout
-    private lateinit var libraryTagAll: TextView
 
     private lateinit var libraryCountText: TextView
     private lateinit var btnLibraryToggleView: TextView
@@ -130,7 +129,6 @@ class LibraryFragment : Fragment() {
         statusChipWishlist = view.findViewById(R.id.statusChipWishlist)
         libraryTagScroller = view.findViewById(R.id.libraryTagScroller)
         libraryTagGroup = view.findViewById(R.id.libraryTagGroup)
-        libraryTagAll = view.findViewById(R.id.libraryTagAll)
 
         libraryScroll = view.findViewById(R.id.libraryScroll)
         btnLibraryScrollTop = view.findViewById(R.id.btnLibraryScrollTop)
@@ -140,6 +138,8 @@ class LibraryFragment : Fragment() {
         libraryBooksContainer = view.findViewById(R.id.libraryBooksContainer)
         libraryEmptyPanel = view.findViewById(R.id.libraryEmptyPanel)
 
+        updateMediaChips()
+        updateStatusChips()
         updateViewModeButton()
     }
 
@@ -172,8 +172,6 @@ class LibraryFragment : Fragment() {
         statusChipReading.setOnClickListener { selectStatus(BookStatus.READING) }
         statusChipFinished.setOnClickListener { selectStatus(BookStatus.FINISHED) }
         statusChipWishlist.setOnClickListener { selectStatus(BookStatus.WISHLIST) }
-
-        libraryTagAll.setOnClickListener { selectTag(null) }
 
         librarySearchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -280,8 +278,15 @@ class LibraryFragment : Fragment() {
         )
         val ctx = context ?: return
         chips.forEach { (chip, isSelected) ->
-            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-            chip.setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
+            if (isSelected) {
+                chip.setBackgroundResource(R.drawable.bg_segmented_item_selected)
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.white))
+                chip.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            } else {
+                chip.setBackgroundResource(0)
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.readtrace_muted))
+                chip.typeface = android.graphics.Typeface.DEFAULT
+            }
         }
     }
 
@@ -330,42 +335,44 @@ class LibraryFragment : Fragment() {
         }
 
         libraryTagScroller.visibility = View.VISIBLE
-        while (libraryTagGroup.childCount > 1) {
-            libraryTagGroup.removeViewAt(1)
-        }
+        libraryTagGroup.removeAllViews()
 
         val ctx = context ?: return
-        tagList.forEach { (tag, count) ->
-            val chip = TextView(ctx, null, 0, R.style.ReadTraceStatusChip).apply {
-                text = "$tag ($count)"
+        tagList.forEachIndexed { index, (tag, count) ->
+            val chip = TextView(ctx).apply {
+                val isSelected = selectedTag == tag
+                text = if (isSelected) "✓ $tag ($count)" else "$tag ($count)"
                 textSize = 11.5f
+                gravity = android.view.Gravity.CENTER
                 val params = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    dpToPx(30),
+                    dpToPx(26),
                 ).apply {
-                    marginStart = dpToPx(6)
+                    if (index > 0) marginStart = dpToPx(6)
                 }
                 layoutParams = params
+                setPadding(dpToPx(10), 0, dpToPx(10), 0)
+                setBackgroundResource(if (isSelected) R.drawable.bg_tag_outline_chip_selected else R.drawable.bg_tag_outline_chip)
+                setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
                 isClickable = true
                 isFocusable = true
                 setOnClickListener { selectTag(if (selectedTag == tag) null else tag) }
             }
             libraryTagGroup.addView(chip)
         }
-        updateTagChips()
     }
 
     private fun updateTagChips() {
         val ctx = context ?: return
-        libraryTagAll.setBackgroundResource(if (selectedTag == null) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
-        libraryTagAll.setTextColor(ContextCompat.getColor(ctx, if (selectedTag == null) R.color.white else R.color.readtrace_ink))
-
-        for (i in 1 until libraryTagGroup.childCount) {
+        for (i in 0 until libraryTagGroup.childCount) {
             val chip = libraryTagGroup.getChildAt(i) as? TextView ?: continue
-            val tagText = chip.text.toString().substringBeforeLast(" (")
-            val isSelected = selectedTag == tagText
-            chip.setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip)
+            val fullText = chip.text.toString()
+            val rawTag = fullText.removePrefix("✓ ").substringBeforeLast(" (")
+            val countPart = fullText.substringAfterLast(" (", "")
+            val isSelected = selectedTag == rawTag
+            chip.setBackgroundResource(if (isSelected) R.drawable.bg_tag_outline_chip_selected else R.drawable.bg_tag_outline_chip)
             chip.setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
+            chip.text = if (isSelected) "✓ $rawTag ($countPart" else "$rawTag ($countPart"
         }
     }
 
