@@ -129,6 +129,69 @@ object BangumiApiClient {
         }
     }
 
+    // ---------------------------------------------------------------- v4.2.23 分页同步接口
+
+    /**
+     * 分页搜索同步版（单页 20 条），必须在后台线程调用，由 RankRepository 统一调度。
+     * 空关键词 → sort=rank 榜单；非空 → sort=match。
+     * 返回 Pair(items, total)；null = 网络失败且无缓存兜底。
+     */
+    fun fetchRankPageSync(
+        context: Context,
+        mediaType: MediaType,
+        keyword: String,
+        offset: Int,
+        forceRefresh: Boolean,
+    ): Pair<List<BangumiSubject>, Int?>? {
+        val appContext = context.applicationContext
+        val kw = keyword.trim()
+        val key = pageCacheKeyOf(kw, mediaType, offset)
+        if (!forceRefresh) {
+            readPageCache(appContext, key, kw)?.let { return it }
+        }
+        val raw = runCatching {
+            val body = JSONObject().apply {
+                put("keyword", kw)
+                put("sort", if (kw.isEmpty()) "rank" else "match")
+                put("filter", JSONObject().put("type", JSONArray().put(subjectTypeOf(mediaType))))
+            }
+            request(
+                path = "/v0/search/subjects?limit=20&offset=$offset",
+                method = "POST",
+                body = body.toString().toByteArray(StandardCharsets.UTF_8),
+            )
+        }.onFailure {
+            Log.e("BangumiApi", "fetchRankPageSync offset=$offset failed", it)
+        }.getOrNull()
+        if (raw == null) {
+            readPageCache(appContext, key, kw)?.let { return it }
+            return null
+        }
+        writeCache(appContext, key, raw)
+        return parsePage(raw, kw)
+    }
+
+    private fun parsePage(response: String, keyword: String): Pair<List<BangumiSubject>, Int?> {
+        val total = runCatching { JSONObject(response).optInt("total", -1) }.getOrDefault(-1)
+            .takeIf { it >= 0 }
+        return Pair(parseSearchResponse(response, keyword).orEmpty(), total)
+    }
+
+    private fun pageCacheKeyOf(keyword: String, mediaType: MediaType, offset: Int): String =
+        md5Hex("page|${mediaType.databaseValue}|${keyword.trim().lowercase()}|offset=$offset")
+
+    private fun readPageCache(
+        context: Context,
+        key: String,
+        keyword: String,
+    ): Pair<List<BangumiSubject>, Int?>? = runCatching {
+        val file = File(File(context.filesDir, CACHE_DIR).apply { if (!exists()) mkdirs() }, "$key.json")
+        if (!file.exists() || file.length() == 0L) return@runCatching null
+        val root = JSONObject(file.readText(StandardCharsets.UTF_8))
+        if (System.currentTimeMillis() - root.optLong("ts", 0L) > CACHE_TTL_MS) return@runCatching null
+        parsePage(root.optString("response"), keyword)
+    }.getOrNull()
+
     private fun parseSearchResponse(response: String, keyword: String = ""): List<BangumiSubject>? = runCatching {
         val data = JSONObject(response).optJSONArray("data")
             ?: return emptyList<BangumiSubject>()

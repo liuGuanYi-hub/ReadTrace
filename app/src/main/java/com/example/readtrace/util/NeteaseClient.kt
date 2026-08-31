@@ -13,7 +13,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -31,6 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object NeteaseClient {
 
+    /** 条目来源标识：落库 sourceType 与跨源防重用 */
+    const val SOURCE_NETEASE = "netease"
+
     private const val API = "https://music.163.com/api"
     private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ReadTrace/4.2.19"
     private const val CONNECT_TIMEOUT_MS = 8000
@@ -43,51 +45,50 @@ object NeteaseClient {
     /** 云音乐飙升榜 playlist id */
     private const val TOPLIST_ID = "3778678"
 
-    private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
     private val lastRequestAt = AtomicInteger(0)
 
     /**
-     * 榜单（keyword 为空 → 飙升榜）或搜索。cache-first，24h。
+     * v4.2.23 榜单整表同步版（飙升榜约 100 首），必须在后台线程调用，
+     * 由 RankRepository 统一编排切片分页。返回整表；null = 网络失败且无缓存兜底。
      */
-    fun searchSubjects(
-        context: Context,
-        keyword: String,
-        forceRefresh: Boolean = false,
-        onResult: (List<BangumiSubject>?, fromCache: Boolean) -> Unit,
-    ) {
-        executor.execute {
-            val appContext = context.applicationContext
-            val kw = keyword.trim()
-            val key = cacheKeyOf(kw)
-            if (!forceRefresh) {
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            val url = if (kw.isEmpty()) {
-                "$API/playlist/detail?id=$TOPLIST_ID"
-            } else {
-                "$API/search/get/web?s=${java.net.URLEncoder.encode(kw, "UTF-8").replace("+", "%20")}&type=1&limit=50"
-            }
-            val json = fetch(appContext, url, if (kw.isEmpty()) "$API/playlist/detail" else "$API/search/get/web")
-            val subjects = json?.let { parse(it, kw) }
-            if (subjects != null && subjects.isNotEmpty()) {
-                writeCache(appContext, key, subjects)
-            }
-            if (subjects == null) {
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            mainHandler.post { onResult(subjects, false) }
+    fun fetchRankListSync(context: Context, forceRefresh: Boolean): List<BangumiSubject>? {
+        val appContext = context.applicationContext
+        val key = cacheKeyOf("")
+        if (!forceRefresh) {
+            readCache(appContext, key)?.let { list -> return list }
         }
+        val json = fetch(appContext, "$API/playlist/detail?id=$TOPLIST_ID", "$API/playlist/detail")
+        val subjects = json?.let { parse(it, "") }
+        if (subjects != null && subjects.isNotEmpty()) writeCache(appContext, key, subjects)
+        if (subjects == null) {
+            readCache(appContext, key)?.let { list -> return list }
+            return null
+        }
+        return subjects
+    }
+
+    /**
+     * v4.2.23 关键词搜索同步版（单页 50 首），必须在后台线程调用，由 RankRepository 调度。
+     * cache-first，24h；失败回退陈旧缓存。
+     */
+    fun fetchSearchSync(context: Context, keyword: String, forceRefresh: Boolean): SourcePage? {
+        val kw = keyword.trim()
+        if (kw.isEmpty()) return SourcePage(emptyList(), fromCache = false)
+        val appContext = context.applicationContext
+        val key = cacheKeyOf(kw)
+        if (!forceRefresh) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
+        }
+        val url = "$API/search/get/web?s=${java.net.URLEncoder.encode(kw, "UTF-8").replace("+", "%20")}&type=1&limit=50"
+        val json = fetch(appContext, url, "$API/search/get/web")
+        val subjects = json?.let { parse(it, kw) }
+        if (subjects != null && subjects.isNotEmpty()) writeCache(appContext, key, subjects)
+        if (subjects == null) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
+            return null
+        }
+        return SourcePage(subjects, fromCache = false)
     }
 
     /** 详情：歌曲无简介，搜索结果已含创作者/封面，直接返回自身（不发网络） */
@@ -132,6 +133,7 @@ object NeteaseClient {
                         creator = creator,
                         summary = albumName,
                         subjectType = 3,
+                        source = SOURCE_NETEASE,
                     ),
                 )
             }
@@ -162,6 +164,7 @@ object NeteaseClient {
                         coverUrl = o.optString("cover").takeIf { it.isNotBlank() },
                         creator = o.optString("creator").takeIf { it.isNotBlank() },
                         summary = o.optString("summary").takeIf { it.isNotBlank() },
+                        source = SOURCE_NETEASE,
                     ),
                 )
             }

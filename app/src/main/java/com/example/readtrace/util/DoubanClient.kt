@@ -35,6 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object DoubanClient {
 
+    /** 条目来源标识：落库 sourceType 与跨源防重用 */
+    const val SOURCE_DOUBAN = "douban"
+
     private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ReadTrace/4.2.17"
     private const val CONNECT_TIMEOUT_MS = 8000
     private const val READ_TIMEOUT_MS = 15000
@@ -61,80 +64,82 @@ object DoubanClient {
         MediaType.GAME -> "图书"
     }
 
-    /** v4.2.22 榜单 URL 列表：书走 Top250 HTML；影视/番剧走电影 JSON 接口（风控友好+自带封面） */
-    private fun rankUrls(mediaType: MediaType): List<String> = when (mediaType) {
-        // 读书 Top250（table 结构）：每页 25 部，抓 5 页 → 目标 125，保底 50
-        MediaType.BOOK -> (0..4).map { "https://book.douban.com/top250?start=${it * 25}" }
-        // 影视/番剧：电影 JSON 搜索接口（sort=rank 高分向，limit=20 分页，结构化含封面）
-        MediaType.MOVIE -> (0..4).map { "https://movie.douban.com/j/new_search_subjects?tags=%E7%94%B5%E5%BD%B1&sort=rank&start=${it * 20}&limit=20" }
-        MediaType.ANIME -> (0..4).map { "https://movie.douban.com/j/new_search_subjects?tags=%E5%8A%A8%E6%BC%AB&sort=rank&start=${it * 20}&limit=20" }
-        MediaType.MUSIC -> listOf("https://music.douban.com/chart")
-        MediaType.GAME -> listOf("https://book.douban.com/chart")
+    /** 页间重试间隔（风控友好） */
+    private const val PAGE_RETRY_GAP_MS = 600L
+
+    /** v4.2.23 单页榜单 URL：书走 Top250 HTML（25/页），影视/番剧走电影 JSON 接口（20/页） */
+    private fun rankUrlFor(mediaType: MediaType, page: Int): String? = when (mediaType) {
+        MediaType.BOOK -> "https://book.douban.com/top250?start=${page * 25}"
+        MediaType.MOVIE -> "https://movie.douban.com/j/new_search_subjects?tags=%E7%94%B5%E5%BD%B1&sort=rank&start=${page * 20}&limit=20"
+        MediaType.ANIME -> "https://movie.douban.com/j/new_search_subjects?tags=%E5%8A%A8%E6%BC%AB&sort=rank&start=${page * 20}&limit=20"
+        else -> null
+    }
+
+    /** 榜单最大页数：书 Top250 共 250 部（10 页×25），影视/番剧 JSON 接口保守取 10 页×20 */
+    fun maxRankPages(mediaType: MediaType): Int = when (mediaType) {
+        MediaType.BOOK -> 10
+        MediaType.MOVIE, MediaType.ANIME -> 10
+        else -> 0
     }
 
     /**
-     * 榜单（keyword 为空）或搜索（keyword 非空）。cache-first，24h。
+     * v4.2.23 分页抓取：同步抓取单页榜单（必须在后台线程调用，由 RankRepository 统一调度）。
+     * 返回值语义：
+     * - null = 网络失败且无任何缓存兜底（调用方可用 Bangumi 补位）；
+     * - SourcePage.items 为空 = 该页合法为空或页面结构变更（已记 PARSE_MISS 日志）。
      */
-    fun searchSubjects(
-        context: Context,
-        keyword: String,
-        mediaType: MediaType,
-        forceRefresh: Boolean = false,
-        onResult: (List<BangumiSubject>?, fromCache: Boolean) -> Unit,
-    ) {
-        executor.execute {
-            val appContext = context.applicationContext
-            val kw = keyword.trim()
-            val key = cacheKeyOf(kw, mediaType)
-            if (!forceRefresh) {
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            val subjects: List<BangumiSubject>?
-            if (kw.isEmpty()) {
-                // v4.2.22 多页抓取保底 50：书 Top250 HTML 5 页、影视/番剧 JSON 接口 5 页；
-                // 每页失败重试 1 次，页间 500ms 间隔降风控
-                val urls = rankUrls(mediaType)
-                val merged = LinkedHashMap<Long, BangumiSubject>()
-                for (url in urls) {
-                    var raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
-                    if (raw == null) {
-                        Thread.sleep(500)
-                        raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
-                    }
-                    val pageItems = when (mediaType) {
-                        MediaType.ANIME, MediaType.MOVIE -> raw?.let { parseRankJson(it) }.orEmpty()
-                        else -> raw?.let { parseRanking(it, mediaType) }.orEmpty()
-                    }
-                    pageItems.forEach { merged.putIfAbsent(it.id, it) }
-                    if (merged.size >= 60) break // 保底已够，停止后续请求省流量
-                    if (pageItems.isEmpty()) Thread.sleep(500) // 失败页不立即 break，给下一页机会
-                }
-                subjects = merged.values.toList().takeIf { it.isNotEmpty() }
-            } else {
-                val pageUrl = "https://search.douban.com/${hostOf(mediaType)}/subject_search?search_text=" +
-                    URLEncoderCompat.encode(kw)
-                val html = fetch(appContext, pageUrl, referer = "https://search.douban.com/")
-                subjects = html?.let { parseList(it, mediaType, kw) }
-            }
-            if (subjects != null && subjects.isNotEmpty()) {
-                writeCache(appContext, key, subjects)
-            }
-            if (subjects == null) {
-                // 网络/风控失败：回退陈旧缓存兜底（与 Bangumi 行为一致）
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            mainHandler.post { onResult(subjects, false) }
+    fun fetchRankPageSync(context: Context, mediaType: MediaType, page: Int, forceRefresh: Boolean): SourcePage? {
+        val url = rankUrlFor(mediaType, page) ?: return null
+        val appContext = context.applicationContext
+        val key = rankCacheKeyOf(mediaType, page)
+        if (!forceRefresh) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
         }
+        var raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
+        if (raw == null) {
+            Thread.sleep(PAGE_RETRY_GAP_MS)
+            raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
+        }
+        val items = when (mediaType) {
+            MediaType.ANIME, MediaType.MOVIE -> raw?.let { parseRankJson(it) }.orEmpty()
+            else -> raw?.let { parseRanking(it, mediaType) }.orEmpty()
+        }
+        if (raw != null && items.isEmpty()) {
+            // HTTP 成功但解析 0 条：区分「页面合法为空」与「结构变更」只能靠日志，供排障定位
+            Log.w("DoubanClient", "PARSE_MISS page=$page url=$url")
+        }
+        if (items.isNotEmpty()) writeCache(appContext, key, items)
+        if (raw == null) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
+            return null
+        }
+        return SourcePage(items, fromCache = false)
+    }
+
+    /**
+     * v4.2.23 关键词搜索同步版（单页），由 RankRepository 调度。
+     * cache-first，24h；失败回退陈旧缓存。
+     */
+    fun fetchSearchSync(context: Context, keyword: String, mediaType: MediaType, forceRefresh: Boolean): SourcePage? {
+        val kw = keyword.trim()
+        if (kw.isEmpty()) return SourcePage(emptyList(), fromCache = false)
+        val appContext = context.applicationContext
+        val key = cacheKeyOf(kw, mediaType)
+        if (!forceRefresh) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
+        }
+        val pageUrl = "https://search.douban.com/${hostOf(mediaType)}/subject_search?search_text=" +
+            URLEncoderCompat.encode(kw)
+        val html = fetch(appContext, pageUrl, referer = "https://search.douban.com/")
+        val subjects = html?.let { parseList(it, mediaType, kw) }
+        if (subjects != null && subjects.isNotEmpty()) {
+            writeCache(appContext, key, subjects)
+        }
+        if (subjects == null) {
+            readCache(appContext, key)?.let { list -> return SourcePage(list, fromCache = true) }
+            return null
+        }
+        return SourcePage(subjects, fromCache = false)
     }
 
     /** 条目详情：解析标题/原名/评分/创作者/简介（简介较长时截断） */
@@ -190,6 +195,7 @@ object DoubanClient {
                 creator = creator?.trim()?.takeIf { it.isNotEmpty() }?.let { cleanCast(it) },
                 summary = null,
                 subjectType = 0,
+                source = SOURCE_DOUBAN,
             )
         }
         return out
@@ -216,6 +222,7 @@ object DoubanClient {
                 creator = creator?.trim()?.let { if (it.contains("主演")) it.substringBefore("主演").trim() else it },
                 summary = null,
                 subjectType = 0,
+                source = SOURCE_DOUBAN,
             )
         }
         return out
@@ -249,6 +256,7 @@ object DoubanClient {
                         creator = creator,
                         summary = null,
                         subjectType = 0,
+                        source = SOURCE_DOUBAN,
                     ),
                 )
             }
@@ -279,6 +287,7 @@ object DoubanClient {
                 creator = castRaw?.trim()?.takeIf { it.isNotEmpty() }?.let { cleanCast(it) },
                 summary = null,
                 subjectType = 0,
+                source = SOURCE_DOUBAN,
             )
         }
         if (results.isNotEmpty()) return results
@@ -304,6 +313,7 @@ object DoubanClient {
                 creator = cast?.trim()?.takeIf { it.isNotEmpty() }?.let { cleanCast(it) },
                 summary = null,
                 subjectType = 0,
+                source = SOURCE_DOUBAN,
             )
         }
         return results
@@ -361,6 +371,12 @@ object DoubanClient {
         return md5Hex(normalized)
     }
 
+    /** v4.2.23 榜单页级缓存键：每页独立缓存，单页失败不影响其他页 */
+    private fun rankCacheKeyOf(mediaType: MediaType, page: Int): String {
+        val normalized = "douban:rank|${mediaType.name}|page=$page"
+        return md5Hex(normalized)
+    }
+
     private fun readCache(context: Context, key: String): List<BangumiSubject>? = runCatching {
         val file = File(File(context.filesDir, CACHE_DIR).apply { if (!exists()) mkdirs() }, "$key.json")
         if (!file.exists() || file.length() == 0L) return@runCatching null
@@ -378,6 +394,7 @@ object DoubanClient {
                         coverUrl = o.optString("cover").takeIf { it.isNotBlank() },
                         ratingScore = o.optDouble("rating").takeIf { !it.isNaN() && it > 0 },
                         creator = o.optString("creator").takeIf { it.isNotBlank() },
+                        source = SOURCE_DOUBAN,
                     ),
                 )
             }

@@ -31,6 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object SteamClient {
 
+    /** 条目来源标识：落库 sourceType 与跨源防重用 */
+    const val SOURCE_STEAM = "steam"
+
     private const val API = "https://steamspy.com/api.php"
     private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ReadTrace/4.2.21"
     private const val CONNECT_TIMEOUT_MS = 8000
@@ -43,55 +46,25 @@ object SteamClient {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val lastRequestAt = AtomicInteger(0)
 
-    /** 榜单（keyword 为空 → top100in2weeks）或搜索（榜单内本地过滤）。cache-first，24h。 */
-    fun searchSubjects(
-        context: Context,
-        keyword: String,
-        forceRefresh: Boolean = false,
-        onResult: (List<BangumiSubject>?, fromCache: Boolean) -> Unit,
-    ) {
-        executor.execute {
-            val appContext = context.applicationContext
-            val kw = keyword.trim()
-            val key = cacheKeyOf(kw)
-            if (!forceRefresh) {
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            // 榜单数据（搜索也基于榜单本地过滤，避免不可用的 search 接口）
-            val rankKey = cacheKeyOf("")
-            val cachedRank = readCache(appContext, rankKey)
-            val subjects: List<BangumiSubject>?
-            if (cachedRank != null && cachedRank.isNotEmpty()) {
-                subjects = if (kw.isEmpty()) cachedRank else cachedRank.filter {
-                    it.name.contains(kw, ignoreCase = true) || (it.creator?.contains(kw, ignoreCase = true) == true)
-                }.take(50)
-            } else {
-                val json = fetch("$API?request=top100in2weeks")
-                val rank = json?.let { parseRank(it) }
-                subjects = if (rank != null && rank.isNotEmpty()) {
-                    writeCache(appContext, rankKey, rank)
-                    if (kw.isEmpty()) rank else rank.filter {
-                        it.name.contains(kw, ignoreCase = true) || (it.creator?.contains(kw, ignoreCase = true) == true)
-                    }.take(50)
-                } else {
-                    null
-                }
-            }
-            if (subjects == null) {
-                readCache(appContext, key)?.let { list ->
-                    if (list.isNotEmpty()) {
-                        mainHandler.post { onResult(list, true) }
-                        return@execute
-                    }
-                }
-            }
-            mainHandler.post { onResult(subjects, false) }
+    /**
+     * v4.2.23 榜单整表同步版（top100in2weeks 约 100 款），必须在后台线程调用，
+     * 由 RankRepository 统一编排切片分页与搜索过滤。
+     * 返回整表；null = 网络失败且无缓存兜底。
+     */
+    fun fetchRankListSync(context: Context, forceRefresh: Boolean): List<BangumiSubject>? {
+        val appContext = context.applicationContext
+        val rankKey = cacheKeyOf("")
+        if (!forceRefresh) {
+            readCache(appContext, rankKey)?.let { list -> return list }
         }
+        val json = fetch("$API?request=top100in2weeks")
+        val rank = json?.let { parseRank(it) }
+        if (rank != null && rank.isNotEmpty()) writeCache(appContext, rankKey, rank)
+        if (rank == null) {
+            readCache(appContext, rankKey)?.let { list -> return list }
+            return null
+        }
+        return rank
     }
 
     /** 详情：SteamSpy appdetails 补简介/开发者 */
@@ -130,6 +103,7 @@ object SteamClient {
                 creator = o.optString("developer").takeIf { it.isNotBlank() },
                 summary = null,
                 subjectType = 4,
+                source = SOURCE_STEAM,
             )
         }
         out.takeIf { it.isNotEmpty() }
@@ -159,6 +133,7 @@ object SteamClient {
                         coverUrl = o.optString("cover").takeIf { it.isNotBlank() },
                         creator = o.optString("creator").takeIf { it.isNotBlank() },
                         summary = o.optString("summary").takeIf { it.isNotBlank() },
+                        source = SOURCE_STEAM,
                     ),
                 )
             }

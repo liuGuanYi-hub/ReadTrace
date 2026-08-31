@@ -15,6 +15,8 @@ data class BangumiSubject(
     val tags: List<String> = emptyList(),
     val creator: String? = null,       // 解析自 infobox（仅详情接口返回）
     val subjectType: Int = 0,          // Bangumi subject_type：1 书 / 2 动画 / 3 音乐 / 4 游戏 / 6 三次元
+    // 数据来源标识（bangumi/douban/steam/netease）：不同源 id 体系互相独立，落库防重必须带源隔离
+    val source: String = "bangumi",
 ) {
     /** 展示标题：优先中文名，回退原名 */
     val displayTitle: String get() = nameCn?.takeIf { it.isNotBlank() } ?: name

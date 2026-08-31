@@ -31,6 +31,7 @@ import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.NeteaseClient
+import com.example.readtrace.util.RankRepository
 import com.example.readtrace.util.SteamClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
@@ -61,7 +62,11 @@ class DiscoverActivity : AppCompatActivity() {
 
     private var selectedMediaType: MediaType = MediaType.BOOK
     private var existingBooks: List<Book> = emptyList()
-    private var currentResults: List<BangumiSubject> = emptyList()
+
+    // v4.2.23 分页会话状态：会话令牌 + 是否还有下一页 + 是否正在加载
+    private var sessionToken: Long = 0L
+    private var hasMore: Boolean = true
+    private var isLoadingPage: Boolean = false
 
     private val mediaChips = mutableListOf<Pair<TextView, MediaType>>()
     private val searchHandler = Handler(Looper.getMainLooper())
@@ -109,8 +114,24 @@ class DiscoverActivity : AppCompatActivity() {
             HapticFeedbackEngine.cartridgeSnap(this)
             openSubjectPreview(subject)
         })
-        gridView.layoutManager = GridLayoutManager(this, 2)
+        val gridLayoutManager = GridLayoutManager(this, 2)
+        // 页脚（加载中/没有更多）横跨双列
+        gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int =
+                if (adapter.isFooterPosition(position)) gridLayoutManager.spanCount else 1
+        }
+        gridView.layoutManager = gridLayoutManager
         gridView.adapter = adapter
+
+        // v4.2.23 无限滚动：接近底部自动加载下一页
+        gridView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy <= 0) return
+                val layoutManager = recyclerView.layoutManager as? GridLayoutManager ?: return
+                val lastVisible = layoutManager.findLastVisibleItemPosition()
+                if (lastVisible >= layoutManager.itemCount - 6) loadNextPage()
+            }
+        })
 
         searchButton.setOnClickListener {
             HapticFeedbackEngine.lightClick(this)
@@ -146,6 +167,7 @@ class DiscoverActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         searchHandler.removeCallbacks(searchRunnable)
+        if (sessionToken != 0L) RankRepository.discardSession(sessionToken)
         super.onDestroy()
     }
 
@@ -190,49 +212,65 @@ class DiscoverActivity : AppCompatActivity() {
         loadingView.visibility = View.VISIBLE
         emptyView.visibility = View.GONE
         gridView.visibility = View.GONE
-        // v4.2.15：榜单/搜索模式标题（结果数在回调中补齐）
         modeTitle.text = if (keyword.isEmpty()) {
             getString(R.string.discover_mode_rank)
         } else {
             getString(R.string.discover_mode_search, keyword)
         }
         clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
-        // v4.2.19 多源路由：番剧→Bangumi 官方API，游戏→小黑盒，音乐→网易云，书影→豆瓣
-        val onLoaded: (List<BangumiSubject>?, Boolean) -> Unit = { results, fromCache ->
-            loadingView.visibility = View.GONE
-            swipeRefresh.isRefreshing = false
-            sourceNote.text = if (fromCache) {
-                getString(R.string.discover_cache_note)
-            } else {
-                getString(R.string.discover_source_note)
-            }
-            currentResults = results.orEmpty()
-            modeTitle.text = buildString {
-                append(
-                    if (keyword.isEmpty()) {
-                        getString(R.string.discover_mode_rank)
-                    } else {
-                        getString(R.string.discover_mode_search, keyword)
-                    },
-                )
-                if (currentResults.isNotEmpty()) {
-                    append(" · 共 ${currentResults.size} 部")
-                }
-            }
-            if (currentResults.isEmpty()) {
-                emptyView.visibility = View.VISIBLE
-                gridView.visibility = View.GONE
-            } else {
-                emptyView.visibility = View.GONE
-                gridView.visibility = View.VISIBLE
-                adapter.submitList(currentResults)
-            }
+        // v4.2.23：重置分页会话（旧会话作废，防陈旧回调串扰），从第 0 页重新加载
+        if (sessionToken != 0L) RankRepository.discardSession(sessionToken)
+        sessionToken = RankRepository.startSession(selectedMediaType, keyword)
+        hasMore = true
+        adapter.submitList(emptyList())
+        loadNextPage(forceRefresh)
+    }
+
+    /** 加载会话下一页：无限滚动、下拉刷新与首次进入共用此入口 */
+    private fun loadNextPage(forceRefresh: Boolean = false) {
+        if (isLoadingPage || !hasMore) return
+        isLoadingPage = true
+        if (adapter.itemDataCount() > 0) {
+            adapter.setFooterState(FOOTER_LOADING)
         }
-        when (selectedMediaType) {
-            MediaType.GAME -> SteamClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
-            MediaType.MUSIC -> NeteaseClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
-            // BOOK / MOVIE / ANIME：豆瓣公开页（书籍 Top250 / 电影 Top250 / 动漫标签盘点）
-            else -> DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
+        RankRepository.loadPage(this, sessionToken, forceRefresh) { result ->
+            isLoadingPage = false
+            swipeRefresh.isRefreshing = false
+            loadingView.visibility = View.GONE
+            if (result == null || result.items.isEmpty()) {
+                hasMore = false
+                if (adapter.itemDataCount() == 0) {
+                    emptyView.visibility = View.VISIBLE
+                    gridView.visibility = View.GONE
+                    sourceNote.text = getString(R.string.discover_source_note)
+                } else {
+                    adapter.setFooterState(FOOTER_END)
+                }
+                updateModeTitle()
+                return@loadPage
+            }
+            sourceNote.text = result.sourceNote.ifEmpty { getString(R.string.discover_source_note) }
+            adapter.appendItems(result.items)
+            hasMore = result.hasMore
+            adapter.setFooterState(if (hasMore) FOOTER_NONE else FOOTER_END)
+            emptyView.visibility = View.GONE
+            gridView.visibility = View.VISIBLE
+            updateModeTitle()
+        }
+    }
+
+    private fun updateModeTitle() {
+        val keyword = searchInput.text?.toString()?.trim().orEmpty()
+        modeTitle.text = buildString {
+            append(
+                if (keyword.isEmpty()) {
+                    getString(R.string.discover_mode_rank)
+                } else {
+                    getString(R.string.discover_mode_search, keyword)
+                },
+            )
+            val count = adapter.itemDataCount()
+            if (count > 0) append(" · 已加载 $count 部")
         }
     }
 
@@ -242,7 +280,7 @@ class DiscoverActivity : AppCompatActivity() {
 
     /** 第一层精确 + 第二层模糊的组合判定，供列表角标使用 */
     private fun isOwned(subject: BangumiSubject): Boolean {
-        if (existingBooks.any { it.sourceType == SOURCE_BANGUMI && it.sourceId == subject.id.toString() }) {
+        if (existingBooks.any { it.sourceType == subject.source && it.sourceId == subject.id.toString() }) {
             return true
         }
         return existingBooks.any {
@@ -312,6 +350,23 @@ class DiscoverActivity : AppCompatActivity() {
             coverPlaceholder.visibility = View.VISIBLE
             coverPlaceholder.findViewById<TextView>(R.id.previewCoverPlaceholderEmoji)
                 .text = selectedMediaType.emoji
+            // v4.2.23 封面补全：封面缺失（豆瓣风控/字段缺失）时用标题走 Bangumi 官方接口搜一次，
+            // 请求量随用户打开预览的行为自然受限，不做批量补抓
+            BangumiApiClient.searchSubjects(this, subject.displayTitle, selectedMediaType) { matches, _ ->
+                if (!dialog.isShowing) return@searchSubjects
+                val best = matches?.firstOrNull { it.coverUrl != null }
+                if (best != null) {
+                    cover.visibility = View.VISIBLE
+                    coverPlaceholder.visibility = View.GONE
+                    CoverImageHelper.loadCover(cover, best.coverUrl, coverPlaceholder)
+                    if (enrichedSummary == null) {
+                        best.summary?.takeIf { it.isNotBlank() }?.let {
+                            enrichedSummary = it
+                            summaryView.text = it
+                        }
+                    }
+                }
+            }
         }
 
         // 状态选择：添加时必选（默认想读）
@@ -345,7 +400,7 @@ class DiscoverActivity : AppCompatActivity() {
 
         // 双层查重决定按钮与提示形态
         val exactMatch = existingBooks.firstOrNull {
-            it.sourceType == SOURCE_BANGUMI && it.sourceId == subject.id.toString()
+            it.sourceType == subject.source && it.sourceId == subject.id.toString()
         }
         if (exactMatch != null) {
             addButton.text = getString(R.string.discover_already_owned)
@@ -384,12 +439,12 @@ class DiscoverActivity : AppCompatActivity() {
         val book = Book(
             title = subject.displayTitle.trim(),
             author = subject.creator,
-            coverUrl = subject.coverUrl, // 纯在线源：直接存 Bangumi CDN 地址
+            coverUrl = subject.coverUrl, // 纯在线源：直接存源站 CDN 地址
             category = subject.date,
             status = status,
             mediaType = selectedMediaType,
             tags = subject.tags.take(3),
-            sourceType = SOURCE_BANGUMI,
+            sourceType = subject.source,
             sourceId = subject.id.toString(),
             remoteRating = subject.ratingScore,
             description = subject.summary,
@@ -403,34 +458,86 @@ class DiscoverActivity : AppCompatActivity() {
         databaseHelper.insertBook(book)
         refreshExistingBooks()
         // 列表角标即时刷新
-        adapter.submitList(currentResults)
+        adapter.notifyDataSetChanged()
     }
 
     // ---------------------------------------------------------------- 列表适配器
 
     private inner class SubjectAdapter(
         private val onItemClicked: (BangumiSubject) -> Unit,
-    ) : RecyclerView.Adapter<SubjectAdapter.SubjectViewHolder>() {
+    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val items = mutableListOf<BangumiSubject>()
+        private var footerState = FOOTER_NONE
 
         fun submitList(newItems: List<BangumiSubject>) {
             items.clear()
             items.addAll(newItems)
+            footerState = FOOTER_NONE
             notifyDataSetChanged()
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubjectViewHolder {
+        /** v4.2.23 分页追加：只在尾部插入新条目，不重建整表 */
+        fun appendItems(newItems: List<BangumiSubject>) {
+            if (newItems.isEmpty()) return
+            val insertStart = items.size
+            items.addAll(newItems)
+            notifyItemRangeInserted(insertStart, newItems.size)
+        }
+
+        /** 页脚态切换：NONE=无页脚，LOADING=加载中，END=没有更多 */
+        fun setFooterState(state: Int) {
+            if (footerState == state) return
+            footerState = state
+            notifyDataSetChanged()
+        }
+
+        fun itemDataCount(): Int = items.size
+
+        fun isFooterPosition(position: Int): Boolean =
+            footerState != FOOTER_NONE && position == items.size
+
+        override fun getItemViewType(position: Int): Int =
+            if (isFooterPosition(position)) VIEW_TYPE_FOOTER else VIEW_TYPE_ITEM
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            if (viewType == VIEW_TYPE_FOOTER) {
+                val footerView = TextView(parent.context).apply {
+                    layoutParams = RecyclerView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                    )
+                    gravity = android.view.Gravity.CENTER
+                    textSize = 12f
+                    val verticalPad = (20 * parent.context.resources.displayMetrics.density).toInt()
+                    setPadding(0, verticalPad, 0, verticalPad)
+                    setTextColor(androidx.core.content.ContextCompat.getColor(parent.context, R.color.readtrace_muted))
+                }
+                return FooterViewHolder(footerView)
+            }
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_discover_subject, parent, false)
             return SubjectViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: SubjectViewHolder, position: Int) {
-            holder.bind(items[position])
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            when (holder) {
+                is FooterViewHolder -> holder.bind(footerState, items.size)
+                is SubjectViewHolder -> holder.bind(items[position])
+            }
         }
 
-        override fun getItemCount(): Int = items.size
+        override fun getItemCount(): Int = items.size + if (footerState != FOOTER_NONE) 1 else 0
+
+        private inner class FooterViewHolder(private val textView: TextView) : RecyclerView.ViewHolder(textView) {
+            fun bind(state: Int, loadedCount: Int) {
+                textView.text = when (state) {
+                    FOOTER_LOADING -> "正在加载更多作品…"
+                    FOOTER_END -> "没有更多了 · 已加载 $loadedCount 部"
+                    else -> ""
+                }
+            }
+        }
 
         inner class SubjectViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val cover = itemView.findViewById<ImageView>(R.id.itemDiscoverCover)
@@ -463,11 +570,15 @@ class DiscoverActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val SOURCE_BANGUMI = "bangumi"
         private const val EXTRA_MEDIA_TYPE = "extra_media_type"
         private const val SEARCH_DEBOUNCE_MS = 500L
-        /** 榜单额外翻页数：4 → 共 5 页 100 条 */
-        private const val RANK_EXTRA_PAGES = 4
+        private const val VIEW_TYPE_ITEM = 0
+        private const val VIEW_TYPE_FOOTER = 1
+
+        // 列表页脚三态
+        const val FOOTER_NONE = 0
+        const val FOOTER_LOADING = 1
+        const val FOOTER_END = 2
 
         fun start(from: AppCompatActivity, mediaType: MediaType) {
             from.startActivity(
