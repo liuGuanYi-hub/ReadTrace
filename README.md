@@ -1,14 +1,17 @@
-# 阅痕 ReadTrace — 个人精神文化印记与 3D 虚拟展厅
+# 阅痕 ReadTrace v1.0.0 — 个人精神文化印记与 3D 虚拟展厅
 
 > **Android 原生开发 · OpenGL ES 3D 展厅 · 3D 情绪等高线拓扑 · 3D 时空穿梭虫洞 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 3D 拟真翻书 · Glance 桌面小组件 · 纯本地数据掌控**
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
+[![Version](https://img.shields.io/badge/Release-v1.0.0%20(Milestone)-3A6348.svg)](docs/RELEASE_NOTES_v1.0.0.md)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与先锋美学虚拟展厅**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级 Bento Grid 布局、3D 高斯势能等高线地形图、3D 时空穿梭虫洞、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、3D 陀螺仪全息光影与 Glance 桌面微缩视窗**，让每一次翻阅、追番、观影与通关都成为一场触手可及的艺术漫游。
+
+> 📢 **v1.0.0 正式里程碑版本发布**：历经早期探索演进，现全量核心系统（五大媒介、美术馆展厅、四大沉浸系统、纪念工坊、一体化极简筛选）已全量稳定收敛，正式确立并发布 **v1.0.0 里程碑正式版**。详见 [v1.0.0 官方发布说明](docs/RELEASE_NOTES_v1.0.0.md)。
 
 ---
 
