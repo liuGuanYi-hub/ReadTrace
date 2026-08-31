@@ -61,14 +61,13 @@ object DoubanClient {
         MediaType.GAME -> "图书"
     }
 
-    /** v4.2.20 盘点页 URL 列表（榜单模式多页抓取，扩大覆盖量） */
+    /** v4.2.22 榜单 URL 列表：书走 Top250 HTML；影视/番剧走电影 JSON 接口（风控友好+自带封面） */
     private fun rankUrls(mediaType: MediaType): List<String> = when (mediaType) {
-        // 豆瓣读书 Top250：每页 25 部，抓 6 页 → 150 部
-        MediaType.BOOK -> (0..5).map { "https://book.douban.com/top250?start=${it * 25}" }
-        // 豆瓣电影 Top250：150 部
-        MediaType.MOVIE -> (0..5).map { "https://movie.douban.com/top250?start=${it * 25}" }
-        // 豆瓣电影「动漫」标签按评分排序：每页 20 部，抓 5 页 → 100 部（国人认可的番剧盘点）
-        MediaType.ANIME -> (0..4).map { "https://movie.douban.com/tag/%E5%8A%A8%E6%BC%AB?sort=rank&start=${it * 20}" }
+        // 读书 Top250（table 结构）：每页 25 部，抓 5 页 → 目标 125，保底 50
+        MediaType.BOOK -> (0..4).map { "https://book.douban.com/top250?start=${it * 25}" }
+        // 影视/番剧：电影 JSON 搜索接口（sort=rank 高分向，limit=20 分页，结构化含封面）
+        MediaType.MOVIE -> (0..4).map { "https://movie.douban.com/j/new_search_subjects?tags=%E7%94%B5%E5%BD%B1&sort=rank&start=${it * 20}&limit=20" }
+        MediaType.ANIME -> (0..4).map { "https://movie.douban.com/j/new_search_subjects?tags=%E5%8A%A8%E6%BC%AB&sort=rank&start=${it * 20}&limit=20" }
         MediaType.MUSIC -> listOf("https://music.douban.com/chart")
         MediaType.GAME -> listOf("https://book.douban.com/chart")
     }
@@ -97,14 +96,23 @@ object DoubanClient {
             }
             val subjects: List<BangumiSubject>?
             if (kw.isEmpty()) {
-                // v4.2.20 盘点页多页抓取：书/影 Top250 各 6 页 150 部、番剧动漫标签 5 页 100 部
+                // v4.2.22 多页抓取保底 50：书 Top250 HTML 5 页、影视/番剧 JSON 接口 5 页；
+                // 每页失败重试 1 次，页间 500ms 间隔降风控
                 val urls = rankUrls(mediaType)
                 val merged = LinkedHashMap<Long, BangumiSubject>()
                 for (url in urls) {
-                    val html = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
-                    val pageItems = html?.let { parseRanking(it, mediaType) }.orEmpty()
+                    var raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
+                    if (raw == null) {
+                        Thread.sleep(500)
+                        raw = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
+                    }
+                    val pageItems = when (mediaType) {
+                        MediaType.ANIME, MediaType.MOVIE -> raw?.let { parseRankJson(it) }.orEmpty()
+                        else -> raw?.let { parseRanking(it, mediaType) }.orEmpty()
+                    }
                     pageItems.forEach { merged.putIfAbsent(it.id, it) }
-                    if (pageItems.isEmpty()) break // 该页失败/无数据即停止，避免空耗
+                    if (merged.size >= 60) break // 保底已够，停止后续请求省流量
+                    if (pageItems.isEmpty()) Thread.sleep(500) // 失败页不立即 break，给下一页机会
                 }
                 subjects = merged.values.toList().takeIf { it.isNotEmpty() }
             } else {
@@ -149,26 +157,30 @@ object DoubanClient {
     // ---------------------------------------------------------------- 解析
 
     /**
-     * 盘点页解析（v4.2.20）：Top250（div.item + span.title + rating_num property）与
-     * 标签页（div.item + div.title > a + rating_nums + div.intro）。两种结构并存，依次尝试。
+     * 盘点页解析（v4.2.21 校准版）：兼容两种真实 DOM——
+     * 读书 Top250：<tr class="item"> + <div class="pl2"><a title="书名">
+     * 电影 Top250：<div class="item"> + <span class="title">
+     * 先用 table 结构试，无命中再用 grid_view 结构。
      */
     private fun parseRanking(html: String, mediaType: MediaType): List<BangumiSubject> {
+        val table = parseRankTable(html)
+        if (table.isNotEmpty()) return table
+        return parseRankGridView(html)
+    }
+
+    /** 读书 Top250 table 结构 */
+    private fun parseRankTable(html: String): List<BangumiSubject> {
         val out = mutableListOf<BangumiSubject>()
-        val body = html + "<div class=\"item\""
-        val itemRegex = Regex("<div class=\"item\">([\\s\\S]*?)(?=<div class=\"item\")")
-        for (m in itemRegex.findAll(body).take(120)) {
+        for (m in Regex("<tr class=\"item\">([\\s\\S]*?)</tr>").findAll(html).take(120)) {
             val block = m.groupValues[1]
             val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
-            // Top250：<span class="title">；标签页：<div class="title"><a>
-            val title = Regex("<span class=\"title\">([^<]{1,80})</span>").find(block)?.groupValues?.get(1)
-                ?: Regex("<div class=\"title\"><a[^>]*>([^<]{1,80})</a></div>").find(block)?.groupValues?.get(1)
+            val title = Regex("<div class=\"pl2\">[\\s\\S]*?<a[^>]*title=\"([^\"]{1,80})\"").find(block)
+                ?.groupValues?.get(1)
+                ?: Regex("<a[^>]*title=\"([^\"]{1,80})\"").find(block)?.groupValues?.get(1)
                 ?: continue
-            val rating = Regex("rating_num\" property=\"v:average\">([\\d.]+)<").find(block)?.groupValues?.get(1)
-                ?.toDoubleOrNull()
-                ?: Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)?.toDoubleOrNull()
+            val rating = Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)?.toDoubleOrNull()
             val cover = Regex("<img[^>]*src=\"([^\"]+)\"").find(block)?.groupValues?.get(1)
-            val creator = Regex("<p class=\"\">([^<]{1,120})<br").find(block)?.groupValues?.get(1)
-                ?: Regex("<div class=\"intro\">([^<]{1,120})</div>").find(block)?.groupValues?.get(1)
+            val creator = Regex("<div class=\"pl2\">[\\s\\S]*?<p class=\"pl\">([^<]{1,120})</p>").find(block)?.groupValues?.get(1)
             out += BangumiSubject(
                 id = id,
                 name = title.trim(),
@@ -182,6 +194,66 @@ object DoubanClient {
         }
         return out
     }
+
+    /** 电影 Top250 grid_view 结构 */
+    private fun parseRankGridView(html: String): List<BangumiSubject> {
+        val out = mutableListOf<BangumiSubject>()
+        val body = html + "<div class=\"item\""
+        for (m in Regex("<div class=\"item\">([\\s\\S]*?)(?=<div class=\"item\")").findAll(body).take(120)) {
+            val block = m.groupValues[1]
+            val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
+            val title = Regex("<span class=\"title\">([^<]{1,80})</span>").find(block)?.groupValues?.get(1) ?: continue
+            val rating = Regex("rating_num\" property=\"v:average\">([\\d.]+)<").find(block)?.groupValues?.get(1)
+                ?.toDoubleOrNull()
+            val cover = Regex("<img[^>]*src=\"([^\"]+)\"").find(block)?.groupValues?.get(1)
+            val creator = Regex("<p>[\\s\\S]*?(?:导演|导演:)\\s*([^<\\n]{1,40})").find(block)?.groupValues?.get(1)
+            out += BangumiSubject(
+                id = id,
+                name = title.trim(),
+                nameCn = title.trim(),
+                coverUrl = cover?.takeIf { it.startsWith("http") },
+                ratingScore = rating,
+                creator = creator?.trim()?.let { if (it.contains("主演")) it.substringBefore("主演").trim() else it },
+                summary = null,
+                subjectType = 0,
+            )
+        }
+        return out
+    }
+
+    /** 番剧/影视 JSON 榜单解析：{data:[{title,rate,url,directors,casts,cover?}]} */
+    private fun parseRankJson(json: String): List<BangumiSubject>? = runCatching {
+        val data = JSONObject(json).optJSONArray("data") ?: return@runCatching null
+        buildList {
+            for (i in 0 until data.length()) {
+                val o = data.optJSONObject(i) ?: continue
+                val id = Regex("subject/(\\d+)/?").find(o.optString("url"))?.groupValues?.get(1)?.toLongOrNull()
+                    ?: continue
+                val title = o.optString("title").trim()
+                if (title.isEmpty()) continue
+                val creator = buildList {
+                    val d = o.optJSONArray("directors")
+                    d?.let { arr -> for (j in 0 until arr.length()) arr.optString(j).trim().takeIf { it.isNotEmpty() }?.let { add(it) } }
+                    if (isEmpty()) {
+                        val c = o.optJSONArray("casts")
+                        c?.let { arr -> for (j in 0 until minOf(2, arr.length())) arr.optString(j).trim().takeIf { it.isNotEmpty() }?.let { add(it) } }
+                    }
+                }.take(3).joinToString(" / ").takeIf { it.isNotEmpty() }
+                add(
+                    BangumiSubject(
+                        id = id,
+                        name = title,
+                        nameCn = title,
+                        coverUrl = o.optString("cover").takeIf { it.startsWith("http") },
+                        ratingScore = o.optString("rate").toDoubleOrNull(),
+                        creator = creator,
+                        summary = null,
+                        subjectType = 0,
+                    ),
+                )
+            }
+        }.takeIf { it.isNotEmpty() }
+    }.getOrNull()
 
     /** 榜单页结构（chart）：li > div.pl2 > a(书名/链接)；评分 rating_nums；作者 pl2 内文本 */
     private fun parseList(html: String, mediaType: MediaType, keyword: String): List<BangumiSubject> {
