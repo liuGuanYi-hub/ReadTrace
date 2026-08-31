@@ -31,7 +31,7 @@ import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.NeteaseClient
-import com.example.readtrace.util.XiaoheiheClient
+import com.example.readtrace.util.SteamClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 
@@ -229,7 +229,7 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
         when (selectedMediaType) {
-            MediaType.GAME -> XiaoheiheClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
+            MediaType.GAME -> SteamClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
             MediaType.MUSIC -> NeteaseClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
             // BOOK / MOVIE / ANIME：豆瓣公开页（书籍 Top250 / 电影 Top250 / 动漫标签盘点）
             else -> DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
@@ -297,7 +297,7 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
         when (selectedMediaType) {
-            MediaType.GAME -> XiaoheiheClient.getSubjectDetail(subject, onResult = fetchDetail)
+            MediaType.GAME -> SteamClient.getSubjectDetail(subject, onResult = fetchDetail)
             MediaType.MUSIC -> NeteaseClient.getSubjectDetail(subject, onResult = fetchDetail)
             else -> DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
         }
