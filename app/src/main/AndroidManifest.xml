@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -163,10 +165,10 @@
         <!-- ✦ 策展人账号认证与先锋通行证定制 -->
         <activity
             android:name=".ui.CuratorAuthActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ui.CuratorProfileEditActivity"
-            android:exported="false" />
+            android:exported="true" />
     </application>
 
 </manifest>

@@ -27,9 +27,13 @@ object BiometricAuthHelper {
      * 检查设备是否支持并配置了生物识别
      */
     fun isBiometricAvailable(context: Context): Boolean {
-        val biometricManager = context.getSystemService(BiometricManager::class.java) ?: return false
-        val canAuth = biometricManager.canAuthenticate(Authenticators.BIOMETRIC_STRONG or Authenticators.BIOMETRIC_WEAK)
-        return canAuth == BiometricManager.BIOMETRIC_SUCCESS
+        return try {
+            val biometricManager = context.getSystemService(BiometricManager::class.java) ?: return false
+            val canAuth = biometricManager.canAuthenticate(Authenticators.BIOMETRIC_STRONG or Authenticators.BIOMETRIC_WEAK)
+            canAuth == BiometricManager.BIOMETRIC_SUCCESS
+        } catch (e: Throwable) {
+            false
+        }
     }
 
     /**
