@@ -29,6 +29,26 @@
     <string name="decorative_book">书籍封面占位</string>
     <string name="add_book_title">添加书籍</string>
     <string name="add_book_subtitle">留下一本书，也留下一段当时的自己。</string>
+    <!-- 发现页（v4.2.14 外部导入） -->
+    <string name="discover_entry">🌐 从发现页导入热门作品</string>
+    <string name="discover_entry_hint">Bangumi 联网搜索 · 一键添加 · 之后再慢慢补感想</string>
+    <string name="discover_title">发现</string>
+    <string name="discover_subtitle">热门作品一键添加至纪念，骨架我来填，灵魂你来写。</string>
+    <string name="discover_search_hint">搜索作品名（留空看热门排行）</string>
+    <string name="discover_search_button">搜索</string>
+    <string name="discover_source_note">数据来源：Bangumi (bgm.tv) 开放 API · 简介与评分为站内用户贡献内容</string>
+    <string name="discover_empty">没有找到相关作品\n换个关键词，或切换媒介分类再试试</string>
+    <string name="discover_cover_desc">作品封面</string>
+    <string name="discover_owned_badge">已收藏</string>
+    <string name="discover_preview_title">条目预览 · 来自 Bangumi</string>
+    <string name="discover_summary_loading">简介加载中…</string>
+    <string name="discover_summary_source">简介来自 Bangumi</string>
+    <string name="discover_no_meta">暂无评分信息</string>
+    <string name="discover_status_label">标记状态（添加后可随时修改）</string>
+    <string name="discover_add_button">添加至纪念</string>
+    <string name="discover_already_owned">已在藏库</string>
+    <string name="discover_duplicate_hint">💡 藏库中可能已存在《%1$s》，若不是同一作品可放心继续添加。</string>
+    <string name="discover_import_success">已添加至纪念，去详情页补上你的感想吧 ✍️</string>
     <string name="edit_book_title">编辑书籍</string>
     <string name="edit_book_subtitle">让这段阅读记录更接近现在的感受。</string>
     <string name="action_back">返回</string>

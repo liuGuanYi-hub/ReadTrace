@@ -101,6 +101,9 @@
             android:name=".AddBookActivity"
             android:exported="true" />
         <activity
+            android:name=".DiscoverActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

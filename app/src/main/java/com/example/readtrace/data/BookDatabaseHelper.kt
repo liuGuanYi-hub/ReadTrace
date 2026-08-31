@@ -52,13 +52,22 @@ class BookDatabaseHelper(val context: Context) :
                 $COLUMN_CREATED_AT TEXT NOT NULL,
                 $COLUMN_UPDATED_AT TEXT NOT NULL,
                 $COLUMN_IS_DELETED INTEGER NOT NULL DEFAULT 0,
-                $COLUMN_DELETED_AT TEXT
+                $COLUMN_DELETED_AT TEXT,
+                $COLUMN_SOURCE_TYPE TEXT,
+                $COLUMN_SOURCE_ID TEXT,
+                $COLUMN_REMOTE_RATING REAL,
+                $COLUMN_DESCRIPTION TEXT
             )
             """.trimIndent(),
         )
         database.execSQL(
             "CREATE INDEX index_books_status_deleted ON $TABLE_BOOKS " +
                 "($COLUMN_STATUS, $COLUMN_IS_DELETED)",
+        )
+        // 外部导入防重复：来源 + 来源条目 ID 联合索引
+        database.execSQL(
+            "CREATE INDEX index_books_source ON $TABLE_BOOKS " +
+                "($COLUMN_SOURCE_TYPE, $COLUMN_SOURCE_ID)",
         )
         createNotesTable(database)
         createReadingSessionsTable(database)
@@ -110,6 +119,19 @@ class BookDatabaseHelper(val context: Context) :
         if (oldVersion < 7) {
             // v7：无表结构变更；预置封面由外网链接/打包资产统一改写为内网封面键，
             // 实际改写在 runPresetSeedsOnce 的 migrateCoversToLanKeys 中完成。
+        }
+        if (oldVersion < 10) {
+            // v10 (4.2.14)：外部导入四列——来源类型/来源 ID/远程评分/简介；老数据全部视为手动录入。
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_SOURCE_TYPE TEXT") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_SOURCE_ID TEXT") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_REMOTE_RATING REAL") }
+            runCatching { database.execSQL("ALTER TABLE $TABLE_BOOKS ADD COLUMN $COLUMN_DESCRIPTION TEXT") }
+            runCatching {
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_books_source ON $TABLE_BOOKS " +
+                        "($COLUMN_SOURCE_TYPE, $COLUMN_SOURCE_ID)",
+                )
+            }
         }
     }
 
@@ -374,8 +396,9 @@ class BookDatabaseHelper(val context: Context) :
     private fun assetNameForRemoteUrl(url: String): String? = runCatching {
         val uri = java.net.URI(url.trim())
         val host = uri.host?.lowercase() ?: return@runCatching null
+        // 注意：bgm.tv（Bangumi）域名必须排除在外——外部导入（4.2.14）的作品封面按用户决策
+        // 保留在线源，若被改写成 covers/bgm_*.jpg 内网键，CDN 映射未收录会导致封面永久丢失。
         val tag = when {
-            host.endsWith("bgm.tv") -> "bgm"
             host.endsWith("doubanio.com") -> "douban"
             host.contains("steamstatic.com") -> "steam"
             host.endsWith("126.net") -> "netease"
@@ -1975,6 +1998,38 @@ class BookDatabaseHelper(val context: Context) :
         return newId
     }
 
+    /** 外部导入第一层精确查重：同一来源的同一条目是否已导入过（含已删除作品，避免回收站复活） */
+    fun findBookBySource(sourceType: String, sourceId: String): Book? =
+        readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_SOURCE_TYPE = ? AND $COLUMN_SOURCE_ID = ?",
+            arrayOf(sourceType, sourceId),
+            null, null, null, "1",
+        ).use { cursor ->
+            if (cursor.moveToFirst()) cursor.toBook() else null
+        }
+
+    /** 外部导入第二层模糊查重：标题近似 + 同一媒介类型的手动录入作品，命中时提示「可能已存在」 */
+    fun findBooksByTitleLike(title: String, mediaType: MediaType): List<Book> {
+        val trimmed = title.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        return readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_IS_DELETED = ? AND $COLUMN_MEDIA_TYPE = ? AND " +
+                "($COLUMN_TITLE LIKE ? OR ? LIKE ('%' || $COLUMN_TITLE || '%'))",
+            arrayOf("0", mediaType.databaseValue, "%$trimmed%", trimmed),
+            null, null,
+            "$COLUMN_UPDATED_AT DESC",
+            "5",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) add(cursor.toBook())
+            }
+        }
+    }
+
     fun getBooks(status: BookStatus? = null): List<Book> {
         val selectionParts = mutableListOf("$COLUMN_IS_DELETED = ?")
         val selectionArgs = mutableListOf("0")
@@ -3246,6 +3301,10 @@ class BookDatabaseHelper(val context: Context) :
             updatedAt = getString(getColumnIndexOrThrow(COLUMN_UPDATED_AT)),
             isDeleted = getInt(getColumnIndexOrThrow(COLUMN_IS_DELETED)) == 1,
             deletedAt = getNullableString(COLUMN_DELETED_AT),
+            sourceType = getNullableString(COLUMN_SOURCE_TYPE),
+            sourceId = getNullableString(COLUMN_SOURCE_ID),
+            remoteRating = getNullableDouble(COLUMN_REMOTE_RATING),
+            description = getNullableString(COLUMN_DESCRIPTION),
         )
 
     private fun Cursor.toNote(): Note =
@@ -3374,6 +3433,10 @@ class BookDatabaseHelper(val context: Context) :
             putNullable(COLUMN_SHELF_LOCATION, shelfLocation)
             putNullable(COLUMN_BINDING_TYPE, bindingType)
             if (buyPrice == null) putNull(COLUMN_BUY_PRICE) else put(COLUMN_BUY_PRICE, buyPrice)
+            putNullable(COLUMN_SOURCE_TYPE, sourceType)
+            putNullable(COLUMN_SOURCE_ID, sourceId)
+            if (remoteRating == null) putNull(COLUMN_REMOTE_RATING) else put(COLUMN_REMOTE_RATING, remoteRating)
+            putNullable(COLUMN_DESCRIPTION, description)
         }
 
     private fun Note.toContentValues(): ContentValues =
@@ -3401,7 +3464,7 @@ class BookDatabaseHelper(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 9
+        const val DATABASE_VERSION = 10
 
         @Volatile
         private var instance: BookDatabaseHelper? = null
@@ -3450,6 +3513,10 @@ class BookDatabaseHelper(val context: Context) :
         private const val COLUMN_UPDATED_AT = "updated_at"
         private const val COLUMN_IS_DELETED = "is_deleted"
         private const val COLUMN_DELETED_AT = "deleted_at"
+        // 外部导入（v10，4.2.14）：books 表来源追踪与简介；description 列名与其他表共用无冲突
+        private const val COLUMN_SOURCE_TYPE = "source_type"
+        private const val COLUMN_SOURCE_ID = "source_id"
+        private const val COLUMN_REMOTE_RATING = "remote_rating"
 
         private const val COLUMN_BOOK_ID = "book_id"
         private const val COLUMN_CONTENT = "content"

@@ -115,6 +115,11 @@ class AddBookActivity : AppCompatActivity() {
 
         databaseHelper = BookDatabaseHelper.getInstance(this)
         editingBookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
+        // 发现页导入入口（v4.2.14）：携带当前媒介类型进入发现页，联网搜索热门作品一键导入
+        findViewById<View>(R.id.discoverEntry).setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            DiscoverActivity.start(this, selectedMediaType)
+        }
         bindViews()
         val extraType = intent.getStringExtra("extra_media_type") ?: intent.getStringExtra("extra_default_media_type")
         if (extraType != null) {
