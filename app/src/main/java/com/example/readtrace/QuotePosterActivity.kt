@@ -315,7 +315,7 @@ class QuotePosterActivity : AppCompatActivity() {
                 bookTitle = book.title,
                 bookAuthor = book.author,
                 bookCover = book.coverUrl,
-                quoteContent = book.shortComment?.takeIf { it.isNotBlank() } ?: book.review?.takeIf { it.isNotBlank() } ?: "在这个快节奏的世界里，书籍是灵魂的避风港。",
+                quoteContent = book.shortComment?.takeIf { it.isNotBlank() } ?: book.review?.takeIf { it.isNotBlank() } ?: book.mediaType.getDefaultQuote(),
                 quoteSource = book.author,
             )
     }

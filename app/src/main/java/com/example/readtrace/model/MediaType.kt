@@ -87,6 +87,38 @@ enum class MediaType(
         BookStatus.DROPPED -> droppedLabel
     }
 
+    fun getFinishedPastMemory(years: Long): String = when (this) {
+        BOOK -> "${years} 年前的今天，你读完了这本书"
+        ANIME -> "${years} 年前的今天，你补完了这部番剧"
+        MOVIE -> "${years} 年前的今天，你看完了这部影视"
+        GAME -> "${years} 年前的今天，你通关了这款游戏"
+        MUSIC -> "${years} 年前的今天，你听完了这首音乐"
+    }
+
+    fun getFinishedTodayMemory(): String = when (this) {
+        BOOK -> "今天读完的书籍，愿余味长存"
+        ANIME -> "今天补完的番剧，愿余味长存"
+        MOVIE -> "今天看完的影视，愿余味长存"
+        GAME -> "今天通关的游戏，愿余味长存"
+        MUSIC -> "今天听完的音乐，愿余音长存"
+    }
+
+    fun getRandomMemory(): String = when (this) {
+        BOOK -> "时光漫忆 · 曾留在心里的书籍"
+        ANIME -> "时光漫忆 · 曾留在心里的番剧"
+        MOVIE -> "时光漫忆 · 曾留在心里的影视"
+        GAME -> "时光漫忆 · 曾留在心里的游戏"
+        MUSIC -> "时光漫忆 · 曾留在心里的音乐"
+    }
+
+    fun getDefaultQuote(): String = when (this) {
+        BOOK -> "在这个快节奏的世界里，书籍是灵魂的避风港。"
+        ANIME -> "在虚构的光影里，番剧给予我们真实的心动与力量。"
+        MOVIE -> "电影发明了以后，人类的生命比起以前至少延长了三倍。"
+        GAME -> "游戏是第九艺术，带我们体验未曾设想的人生。"
+        MUSIC -> "当语言停滞之时，音乐才刚刚开始。"
+    }
+
     companion object {
         fun fromDatabaseValue(value: String?): MediaType = when {
             // 历史版本中夜鹿/真夜中曲目曾存为 podcast，统一归入音乐，避免落到默认书籍

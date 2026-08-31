@@ -2402,14 +2402,14 @@ class BookDatabaseHelper(val context: Context) :
     }
 
     /**
-     * 获取「那年今日」回忆书籍与描述信息。
-     * 优先匹配历史年份今日读完的书籍，次之随机精选一本已读书籍作为时光漫忆。
+     * 获取「那年今日」回忆作品与描述信息。
+     * 优先匹配历史年份今日读完/看完/通关的作品，次之随机精选一部已完成作品作为时光漫忆。
      */
     fun getMemoryBook(): Pair<Book, String>? {
         val today = LocalDate.now()
         val monthDayPattern = String.format("%%-%02d-%02d", today.monthValue, today.dayOfMonth)
 
-        // 1. 查询历史同月同日读完的书籍（非当年今天）
+        // 1. 查询历史同月同日完成的作品（非当年今天）
         val todayBooks = readableDatabase.query(
             TABLE_BOOKS,
             null,
@@ -2426,19 +2426,19 @@ class BookDatabaseHelper(val context: Context) :
             }
         }
 
-        // 寻找非今天（往年）读完的书
+        // 寻找非今天（往年）或今天完成的作品
         for (book in todayBooks) {
             val finishDateStr = book.finishDate ?: continue
             val finishDate = runCatching { LocalDate.parse(finishDateStr) }.getOrNull() ?: continue
             val years = ChronoUnit.YEARS.between(finishDate, today)
             if (years > 0) {
-                return Pair(book, "${years} 年前的今天，你读完了这本书")
+                return Pair(book, book.mediaType.getFinishedPastMemory(years))
             } else if (finishDate == today) {
-                return Pair(book, "今天读完的书籍，愿余味长存")
+                return Pair(book, book.mediaType.getFinishedTodayMemory())
             }
         }
 
-        // 2. 如果无今日匹配，则优选一本最近或评分较高的已读书籍作为时光漫忆
+        // 2. 如果无今日匹配，则优选一部最近或评分较高的已完成作品作为时光漫忆
         val finishedBooks = readableDatabase.query(
             TABLE_BOOKS,
             null,
@@ -2458,7 +2458,7 @@ class BookDatabaseHelper(val context: Context) :
 
         if (finishedBooks.isNotEmpty()) {
             val randomBook = finishedBooks.random()
-            return Pair(randomBook, "时光漫忆 · 曾留在心里的作品")
+            return Pair(randomBook, randomBook.mediaType.getRandomMemory())
         }
 
         return null
