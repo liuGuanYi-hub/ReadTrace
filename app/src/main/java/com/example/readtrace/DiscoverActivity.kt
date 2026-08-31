@@ -27,6 +27,7 @@ import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.BangumiApiClient
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -194,14 +195,8 @@ class DiscoverActivity : AppCompatActivity() {
             getString(R.string.discover_mode_search, keyword)
         }
         clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
-        // v4.2.15+：榜单模式预取 5 页共 100 条（Bangumi rank 每页固定 20 条），搜索模式单页精准
-        BangumiApiClient.searchSubjects(
-            this,
-            keyword,
-            selectedMediaType,
-            forceRefresh,
-            extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
-        ) { results, fromCache ->
+        // v4.2.17 多源路由：GAME 保留 Bangumi（番剧/影视/书籍/音乐走豆瓣公开页——大众向榜单）
+        val onLoaded: (List<BangumiSubject>?, Boolean) -> Unit = { results, fromCache ->
             loadingView.visibility = View.GONE
             swipeRefresh.isRefreshing = false
             sourceNote.text = if (fromCache) {
@@ -230,6 +225,24 @@ class DiscoverActivity : AppCompatActivity() {
                 gridView.visibility = View.VISIBLE
                 adapter.submitList(currentResults)
             }
+        }
+        if (selectedMediaType == MediaType.GAME) {
+            BangumiApiClient.searchSubjects(
+                this,
+                keyword,
+                selectedMediaType,
+                forceRefresh,
+                extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
+                onResult = onLoaded,
+            )
+        } else {
+            DoubanClient.searchSubjects(
+                this,
+                keyword,
+                selectedMediaType,
+                forceRefresh,
+                onResult = onLoaded,
+            )
         }
     }
 
@@ -281,16 +294,22 @@ class DiscoverActivity : AppCompatActivity() {
         // 详情增强：搜索结果无 infobox（创作者/完整简介），异步拉详情补齐后回填预览与落库数据
         var enrichedCreator: String? = null
         var enrichedSummary: String? = null
-        BangumiApiClient.getSubjectDetail(subject.id) { detail ->
-            if (detail == null || !dialog.isShowing) return@getSubjectDetail
-            enrichedCreator = detail.creator
-            enrichedSummary = detail.summary
-            detail.creator?.let { creator ->
-                metaView.text = "${metaView.text}\n${selectedMediaType.creatorLabel}：$creator"
+        val fetchDetail: (BangumiSubject?) -> Unit = { detail ->
+            if (detail != null && dialog.isShowing) {
+                enrichedCreator = detail.creator
+                enrichedSummary = detail.summary
+                detail.creator?.let { creator ->
+                    metaView.text = "${metaView.text}\n${selectedMediaType.creatorLabel}：$creator"
+                }
+                detail.summary?.takeIf { it.isNotBlank() }?.let { full ->
+                    summaryView.text = full
+                }
             }
-            detail.summary?.takeIf { it.isNotBlank() }?.let { full ->
-                summaryView.text = full
-            }
+        }
+        if (selectedMediaType == MediaType.GAME) {
+            BangumiApiClient.getSubjectDetail(subject.id, onResult = fetchDetail)
+        } else {
+            DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
         }
 
         // 在线封面直接走既有加载链路（内存 LRU + 磁盘缓存 + 占位图兜底）
