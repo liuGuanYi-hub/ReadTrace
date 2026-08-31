@@ -21,6 +21,13 @@ import com.example.readtrace.widget.MindprintRadarView
 class ProfileFragment : Fragment() {
 
     private lateinit var databaseHelper: BookDatabaseHelper
+    private lateinit var accountManager: com.example.readtrace.auth.CuratorAccountManager
+
+    private lateinit var profileCuratorPassCard: com.example.readtrace.widget.CuratorPassCardView
+    private lateinit var btnProfileAuthAction: TextView
+    private lateinit var btnProfileSyncVault: View
+    private lateinit var tvProfileSyncStatusText: TextView
+    private lateinit var btnProfileSyncNow: TextView
 
     private lateinit var profileSummaryText: TextView
     private lateinit var annualPersonaPanel: View
@@ -47,6 +54,7 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         databaseHelper = BookDatabaseHelper.getInstance(requireContext())
+        accountManager = com.example.readtrace.auth.CuratorAccountManager.getInstance(requireContext())
 
         initViews(view)
         setupListeners()
@@ -76,6 +84,24 @@ class ProfileFragment : Fragment() {
     private fun renderProfileData(allBooks: List<com.example.readtrace.model.Book>, persona: com.example.readtrace.model.ReadingPersona?, featuredCount: Int) {
         profileSummaryText.text = "已沉淀 ${allBooks.size} 部文化藏品 · 记录心智演化轨迹"
 
+        // 渲染策展人通行卡与认证状态
+        val account = accountManager.currentAccount ?: com.example.readtrace.model.CuratorAccount()
+        val authStatus = accountManager.authStatus
+        profileCuratorPassCard.bind(account, authStatus)
+
+        btnProfileAuthAction.text = if (authStatus == com.example.readtrace.model.AuthStatus.AUTHENTICATED) {
+            "⚙️ 通行证"
+        } else {
+            "✦ 策展人入驻"
+        }
+
+        if (account.lastSyncTime > 0L) {
+            val dateStr = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date(account.lastSyncTime))
+            tvProfileSyncStatusText.text = "☁️ 云端保险库 · 上次同步: $dateStr"
+        } else {
+            tvProfileSyncStatusText.text = "☁️ 云端保险库 · 离线优先就绪"
+        }
+
         if (persona != null) {
             annualPersonaPanel.visibility = View.VISIBLE
             annualPersonaBadge.text = persona.personaTitle
@@ -96,6 +122,12 @@ class ProfileFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
+        profileCuratorPassCard = view.findViewById(R.id.profileCuratorPassCard)
+        btnProfileAuthAction = view.findViewById(R.id.btnProfileAuthAction)
+        btnProfileSyncVault = view.findViewById(R.id.btnProfileSyncVault)
+        tvProfileSyncStatusText = view.findViewById(R.id.tvProfileSyncStatusText)
+        btnProfileSyncNow = view.findViewById(R.id.btnProfileSyncNow)
+
         profileSummaryText = view.findViewById(R.id.profileSummaryText)
         annualPersonaPanel = view.findViewById(R.id.annualPersonaPanel)
         annualPersonaBadge = view.findViewById(R.id.annualPersonaBadge)
@@ -110,6 +142,10 @@ class ProfileFragment : Fragment() {
         profileBackupPanel = view.findViewById(R.id.profileBackupPanel)
         profileTrashPanel = view.findViewById(R.id.profileTrashPanel)
         bindVersionInfo(view)
+
+        listOfNotNull(btnProfileAuthAction, btnProfileSyncVault).forEach {
+            ViewAnimationHelper.attachSpringTouch(it)
+        }
     }
 
     /** v4.2.15：版本信息展示（PackageManager 读取，不依赖 BuildConfig） */
@@ -127,6 +163,28 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        val openAuthOrEdit = {
+            if (accountManager.authStatus == com.example.readtrace.model.AuthStatus.AUTHENTICATED) {
+                startActivity(Intent(requireContext(), com.example.readtrace.ui.CuratorProfileEditActivity::class.java))
+            } else {
+                startActivity(Intent(requireContext(), com.example.readtrace.ui.CuratorAuthActivity::class.java))
+            }
+        }
+
+        btnProfileAuthAction.setOnClickListener { openAuthOrEdit() }
+        profileCuratorPassCard.setOnClickListener { openAuthOrEdit() }
+
+        btnProfileSyncVault.setOnClickListener {
+            btnProfileSyncNow.text = "⏳ 同步中..."
+            com.example.readtrace.sync.CloudSyncEngine.performSync(requireContext()) { result ->
+                if (isAdded) {
+                    btnProfileSyncNow.text = "🔄 立即同步"
+                    android.widget.Toast.makeText(requireContext(), result.message, android.widget.Toast.LENGTH_SHORT).show()
+                    refreshProfileDataAsync()
+                }
+            }
+        }
+
         profileGalleryPanel.setOnClickListener {
             startActivity(Gallery3DActivity.createIntent(requireContext()))
         }

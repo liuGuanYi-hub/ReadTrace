@@ -18,23 +18,46 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- 顶部 Header 面板 -->
+        <!-- 顶部策展人通行卡与档案面板 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_glass_panel"
             android:elevation="6dp"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans"
-                android:text="👤 我的精神档案"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="👤 精神档案与通行证"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnProfileAuthAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:text="✦ 策展人入驻"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/profileSummaryText"
@@ -45,7 +68,47 @@
                 android:lineSpacingExtra="3dp"
                 android:text="记录认知心智演化轨迹 · 沉淀灵魂深处的回忆与勋章"
                 android:textColor="@color/readtrace_muted"
-                android:textSize="13sp" />
+                android:textSize="12.5sp" />
+
+            <!-- 全息策展人通行卡 -->
+            <com.example.readtrace.widget.CuratorPassCardView
+                android:id="@+id/profileCuratorPassCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" />
+
+            <!-- 云端保险库增量同步操作条 -->
+            <LinearLayout
+                android:id="@+id/btnProfileSyncVault"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_segmented_container"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:id="@+id/tvProfileSyncStatusText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="☁️ 云端保险库 · 离线优先就绪"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/btnProfileSyncNow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔄 立即同步"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- 年度心智画像卡片 -->

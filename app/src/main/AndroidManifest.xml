@@ -159,6 +159,14 @@
         <activity
             android:name=".ExLibrisStudioActivity"
             android:exported="true" />
+
+        <!-- ✦ 策展人账号认证与先锋通行证定制 -->
+        <activity
+            android:name=".ui.CuratorAuthActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.CuratorProfileEditActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
