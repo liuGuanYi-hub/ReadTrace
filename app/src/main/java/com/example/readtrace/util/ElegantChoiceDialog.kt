@@ -58,6 +58,21 @@ object ElegantChoiceDialog {
         scroll.addView(column)
         container.addView(scroll)
 
+        val dialog = android.app.Dialog(activity).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(ScrollView(activity).apply {
+                    addView(container)
+            })
+            window?.apply {
+                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                setLayout(
+                    (activity.resources.displayMetrics.widthPixels * 0.9f).toInt(),
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+                setGravity(Gravity.CENTER)
+            }
+        }
+
         choices.forEachIndexed { index, choice ->
             val row = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -126,23 +141,9 @@ object ElegantChoiceDialog {
                 ViewAnimationHelper.playCardBounce(row)
                 HapticFeedbackEngine.lightClick(activity)
                 onSelected(index)
+                dialog.dismiss()
             }
             column.addView(row)
-        }
-
-        val dialog = android.app.Dialog(activity).apply {
-            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
-            setContentView(ScrollView(activity).apply {
-                    addView(container)
-            })
-            window?.apply {
-                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                setLayout(
-                    (activity.resources.displayMetrics.widthPixels * 0.9f).toInt(),
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-                setGravity(Gravity.CENTER)
-            }
         }
 
         container.alpha = 0f

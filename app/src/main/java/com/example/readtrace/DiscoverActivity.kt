@@ -30,6 +30,7 @@ import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.XiaoheiheClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 
@@ -195,7 +196,7 @@ class DiscoverActivity : AppCompatActivity() {
             getString(R.string.discover_mode_search, keyword)
         }
         clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
-        // v4.2.17 多源路由：GAME 保留 Bangumi（番剧/影视/书籍/音乐走豆瓣公开页——大众向榜单）
+        // v4.2.18 多源路由：GAME 走小黑盒（国内真实玩家榜单），其余走豆瓣公开页
         val onLoaded: (List<BangumiSubject>?, Boolean) -> Unit = { results, fromCache ->
             loadingView.visibility = View.GONE
             swipeRefresh.isRefreshing = false
@@ -227,22 +228,9 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
         if (selectedMediaType == MediaType.GAME) {
-            BangumiApiClient.searchSubjects(
-                this,
-                keyword,
-                selectedMediaType,
-                forceRefresh,
-                extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
-                onResult = onLoaded,
-            )
+            XiaoheiheClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
         } else {
-            DoubanClient.searchSubjects(
-                this,
-                keyword,
-                selectedMediaType,
-                forceRefresh,
-                onResult = onLoaded,
-            )
+            DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
         }
     }
 
@@ -307,7 +295,7 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
         if (selectedMediaType == MediaType.GAME) {
-            BangumiApiClient.getSubjectDetail(subject.id, onResult = fetchDetail)
+            XiaoheiheClient.getSubjectDetail(subject, onResult = fetchDetail)
         } else {
             DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
         }
