@@ -109,6 +109,21 @@ class ProfileFragment : Fragment() {
         profileBadgeSummary = view.findViewById(R.id.profileBadgeSummary)
         profileBackupPanel = view.findViewById(R.id.profileBackupPanel)
         profileTrashPanel = view.findViewById(R.id.profileTrashPanel)
+        bindVersionInfo(view)
+    }
+
+    /** v4.2.15：版本信息展示（PackageManager 读取，不依赖 BuildConfig） */
+    private fun bindVersionInfo(view: View) {
+        val versionText = view.findViewById<TextView>(R.id.profileVersionText)
+        runCatching {
+            val info = requireContext().packageManager
+                .getPackageInfo(requireContext().packageName, 0)
+            "阅痕 ReadTrace v${info.versionName}（versionCode ${info.longVersionCode}）\n纯本地数据掌控 · 封面与条目数据来自 Bangumi / 国内 CDN"
+        }.onSuccess {
+            versionText.text = it
+        }.onFailure {
+            versionText.text = "阅痕 ReadTrace"
+        }
     }
 
     private fun setupListeners() {

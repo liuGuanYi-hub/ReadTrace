@@ -270,5 +270,36 @@
                 android:textSize="12.5sp" />
         </LinearLayout>
 
+        <!-- 版本信息（v4.2.15） -->
+        <LinearLayout
+            android:id="@+id/profileVersionPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_glass_panel"
+            android:elevation="4dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="🏷️ 关于阅痕"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/profileVersionText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>

@@ -1,16 +1,20 @@
 package com.example.readtrace.util
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.example.readtrace.model.BangumiSubject
 import com.example.readtrace.model.MediaType
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.concurrent.Executors
 
 /**
@@ -28,6 +32,10 @@ object BangumiApiClient {
     private const val USER_AGENT = "ReadTrace/4.2.14 (Android; github.com/liuGuanYi-hub/ReadTrace)"
     private const val CONNECT_TIMEOUT_MS = 8000
     private const val READ_TIMEOUT_MS = 15000
+    private const val CACHE_DIR = "bangumi_cache"
+    private const val CACHE_TTL_MS = 24L * 60 * 60 * 1000
+    private const val CACHE_MAX_FILES = 40
+    private const val SEARCH_LIMIT = 50
 
     /** Bangumi 周边接口限速较严，搜索请求串行化即可天然限流 */
     private val executor = Executors.newSingleThreadExecutor()
@@ -43,39 +51,133 @@ object BangumiApiClient {
     }
 
     /**
-     * 搜索条目（v0 搜索接口）。
-     * keyword 为空时 sort=rank 即「热门榜单」；sort=match 用于关键词搜索。
+     * 搜索条目（v0 搜索接口），cache-first：
+     * - 24h 内有缓存直接返回（fromCache=true），不发起网络请求；
+     * - forceRefresh=true（下拉刷新）跳过新鲜缓存强制联网，成功后覆写缓存；
+     * - 网络失败时回退任意年龄的陈旧缓存，仍返回 fromCache=true；
+     * - keyword 为空时 sort=rank 即「热门榜单」；sort=match 用于关键词搜索。
      */
     fun searchSubjects(
+        context: Context,
         keyword: String,
         mediaType: MediaType,
-        onResult: (List<BangumiSubject>?) -> Unit,
+        forceRefresh: Boolean = false,
+        onResult: (List<BangumiSubject>?, fromCache: Boolean) -> Unit,
     ) {
         executor.execute {
-            val result = runCatching {
+            val appContext = context.applicationContext
+            val key = cacheKeyOf(keyword, mediaType)
+            if (!forceRefresh) {
+                readCache(appContext, key, keyword.trim())?.let { subjects ->
+                    if (subjects.isNotEmpty()) {
+                        mainHandler.post { onResult(subjects, true) }
+                        return@execute
+                    }
+                }
+            }
+            val raw = runCatching {
                 val type = subjectTypeOf(mediaType)
                 val body = JSONObject().apply {
                     put("keyword", keyword.trim())
                     put("sort", if (keyword.isBlank()) "rank" else "match")
                     put("filter", JSONObject().put("type", JSONArray().put(type)))
                 }
-                val response = request(
-                    path = "/v0/search/subjects?limit=40",
+                request(
+                    path = "/v0/search/subjects?limit=$SEARCH_LIMIT",
                     method = "POST",
                     body = body.toString().toByteArray(StandardCharsets.UTF_8),
-                ) ?: return@runCatching null
-                val root = JSONObject(response)
-                val data = root.optJSONArray("data") ?: return@runCatching emptyList<BangumiSubject>()
-                buildList {
-                    for (i in 0 until data.length()) {
-                        val subject = parseSubject(data.optJSONObject(i) ?: continue, withDetail = false)
-                        if (subject != null) add(subject)
+                )
+            }.onFailure {
+                Log.e("BangumiApi", "search request failed", it)
+            }.getOrNull()
+            if (raw != null) writeCache(appContext, key, raw)
+            // v4.2.15：端侧相关性重排，把 Bangumi 模糊匹配里的「文不对题」结果压到后面
+            val result = raw?.let { parseSearchResponse(it) }
+                ?.let { sortByRelevance(it, keyword.trim()) }
+            if (result == null) {
+                // 网络失败：回退陈旧缓存兜底
+                readCache(appContext, key, keyword.trim())?.let { subjects ->
+                    if (subjects.isNotEmpty()) {
+                        mainHandler.post { onResult(subjects, true) }
+                        return@execute
                     }
                 }
-            }.getOrNull()
-            mainHandler.post { onResult(result) }
+            }
+            mainHandler.post { onResult(result, false) }
         }
     }
+
+    private fun parseSearchResponse(response: String, keyword: String = ""): List<BangumiSubject>? = runCatching {
+        val data = JSONObject(response).optJSONArray("data")
+            ?: return emptyList<BangumiSubject>()
+        buildList {
+            for (i in 0 until data.length()) {
+                val subject = parseSubject(data.optJSONObject(i) ?: continue, withDetail = false)
+                if (subject != null) add(subject)
+            }
+        }.let { sortByRelevance(it, keyword) }
+    }.getOrNull()
+
+    /**
+     * 相关性重排：Bangumi sort=match 会把同字/近义的条目混在前面，
+     * 这里按「标题完全匹配 > 开头匹配 > 包含 > 其他」再排一次，
+     * 让搜「百年孤独」时真正的目标排到前面。
+     */
+    private fun sortByRelevance(subjects: List<BangumiSubject>, keyword: String): List<BangumiSubject> {
+        val kw = keyword.trim().lowercase()
+        if (kw.isEmpty()) return subjects
+        fun score(subject: BangumiSubject): Int {
+            val cn = subject.nameCn?.lowercase().orEmpty()
+            val raw = subject.name.lowercase()
+            return when {
+                cn == kw || raw == kw -> 0
+                cn.startsWith(kw) || raw.startsWith(kw) -> 1
+                cn.contains(kw) || raw.contains(kw) -> 2
+                else -> 3
+            }
+        }
+        return subjects.sortedWith(compareBy({ score(it) }, { -(it.ratingScore ?: 0.0) }))
+    }
+
+    // ---------------------------------------------------------------- 磁盘缓存
+
+    private fun cacheKeyOf(keyword: String, mediaType: MediaType): String {
+        val normalized = "search|${mediaType.databaseValue}|${keyword.trim().lowercase()}"
+        return md5Hex(normalized)
+    }
+
+    /** 缓存读取会同步带上关键词排序，保证缓存与联网结果顺序一致 */
+    private fun readCache(context: Context, key: String, keyword: String = ""): List<BangumiSubject>? =
+        runCatching {
+            val file = File(File(context.filesDir, CACHE_DIR).apply { if (!exists()) mkdirs() }, "$key.json")
+            if (!file.exists() || file.length() == 0L) return@runCatching null
+            val root = JSONObject(file.readText(StandardCharsets.UTF_8))
+            if (System.currentTimeMillis() - root.optLong("ts", 0L) > CACHE_TTL_MS) return@runCatching null
+            parseSearchResponse(root.optString("response"), keyword)
+        }.getOrNull()
+
+    private fun writeCache(context: Context, key: String, rawResponse: String) {
+        runCatching {
+            val dir = File(context.filesDir, CACHE_DIR).apply { if (!exists()) mkdirs() }
+            val payload = JSONObject()
+                .put("ts", System.currentTimeMillis())
+                .put("response", rawResponse)
+            File(dir, "$key.json").writeText(payload.toString(), StandardCharsets.UTF_8)
+            trimCache(dir)
+        }
+    }
+
+    /** 缓存规模控制：超过上限时按最后修改时间淘汰最旧的，避免私有空间无限增长 */
+    private fun trimCache(dir: File) {
+        val files = dir.listFiles()?.takeIf { it.size > CACHE_MAX_FILES } ?: return
+        files.sortedBy { it.lastModified() }
+            .take(files.size - CACHE_MAX_FILES)
+            .forEach { runCatching { it.delete() } }
+    }
+
+    private fun md5Hex(input: String): String =
+        MessageDigest.getInstance("MD5").digest(input.toByteArray())
+            .joinToString("") { "%02x".format(it) }
 
     /** 条目详情（含 infobox 创作者解析、简介、评分） */
     fun getSubjectDetail(subjectId: Long, onResult: (BangumiSubject?) -> Unit) {
@@ -112,16 +214,26 @@ object BangumiApiClient {
             }
         }
         val infobox = json.optJSONArray("infobox")
+        // Bangumi type → 阅痕媒介（决定创作者键名优先级，如书取「作者」、动画取「导演」）
+        val creatorMediaType = when (json.optInt("type", 0)) {
+            1 -> MediaType.BOOK
+            2 -> MediaType.ANIME
+            3 -> MediaType.MUSIC
+            4 -> MediaType.GAME
+            6 -> MediaType.MOVIE
+            else -> null
+        }
         return BangumiSubject(
             id = id,
             name = name,
             nameCn = json.optString("name_cn").takeIf { it.isNotBlank() },
             coverUrl = cover,
-            summary = if (withDetail) json.optString("summary").takeIf { it.isNotBlank() } else null,
+            // 搜索结果本身也带 summary，直接取用，避免预览还要干等详情接口
+            summary = json.optString("summary").takeIf { it.isNotBlank() },
             ratingScore = score,
             date = json.optString("date").takeIf { it.isNotBlank() },
             tags = tags,
-            creator = if (withDetail) infobox?.let { parseCreator(it) } else null,
+            creator = infobox?.let { parseCreator(it, creatorMediaType) },
             subjectType = json.optInt("type", 0),
         )
     }
@@ -194,6 +306,7 @@ object BangumiApiClient {
         }
         val code = conn.responseCode
         if (code !in 200..299) {
+            Log.w("BangumiApi", "HTTP $code for $path")
             conn.disconnect()
             return@runCatching null
         }

@@ -1,5 +1,9 @@
 package com.example.readtrace
 
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -46,6 +50,10 @@ class DiscoverActivity : AppCompatActivity() {
     private lateinit var loadingView: View
     private lateinit var emptyView: TextView
     private lateinit var gridView: RecyclerView
+    private lateinit var modeTitle: TextView
+    private lateinit var sourceNote: TextView
+    private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    private lateinit var clearSearchButton: View
     private lateinit var adapter: SubjectAdapter
 
     private var selectedMediaType: MediaType = MediaType.BOOK
@@ -53,6 +61,8 @@ class DiscoverActivity : AppCompatActivity() {
     private var currentResults: List<BangumiSubject> = emptyList()
 
     private val mediaChips = mutableListOf<Pair<TextView, MediaType>>()
+    private val searchHandler = Handler(Looper.getMainLooper())
+    private val searchRunnable = Runnable { performSearch() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +87,18 @@ class DiscoverActivity : AppCompatActivity() {
         loadingView = findViewById(R.id.discoverLoading)
         emptyView = findViewById(R.id.discoverEmpty)
         gridView = findViewById(R.id.discoverGrid)
+        modeTitle = findViewById(R.id.discoverModeTitle)
+        sourceNote = findViewById(R.id.discoverSourceNote)
+        swipeRefresh = findViewById(R.id.discoverSwipe)
+        clearSearchButton = findViewById(R.id.discoverClearSearch)
+
+        // v4.2.15 下拉刷新：强制跳过缓存联网更新；顶部内容可见时才允许触发
+        swipeRefresh.setOnRefreshListener {
+            performSearch(forceRefresh = true)
+        }
+        swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            findViewById<View>(R.id.discoverScroll).canScrollVertically(-1)
+        }
 
         setupMediaChips()
 
@@ -95,9 +117,33 @@ class DiscoverActivity : AppCompatActivity() {
             performSearch()
             true
         }
+        // v4.2.15：输入防抖自动搜索（500ms），不必每次都点按钮
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchHandler.removeCallbacks(searchRunnable)
+                searchHandler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_MS)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        // 清空输入立刻回到热门榜单
+        findViewById<View>(R.id.discoverClearSearch).setOnClickListener {
+            searchInput.setText("")
+            HapticFeedbackEngine.lightClick(this)
+            performSearch()
+        }
+        emptyView.setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            performSearch(forceRefresh = true)
+        }
 
         refreshExistingBooks()
         performSearch()
+    }
+
+    override fun onDestroy() {
+        searchHandler.removeCallbacks(searchRunnable)
+        super.onDestroy()
     }
 
     private fun setupMediaChips() {
@@ -136,14 +182,39 @@ class DiscoverActivity : AppCompatActivity() {
         }
     }
 
-    private fun performSearch() {
+    private fun performSearch(forceRefresh: Boolean = false) {
         val keyword = searchInput.text?.toString()?.trim().orEmpty()
         loadingView.visibility = View.VISIBLE
         emptyView.visibility = View.GONE
         gridView.visibility = View.GONE
-        BangumiApiClient.searchSubjects(keyword, selectedMediaType) { results ->
+        // v4.2.15：榜单/搜索模式标题（结果数在回调中补齐）
+        modeTitle.text = if (keyword.isEmpty()) {
+            getString(R.string.discover_mode_rank)
+        } else {
+            getString(R.string.discover_mode_search, keyword)
+        }
+        clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
+        BangumiApiClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh) { results, fromCache ->
             loadingView.visibility = View.GONE
+            swipeRefresh.isRefreshing = false
+            sourceNote.text = if (fromCache) {
+                getString(R.string.discover_cache_note)
+            } else {
+                getString(R.string.discover_source_note)
+            }
             currentResults = results.orEmpty()
+            modeTitle.text = buildString {
+                append(
+                    if (keyword.isEmpty()) {
+                        getString(R.string.discover_mode_rank)
+                    } else {
+                        getString(R.string.discover_mode_search, keyword)
+                    },
+                )
+                if (currentResults.isNotEmpty()) {
+                    append(" · 共 ${currentResults.size} 部")
+                }
+            }
             if (currentResults.isEmpty()) {
                 emptyView.visibility = View.VISIBLE
                 gridView.visibility = View.GONE
@@ -197,6 +268,21 @@ class DiscoverActivity : AppCompatActivity() {
         subject.tags.take(3).let { tags ->
             if (tags.isNotEmpty()) {
                 metaView.text = "${metaView.text} · ${tags.joinToString(" / ")}"
+            }
+        }
+
+        // 详情增强：搜索结果无 infobox（创作者/完整简介），异步拉详情补齐后回填预览与落库数据
+        var enrichedCreator: String? = null
+        var enrichedSummary: String? = null
+        BangumiApiClient.getSubjectDetail(subject.id) { detail ->
+            if (detail == null || !dialog.isShowing) return@getSubjectDetail
+            enrichedCreator = detail.creator
+            enrichedSummary = detail.summary
+            detail.creator?.let { creator ->
+                metaView.text = "${metaView.text}\n${selectedMediaType.creatorLabel}：$creator"
+            }
+            detail.summary?.takeIf { it.isNotBlank() }?.let { full ->
+                summaryView.text = full
             }
         }
 
@@ -264,7 +350,12 @@ class DiscoverActivity : AppCompatActivity() {
         addButton.setOnClickListener {
             if (!addButton.isEnabled) return@setOnClickListener
             HapticFeedbackEngine.stampImpact(this)
-            insertImportedSubject(subject, selectedStatus)
+            // 详情增强优先：拉到 infobox 创作者与完整简介则覆盖搜索结果里的占位值
+            val enriched = subject.copy(
+                creator = enrichedCreator ?: subject.creator,
+                summary = enrichedSummary ?: subject.summary,
+            )
+            insertImportedSubject(enriched, selectedStatus)
             Toast.makeText(this, R.string.discover_import_success, Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }
@@ -358,6 +449,7 @@ class DiscoverActivity : AppCompatActivity() {
     companion object {
         const val SOURCE_BANGUMI = "bangumi"
         private const val EXTRA_MEDIA_TYPE = "extra_media_type"
+        private const val SEARCH_DEBOUNCE_MS = 500L
 
         fun start(from: AppCompatActivity, mediaType: MediaType) {
             from.startActivity(

@@ -6,21 +6,26 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_readtrace_home">
 
-    <ScrollView
-        android:id="@+id/discoverScroll"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/discoverSwipe"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    <ScrollView
+        android:id="@+id/discoverScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:overScrollMode="never"
         android:paddingStart="20dp"
         android:paddingTop="22dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="30dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:paddingBottom="30dp">
 
         <LinearLayout
             android:id="@+id/discoverContent"
@@ -50,6 +55,18 @@
                 android:textColor="@color/readtrace_muted"
                 android:textSize="13sp" />
 
+            <!-- 榜单 / 搜索模式标题（v4.2.15 封面墙） -->
+            <TextView
+                android:id="@+id/discoverModeTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginStart="4dp"
+                android:text="@string/discover_mode_rank"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
             <!-- 搜索区 -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -74,6 +91,17 @@
                     android:textColor="@color/readtrace_ink"
                     android:textColorHint="@color/readtrace_muted"
                     android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/discoverClearSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    android:visibility="gone"
+                    android:text="✕"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/discoverSearchButton"
@@ -173,8 +201,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="48dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="4dp"
+                android:focusable="true"
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
+                android:padding="24dp"
                 android:text="@string/discover_empty"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="13sp"
@@ -190,4 +223,5 @@
                 android:overScrollMode="never" />
         </LinearLayout>
     </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
