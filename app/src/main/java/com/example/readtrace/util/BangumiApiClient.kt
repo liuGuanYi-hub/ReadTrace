@@ -35,7 +35,6 @@ object BangumiApiClient {
     private const val CACHE_DIR = "bangumi_cache"
     private const val CACHE_TTL_MS = 24L * 60 * 60 * 1000
     private const val CACHE_MAX_FILES = 40
-    private const val SEARCH_LIMIT = 50
 
     /** Bangumi 周边接口限速较严，搜索请求串行化即可天然限流 */
     private val executor = Executors.newSingleThreadExecutor()
@@ -55,13 +54,16 @@ object BangumiApiClient {
      * - 24h 内有缓存直接返回（fromCache=true），不发起网络请求；
      * - forceRefresh=true（下拉刷新）跳过新鲜缓存强制联网，成功后覆写缓存；
      * - 网络失败时回退任意年龄的陈旧缓存，仍返回 fromCache=true；
-     * - keyword 为空时 sort=rank 即「热门榜单」；sort=match 用于关键词搜索。
+     * - keyword 为空时 sort=rank 即「热门榜单」：extraPages 控制额外翻页数
+     *   （Bangumi rank 每页固定 20 条，默认 4 页 → 榜单 100 条，串行带间隔礼貌抓取）；
+     * - keyword 非空走 sort=match 关键词搜索，单页 20 条精准匹配。
      */
     fun searchSubjects(
         context: Context,
         keyword: String,
         mediaType: MediaType,
         forceRefresh: Boolean = false,
+        extraPages: Int = 0,
         onResult: (List<BangumiSubject>?, fromCache: Boolean) -> Unit,
     ) {
         executor.execute {
@@ -75,25 +77,45 @@ object BangumiApiClient {
                     }
                 }
             }
-            val raw = runCatching {
-                val type = subjectTypeOf(mediaType)
-                val body = JSONObject().apply {
-                    put("keyword", keyword.trim())
-                    put("sort", if (keyword.isBlank()) "rank" else "match")
-                    put("filter", JSONObject().put("type", JSONArray().put(type)))
+            // 榜单模式：翻页预取（每页 20 条），串行 + 页间 250ms 礼貌限流，任一页失败即止
+            val kw = keyword.trim()
+            val isRank = kw.isEmpty()
+            val pages = if (isRank) (extraPages + 1) else 1
+            val mergedData = JSONArray()
+            var rawAll: String? = null
+            var networkOk = true
+            for (page in 0 until pages) {
+                val raw = runCatching {
+                    val type = subjectTypeOf(mediaType)
+                    val body = JSONObject().apply {
+                        put("keyword", kw)
+                        put("sort", if (isRank) "rank" else "match")
+                        put("filter", JSONObject().put("type", JSONArray().put(type)))
+                    }
+                    val offset = if (isRank) "&offset=${page * 20}" else ""
+                    request(
+                        path = "/v0/search/subjects?limit=20$offset",
+                        method = "POST",
+                        body = body.toString().toByteArray(StandardCharsets.UTF_8),
+                    )
+                }.onFailure {
+                    Log.e("BangumiApi", "search page $page failed", it)
+                }.getOrNull()
+                if (raw == null) {
+                    if (page == 0) networkOk = false
+                    break
                 }
-                request(
-                    path = "/v0/search/subjects?limit=$SEARCH_LIMIT",
-                    method = "POST",
-                    body = body.toString().toByteArray(StandardCharsets.UTF_8),
-                )
-            }.onFailure {
-                Log.e("BangumiApi", "search request failed", it)
-            }.getOrNull()
-            if (raw != null) writeCache(appContext, key, raw)
-            // v4.2.15：端侧相关性重排，把 Bangumi 模糊匹配里的「文不对题」结果压到后面
-            val result = raw?.let { parseSearchResponse(it) }
-                ?.let { sortByRelevance(it, keyword.trim()) }
+                runCatching {
+                    val data = JSONObject(raw).optJSONArray("data")
+                    if (data != null) {
+                        for (i in 0 until data.length()) mergedData.put(data.get(i))
+                    }
+                }
+                rawAll = JSONObject().apply { put("data", mergedData) }.toString()
+                if (page < pages - 1) Thread.sleep(250)
+            }
+            if (networkOk && rawAll != null) writeCache(appContext, key, rawAll)
+            val result = rawAll?.let { parseSearchResponse(it, keyword.trim()) }
             if (result == null) {
                 // 网络失败：回退陈旧缓存兜底
                 readCache(appContext, key, keyword.trim())?.let { subjects ->

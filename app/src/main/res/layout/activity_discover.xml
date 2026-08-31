@@ -6,6 +6,181 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_readtrace_home">
 
+    <!-- 固定顶部区：标题 / 搜索 / 媒介分类 / 模式标题（不滚动，网格独立滚动，支撑大列表） -->
+    <LinearLayout
+        android:id="@+id/discoverHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/discoverTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="44dp"
+            android:fontFamily="sans"
+            android:text="@string/discover_title"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="27sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/discoverSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="44dp"
+            android:layout_marginTop="5dp"
+            android:fontFamily="sans"
+            android:text="@string/discover_subtitle"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp" />
+
+        <!-- 搜索区 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_glass_panel"
+            android:elevation="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <EditText
+                android:id="@+id/discoverSearchInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/discover_search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_ink"
+                android:textColorHint="@color/readtrace_muted"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/discoverClearSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="4dp"
+                android:text="✕"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/discoverSearchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_status_chip_selected"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="@string/discover_search_button"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 媒介分类切换 -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/discoverMediaGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/discoverMediaTypeBook"
+                    style="@style/ReadTraceStatusChip"
+                    android:background="@drawable/bg_status_chip_selected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/media_type_book"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/discoverMediaTypeAnime"
+                    style="@style/ReadTraceStatusChip"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/media_type_anime" />
+
+                <TextView
+                    android:id="@+id/discoverMediaTypeMovie"
+                    style="@style/ReadTraceStatusChip"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/media_type_movie" />
+
+                <TextView
+                    android:id="@+id/discoverMediaTypeGame"
+                    style="@style/ReadTraceStatusChip"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/media_type_game" />
+
+                <TextView
+                    android:id="@+id/discoverMediaTypeMusic"
+                    style="@style/ReadTraceStatusChip"
+                    android:layout_marginStart="10dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="@string/media_type_music" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/discoverModeTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/discover_mode_rank"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/discoverSourceNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/discover_source_note"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 网格独立滚动（支撑每类 100+ 条大列表） -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/discoverSwipe"
         android:layout_width="0dp"
@@ -13,215 +188,52 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/discoverHeader">
 
-    <ScrollView
-        android:id="@+id/discoverScroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true"
-        android:overScrollMode="never"
-        android:paddingStart="20dp"
-        android:paddingTop="22dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="30dp">
-
-        <LinearLayout
-            android:id="@+id/discoverContent"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/discoverGrid"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/discoverTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="44dp"
-                android:fontFamily="sans"
-                android:text="@string/discover_title"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="27sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/discoverSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="44dp"
-                android:layout_marginTop="5dp"
-                android:fontFamily="sans"
-                android:text="@string/discover_subtitle"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="13sp" />
-
-            <!-- 榜单 / 搜索模式标题（v4.2.15 封面墙） -->
-            <TextView
-                android:id="@+id/discoverModeTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:layout_marginStart="4dp"
-                android:text="@string/discover_mode_rank"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- 搜索区 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:background="@drawable/bg_glass_panel"
-                android:elevation="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="12dp">
-
-                <EditText
-                    android:id="@+id/discoverSearchInput"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:hint="@string/discover_search_hint"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textColor="@color/readtrace_ink"
-                    android:textColorHint="@color/readtrace_muted"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/discoverClearSearch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"
-                    android:visibility="gone"
-                    android:text="✕"
-                    android:textColor="@color/readtrace_muted"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/discoverSearchButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_status_chip_selected"
-                    android:paddingStart="16dp"
-                    android:paddingTop="8dp"
-                    android:paddingEnd="16dp"
-                    android:paddingBottom="8dp"
-                    android:text="@string/discover_search_button"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- 媒介分类切换 -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:clipToPadding="false"
-                android:overScrollMode="never"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/discoverMediaGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/discoverMediaTypeBook"
-                        style="@style/ReadTraceStatusChip"
-                        android:background="@drawable/bg_status_chip_selected"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_book"
-                        android:textColor="@color/white" />
-
-                    <TextView
-                        android:id="@+id/discoverMediaTypeAnime"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_anime" />
-
-                    <TextView
-                        android:id="@+id/discoverMediaTypeMovie"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_movie" />
-
-                    <TextView
-                        android:id="@+id/discoverMediaTypeGame"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_game" />
-
-                    <TextView
-                        android:id="@+id/discoverMediaTypeMusic"
-                        style="@style/ReadTraceStatusChip"
-                        android:layout_marginStart="10dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="@string/media_type_music" />
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <TextView
-                android:id="@+id/discoverSourceNote"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/discover_source_note"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="11sp" />
-
-            <!-- 加载中 -->
-            <ProgressBar
-                android:id="@+id/discoverLoading"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="48dp"
-                android:indeterminate="true"
-                android:visibility="gone" />
-
-            <!-- 空态 -->
-            <TextView
-                android:id="@+id/discoverEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
-                android:background="@drawable/bg_glass_panel"
-                android:clickable="true"
-                android:elevation="4dp"
-                android:focusable="true"
-                android:gravity="center"
-                android:lineSpacingExtra="4dp"
-                android:padding="24dp"
-                android:text="@string/discover_empty"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="13sp"
-                android:visibility="gone" />
-
-            <!-- 结果网格（滚动交给外层 ScrollView） -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/discoverGrid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:nestedScrollingEnabled="false"
-                android:overScrollMode="never" />
-        </LinearLayout>
-    </ScrollView>
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="20dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="30dp" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- 加载中（覆盖在网格区域居中） -->
+    <ProgressBar
+        android:id="@+id/discoverLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discoverHeader" />
+
+    <!-- 空态（点击重试） -->
+    <TextView
+        android:id="@+id/discoverEmpty"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp"
+        android:background="@drawable/bg_glass_panel"
+        android:clickable="true"
+        android:elevation="4dp"
+        android:focusable="true"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:padding="24dp"
+        android:text="@string/discover_empty"
+        android:textColor="@color/readtrace_muted"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discoverHeader" />
 </androidx.constraintlayout.widget.ConstraintLayout>

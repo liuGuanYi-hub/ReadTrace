@@ -97,7 +97,7 @@ class DiscoverActivity : AppCompatActivity() {
             performSearch(forceRefresh = true)
         }
         swipeRefresh.setOnChildScrollUpCallback { _, _ ->
-            findViewById<View>(R.id.discoverScroll).canScrollVertically(-1)
+            gridView.canScrollVertically(-1)
         }
 
         setupMediaChips()
@@ -194,7 +194,14 @@ class DiscoverActivity : AppCompatActivity() {
             getString(R.string.discover_mode_search, keyword)
         }
         clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
-        BangumiApiClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh) { results, fromCache ->
+        // v4.2.15+：榜单模式预取 5 页共 100 条（Bangumi rank 每页固定 20 条），搜索模式单页精准
+        BangumiApiClient.searchSubjects(
+            this,
+            keyword,
+            selectedMediaType,
+            forceRefresh,
+            extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
+        ) { results, fromCache ->
             loadingView.visibility = View.GONE
             swipeRefresh.isRefreshing = false
             sourceNote.text = if (fromCache) {
@@ -450,6 +457,8 @@ class DiscoverActivity : AppCompatActivity() {
         const val SOURCE_BANGUMI = "bangumi"
         private const val EXTRA_MEDIA_TYPE = "extra_media_type"
         private const val SEARCH_DEBOUNCE_MS = 500L
+        /** 榜单额外翻页数：4 → 共 5 页 100 条 */
+        private const val RANK_EXTRA_PAGES = 4
 
         fun start(from: AppCompatActivity, mediaType: MediaType) {
             from.startActivity(
