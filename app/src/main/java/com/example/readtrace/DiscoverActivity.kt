@@ -30,6 +30,7 @@ import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.NeteaseClient
 import com.example.readtrace.util.XiaoheiheClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
@@ -196,7 +197,7 @@ class DiscoverActivity : AppCompatActivity() {
             getString(R.string.discover_mode_search, keyword)
         }
         clearSearchButton.visibility = if (keyword.isEmpty()) View.GONE else View.VISIBLE
-        // v4.2.18 多源路由：GAME 走小黑盒（国内真实玩家榜单），其余走豆瓣公开页
+        // v4.2.19 多源路由：番剧→Bangumi 官方API，游戏→小黑盒，音乐→网易云，书影→豆瓣
         val onLoaded: (List<BangumiSubject>?, Boolean) -> Unit = { results, fromCache ->
             loadingView.visibility = View.GONE
             swipeRefresh.isRefreshing = false
@@ -227,10 +228,15 @@ class DiscoverActivity : AppCompatActivity() {
                 adapter.submitList(currentResults)
             }
         }
-        if (selectedMediaType == MediaType.GAME) {
-            XiaoheiheClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
-        } else {
-            DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
+        when (selectedMediaType) {
+            MediaType.GAME -> XiaoheiheClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
+            MediaType.ANIME -> BangumiApiClient.searchSubjects(
+                this, keyword, selectedMediaType, forceRefresh,
+                extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
+                onResult = onLoaded,
+            )
+            MediaType.MUSIC -> NeteaseClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
+            else -> DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
         }
     }
 
@@ -294,10 +300,11 @@ class DiscoverActivity : AppCompatActivity() {
                 }
             }
         }
-        if (selectedMediaType == MediaType.GAME) {
-            XiaoheiheClient.getSubjectDetail(subject, onResult = fetchDetail)
-        } else {
-            DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
+        when (selectedMediaType) {
+            MediaType.GAME -> XiaoheiheClient.getSubjectDetail(subject, onResult = fetchDetail)
+            MediaType.ANIME -> BangumiApiClient.getSubjectDetail(subject.id, onResult = fetchDetail)
+            MediaType.MUSIC -> NeteaseClient.getSubjectDetail(subject, onResult = fetchDetail)
+            else -> DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
         }
 
         // 在线封面直接走既有加载链路（内存 LRU + 磁盘缓存 + 占位图兜底）
