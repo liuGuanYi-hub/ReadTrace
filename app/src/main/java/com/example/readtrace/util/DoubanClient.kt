@@ -450,14 +450,15 @@ object DoubanClient {
         val body = BufferedReader(
             InputStreamReader(conn.inputStream, StandardCharsets.UTF_8),
         ).use { it.readText() }.also { conn.disconnect() }
-        // 异常页兜底：风控/登录引导/空响应一律视为失败，走缓存回退
-        if (body.length < 200 ||
-            body.contains("检测到有异常请求") ||
-            body.contains("验证码") ||
-            body.contains("请登录") ||
-            body.contains("登录豆瓣") ||
-            body.contains("登录/注册")
-        ) null else body
+        // 异常页兜底：风控/验证码页极短（几 KB）且带特征文案；
+        // 注意正常页面顶栏也含「登录/注册」，不能仅凭字样误杀真实内容页
+        val isBlockPage = body.length < 200 ||
+            (body.length < 10_000 &&
+                (body.contains("检测到有异常请求") || body.contains("验证码") || body.contains("sec.douban.com")))
+        if (isBlockPage) {
+            Log.w("DoubanClient", "RISK_BLOCK len=${body.length} url=$url sample=${body.take(80).replace("\n", " ")}")
+            null
+        } else body
     }.getOrNull()
 
     private fun pace() {
