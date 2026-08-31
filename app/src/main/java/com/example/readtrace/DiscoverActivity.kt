@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -59,6 +60,9 @@ class DiscoverActivity : AppCompatActivity() {
     private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
     private lateinit var clearSearchButton: View
     private lateinit var adapter: SubjectAdapter
+    private lateinit var batchButton: TextView
+    private lateinit var batchBar: View
+    private lateinit var batchConfirm: TextView
 
     private var selectedMediaType: MediaType = MediaType.BOOK
     private var existingBooks: List<Book> = emptyList()
@@ -67,6 +71,10 @@ class DiscoverActivity : AppCompatActivity() {
     private var sessionToken: Long = 0L
     private var hasMore: Boolean = true
     private var isLoadingPage: Boolean = false
+
+    // v4.2.24 批量多选：选中条目集合（键 = "来源:id"，源隔离防跨源误判）
+    private val selectedKeys = LinkedHashSet<String>()
+    private var selectionMode = false
 
     private val mediaChips = mutableListOf<Pair<TextView, MediaType>>()
     private val searchHandler = Handler(Looper.getMainLooper())
@@ -99,6 +107,9 @@ class DiscoverActivity : AppCompatActivity() {
         sourceNote = findViewById(R.id.discoverSourceNote)
         swipeRefresh = findViewById(R.id.discoverSwipe)
         clearSearchButton = findViewById(R.id.discoverClearSearch)
+        batchButton = findViewById(R.id.discoverBatchButton)
+        batchBar = findViewById(R.id.discoverBatchBar)
+        batchConfirm = findViewById(R.id.discoverBatchConfirm)
 
         // v4.2.15 下拉刷新：强制跳过缓存联网更新；顶部内容可见时才允许触发
         swipeRefresh.setOnRefreshListener {
@@ -110,10 +121,19 @@ class DiscoverActivity : AppCompatActivity() {
 
         setupMediaChips()
 
-        adapter = SubjectAdapter(onItemClicked = { subject ->
-            HapticFeedbackEngine.cartridgeSnap(this)
-            openSubjectPreview(subject)
-        })
+        adapter = SubjectAdapter(
+            onItemClicked = { subject, position ->
+                HapticFeedbackEngine.cartridgeSnap(this)
+                if (selectionMode) toggleSelection(subject, position) else openSubjectPreview(subject)
+            },
+            onItemLongClicked = { subject, position ->
+                // 长按进入批量模式并选中该条目（已收藏条目不可选）
+                if (!selectionMode) enterSelectionMode()
+                if (!isOwned(subject)) toggleSelection(subject, position)
+                true
+            },
+            onQuickAdd = { subject -> quickAddSubject(subject) },
+        )
         val gridLayoutManager = GridLayoutManager(this, 2)
         // 页脚（加载中/没有更多）横跨双列
         gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
@@ -159,6 +179,27 @@ class DiscoverActivity : AppCompatActivity() {
         emptyView.setOnClickListener {
             HapticFeedbackEngine.lightClick(this)
             performSearch(forceRefresh = true)
+        }
+
+        // v4.2.24 批量纪念：入口 / 取消 / 确认
+        batchButton.setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            enterSelectionMode()
+        }
+        findViewById<View>(R.id.discoverBatchCancel).setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            exitSelectionMode()
+        }
+        batchConfirm.setOnClickListener { confirmBatch() }
+
+        // 批量模式下返回键先退出选择，而不是直接离开页面
+        onBackPressedDispatcher.addCallback(this) {
+            if (selectionMode) {
+                exitSelectionMode()
+            } else {
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
         }
 
         refreshExistingBooks()
@@ -209,6 +250,11 @@ class DiscoverActivity : AppCompatActivity() {
 
     private fun performSearch(forceRefresh: Boolean = false) {
         val keyword = searchInput.text?.toString()?.trim().orEmpty()
+        // v4.2.24：切分类/新搜索时重置批量选择态，防止跨会话残留选中
+        selectionMode = false
+        selectedKeys.clear()
+        batchBar.visibility = View.GONE
+        batchButton.visibility = View.VISIBLE
         loadingView.visibility = View.VISIBLE
         emptyView.visibility = View.GONE
         gridView.visibility = View.GONE
@@ -287,6 +333,82 @@ class DiscoverActivity : AppCompatActivity() {
             it.mediaType == selectedMediaType &&
                 it.title.equals(subject.displayTitle.trim(), ignoreCase = true)
         }
+    }
+
+    /** 选中键：来源:id（不同源 id 体系互相独立，必须带源隔离） */
+    private fun keyOf(subject: BangumiSubject): String = "${subject.source}:${subject.id}"
+
+    // ---------------------------------------------------------------- v4.2.24 批量多选
+
+    private fun enterSelectionMode() {
+        if (selectionMode) return
+        selectionMode = true
+        batchBar.visibility = View.VISIBLE
+        batchButton.visibility = View.GONE
+        updateBatchBar()
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun exitSelectionMode() {
+        selectionMode = false
+        selectedKeys.clear()
+        batchBar.visibility = View.GONE
+        batchButton.visibility = View.VISIBLE
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun toggleSelection(subject: BangumiSubject, position: Int) {
+        if (isOwned(subject)) return
+        val key = keyOf(subject)
+        if (!selectedKeys.remove(key)) selectedKeys.add(key)
+        updateBatchBar()
+        adapter.notifyItemChanged(position)
+    }
+
+    private fun updateBatchBar() {
+        val count = selectedKeys.size
+        batchConfirm.text = getString(R.string.discover_batch_confirm, count)
+        batchConfirm.isEnabled = count > 0
+        batchConfirm.alpha = if (count > 0) 1f else 0.5f
+    }
+
+    /** 批量确认：默认纪念为「已看」，逐条双层查重跳过并计数，单事务落库 */
+    private fun confirmBatch() {
+        if (selectedKeys.isEmpty()) return
+        HapticFeedbackEngine.stampImpact(this)
+        val toInsert = mutableListOf<Book>()
+        val insertedTitles = mutableSetOf<String>()
+        var skipped = 0
+        for (subject in adapter.itemsSnapshot()) {
+            if (keyOf(subject) !in selectedKeys) continue
+            val title = subject.displayTitle.trim()
+            // 精确（含已删除防回收站复活）+ 标题模糊 + 本批内标题互斥
+            val duplicate = databaseHelper.findBookBySource(subject.source, subject.id.toString()) != null ||
+                existingBooks.any { it.mediaType == selectedMediaType && it.title.equals(title, ignoreCase = true) } ||
+                insertedTitles.any { it.equals(title, ignoreCase = true) }
+            if (duplicate) {
+                skipped++
+                continue
+            }
+            toInsert += buildImportedBook(subject, BookStatus.FINISHED)
+            insertedTitles += title
+        }
+        if (toInsert.isNotEmpty()) databaseHelper.insertBooksBatch(toInsert)
+        refreshExistingBooks()
+        Toast.makeText(
+            this,
+            getString(R.string.discover_batch_done, toInsert.size, skipped),
+            Toast.LENGTH_LONG,
+        ).show()
+        exitSelectionMode()
+    }
+
+    /** 卡片「＋」快捷添加：免弹窗直接纪念为已看 */
+    private fun quickAddSubject(subject: BangumiSubject) {
+        if (isOwned(subject) || selectionMode) return
+        HapticFeedbackEngine.stampImpact(this)
+        insertImportedSubject(subject, BookStatus.FINISHED)
+        Toast.makeText(this, R.string.discover_import_success, Toast.LENGTH_SHORT).show()
     }
 
     private fun openSubjectPreview(subject: BangumiSubject) {
@@ -436,39 +558,46 @@ class DiscoverActivity : AppCompatActivity() {
 
     /** 落库：只填客观骨架字段，个人字段全部留白（导入的是骨架，纪念才是灵魂） */
     private fun insertImportedSubject(subject: BangumiSubject, status: BookStatus) {
-        val book = Book(
-            title = subject.displayTitle.trim(),
-            author = subject.creator,
-            coverUrl = subject.coverUrl, // 纯在线源：直接存源站 CDN 地址
-            category = subject.date,
-            status = status,
-            mediaType = selectedMediaType,
-            tags = subject.tags.take(3),
-            sourceType = subject.source,
-            sourceId = subject.id.toString(),
-            remoteRating = subject.ratingScore,
-            description = subject.summary,
-            startDate = if (status == BookStatus.READING || status == BookStatus.FINISHED) {
-                LocalDate.now().toString()
-            } else {
-                null
-            },
-            finishDate = if (status == BookStatus.FINISHED) LocalDate.now().toString() else null,
-        )
-        databaseHelper.insertBook(book)
+        databaseHelper.insertBook(buildImportedBook(subject, status))
         refreshExistingBooks()
         // 列表角标即时刷新
         adapter.notifyDataSetChanged()
     }
 
+    /** 导入条目 → 藏库 Book 的骨架构造（单条添加与批量纪念共用） */
+    private fun buildImportedBook(subject: BangumiSubject, status: BookStatus): Book = Book(
+        title = subject.displayTitle.trim(),
+        author = subject.creator,
+        coverUrl = subject.coverUrl, // 纯在线源：直接存源站 CDN 地址
+        category = subject.date,
+        status = status,
+        mediaType = selectedMediaType,
+        tags = subject.tags.take(3),
+        sourceType = subject.source,
+        sourceId = subject.id.toString(),
+        remoteRating = subject.ratingScore,
+        description = subject.summary,
+        startDate = if (status == BookStatus.READING || status == BookStatus.FINISHED) {
+            LocalDate.now().toString()
+        } else {
+            null
+        },
+        finishDate = if (status == BookStatus.FINISHED) LocalDate.now().toString() else null,
+    )
+
     // ---------------------------------------------------------------- 列表适配器
 
     private inner class SubjectAdapter(
-        private val onItemClicked: (BangumiSubject) -> Unit,
+        private val onItemClicked: (BangumiSubject, Int) -> Unit,
+        private val onItemLongClicked: (BangumiSubject, Int) -> Boolean,
+        private val onQuickAdd: (BangumiSubject) -> Unit,
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val items = mutableListOf<BangumiSubject>()
         private var footerState = FOOTER_NONE
+
+        /** 批量纪念遍历时取快照，避免遍历中列表被改动 */
+        fun itemsSnapshot(): List<BangumiSubject> = items.toList()
 
         fun submitList(newItems: List<BangumiSubject>) {
             items.clear()
@@ -547,11 +676,21 @@ class DiscoverActivity : AppCompatActivity() {
             private val ownedBadge = itemView.findViewById<TextView>(R.id.itemDiscoverOwnedBadge)
             private val titleView = itemView.findViewById<TextView>(R.id.itemDiscoverTitle)
             private val dateView = itemView.findViewById<TextView>(R.id.itemDiscoverDate)
+            private val quickAdd = itemView.findViewById<TextView>(R.id.itemDiscoverQuickAdd)
+            private val selectedRing = itemView.findViewById<TextView>(R.id.itemDiscoverSelectedRing)
 
             init {
                 itemView.setOnClickListener {
                     val pos = bindingAdapterPosition
-                    if (pos in items.indices) onItemClicked(items[pos])
+                    if (pos in items.indices) onItemClicked(items[pos], pos)
+                }
+                itemView.setOnLongClickListener {
+                    val pos = bindingAdapterPosition
+                    if (pos in items.indices) onItemLongClicked(items[pos], pos) else false
+                }
+                quickAdd.setOnClickListener {
+                    val pos = bindingAdapterPosition
+                    if (pos in items.indices) onQuickAdd(items[pos])
                 }
             }
 
@@ -564,7 +703,12 @@ class DiscoverActivity : AppCompatActivity() {
                 } ?: run { ratingView.visibility = View.GONE }
                 placeholderEmoji.text = selectedMediaType.emoji
                 CoverImageHelper.loadCover(cover, subject.coverUrl, placeholder)
-                ownedBadge.visibility = if (isOwned(subject)) View.VISIBLE else View.GONE
+                val owned = isOwned(subject)
+                ownedBadge.visibility = if (owned) View.VISIBLE else View.GONE
+                // 「＋」快捷添加：已收藏或批量选择模式下隐藏，避免与点选冲突
+                quickAdd.visibility = if (!owned && !selectionMode) View.VISIBLE else View.GONE
+                selectedRing.visibility =
+                    if (selectionMode && keyOf(subject) in selectedKeys) View.VISIBLE else View.GONE
             }
         }
     }

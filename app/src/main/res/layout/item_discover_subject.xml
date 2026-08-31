@@ -67,6 +67,38 @@
             android:textSize="11sp"
             android:textStyle="bold"
             android:visibility="gone" />
+
+        <!-- 快捷添加按钮（免弹窗直接纪念为已看，已收藏时隐藏） -->
+        <TextView
+            android:id="@+id/itemDiscoverQuickAdd"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_status_chip_selected"
+            android:clickable="true"
+            android:contentDescription="@string/discover_quick_add_desc"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="＋"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- 批量模式选中标记（卡片中央对勾） -->
+        <TextView
+            android:id="@+id/itemDiscoverSelectedRing"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_status_chip_selected"
+            android:gravity="center"
+            android:text="@string/discover_selected_mark"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </FrameLayout>
 
     <TextView

@@ -52,6 +52,13 @@
     <string name="discover_cache_note">已使用 24h 内的缓存结果 · 下拉刷新可强制更新</string>
     <string name="discover_mode_rank">🔥 热门榜单</string>
     <string name="discover_mode_search">🔍 搜索：%1$s</string>
+    <string name="discover_batch_button">批量纪念</string>
+    <string name="discover_batch_hint">点选看过的作品，长按卡片也可进入批量模式</string>
+    <string name="discover_batch_confirm">纪念已看的 %1$d 部</string>
+    <string name="discover_batch_cancel">取消</string>
+    <string name="discover_batch_done">已纪念 %1$d 部，跳过已收藏 %2$d 部</string>
+    <string name="discover_quick_add_desc">快捷添加至纪念</string>
+    <string name="discover_selected_mark">✓</string>
     <string name="edit_book_title">编辑书籍</string>
     <string name="edit_book_subtitle">让这段阅读记录更接近现在的感受。</string>
     <string name="action_back">返回</string>

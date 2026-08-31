@@ -1998,6 +1998,30 @@ class BookDatabaseHelper(val context: Context) :
         return newId
     }
 
+    /** 外部导入批量写入：单事务 + 末尾一次缓存失效（逐条 insert 会让缓存反复失效，批量纪念场景不可接受） */
+    fun insertBooksBatch(books: List<Book>): Int {
+        if (books.isEmpty()) return 0
+        val now = currentTimestamp()
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            for (book in books) {
+                val values = book.toContentValues().apply {
+                    put(COLUMN_CREATED_AT, book.createdAt.ifBlank { now })
+                    put(COLUMN_UPDATED_AT, book.updatedAt.ifBlank { now })
+                    put(COLUMN_IS_DELETED, 0)
+                    putNull(COLUMN_DELETED_AT)
+                }
+                db.insertOrThrow(TABLE_BOOKS, null, values)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        invalidateBookCache()
+        return books.size
+    }
+
     /** 外部导入第一层精确查重：同一来源的同一条目是否已导入过（含已删除作品，避免回收站复活） */
     fun findBookBySource(sourceType: String, sourceId: String): Book? =
         readableDatabase.query(
