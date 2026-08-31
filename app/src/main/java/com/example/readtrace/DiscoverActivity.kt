@@ -230,12 +230,8 @@ class DiscoverActivity : AppCompatActivity() {
         }
         when (selectedMediaType) {
             MediaType.GAME -> XiaoheiheClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
-            MediaType.ANIME -> BangumiApiClient.searchSubjects(
-                this, keyword, selectedMediaType, forceRefresh,
-                extraPages = if (keyword.isEmpty()) RANK_EXTRA_PAGES else 0,
-                onResult = onLoaded,
-            )
             MediaType.MUSIC -> NeteaseClient.searchSubjects(this, keyword, forceRefresh, onResult = onLoaded)
+            // BOOK / MOVIE / ANIME：豆瓣公开页（书籍 Top250 / 电影 Top250 / 动漫标签盘点）
             else -> DoubanClient.searchSubjects(this, keyword, selectedMediaType, forceRefresh, onResult = onLoaded)
         }
     }
@@ -302,7 +298,6 @@ class DiscoverActivity : AppCompatActivity() {
         }
         when (selectedMediaType) {
             MediaType.GAME -> XiaoheiheClient.getSubjectDetail(subject, onResult = fetchDetail)
-            MediaType.ANIME -> BangumiApiClient.getSubjectDetail(subject.id, onResult = fetchDetail)
             MediaType.MUSIC -> NeteaseClient.getSubjectDetail(subject, onResult = fetchDetail)
             else -> DoubanClient.getSubjectDetail(subject, selectedMediaType, onResult = fetchDetail)
         }

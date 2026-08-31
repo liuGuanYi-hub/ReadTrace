@@ -61,6 +61,18 @@ object DoubanClient {
         MediaType.GAME -> "图书"
     }
 
+    /** v4.2.20 盘点页 URL 列表（榜单模式多页抓取，扩大覆盖量） */
+    private fun rankUrls(mediaType: MediaType): List<String> = when (mediaType) {
+        // 豆瓣读书 Top250：每页 25 部，抓 6 页 → 150 部
+        MediaType.BOOK -> (0..5).map { "https://book.douban.com/top250?start=${it * 25}" }
+        // 豆瓣电影 Top250：150 部
+        MediaType.MOVIE -> (0..5).map { "https://movie.douban.com/top250?start=${it * 25}" }
+        // 豆瓣电影「动漫」标签按评分排序：每页 20 部，抓 5 页 → 100 部（国人认可的番剧盘点）
+        MediaType.ANIME -> (0..4).map { "https://movie.douban.com/tag/%E5%8A%A8%E6%BC%AB?sort=rank&start=${it * 20}" }
+        MediaType.MUSIC -> listOf("https://music.douban.com/chart")
+        MediaType.GAME -> listOf("https://book.douban.com/chart")
+    }
+
     /**
      * 榜单（keyword 为空）或搜索（keyword 非空）。cache-first，24h。
      */
@@ -83,14 +95,24 @@ object DoubanClient {
                     }
                 }
             }
-            val pageUrl = if (kw.isEmpty()) {
-                "https://${hostOf(mediaType)}.douban.com/chart"
+            val subjects: List<BangumiSubject>?
+            if (kw.isEmpty()) {
+                // v4.2.20 盘点页多页抓取：书/影 Top250 各 6 页 150 部、番剧动漫标签 5 页 100 部
+                val urls = rankUrls(mediaType)
+                val merged = LinkedHashMap<Long, BangumiSubject>()
+                for (url in urls) {
+                    val html = fetch(appContext, url, referer = "https://${hostOf(mediaType)}.douban.com/")
+                    val pageItems = html?.let { parseRanking(it, mediaType) }.orEmpty()
+                    pageItems.forEach { merged.putIfAbsent(it.id, it) }
+                    if (pageItems.isEmpty()) break // 该页失败/无数据即停止，避免空耗
+                }
+                subjects = merged.values.toList().takeIf { it.isNotEmpty() }
             } else {
-                "https://search.douban.com/${hostOf(mediaType)}/subject_search?search_text=" +
+                val pageUrl = "https://search.douban.com/${hostOf(mediaType)}/subject_search?search_text=" +
                     URLEncoderCompat.encode(kw)
+                val html = fetch(appContext, pageUrl, referer = "https://search.douban.com/")
+                subjects = html?.let { parseList(it, mediaType, kw) }
             }
-            val html = fetch(appContext, pageUrl, referer = if (kw.isEmpty()) "https://${hostOf(mediaType)}.douban.com/" else "https://search.douban.com/")
-            val subjects = html?.let { parseList(it, mediaType, kw) }
             if (subjects != null && subjects.isNotEmpty()) {
                 writeCache(appContext, key, subjects)
             }
@@ -125,6 +147,41 @@ object DoubanClient {
     }
 
     // ---------------------------------------------------------------- 解析
+
+    /**
+     * 盘点页解析（v4.2.20）：Top250（div.item + span.title + rating_num property）与
+     * 标签页（div.item + div.title > a + rating_nums + div.intro）。两种结构并存，依次尝试。
+     */
+    private fun parseRanking(html: String, mediaType: MediaType): List<BangumiSubject> {
+        val out = mutableListOf<BangumiSubject>()
+        val body = html + "<div class=\"item\""
+        val itemRegex = Regex("<div class=\"item\">([\\s\\S]*?)(?=<div class=\"item\")")
+        for (m in itemRegex.findAll(body).take(120)) {
+            val block = m.groupValues[1]
+            val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
+            // Top250：<span class="title">；标签页：<div class="title"><a>
+            val title = Regex("<span class=\"title\">([^<]{1,80})</span>").find(block)?.groupValues?.get(1)
+                ?: Regex("<div class=\"title\"><a[^>]*>([^<]{1,80})</a></div>").find(block)?.groupValues?.get(1)
+                ?: continue
+            val rating = Regex("rating_num\" property=\"v:average\">([\\d.]+)<").find(block)?.groupValues?.get(1)
+                ?.toDoubleOrNull()
+                ?: Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)?.toDoubleOrNull()
+            val cover = Regex("<img[^>]*src=\"([^\"]+)\"").find(block)?.groupValues?.get(1)
+            val creator = Regex("<p class=\"\">([^<]{1,120})<br").find(block)?.groupValues?.get(1)
+                ?: Regex("<div class=\"intro\">([^<]{1,120})</div>").find(block)?.groupValues?.get(1)
+            out += BangumiSubject(
+                id = id,
+                name = title.trim(),
+                nameCn = title.trim(),
+                coverUrl = cover?.takeIf { it.startsWith("http") },
+                ratingScore = rating,
+                creator = creator?.trim()?.takeIf { it.isNotEmpty() }?.let { cleanCast(it) },
+                summary = null,
+                subjectType = 0,
+            )
+        }
+        return out
+    }
 
     /** 榜单页结构（chart）：li > div.pl2 > a(书名/链接)；评分 rating_nums；作者 pl2 内文本 */
     private fun parseList(html: String, mediaType: MediaType, keyword: String): List<BangumiSubject> {
@@ -227,7 +284,8 @@ object DoubanClient {
     // ---------------------------------------------------------------- 缓存
 
     private fun cacheKeyOf(keyword: String, mediaType: MediaType): String {
-        val normalized = "douban:search|${hostOf(mediaType)}|${keyword.lowercase()}"
+        // 用 mediaType.name（BOOK/MOVIE/ANIME…）而非 hostOf：ANIME 与 MOVIE 同 host 但榜单不同，缓存必须隔离
+        val normalized = "douban:search|${mediaType.name}|${keyword.lowercase()}"
         return md5Hex(normalized)
     }
 
