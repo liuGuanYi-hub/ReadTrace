@@ -327,12 +327,11 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/field_category" />
 
-                <EditText
-                    android:id="@+id/categoryInput"
-                    style="@style/ReadTraceInput"
-                    android:hint="@string/hint_category"
-                    android:inputType="textCapWords"
-                    android:maxLines="2" />
+                <com.example.readtrace.widget.FlowLayout
+                    android:id="@+id/categoryChipGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
             </LinearLayout>
 
             <LinearLayout

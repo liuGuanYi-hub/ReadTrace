@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.ImageView
@@ -38,7 +39,8 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var authorInput: EditText
     private lateinit var coverUrlInput: EditText
     private lateinit var categoryLabel: TextView
-    private lateinit var categoryInput: EditText
+    private lateinit var categoryChipGroup: com.example.readtrace.widget.FlowLayout
+    private var selectedCategory: String? = null
     private lateinit var sectionRecordTitle: TextView
     private lateinit var statusLabel: TextView
     private lateinit var chipStatusWishlist: TextView
@@ -155,7 +157,7 @@ class AddBookActivity : AppCompatActivity() {
         authorInput = findViewById(R.id.authorInput)
         coverUrlInput = findViewById(R.id.coverUrlInput)
         categoryLabel = findViewById(R.id.categoryLabel)
-        categoryInput = findViewById(R.id.categoryInput)
+        categoryChipGroup = findViewById(R.id.categoryChipGroup)
         sectionRecordTitle = findViewById(R.id.sectionRecordTitle)
         statusLabel = findViewById(R.id.statusLabel)
         chipStatusWishlist = findViewById(R.id.chipStatusWishlist)
@@ -272,13 +274,8 @@ class AddBookActivity : AppCompatActivity() {
             MediaType.GAME -> "游戏类型"
             MediaType.MUSIC -> "曲风 / 流派"
         }
-        categoryInput.hint = when (selectedMediaType) {
-            MediaType.BOOK -> "如：东亚文学、科幻、哲学"
-            MediaType.ANIME -> "如：热血、治愈、奇幻、日常"
-            MediaType.MOVIE -> "如：剧情、悬疑、科幻、纪录片"
-            MediaType.GAME -> "如：开放世界、动作RPG、类银河恶魔城"
-            MediaType.MUSIC -> "如：J-Pop、后摇、流行、古典"
-        }
+        // 分类标签随媒介类型刷新（点选即生效）
+        rebuildCategoryChips()
 
         // 3. 记录与状态区域（严格区分阅读/追番/观影/游玩/聆听）
         sectionRecordTitle.text = when (selectedMediaType) {
@@ -429,7 +426,8 @@ class AddBookActivity : AppCompatActivity() {
         currentCoverPath = book.coverUrl
         initialCoverPath = book.coverUrl
         updateCoverPreview()
-        categoryInput.setText(book.category.orEmpty())
+        selectedCategory = book.category?.takeIf { it.isNotBlank() }
+        rebuildCategoryChips()
         selectedStatus = book.status
         updateStatusChipsText()
         updateStatusSelectionUI()
@@ -627,7 +625,7 @@ class AddBookActivity : AppCompatActivity() {
             title = title,
             author = authorInput.normalizedText(),
             coverUrl = finalCoverUrl,
-            category = categoryInput.normalizedText(),
+            category = selectedCategory?.takeIf { it.isNotBlank() },
             status = selectedStatus,
             mediaType = selectedMediaType,
             rating = rating,
@@ -699,6 +697,128 @@ class AddBookActivity : AppCompatActivity() {
         }
     }
 
+    /** 分类点选：点中即生效，再点一次可取消选择 */
+    private fun selectCategory(category: String) {
+        selectedCategory = if (selectedCategory == category) null else category
+        HapticFeedbackEngine.lightClick(this)
+        rebuildCategoryChips()
+    }
+
+    /** 按当前媒介类型重建分类标签行 */
+    private fun rebuildCategoryChips() {
+        categoryChipGroup.removeAllViews()
+        val density = resources.displayMetrics.density
+
+        fun addChip(label: String, isSelected: Boolean, isCustom: Boolean = false) {
+            val chip = TextView(this).apply {
+                text = label
+                textSize = 13.5f
+                gravity = android.view.Gravity.CENTER
+                minHeight = (42 * density).toInt()
+                isSingleLine = true
+                isClickable = true
+                isFocusable = true
+                setPadding((14 * density).toInt(), 0, (14 * density).toInt(), 0)
+                setBackgroundResource(
+                    if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_status_chip,
+                )
+                setTextColor(
+                    ContextCompat.getColor(
+                        this@AddBookActivity,
+                        if (isSelected) R.color.white else R.color.readtrace_ink,
+                    ),
+                )
+            }
+            if (categoryChipGroup.childCount > 0) {
+                val lp = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+                lp.marginStart = (10 * density).toInt()
+                chip.layoutParams = lp
+            } else {
+                chip.layoutParams = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+            }
+            chip.setOnClickListener {
+                if (isCustom) {
+                    HapticFeedbackEngine.lightClick(this)
+                    showCustomCategoryDialog()
+                } else {
+                    selectCategory(label)
+                }
+            }
+            categoryChipGroup.addView(chip)
+        }
+
+        val presets = presetCategories(selectedMediaType)
+        presets.forEach { addChip(it, it == selectedCategory) }
+        // 编辑已有作品时，非预设分类作为额外标签保留展示，避免丢失原分类
+        selectedCategory?.takeIf { it.isNotBlank() && it !in presets }?.let { addChip(it, true) }
+        addChip("＋ 自定义分类", false, isCustom = true)
+    }
+
+    /** 各媒介类型的预设分类：以作品库真实在用的四字标签为基础，并结合主流平台常见类型扩充 */
+    private fun presetCategories(mediaType: MediaType): List<String> = when (mediaType) {
+        MediaType.BOOK -> listOf(
+            "本格推理", "密室推理", "社会派推理", "悬疑惊悚", "硬核科幻", "奇幻冒险",
+            "武侠小说", "历史演义", "哲学思辨", "存在主义", "历史哲学", "人生哲学",
+            "心理自助", "人物传记", "日本文学", "欧美文学", "华语经典", "俄国文学",
+            "拉美文学", "散文随笔", "诗集诗选", "言情浪漫", "纪实文学", "经济管理",
+            "硬核科普", "宇宙科普", "自然博物", "社科文化",
+        )
+        MediaType.ANIME -> listOf(
+            "治愈妖怪", "日常治愈", "奇幻治愈", "温馨日常", "搞笑日常", "萌系日常",
+            "奇幻热血", "热血战斗", "热血冒险", "运动竞技", "奇幻恋爱", "搞笑恋爱",
+            "青春恋爱", "青春音乐", "青春思辨", "青春校园", "超能青春", "奇幻催泪",
+            "悬疑推理", "恐怖惊悚", "异世界番", "机甲科幻", "时代剑戟", "神魔奇幻",
+        )
+        MediaType.MOVIE -> listOf(
+            "奇幻治愈", "温情治愈", "硬核科幻", "悬疑科幻", "科幻哲学", "科幻史诗",
+            "悬疑烧脑", "恐怖惊悚", "动作犯罪", "武侠动作", "战争史诗", "黑帮史诗",
+            "剧情经典", "爱情文艺", "动画喜剧", "喜剧合家", "超级英雄", "神话国漫",
+            "温情纪录", "人文纪录",
+        )
+        MediaType.GAME -> listOf(
+            "魂系神作", "魂系经典", "硬核动作", "动作冒险", "动作角色扮演", "日系角色扮演",
+            "欧美角色扮演", "日系动作共斗", "日系炼金RPG", "开放世界", "解谜探索",
+            "平台跳跃", "策略模拟", "恐怖生存", "射击竞技", "唯美治愈", "治愈养生",
+            "视觉小说", "像素独立", "剧情向",
+        )
+        MediaType.MUSIC -> listOf(
+            "日系摇滚", "哲学摇滚", "文学摇滚", "青春摇滚", "硬派摇滚", "日系抒情",
+            "唯美抒情", "治愈救赎", "物哀美学", "宇宙浪漫", "夏日叙事", "静谧夜色",
+            "夜光放克", "都会律动", "爵士切分", "治愈纯音", "古典交响", "国风民乐",
+            "电子梦境", "嘻哈说唱",
+        )
+    }
+
+    /** 自定义分类：预设不满足时保留自由输入入口（沿用 app 统一优雅弹窗风格） */
+    private fun showCustomCategoryDialog() {
+        com.example.readtrace.util.ElegantFormDialog.show(
+            activity = this,
+            title = "✨ 自定义分类",
+            confirmText = "确 定",
+            fields = listOf(
+                com.example.readtrace.util.ElegantFormDialog.Field(
+                    key = "category",
+                    label = "分类名称",
+                    hint = "如：东亚文学、蒸汽朋克、城市漫游",
+                    preset = selectedCategory.orEmpty(),
+                    required = true,
+                ),
+            ),
+        ) { values ->
+            val value = values.getValue("category")
+            if (value.isNotEmpty()) {
+                selectedCategory = value
+                rebuildCategoryChips()
+            }
+        }
+    }
+
     private fun restoreSaveButton() {
         saveButton.isEnabled = true
         saveButton.alpha = 1f
@@ -733,7 +853,7 @@ class AddBookActivity : AppCompatActivity() {
         R.id.coverPickerContainer,
         R.id.authorLabel, R.id.authorInput,
         R.id.coverUrlLabel, R.id.coverUrlInput,
-        R.id.categoryLabel, R.id.categoryInput,
+        R.id.categoryLabel, R.id.categoryChipGroup,
         R.id.tagsLabel, R.id.tagsInput,
         R.id.startDateLabel, R.id.startDateInput, R.id.clearStartDateButton,
         R.id.finishDateLabel, R.id.finishDateInput, R.id.clearFinishDateButton,
