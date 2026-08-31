@@ -73,6 +73,12 @@ class LibraryFragment : Fragment() {
     private var isGridView: Boolean = false
     private var currentDisplayLimit: Int = 24
 
+    // v4.2.25 滚动到底自动加载：当前筛选结果集 + 增量渲染状态
+    // （pendingCarry：双列模式下跨页的落单卡片；endNoteView：列表尾部「已展示全部」静态文案）
+    private var currentFilteredBooks: List<Book> = emptyList()
+    private var pendingCarry: Book? = null
+    private var endNoteView: TextView? = null
+
     // 内存数据缓存与搜索防抖，避免频繁切标签与按键触发 SQLite 全表扫描
     private var cachedAllBooks: List<Book> = emptyList()
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -147,6 +153,8 @@ class LibraryFragment : Fragment() {
 
         libraryScroll.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             updateScrollTopButton(scrollY)
+            // v4.2.25 滚动到底自动加载下一页（增量追加，不重建全表）
+            maybeLoadNextPage()
         }
 
         btnLibraryScrollTop.setOnClickListener {
@@ -380,9 +388,12 @@ class LibraryFragment : Fragment() {
         } else {
             candidates
         }
+        currentFilteredBooks = books
 
         libraryCountText.text = "共 ${books.size} 部藏品"
         libraryBooksContainer.removeAllViews()
+        pendingCarry = null
+        endNoteView = null
 
         if (books.isEmpty()) {
             libraryBooksContainer.visibility = View.GONE
@@ -397,90 +408,120 @@ class LibraryFragment : Fragment() {
         libraryEmptyPanel.visibility = View.GONE
         libraryBooksContainer.visibility = View.VISIBLE
 
-        val displayBooks = books.take(currentDisplayLimit)
-
-        if (!isGridView) {
-            displayBooks.forEachIndexed { index, book ->
-                val card = createBookCard(book)
-                libraryBooksContainer.addView(card)
-                if (index < 8) ViewAnimationHelper.staggerFadeIn(card, index)
-            }
-        } else {
-            val rows = displayBooks.chunked(2)
-            val ctx = requireContext()
-            rows.forEachIndexed { rowIndex, pair ->
-                val rowLayout = LinearLayout(ctx).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                    ).apply {
-                        topMargin = dpToPx(8)
-                    }
-                    orientation = LinearLayout.HORIZONTAL
-                    weightSum = 2f
-                }
-
-                val leftCard = createBookGridCard(pair[0]).apply {
-                    val p = layoutParams as LinearLayout.LayoutParams
-                    p.marginEnd = dpToPx(4)
-                    layoutParams = p
-                }
-                ViewAnimationHelper.staggerFadeIn(leftCard, rowIndex * 2)
-                rowLayout.addView(leftCard)
-
-                if (pair.size > 1) {
-                    val rightCard = createBookGridCard(pair[1]).apply {
-                        val p = layoutParams as LinearLayout.LayoutParams
-                        p.marginStart = dpToPx(4)
-                        layoutParams = p
-                    }
-                    ViewAnimationHelper.staggerFadeIn(rightCard, rowIndex * 2 + 1)
-                    rowLayout.addView(rightCard)
-                } else {
-                    val emptySpace = View(ctx).apply {
-                        layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
-                    }
-                    rowLayout.addView(emptySpace)
-                }
-
-                libraryBooksContainer.addView(rowLayout)
-                if (rowIndex < 4) ViewAnimationHelper.staggerFadeIn(rowLayout, rowIndex)
-            }
-        }
-
-        // 若藏品数量超过当前展示上限，添加优雅的「加载更多」按钮
-        if (books.size > currentDisplayLimit) {
-            val ctx = requireContext()
-            val loadMoreBtn = TextView(ctx).apply {
-                text = "查看更多藏品 (剩余 ${books.size - currentDisplayLimit} 部) ↓"
-                textSize = 13f
-                gravity = android.view.Gravity.CENTER
-                setBackgroundResource(R.drawable.bg_secondary_button)
-                setTextColor(ContextCompat.getColor(ctx, R.color.readtrace_ink))
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(42),
-                ).apply {
-                    topMargin = dpToPx(16)
-                    bottomMargin = dpToPx(12)
-                }
-                layoutParams = params
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    currentDisplayLimit += 30
-                    refreshShelfOnly()
-                }
-            }
-            ViewAnimationHelper.attachSpringTouch(loadMoreBtn)
-            libraryBooksContainer.addView(loadMoreBtn)
-        }
+        // v4.2.25：首屏只渲染展示上限内的卡片，其余由滚动到底自动追加（替代手动「查看更多」）
+        renderCardsRange(0, minOf(currentDisplayLimit, books.size))
+        updateEndNote()
 
         libraryScroll.post {
             if (isAdded) {
                 updateScrollTopButton(libraryScroll.scrollY)
             }
         }
+    }
+
+    // ---------------------------------------------------------------- v4.2.25 滚动自动加载
+
+    /** 接近底部（阈值内）且仍有未展示条目时追加下一页 */
+    private fun maybeLoadNextPage() {
+        if (currentDisplayLimit >= currentFilteredBooks.size) return
+        val content = libraryScroll.getChildAt(0) ?: return
+        val bottomGap = content.bottom - (libraryScroll.scrollY + libraryScroll.height)
+        if (bottomGap < dpToPx(AUTO_LOAD_TRIGGER_GAP_DP)) {
+            appendNextPage()
+        }
+    }
+
+    private fun appendNextPage() {
+        val total = currentFilteredBooks.size
+        if (currentDisplayLimit >= total) return
+        val from = currentDisplayLimit
+        currentDisplayLimit = minOf(total, from + PAGE_STEP)
+        renderCardsRange(from, currentDisplayLimit)
+        updateEndNote()
+    }
+
+    /**
+     * 增量渲染 [from, to)：只在容器尾部追加，不清空重建。
+     * 列表模式逐卡追加；双列模式两两成行，落单卡片由 pendingCarry 带过页边界。
+     */
+    private fun renderCardsRange(from: Int, to: Int) {
+        if (from >= to) return
+        val books = currentFilteredBooks
+        val animate = from == 0
+        if (!isGridView) {
+            for (i in from until to) {
+                val card = createBookCard(books[i])
+                libraryBooksContainer.addView(card)
+                if (animate && i < 8) ViewAnimationHelper.staggerFadeIn(card, i)
+            }
+            return
+        }
+        val ctx = context ?: return
+        var index = from
+        var rowIndex = 0
+        // 上一页遗留的落单卡片与本页第一张配对
+        if (pendingCarry != null) {
+            val row = createGridRow(ctx)
+            row.addView(buildGridCard(pendingCarry!!, isLeft = true))
+            row.addView(buildGridCard(books[index], isLeft = false))
+            libraryBooksContainer.addView(row)
+            if (animate && rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
+            rowIndex++
+            pendingCarry = null
+            index++
+        }
+        while (index + 1 < to) {
+            val row = createGridRow(ctx)
+            row.addView(buildGridCard(books[index], isLeft = true))
+            row.addView(buildGridCard(books[index + 1], isLeft = false))
+            libraryBooksContainer.addView(row)
+            if (animate && rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
+            rowIndex++
+            index += 2
+        }
+        if (index < to) pendingCarry = books[index]
+    }
+
+    private fun createGridRow(ctx: Context): LinearLayout = LinearLayout(ctx).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { topMargin = dpToPx(8) }
+        orientation = LinearLayout.HORIZONTAL
+        weightSum = 2f
+    }
+
+    private fun buildGridCard(book: Book, isLeft: Boolean): View = createBookGridCard(book).apply {
+        val p = layoutParams as LinearLayout.LayoutParams
+        if (isLeft) p.marginEnd = dpToPx(4) else p.marginStart = dpToPx(4)
+        layoutParams = p
+    }
+
+    /** 尾部静态文案：全部展示完才显示「已展示全部 N 部」，并始终保持在容器最后一个子视图 */
+    private fun updateEndNote() {
+        val ctx = context ?: return
+        val total = currentFilteredBooks.size
+        val note = endNoteView ?: TextView(ctx).apply {
+            textSize = 12f
+            gravity = android.view.Gravity.CENTER
+            setTextColor(ContextCompat.getColor(ctx, R.color.readtrace_muted))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                topMargin = dpToPx(18)
+                bottomMargin = dpToPx(14)
+            }
+            endNoteView = this
+        }
+        if (total > 0 && currentDisplayLimit >= total) {
+            note.text = "已展示全部 $total 部"
+            note.visibility = View.VISIBLE
+        } else {
+            note.visibility = View.GONE
+        }
+        if (note.parent != null) libraryBooksContainer.removeView(note)
+        libraryBooksContainer.addView(note)
     }
 
     private fun updateScrollTopButton(scrollY: Int) {
@@ -666,5 +707,9 @@ class LibraryFragment : Fragment() {
 
     companion object {
         private val RATING_FORMAT = DecimalFormat("0.#")
+
+        // v4.2.25 滚动自动加载：距底小于该阈值触发追加，每页追加 30 部
+        private const val AUTO_LOAD_TRIGGER_GAP_DP = 800
+        private const val PAGE_STEP = 30
     }
 }
