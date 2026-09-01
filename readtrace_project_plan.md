@@ -2068,3 +2068,127 @@ graph TD
 |:---|:---|:---|:---|
 | **Phase 1: 轻量展厅与分享裂变端** | · 搭建 Uni-app Vue3 工程<br>· 2.5D 视差微卡与黑胶播放器移植<br>· 微信分享卡片定制与生成 | `mp-readtrace/`<br>`components/DioramaCard.vue`<br>`components/VinylPlayer.vue` | 微信好友点开分享链接，秒级拉起小程序体验 2.5D 视差与黑胶试听 |
 | **Phase 2: 完整作品管理与云同步** | · 跨媒介五态管理与搜索<br>· 接入 WebDAV 与微信云同步<br>· 3秒速记与标签智能提炼 | `pages/library/index.vue`<br>`pages/quick-log/index.vue`<br>`utils/sync.ts` | 小程序端支持完整图书/影视/游戏记录，与 Android App 数据双向互通 |
+
+---
+
+## 36. P20 缺陷修复、性能纵深与体验演进实施计划 (Bug Sweep, Deep Performance & Experience Evolution)
+
+### 36.1 研发背景与排查方法
+
+v1.0.5 加固与 P11~P19 全量落地后，对新增链路（速记弹窗、剪贴板嗅探、WebDAV 同步、
+径向快捷环、年鉴画册、2.5D 展厅、伴读钟、小程序端）进行了**证据化缺陷排查**——
+每一条缺陷均已在代码中定位到具体行并复现成因，杜绝「凭感觉修」。本计划分四个专项：
+① 确认缺陷修复；② 主线程与内存性能纵深；③ 功能设计演进；④ 跨端一致性补全。
+
+---
+
+### 36.2 确认缺陷矩阵 (Evidence-backed Bugs)
+
+```mermaid
+graph TD
+    A[P20 缺陷修复专项] --> B[B1 径向快捷环定位错位]
+    A --> C[B2 文化年轮动画失效]
+    A --> D[B3 个人页同步按钮仍调模拟引擎]
+    A --> E[B4 边缘手势条遮挡返回按钮]
+    A --> F[B5 时间轴长图重复导出复用已回收位图]
+    A --> G[B6 自然语言入库来源污染]
+    A --> H[B7 2.5D 展厅滑动被标本盒吞掉]
+    A --> I[B8 小程序 WebDAV 使用不受支持的 MKCOL 方法]
+```
+
+#### B1 径向快捷环胶囊定位错位（高，必修）
+- **现象**：`RadialQuickActionMenu` 胶囊使用 `leftMargin/topMargin = cos/sin*radius + 固定偏移`
+  定位，但 `FrameLayout.LayoutParams` 未指定 `Gravity.CENTER`，默认锚定左上角。
+- **后果**：胶囊环出现在屏幕左上角而非作品徽章四周，大屏设备上完全脱节。
+- **修复**：pill 改用 `gravity = Gravity.CENTER` + `translationX/translationY` 定位
+  （或相对徽章中心计算），入场动画沿径向展开。
+
+#### B2 文化年轮图谱渲染不可见（高，必修）
+- **现象**：`CulturalTreeRingsView.animateReveal()` 使用
+  `animate().setDuration(600).setUpdateListener{...}` 但**没有声明任何属性动画**，
+  `ViewPropertyAnimator` 无属性可驱动时不会产生帧，`revealProgress` 恒为 0。
+- **后果**：环带 `strokeWidth` 乘以 0、半径缩至 40%，年轮在年鉴画册中几乎不可见。
+- **修复**：改用显式 `ValueAnimator.ofFloat(0f,1f)` + `addUpdateListener`；
+  同时把 `textPaint.textSize` 从裸 px 改为 dp 密度换算。
+
+#### B3 个人页「同步保险库」仍调用模拟引擎（高，必修）
+- **现象**：`ProfileFragment.btnProfileSyncVault` 仍调用 `CloudSyncEngine.performSync`，
+  其实现为 `Thread.sleep(600)` 模拟成功；新的 `WebDavSyncEngine` 未被任何 UI 入口串联。
+- **后果**：用户点击同步后看到「同步成功」，实际云端无任何写入——**误导性假成功**。
+- **修复**：该按钮改为跳转 `WebDavConfigActivity`（未配置时）或直接触发
+  `WebDavSyncEngine.performSync`（已配置时），结果回调展示真实拉推计数；
+  旧 `CloudSyncEngine` 标记 `@Deprecated` 或删除。
+
+#### B4 边缘手势触摸条遮挡悬浮返回按钮（中，必修）
+- **现象**：`FloatingBack` 左边距 14dp，`EdgeSwipeDismissHelper` 触摸条宽 24dp 且
+  **后添加到 decorView**（层级更高）——详情页左上角返回按钮外侧 10dp 热区被吞。
+- **修复**：install 时检测 decorView 中已有 FloatingBack 实例则将 strip 下移到其下方
+  （`addView(strip, 0)`），或把 strip 宽度改为 `min(24dp, FloatingBack.left - 4dp)`。
+
+#### B5 时间轴长图重复导出复用已回收位图（中，必修）
+- **现象**：`exportTimelineAsLongImage` 开头 `pendingTimelineBitmap?.recycle()`，
+  但上一次导出的「立即分享」对话框可能仍持有该位图引用，用户再点分享即对
+  recycled bitmap 调用 compress → `IllegalStateException` 闪退。
+- **修复**：分享对话框弹出前把 `pendingTimelineBitmap` 置 null 并由对话框生命周期
+  持有位图；或导出前检查 `bitmap.isRecycled` 回避；onDestroy 兜底保留。
+
+#### B6 一句话速记入库来源被污染为 bangumi（中，必修）
+- **现象**：`makeNaturalQuickRow` 复用 `BangumiSubject`（默认 `source="bangumi"`）
+  走 `insertQuickWork`，把 `sourceType="bangumi"` 写入手动速记作品。
+- **后果**：污染跨源防重标识，未来按来源统计/同步去重将误判。
+- **修复**：`insertQuickWork` 增加显式 `sourceType` 参数，自然语言入库传 null；
+  顺带为速记记录补 `sourceId=null` 断言测试。
+
+#### B7 2.5D 展厅左右滑动被标本盒吞掉（中，实测定级）
+- **现象**：滑动翻页依赖 Activity `onTouchEvent`，但 `DioramaBoxView.onTouchEvent`
+  在命中内容层时 `return true` 消费事件——覆盖屏幕主体的标本盒区域无法滑动漫游。
+- **修复**：把滑动检测下沉到 DioramaBoxView 内部（暴露 `onSwipe` 回调），
+  或 Activity 层改用 `dispatchTouchEvent` 全局 GestureDetector。
+
+#### B8 小程序 WebDAV 使用微信不支持的 MKCOL（低，设计规避）
+- **现象**：`mp-readtrace/utils/sync.ts` 通过 `wx.request` 发送 `MKCOL`，
+  微信仅允许标准 HTTP 方法，实测可能直接被拒。
+- **修复**：MKCOL 失败时静默降级（多数服务器自动建目录或允许直接 PUT）；
+  长期方案：README 标注「需服务器预创建 readtrace/ 目录」或改走云开发托管。
+
+---
+
+### 36.3 性能纵深专项
+
+| 编号 | 问题 | 位置 | 方案 |
+|:---|:---|:---|:---|
+| P1 | 详情页概念网在主线程构建全库倒排索引（N+1 查询 getNotes） | `BookDetailActivity.renderConceptWeb` | 索引构建迁移后台线程 + `invalidate` 回主线程；或入库/笔记变更时增量维护 `concept_relations` 缓存表 |
+| P2 | 年鉴 `collectStats` 主线程 N+1 笔记统计 | `AnnualChronicleStudioActivity` | 统计块整体移入 `Thread`，完成后回主线程 `buildChronicle()` |
+| P3 | 长图导出一次性分配 `width×height` 位图（六页可达 34MB+，低内存机 OOM 风险） | 年鉴/时间轴导出 | 分段渲染为多张 ≤4096px 位图再拼接；或按 0.75 采样率导出并保留印刷级开关 |
+| P4 | `UserPreferencesManager.setNightMode` 使用 `commit()` 主线程同步写盘 | `UserPreferencesManager` | 改 `apply()`（原 ThemeHelper 遗留同步写法） |
+| P5 | `BookSimilarityEngine.findSimilarBooks` 逐书 `getMindprint` N+1 | `BookSimilarityEngine` | 一次 `getAllMindprints()` 建 Map 后查表（与备份引擎同口径） |
+| P6 | 速记结果行每次搜索重建 LinearLayout，无视图复用 | `QuickLogBottomSheet` | 结果量 ≤15 暂可接受；列表上限提升时迁移 RecyclerView |
+| P7 | 概念索引、心智索引等在多个 Activity 重复全量构建 | 全局 | 收敛为 `data/ConceptIndexRepository` 单例，DB 变更时失效重建 |
+
+---
+
+### 36.4 功能设计演进专项
+
+| 编号 | 模块 | 设计演进 |
+|:---|:---|:---|
+| F1 | ISBN 扫码 | 增加手电筒开关 / 双指变焦 / 连续批量扫入模式；识别命中后震动 + 取景框高亮 |
+| F2 | 剪贴板嗅探 | 按链接 host 自动判别媒介（movie/music.douban → 电影/音乐），直取后按对应媒介落库；识别豆瓣 ISBN 页 |
+| F3 | 深链闭环 | Manifest 注册 `readtrace://work/{id}` intent-filter，Web 微卡二维码扫码直达 App 内详情（当前二维码无接收端） |
+| F4 | WebDAV | ① WorkManager 每日静默自动同步 + 应用启动增量校验；② 密码迁移 EncryptedSharedPreferences；③ 封面图片目录同步（content URI 失效兜底）④ 同步冲突提示 UI |
+| F5 | 伴读钟 | 接入程序化白噪音（壁炉/雨声）与专注结束自动沉淀 `ReadingSession` 打卡闭环 |
+| F6 | 速记弹窗 | 支持语音转文字录入；搜索结果接入 `PinyinSearchHelper` 二次过滤本地库优先展示已收录 |
+| F7 | 径向菜单 | 胶囊径向展开动画 + 长按预览联动（修复 B1 后）；动作集可配置 |
+| F8 | 年鉴 | 年份自由选择器；PDF 画册导出；月度沉浸以 `ReadingSession` 实际分钟数替代完读数折算 |
+| F9 | 版本编号 | 统一 `versionName`（当前 1.0.4）与 `ChangelogRepository`（v4.x）双轨编号，发布流水线取其一 |
+| F10 | 小程序 | 媒介筛选持久化、速记历史列表、深链 `pages/library?status=` 参数直达 |
+
+---
+
+### 36.5 分阶段实施路线图 (Phases)
+
+| 阶段 | 核心任务 | 涉及文件 | 验收标准 |
+|:---|:---|:---|:---|
+| **Phase 1: 必修缺陷清零** | B1~B6 全部修复（含单元测试：来源断言/年轮可见性间接断言） | RadialQuickActionMenu / CulturalTreeRingsView / ProfileFragment / EdgeSwipeDismissHelper / BookDetailActivity / QuickLogBottomSheet | 真机冒烟：径向环居中弹出；年轮正常渐显；个人页同步走真实 WebDAV；返回按钮可点；连续两次导出长图不崩溃；速记记录 sourceType 为空 |
+| **Phase 2: 交互与跨端收尾** | B7 滑动下沉修复 + B8 小程序方法降级 + F3 深链 intent-filter | CosmicGravityGraphView / DioramaBoxView / sync.ts / AndroidManifest | 2.5D 展厅全区域可滑动；扫码 `readtrace://work/{id}` 直达详情；小程序同步在不支持 MKCOL 的服务器上仍能完成 PUT |
+| **Phase 3: 性能纵深** | P1~P7 全量落地（后台化 + 缓存单例 + apply 修正） | BookDetailActivity / AnnualChronicle / UserPreferencesManager / BookSimilarityEngine / 新增 ConceptIndexRepository | 大库（500+ 部）详情页与年鉴进入无卡顿；StrictMode 无主线程磁盘读写告警 |
+| **Phase 4: 功能演进** | F1~F10 按优先级排期（建议 F2/F4 → F5/F8 → 其余） | 各模块 | 每项独立验收，随 v4.5.0 发布 |
