@@ -86,6 +86,10 @@ class BackupActivity : AppCompatActivity() {
             createCsvLauncher.launch(fileName)
         }
 
+        findViewById<View>(R.id.webdavSyncCard).setOnClickListener {
+            startActivity(android.content.Intent(this, WebDavConfigActivity::class.java))
+        }
+
         findViewById<View>(R.id.importJsonCard).setOnClickListener {
             openJsonLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
         }

@@ -79,6 +79,50 @@ object UserPreferencesManager {
             .apply()
     }
 
+    // --- 🛡️ WebDAV 同步配置 (readtrace_webdav_prefs) ---
+
+    private const val PREFS_WEBDAV = "readtrace_webdav_prefs"
+    private const val KEY_WEBDAV_SERVER = "webdav_server"
+    private const val KEY_WEBDAV_USER = "webdav_user"
+    private const val KEY_WEBDAV_PASSWORD = "webdav_password"
+    private const val KEY_WEBDAV_LAST_SYNC = "webdav_last_sync_at"
+
+    fun getWebDavServer(context: Context): String =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getString(KEY_WEBDAV_SERVER, "").orEmpty()
+
+    fun setWebDavServer(context: Context, server: String) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putString(KEY_WEBDAV_SERVER, server).apply()
+    }
+
+    fun getWebDavUser(context: Context): String =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getString(KEY_WEBDAV_USER, "").orEmpty()
+
+    fun setWebDavUser(context: Context, user: String) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putString(KEY_WEBDAV_USER, user).apply()
+    }
+
+    fun getWebDavPassword(context: Context): String =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getString(KEY_WEBDAV_PASSWORD, "").orEmpty()
+
+    fun setWebDavPassword(context: Context, password: String) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putString(KEY_WEBDAV_PASSWORD, password).apply()
+    }
+
+    fun getWebDavLastSyncAt(context: Context): Long =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getLong(KEY_WEBDAV_LAST_SYNC, 0L)
+
+    fun setWebDavLastSyncAt(context: Context, timestamp: Long) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putLong(KEY_WEBDAV_LAST_SYNC, timestamp).apply()
+    }
+
     // --- 📖 阅读页码 (readtrace_reader_prefs) ---
 
     fun getReadingPage(context: Context, bookId: Long): Int =

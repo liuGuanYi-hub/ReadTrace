@@ -310,6 +310,37 @@
 
         <!-- 导入 JSON 卡片 -->
         <LinearLayout
+            android:id="@+id/webdavSyncCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="🛡️ WebDAV 数据主权同步"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans"
+                android:text="坚果云 / Nextcloud / NAS 双向增量同步，全量高阶资产无感备份。"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/importJsonCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

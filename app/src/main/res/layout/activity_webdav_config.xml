@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 🛡️ WebDAV 本地主权同步配置 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/webdavRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0C111C"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="🛡️ WebDAV 数据主权同步"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="兼容坚果云 / Nextcloud / 群晖威联通 NAS。数据仅存你自己的服务器，拉推双向内容级去重合并。"
+        android:textColor="#99FFFFFF"
+        android:textSize="12sp" />
+
+    <EditText
+        android:id="@+id/webdavServerInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_quick_status_idle"
+        android:hint="服务器地址（如 https://dav.jianguoyun.com/dav/）"
+        android:inputType="textUri"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#55FFFFFF"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/webdavUserInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_quick_status_idle"
+        android:hint="账号"
+        android:inputType="text"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#55FFFFFF"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/webdavPasswordInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_quick_status_idle"
+        android:hint="应用密码（坚果云请使用「应用密码」而非登录密码）"
+        android:inputType="textPassword"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#55FFFFFF"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/webdavStatusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textColor="#99FFFFFF"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/webdavTestButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_dark_chip"
+            android:gravity="center"
+            android:padding="14dp"
+            android:text="🔗 测试连接"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/webdavSyncButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_dark_chip_selected"
+            android:gravity="center"
+            android:padding="14dp"
+            android:text="⚡ 立即同步"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>
