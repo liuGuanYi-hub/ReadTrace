@@ -43,7 +43,6 @@ class BookDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        com.example.readtrace.util.TransitionHelper.setupActivityTransitions(this)
         setContentView(R.layout.activity_book_detail)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.detailRoot)) { view, insets ->

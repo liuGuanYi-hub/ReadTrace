@@ -325,15 +325,8 @@ class HubFragment : Fragment() {
         }
         val openHeroDetail = {
             val book = currentHeroBook
-            val act = activity
             if (book != null) {
-                val intent = BookDetailActivity.createIntent(requireContext(), book.id)
-                if (act != null) {
-                    val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, heroBookCover)
-                    startActivity(intent, options.toBundle())
-                } else {
-                    startActivity(intent)
-                }
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
             }
         }
         heroBtnDetail.setOnClickListener { openHeroDetail() }
@@ -742,14 +735,7 @@ class HubFragment : Fragment() {
             CoverImageHelper.loadCover(imageView, book.coverUrl)
 
             cardView.setOnClickListener {
-                val act = activity
-                val intent = BookDetailActivity.createIntent(requireContext(), book.id)
-                if (act != null) {
-                    val options = com.example.readtrace.util.TransitionHelper.createTransitionOptions(act, cardView)
-                    startActivity(intent, options.toBundle())
-                } else {
-                    startActivity(intent)
-                }
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
             }
             coversContainer.addView(cardView)
         }
