@@ -1,10 +1,16 @@
 package com.example.readtrace.util
 
+import com.example.readtrace.model.AudioTrackItem
 import com.example.readtrace.model.Book
+import com.example.readtrace.model.BookCharacter
+import com.example.readtrace.model.BookLocation
+import com.example.readtrace.model.BookMindprint
+import com.example.readtrace.model.BookOutline
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
+import com.example.readtrace.model.ReadingSession
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.OffsetDateTime
@@ -13,19 +19,37 @@ import java.time.format.DateTimeFormatter
 object BackupHelper {
 
     /**
-     * 生成全量 JSON 备份字符串
+     * 全量作品备份数据：在书籍与笔记之外，纳入 6 大高阶资产维度
+     * （阅读打卡 / 人物角色谱 / 章节大纲 / 空间地标 / 六维心智模型 / 黑胶关联曲目）
      */
-    fun generateJsonBackup(items: List<Pair<Book, List<Note>>>): String {
+    data class WorkBackup(
+        val book: Book,
+        val notes: List<Note>,
+        val sessions: List<ReadingSession> = emptyList(),
+        val characters: List<BookCharacter> = emptyList(),
+        val outlines: List<BookOutline> = emptyList(),
+        val locations: List<BookLocation> = emptyList(),
+        val mindprint: BookMindprint? = null,
+        val audioTracks: List<AudioTrackItem> = emptyList(),
+    ) {
+        fun toPair(): Pair<Book, List<Note>> = Pair(book, notes)
+    }
+
+    /**
+     * 生成全量 JSON 备份字符串（含 6 大高阶维度资产）
+     */
+    fun generateJsonBackup(items: List<WorkBackup>): String {
         val root = JSONObject().apply {
             put("app", "ReadTrace")
-            put("version", "2.0")
-            put("schemaVersion", 3)
+            put("version", "3.0")
+            put("schemaVersion", 4)
             put("exportedAt", OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
             put("worksCount", items.size)
-            put("notesCount", items.sumOf { it.second.size })
+            put("notesCount", items.sumOf { it.notes.size })
 
             val worksArray = JSONArray()
-            items.forEach { (book, notes) ->
+            items.forEach { work ->
+                val book = work.book
                 val bookObj = JSONObject().apply {
                     put("title", book.title)
                     put("author", book.author.orEmpty())
@@ -47,7 +71,7 @@ object BackupHelper {
                     put("updatedAt", book.updatedAt)
 
                     val notesArray = JSONArray()
-                    notes.forEach { note ->
+                    work.notes.forEach { note ->
                         val noteObj = JSONObject().apply {
                             put("content", note.content)
                             put("noteType", note.noteType.databaseValue)
@@ -59,6 +83,92 @@ object BackupHelper {
                         notesArray.put(noteObj)
                     }
                     put("notes", notesArray)
+
+                    // --- 6 大高阶资产维度 ---
+                    val sessionsArray = JSONArray()
+                    work.sessions.forEach { session ->
+                        sessionsArray.put(
+                            JSONObject().apply {
+                                put("durationMinutes", session.durationMinutes)
+                                put("pagesRead", session.pagesRead.orEmpty())
+                                put("thought", session.thought.orEmpty())
+                                put("createdAt", session.createdAt)
+                            },
+                        )
+                    }
+                    put("sessions", sessionsArray)
+
+                    val charactersArray = JSONArray()
+                    work.characters.forEach { character ->
+                        charactersArray.put(
+                            JSONObject().apply {
+                                put("name", character.name)
+                                put("roleTitle", character.roleTitle.orEmpty())
+                                put("avatarEmoji", character.avatarEmoji)
+                                put("description", character.description.orEmpty())
+                                put("relationship", character.relationship.orEmpty())
+                                put("createdAt", character.createdAt)
+                            },
+                        )
+                    }
+                    put("characters", charactersArray)
+
+                    val outlinesArray = JSONArray()
+                    work.outlines.forEach { outline ->
+                        outlinesArray.put(
+                            JSONObject().apply {
+                                put("chapterOrder", outline.chapterOrder)
+                                put("title", outline.title)
+                                put("summary", outline.summary)
+                                put("keyTakeaways", outline.keyTakeaways.orEmpty())
+                                put("createdAt", outline.createdAt)
+                            },
+                        )
+                    }
+                    put("outlines", outlinesArray)
+
+                    val locationsArray = JSONArray()
+                    work.locations.forEach { location ->
+                        locationsArray.put(
+                            JSONObject().apply {
+                                put("name", location.name)
+                                put("locationType", location.locationType)
+                                put("description", location.description.orEmpty())
+                                put("significance", location.significance.orEmpty())
+                                put("coordinates", location.coordinates.orEmpty())
+                                put("createdAt", location.createdAt)
+                            },
+                        )
+                    }
+                    put("locations", locationsArray)
+
+                    work.mindprint?.let { mindprint ->
+                        put(
+                            "mindprint",
+                            JSONObject().apply {
+                                put("depthScore", mindprint.depthScore)
+                                put("artistryScore", mindprint.artistryScore)
+                                put("emotionScore", mindprint.emotionScore)
+                                put("logicScore", mindprint.logicScore)
+                                put("difficultyScore", mindprint.difficultyScore)
+                                put("healingScore", mindprint.healingScore)
+                                put("updatedAt", mindprint.updatedAt)
+                            },
+                        )
+                    }
+
+                    val tracksArray = JSONArray()
+                    work.audioTracks.forEach { track ->
+                        tracksArray.put(
+                            JSONObject().apply {
+                                put("trackOrder", track.trackOrder)
+                                put("title", track.title)
+                                put("fileUri", track.fileUri)
+                                put("durationMs", track.durationMs)
+                            },
+                        )
+                    }
+                    put("audioTracks", tracksArray)
                 }
                 worksArray.put(bookObj)
             }
@@ -69,15 +179,15 @@ object BackupHelper {
     }
 
     /**
-     * 解析 JSON 备份文件
-     * @return Pair(解析出的作品与笔记列表, 备份导出时间)
+     * 解析 JSON 备份文件（向下兼容 v2 备份：仅包含书籍与笔记）
+     * @return Pair(解析出的全量作品备份数据, 备份导出时间)
      */
-    fun parseJsonBackup(jsonString: String): Pair<List<Pair<Book, List<Note>>>, String> {
+    fun parseJsonBackup(jsonString: String): Pair<List<WorkBackup>, String> {
         val root = JSONObject(jsonString)
         val exportedAt = root.optString("exportedAt", "未知时间")
         val worksArray = root.optJSONArray("works") ?: JSONArray()
 
-        val results = mutableListOf<Pair<Book, List<Note>>>()
+        val results = mutableListOf<WorkBackup>()
 
         for (i in 0 until worksArray.length()) {
             val bookObj = worksArray.getJSONObject(i)
@@ -161,7 +271,129 @@ object BackupHelper {
                 }
             }
 
-            results.add(Pair(book, notesList))
+            // --- 解析 6 大高阶资产（旧版备份缺失时自动留空） ---
+            val sessionsList = mutableListOf<ReadingSession>()
+            bookObj.optJSONArray("sessions")?.let { arr ->
+                for (s in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(s)
+                    val minutes = obj.optInt("durationMinutes", 0)
+                    if (minutes <= 0) continue
+                    sessionsList.add(
+                        ReadingSession(
+                            bookId = 0,
+                            durationMinutes = minutes,
+                            pagesRead = obj.optString("pagesRead").trim().takeIf { it.isNotEmpty() },
+                            thought = obj.optString("thought").trim().takeIf { it.isNotEmpty() },
+                            createdAt = obj.optString("createdAt"),
+                        ),
+                    )
+                }
+            }
+
+            val charactersList = mutableListOf<BookCharacter>()
+            bookObj.optJSONArray("characters")?.let { arr ->
+                for (c in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(c)
+                    val name = obj.optString("name").trim()
+                    if (name.isEmpty()) continue
+                    charactersList.add(
+                        BookCharacter(
+                            bookId = 0,
+                            name = name,
+                            roleTitle = obj.optString("roleTitle").trim().takeIf { it.isNotEmpty() },
+                            avatarEmoji = obj.optString("avatarEmoji", "👤").ifBlank { "👤" },
+                            description = obj.optString("description").trim().takeIf { it.isNotEmpty() },
+                            relationship = obj.optString("relationship").trim().takeIf { it.isNotEmpty() },
+                            createdAt = obj.optString("createdAt"),
+                        ),
+                    )
+                }
+            }
+
+            val outlinesList = mutableListOf<BookOutline>()
+            bookObj.optJSONArray("outlines")?.let { arr ->
+                for (o in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(o)
+                    val outlineTitle = obj.optString("title").trim()
+                    val summary = obj.optString("summary").trim()
+                    if (outlineTitle.isEmpty() || summary.isEmpty()) continue
+                    outlinesList.add(
+                        BookOutline(
+                            bookId = 0,
+                            chapterOrder = obj.optInt("chapterOrder", 1),
+                            title = outlineTitle,
+                            summary = summary,
+                            keyTakeaways = obj.optString("keyTakeaways").trim().takeIf { it.isNotEmpty() },
+                            createdAt = obj.optString("createdAt"),
+                        ),
+                    )
+                }
+            }
+
+            val locationsList = mutableListOf<BookLocation>()
+            bookObj.optJSONArray("locations")?.let { arr ->
+                for (l in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(l)
+                    val name = obj.optString("name").trim()
+                    if (name.isEmpty()) continue
+                    locationsList.add(
+                        BookLocation(
+                            bookId = 0,
+                            name = name,
+                            locationType = obj.optString("locationType", "🏙️ 现实都市").ifBlank { "🏙️ 现实都市" },
+                            description = obj.optString("description").trim().takeIf { it.isNotEmpty() },
+                            significance = obj.optString("significance").trim().takeIf { it.isNotEmpty() },
+                            coordinates = obj.optString("coordinates").trim().takeIf { it.isNotEmpty() },
+                            createdAt = obj.optString("createdAt"),
+                        ),
+                    )
+                }
+            }
+
+            val mindprint = bookObj.optJSONObject("mindprint")?.let { mp ->
+                BookMindprint(
+                    bookId = 0,
+                    depthScore = mp.optDouble("depthScore", 8.0),
+                    artistryScore = mp.optDouble("artistryScore", 8.0),
+                    emotionScore = mp.optDouble("emotionScore", 8.0),
+                    logicScore = mp.optDouble("logicScore", 8.0),
+                    difficultyScore = mp.optDouble("difficultyScore", 5.0),
+                    healingScore = mp.optDouble("healingScore", 8.0),
+                    updatedAt = mp.optString("updatedAt"),
+                )
+            }
+
+            val tracksList = mutableListOf<AudioTrackItem>()
+            bookObj.optJSONArray("audioTracks")?.let { arr ->
+                for (t in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(t)
+                    val trackTitle = obj.optString("title").trim()
+                    val fileUri = obj.optString("fileUri").trim()
+                    if (trackTitle.isEmpty() || fileUri.isEmpty()) continue
+                    tracksList.add(
+                        AudioTrackItem(
+                            bookId = 0,
+                            trackOrder = obj.optInt("trackOrder", 0),
+                            title = trackTitle,
+                            fileUri = fileUri,
+                            durationMs = obj.optLong("durationMs", 0L),
+                        ),
+                    )
+                }
+            }
+
+            results.add(
+                WorkBackup(
+                    book = book,
+                    notes = notesList,
+                    sessions = sessionsList,
+                    characters = charactersList,
+                    outlines = outlinesList,
+                    locations = locationsList,
+                    mindprint = mindprint,
+                    audioTracks = tracksList,
+                ),
+            )
         }
 
         return Pair(results, exportedAt)
@@ -170,22 +402,24 @@ object BackupHelper {
     /**
      * 生成适合 Obsidian / Notion / Logseq 导入的精美 Markdown 文集
      */
-    fun generateMarkdownArchive(items: List<Pair<Book, List<Note>>>): String {
+    fun generateMarkdownArchive(items: List<WorkBackup>): String {
         val sb = StringBuilder()
         val nowTime = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 
         sb.append("# 阅痕 ReadTrace · 个人精神印记文集\n\n")
         sb.append("> 导出时间：$nowTime  \n")
-        sb.append("> 累计收藏作品：${items.size} 部 | 摘录随想：${items.sumOf { it.second.size }} 条\n\n")
+        sb.append("> 累计收藏作品：${items.size} 部 | 摘录随想：${items.sumOf { it.notes.size }} 条\n\n")
         sb.append("---\n\n")
 
         // 按媒介类型分组
-        val grouped = items.groupBy { it.first.mediaType }
+        val grouped = items.groupBy { it.book.mediaType }
 
         grouped.forEach { (mediaType, works) ->
             sb.append("## ${mediaType.emoji} ${mediaType.displayName}篇 (${works.size})\n\n")
 
-            works.forEachIndexed { index, (book, notes) ->
+            works.forEachIndexed { index, work ->
+                val book = work.book
+                val notes = work.notes
                 sb.append("### ${index + 1}. 《${book.title}》\n\n")
 
                 sb.append("- **${mediaType.creatorLabel}**：${book.author ?: "未知"}\n")
@@ -247,11 +481,12 @@ object BackupHelper {
     /**
      * 生成标准 CSV 导出表格
      */
-    fun generateCsvExport(items: List<Pair<Book, List<Note>>>): String {
+    fun generateCsvExport(items: List<WorkBackup>): String {
         val sb = StringBuilder()
         sb.append("标题,创作者,作品类型,状态,评分,分类,标签,短评,深度评价,开始时间,完成时间,摘录总数\n")
 
-        items.forEach { (book, notes) ->
+        items.forEach { work ->
+            val book = work.book
             val row = listOf(
                 escapeCsv(book.title),
                 escapeCsv(book.author.orEmpty()),
@@ -264,7 +499,7 @@ object BackupHelper {
                 escapeCsv(book.review.orEmpty()),
                 escapeCsv(book.startDate.orEmpty()),
                 escapeCsv(book.finishDate.orEmpty()),
-                notes.size.toString(),
+                work.notes.size.toString(),
             )
             sb.append(row.joinToString(",")).append("\n")
         }

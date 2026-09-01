@@ -107,11 +107,11 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun exportDataToFile(uri: Uri, format: String) {
-        val worksWithNotes = databaseHelper.getAllWorksWithNotes()
+        val fullWorks = databaseHelper.getAllFullWorkBackups()
         val content = when (format) {
-            "json" -> BackupHelper.generateJsonBackup(worksWithNotes)
-            "md" -> BackupHelper.generateMarkdownArchive(worksWithNotes)
-            "csv" -> BackupHelper.generateCsvExport(worksWithNotes)
+            "json" -> BackupHelper.generateJsonBackup(fullWorks)
+            "md" -> BackupHelper.generateMarkdownArchive(fullWorks)
+            "csv" -> BackupHelper.generateCsvExport(fullWorks)
             else -> ""
         }
 
@@ -138,10 +138,16 @@ class BackupActivity : AppCompatActivity() {
                 return
             }
 
+            val highOrderCount = items.sumOf {
+                it.sessions.size + it.characters.size + it.outlines.size + it.locations.size + it.audioTracks.size +
+                    (if (it.mindprint != null) 1 else 0)
+            }
+            val assetHint = if (highOrderCount > 0) "，以及 $highOrderCount 条打卡/人物/大纲/地标/心智/曲目高阶资产" else ""
+
             ElegantConfirmDialog.show(
                 activity = this,
                 title = "📦 确认导入备份？",
-                message = "检测到来自【$exportedAt】的备份，包含 ${items.size} 部作品及 ${items.sumOf { it.second.size }} 条笔记。\n\n导入将自动匹配合并现有数据，是否继续？",
+                message = "检测到来自【$exportedAt】的备份，包含 ${items.size} 部作品及 ${items.sumOf { it.notes.size }} 条笔记$assetHint。\n\n导入将自动匹配合并现有数据，是否继续？",
                 confirmText = "立即合入",
                 isDanger = false,
                 onConfirm = {

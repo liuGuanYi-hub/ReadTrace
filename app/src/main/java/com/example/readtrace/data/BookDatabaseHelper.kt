@@ -2698,17 +2698,38 @@ class BookDatabaseHelper private constructor(val context: Context) :
     }
 
     /**
-     * 导入全量备份数据（含作品与笔记）
+     * 全量深度查询：书籍 + 笔记 + 6 大高阶资产（打卡/人物/大纲/地标/心智/曲目）
+     */
+    fun getAllFullWorkBackups(): List<com.example.readtrace.util.BackupHelper.WorkBackup> {
+        val books = getBooks()
+        val mindprints = getAllMindprints()
+        return books.map { book ->
+            com.example.readtrace.util.BackupHelper.WorkBackup(
+                book = book,
+                notes = getNotes(book.id),
+                sessions = getReadingSessions(book.id),
+                characters = getCharacters(book.id),
+                outlines = getOutlines(book.id),
+                locations = getLocations(book.id),
+                mindprint = mindprints[book.id],
+                audioTracks = getAudioTracks(book.id),
+            )
+        }
+    }
+
+    /**
+     * 导入全量备份数据（含作品、笔记与 6 大高阶资产），单事务级联合入并按内容去重
      * @return Pair(成功导入的新增作品数, 成功导入的笔记数)
      */
-    fun importFullBackup(items: List<Pair<Book, List<Note>>>): Pair<Int, Int> {
+    fun importFullBackup(items: List<com.example.readtrace.util.BackupHelper.WorkBackup>): Pair<Int, Int> {
         if (items.isEmpty()) return Pair(0, 0)
         val db = writableDatabase
         db.beginTransaction()
         var importedWorks = 0
         var importedNotes = 0
         try {
-            items.forEach { (book, notes) ->
+            items.forEach { work ->
+                val book = work.book
                 // 1. 查找是否存在同名且同作者/创作者的作品
                 val existingBookId = findBookId(db, book.title, book.author)
                 val targetBookId = if (existingBookId != null) {
@@ -2730,7 +2751,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
                 if (targetBookId != null) {
                     // 2. 导入关联的笔记（避免重复内容）
                     val existingNotes = getNotes(targetBookId)
-                    notes.forEach { note ->
+                    work.notes.forEach { note ->
                         val isDuplicate = existingNotes.any { it.content.trim() == note.content.trim() }
                         if (!isDuplicate && note.content.isNotBlank()) {
                             val noteValues = note.copy(bookId = targetBookId).toContentValues().apply {
@@ -2744,9 +2765,66 @@ class BookDatabaseHelper private constructor(val context: Context) :
                             }
                         }
                     }
+
+                    // 3. 阅读打卡记录（按 创建时间 + 时长 去重）
+                    val existingSessions = getReadingSessions(targetBookId)
+                    work.sessions.forEach { session ->
+                        val isDuplicate = existingSessions.any {
+                            it.createdAt == session.createdAt && it.durationMinutes == session.durationMinutes
+                        }
+                        if (!isDuplicate && session.durationMinutes > 0) {
+                            insertReadingSession(
+                                session.copy(bookId = targetBookId, isDeleted = false),
+                            )
+                        }
+                    }
+
+                    // 4. 人物角色谱（按姓名去重）
+                    val existingCharacters = getCharacters(targetBookId)
+                    work.characters.forEach { character ->
+                        val isDuplicate = existingCharacters.any { it.name.trim() == character.name.trim() }
+                        if (!isDuplicate && character.name.isNotBlank()) {
+                            insertCharacter(character.copy(bookId = targetBookId, isDeleted = false))
+                        }
+                    }
+
+                    // 5. 章节大纲（按章节标题去重）
+                    val existingOutlines = getOutlines(targetBookId)
+                    work.outlines.forEach { outline ->
+                        val isDuplicate = existingOutlines.any { it.title.trim() == outline.title.trim() }
+                        if (!isDuplicate && outline.title.isNotBlank() && outline.summary.isNotBlank()) {
+                            insertOutline(outline.copy(bookId = targetBookId, isDeleted = false))
+                        }
+                    }
+
+                    // 6. 空间地标（按名称去重）
+                    val existingLocations = getLocations(targetBookId)
+                    work.locations.forEach { location ->
+                        val isDuplicate = existingLocations.any { it.name.trim() == location.name.trim() }
+                        if (!isDuplicate && location.name.isNotBlank()) {
+                            insertLocation(location.copy(bookId = targetBookId, isDeleted = false))
+                        }
+                    }
+
+                    // 7. 六维心智模型（仅当备份中显式包含时覆盖，UNIQUE(book_id) + REPLACE 天然幂等）
+                    work.mindprint?.let { mindprint ->
+                        saveMindprint(mindprint.copy(bookId = targetBookId))
+                    }
+
+                    // 8. 黑胶关联曲目（按 标题 + 序号 去重；跨机恢复时 content:// 指向的本地文件可能失效，播放层已兜底）
+                    val existingTracks = getAudioTracks(targetBookId)
+                    work.audioTracks.forEach { track ->
+                        val isDuplicate = existingTracks.any {
+                            it.title.trim() == track.title.trim() && it.trackOrder == track.trackOrder
+                        }
+                        if (!isDuplicate && track.title.isNotBlank() && track.fileUri.isNotBlank()) {
+                            insertAudioTrack(track.copy(bookId = targetBookId))
+                        }
+                    }
                 }
             }
             db.setTransactionSuccessful()
+            invalidateBookCache()
             return Pair(importedWorks, importedNotes)
         } finally {
             db.endTransaction()
