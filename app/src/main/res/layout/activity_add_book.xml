@@ -471,6 +471,22 @@
                     android:inputType="textCapSentences"
                     android:maxLines="3" />
 
+                <!-- P11 标签词云：全库高频标签点击即选，免键盘输入 -->
+                <HorizontalScrollView
+                    android:id="@+id/tagCloudScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:scrollbars="none"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/tagCloudRow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

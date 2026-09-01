@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -205,6 +206,8 @@ class AddBookActivity : AppCompatActivity() {
         coverStatusText = findViewById(R.id.coverStatusText)
         pickCoverButton = findViewById(R.id.pickCoverButton)
         removeCoverButton = findViewById(R.id.removeCoverButton)
+
+        setupTagCloud()
     }
 
     private fun updateCoverPreview() {
@@ -226,6 +229,7 @@ class AddBookActivity : AppCompatActivity() {
         updateCreatorFields()
         updateStatusChipsText()
         updateStatusSelectionUI()
+        setupTagCloud()
     }
 
     private fun updateMediaTypeChips() {
@@ -656,20 +660,12 @@ class AddBookActivity : AppCompatActivity() {
             }
         }.onSuccess {
             if (saveSucceeded) {
-                // 新作品自动生成六维心智（继承主评分），零填写成本；门槛保持中值 5.0
+                // 新作品自动生成六维心智：按主评分 + 媒介语境差异化推导，零填写成本
                 if (!isEditing && savedBookId > 0) {
-                    val seed = (rating ?: 8.0).coerceIn(1.0, 10.0)
-                    databaseHelper.saveMindprint(
-                        com.example.readtrace.model.BookMindprint(
-                            bookId = savedBookId,
-                            depthScore = seed,
-                            artistryScore = seed,
-                            emotionScore = seed,
-                            logicScore = seed,
-                            difficultyScore = 5.0,
-                            healingScore = seed,
-                        ),
-                    )
+                    val mindprint = com.example.readtrace.util.SmartAssistedHelper
+                        .deriveMindprint(rating ?: 8.0, selectedMediaType)
+                        .copy(bookId = savedBookId)
+                    databaseHelper.saveMindprint(mindprint)
                 }
 
                 // 如果是编辑模式且更换了封面，清理原旧封面文件
@@ -827,6 +823,49 @@ class AddBookActivity : AppCompatActivity() {
     private fun restoreSaveButton() {
         saveButton.isEnabled = true
         saveButton.alpha = 1f
+    }
+
+    /** P11 标签词云：装配全库高频标签，点击即追加到标签输入框，免键盘输入 */
+    private fun setupTagCloud() {
+        val cloudRow = findViewById<LinearLayout>(R.id.tagCloudRow)
+        val cloudScroll = findViewById<View>(R.id.tagCloudScroll)
+        cloudRow.removeAllViews()
+        val suggestions = com.example.readtrace.util.SmartAssistedHelper
+            .suggestFrequentTags(databaseHelper.getAllUniqueTags(), selectedMediaType, limit = 10)
+        if (suggestions.isEmpty()) {
+            cloudScroll.visibility = View.GONE
+            return
+        }
+        cloudScroll.visibility = View.VISIBLE
+        suggestions.forEach { tag ->
+            val chip = TextView(this).apply {
+                text = "+ $tag"
+                textSize = 12f
+                setPadding(22, 10, 22, 10)
+                background = getDrawable(R.drawable.bg_dark_chip)
+                setTextColor(android.graphics.Color.parseColor("#CCFFFFFF"))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginEnd = 8 }
+                setOnClickListener {
+                    HapticFeedbackEngine.lightClick(this@AddBookActivity)
+                    background = getDrawable(R.drawable.bg_dark_chip_selected)
+                    appendTagToInput(tag)
+                    isEnabled = false
+                    alpha = 0.5f
+                }
+            }
+            cloudRow.addView(chip)
+        }
+    }
+
+    private fun appendTagToInput(tag: String) {
+        val existing = tagsInput.text.toString().split("，", ",", "、")
+            .map { it.trim() }.filter { it.isNotBlank() }
+        if (existing.contains(tag)) return
+        tagsInput.setText((existing + tag).joinToString("，"))
+        tagsInput.setSelection(tagsInput.text.length)
     }
 
     private fun setupStarRating() {
