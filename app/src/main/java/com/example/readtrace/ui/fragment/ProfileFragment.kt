@@ -193,6 +193,11 @@ class ProfileFragment : Fragment() {
             startActivity(Gallery3DActivity.createIntent(requireContext()))
         }
 
+        // P12 策展人年度精神年鉴入口
+        view?.findViewById<View>(R.id.profileChroniclePanel)?.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.readtrace.AnnualChronicleStudioActivity::class.java))
+        }
+
         profileCommunityPanel.setOnClickListener {
             startActivity(CommunityActivity.createIntent(requireContext()))
         }

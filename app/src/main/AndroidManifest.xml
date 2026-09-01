@@ -117,6 +117,9 @@
             android:name=".WebDavConfigActivity"
             android:exported="false" />
         <activity
+            android:name=".AnnualChronicleStudioActivity"
+            android:exported="false" />
+        <activity
             android:name=".DiscoverActivity"
             android:exported="false" />
         <activity
