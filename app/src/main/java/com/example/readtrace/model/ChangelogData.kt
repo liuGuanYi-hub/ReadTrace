@@ -15,9 +15,27 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
-            versionName = "v4.3.0",
+            versionName = "v4.4.0",
             releaseDate = "2026-09-02",
             isLatest = true,
+            tagTitle = "🚀 极简心流与精神重逢 (Super Epoch)",
+            highlights = listOf(
+                "⚡ 3秒极速速记：主页「+」直弹半屏速记，边搜边选自动补齐元数据，点状态键即入库",
+                "📋 智能剪贴板嗅探：复制书名或豆瓣/Bangumi 链接切回 App，一键 0 误差收录",
+                "✍️ 一句话速记分词：「读完 三体 9分 #科幻」自动结构化入库，含 ISBN 扫码录入",
+                "🕯️ 那年今日时光回溯：历史同日的完读记忆以羊皮纸便签静谧唤醒",
+                "🌌 双链概念网：长评中书写 [[概念]]，跨媒介共鸣一触即达",
+                "🛡️ WebDAV 数据主权同步：坚果云/NAS 双向增量合并，备份引擎升级收录 6 大高阶资产",
+                "🏆 策展人年度精神年鉴：六页美术馆级画册 + 文化年轮图谱，一键导出印刷级长图",
+                "🎛️ 长按径向快捷环与全屏边缘侧滑返回，OLED 曜石真黑熄屏模式上线",
+                "🧪 思想炼金碰撞机与 432/528Hz 宇宙引力琴：跨媒介哲学对话即刻生成",
+                "🌐 2.5D visionOS 空间标本盒展厅，与经典 3D 展厅双模共存"
+            )
+        ),
+        ChangelogVersion(
+            versionName = "v4.3.0",
+            releaseDate = "2026-09-02",
+            isLatest = false,
             tagTitle = "🌌 顶级开源交互与底层加固 (Epic Milestone)",
             highlights = listOf(
                 "🎨 封面 Palette 自适应极光漫射：根据作品封面色彩动态生成高斯漫射流体背景，沉浸感倍增",
