@@ -71,4 +71,6 @@
     <color name="player_gold_start">#F4A261</color>
     <color name="player_gold_end">#E07840</color>
     <color name="player_gold_pressed">#C96A38</color>
+    <color name="chip_quick_log_bg">#1AFFFFFF</color>
+    <color name="chip_quick_log_stroke">#4DFFFFFF</color>
 </resources>

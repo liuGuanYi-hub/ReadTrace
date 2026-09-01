@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 速记弹窗底部滑入：200ms 物理减速 -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="200"
+    android:fillAfter="true"
+    android:interpolator="@android:interpolator/decelerate_quad"
+    android:shareInterpolator="true">
+    <alpha
+        android:fromAlpha="0.6"
+        android:toAlpha="1.0" />
+    <translate
+        android:fromYDelta="35%"
+        android:toYDelta="0" />
+</set>

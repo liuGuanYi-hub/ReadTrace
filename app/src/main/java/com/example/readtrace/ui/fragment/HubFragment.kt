@@ -158,7 +158,8 @@ class HubFragment : Fragment() {
 
     private fun setupListeners() {
         addBtn.setOnClickListener {
-            startActivity(Intent(requireContext(), AddBookActivity::class.java))
+            // P11 极简心流：主页「+」直弹 3 秒极速速记半屏 Sheet（高级录入仍可在 Sheet 内进入）
+            com.example.readtrace.ui.QuickLogBottomSheet.show(requireActivity())
         }
 
         importPresetBtn.setOnClickListener {
