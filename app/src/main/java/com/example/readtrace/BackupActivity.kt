@@ -90,8 +90,8 @@ class BackupActivity : AppCompatActivity() {
             openJsonLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
         }
 
-        findViewById<View>(R.id.importCsvCard).setOnClickListener {
-            openCsvLauncher.launch(arrayOf("text/comma-separated-values", "text/csv", "application/csv", "*/*"))
+        findViewById<View>(R.id.migrationHubCard).setOnClickListener {
+            startActivity(DataMigrationActivity.createIntent(this))
         }
 
         refreshStats()

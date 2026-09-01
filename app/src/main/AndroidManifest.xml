@@ -91,6 +91,9 @@
             android:name=".ChangelogActivity"
             android:exported="false" />
         <activity
+            android:name=".DataMigrationActivity"
+            android:exported="false" />
+        <activity
             android:name=".BookDetailActivity"
             android:exported="true" />
         <activity

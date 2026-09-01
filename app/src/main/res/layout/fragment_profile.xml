@@ -269,6 +269,59 @@
             android:text="⚙️ 系统管理与备份恢复"
             android:textSize="16.5sp" />
 
+        <!-- 多源资产搬家中心 -->
+        <LinearLayout
+            android:id="@+id/profileMigrationPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="4dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="🚚 多源资产搬家中心"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_pill"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:text="豆瓣 · B站 · Steam"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans"
+                android:text="0 门槛一键导入豆瓣书影音、Bangumi 番剧与 Steam 游戏库"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
         <!-- 备份与恢复 -->
         <LinearLayout
             android:id="@+id/profileBackupPanel"
