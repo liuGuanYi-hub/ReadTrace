@@ -29,7 +29,7 @@
     <string name="decorative_book">书籍封面占位</string>
     <string name="add_book_title">添加书籍</string>
     <string name="add_book_subtitle">留下一本书，也留下一段当时的自己。</string>
-    <!-- 发现页（v4.2.14 外部导入） -->
+    <!-- 发现页（外部导入） -->
     <string name="discover_entry">🌐 从发现页导入热门作品</string>
     <string name="discover_entry_hint">Bangumi 联网搜索 · 一键添加 · 之后再慢慢补感想</string>
     <string name="discover_title">发现</string>
