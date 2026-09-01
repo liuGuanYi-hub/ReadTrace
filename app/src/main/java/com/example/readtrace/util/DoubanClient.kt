@@ -171,6 +171,23 @@ object DoubanClient {
     }
 
     /** 条目详情：解析标题/原名/评分/创作者/简介（简介较长时截断） */
+    /**
+     * ISBN 直取：豆瓣公开 ISBN 站内跳转页（/isbn/{code}/ 302 到条目页），
+     * 命中后走同一详情解析管线。未命中/失败回调 null。
+     */
+    fun getBookByIsbn(isbn: String, onResult: (BangumiSubject?) -> Unit) {
+        executor.execute {
+            val probe = BangumiSubject(id = 0L, name = "", nameCn = null, coverUrl = null)
+            val html = fetch(
+                null,
+                "https://book.douban.com/isbn/$isbn/",
+                referer = "https://book.douban.com/",
+            )
+            val result = html?.let { parseDetail(it, probe, MediaType.BOOK) }
+            mainHandler.post { onResult(result) }
+        }
+    }
+
     fun getSubjectDetail(
         subject: BangumiSubject,
         mediaType: MediaType,

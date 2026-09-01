@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 📷 离线 ISBN 条码扫描：全屏预览 + 极简取景提示 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#05070B">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/scannerPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 取景框高亮线框 -->
+    <View
+        android:layout_width="260dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_isbn_viewfinder" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingBottom="48dp">
+
+        <TextView
+            android:id="@+id/scannerHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="对准实体书封底条码\n0.2 秒本地识别 · 自动补齐封面与作者"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/scannerClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_dark_chip"
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="10dp"
+            android:text="✕ 收起"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>
