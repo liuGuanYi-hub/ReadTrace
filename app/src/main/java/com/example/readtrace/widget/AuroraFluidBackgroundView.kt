@@ -129,6 +129,12 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
 
+        // 🖤 P14 OLED 曜石真黑：开关开启且暗色主题时，像素完全熄灭，不绘制极光光斑
+        if (isDarkTheme && com.example.readtrace.util.ObsidianPureBlackEngine.isEnabled(context)) {
+            canvas.drawColor(android.graphics.Color.BLACK)
+            return
+        }
+
         // 绘制 4 个按多维正弦流体轨迹运动的交融光斑，受音频脉冲缩放驱动
         val scale = audioScale
         drawOrb(canvas, 0, w * 0.3f + sin(time) * w * 0.25f, h * 0.25f + cos(time * 0.8f) * h * 0.15f, w * 0.55f * scale)

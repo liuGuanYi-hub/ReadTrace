@@ -230,6 +230,39 @@
                 android:textSize="12.5sp" />
         </LinearLayout>
 
+        <!-- 🖤 OLED 曜石真黑开关 (P14) -->
+        <LinearLayout
+            android:id="@+id/profileOledPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="4dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/profileOledTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="🖤 OLED 曜石真黑 · 关"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans"
+                android:text="暗色主题下熄灭全部背景光斑至像素级纯黑 #000000，零功耗且封面如悬浮虚空"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
         <!-- 云端展览广场 -->
         <LinearLayout
             android:id="@+id/profileCommunityPanel"

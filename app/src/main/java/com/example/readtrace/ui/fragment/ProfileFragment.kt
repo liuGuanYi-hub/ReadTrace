@@ -198,6 +198,16 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), com.example.readtrace.AnnualChronicleStudioActivity::class.java))
         }
 
+        // 🖤 P14 OLED 曜石真黑开关
+        view?.findViewById<View>(R.id.profileOledPanel)?.setOnClickListener {
+            val enabled = !com.example.readtrace.util.ObsidianPureBlackEngine.isEnabled(requireContext())
+            com.example.readtrace.util.ObsidianPureBlackEngine.setEnabled(requireContext(), enabled)
+            view?.findViewById<TextView>(R.id.profileOledTitle)?.text =
+                if (enabled) "🖤 OLED 曜石真黑 · 开" else "🖤 OLED 曜石真黑 · 关"
+            com.example.readtrace.util.HapticFeedbackEngine.cartridgeSnap(requireContext())
+            requireActivity().recreate()
+        }
+
         profileCommunityPanel.setOnClickListener {
             startActivity(CommunityActivity.createIntent(requireContext()))
         }

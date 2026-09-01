@@ -66,6 +66,8 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         FloatingBack.install(this) { supportFinishAfterTransition() }
+        // 📱 P14 全屏左边缘侧滑返回手势
+        com.example.readtrace.util.EdgeSwipeDismissHelper.install(this)
         findViewById<View>(R.id.detailEditButton).setOnClickListener {
             startActivity(AddBookActivity.createEditIntent(this, bookId))
         }

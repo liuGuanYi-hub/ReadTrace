@@ -618,7 +618,7 @@ class LibraryFragment : Fragment() {
             startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
         card.setOnLongClickListener {
-            showHologramPeekDialog(book)
+            showRadialQuickMenu(book)
             true
         }
         ViewAnimationHelper.attachSpringTouch(card, 0.97f)
@@ -695,11 +695,59 @@ class LibraryFragment : Fragment() {
             startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
         card.setOnLongClickListener {
-            showHologramPeekDialog(book)
+            showRadialQuickMenu(book)
             true
         }
         ViewAnimationHelper.attachSpringTouch(card, 0.96f)
         return card
+    }
+
+    /**
+     * 🎛️ P14 长按径向快捷操作环：0.2 秒盲操标记状态 / 预览 / 回收站
+     */
+    private fun showRadialQuickMenu(book: Book) {
+        com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
+        com.example.readtrace.util.RadialQuickActionMenu.show(
+            activity = requireActivity(),
+            book = book,
+            actions = listOf(
+                com.example.readtrace.util.RadialQuickActionMenu.Action("👁️", "全息预览") {
+                    showHologramPeekDialog(book)
+                },
+                com.example.readtrace.util.RadialQuickActionMenu.Action("📖", "标记在读") {
+                    updateAndUndoStatus(book, BookStatus.READING)
+                },
+                com.example.readtrace.util.RadialQuickActionMenu.Action("🏆", "标记读完") {
+                    val oldStatus = book.status
+                    databaseHelper.updateBook(
+                        book.copy(status = BookStatus.FINISHED, finishDate = java.time.LocalDate.now().toString()),
+                    )
+                    refreshLibrary(forceDbReload = true)
+                    view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+                        ?.showCapsule(message = "已标记《${book.title}》为已读完", onUndo = {
+                            databaseHelper.updateBook(book.copy(status = oldStatus))
+                            refreshLibrary(forceDbReload = true)
+                        })
+                },
+                com.example.readtrace.util.RadialQuickActionMenu.Action("🗑️", "移入回收站") {
+                    handleQuickTrash(book)
+                },
+            ),
+        )
+    }
+
+    private fun updateAndUndoStatus(book: Book, newStatus: BookStatus) {
+        val oldStatus = book.status
+        databaseHelper.updateBook(book.copy(status = newStatus))
+        refreshLibrary(forceDbReload = true)
+        view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+            ?.showCapsule(
+                message = "已标记《${book.title}》为${newStatus.getDisplayName(book.mediaType)}",
+                onUndo = {
+                    databaseHelper.updateBook(book.copy(status = oldStatus))
+                    refreshLibrary(forceDbReload = true)
+                },
+            )
     }
 
     private fun showHologramPeekDialog(book: Book) {
