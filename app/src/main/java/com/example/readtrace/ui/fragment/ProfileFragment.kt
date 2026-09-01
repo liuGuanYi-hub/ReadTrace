@@ -141,6 +141,10 @@ class ProfileFragment : Fragment() {
         profileBadgeSummary = view.findViewById(R.id.profileBadgeSummary)
         profileBackupPanel = view.findViewById(R.id.profileBackupPanel)
         profileTrashPanel = view.findViewById(R.id.profileTrashPanel)
+        val profileChangelogPanel = view.findViewById<View>(R.id.profileChangelogPanel)
+        profileChangelogPanel?.setOnClickListener {
+            startActivity(com.example.readtrace.ChangelogActivity.createIntent(requireContext()))
+        }
         bindVersionInfo(view)
 
         listOfNotNull(btnProfileAuthAction, btnProfileSyncVault).forEach {
@@ -205,9 +209,15 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), TrashActivity::class.java))
         }
 
+        val profileChangelogPanel = view?.findViewById<View>(R.id.profileChangelogPanel)
+        profileChangelogPanel?.setOnClickListener {
+            startActivity(com.example.readtrace.ChangelogActivity.createIntent(requireContext()))
+        }
+
         listOfNotNull<View>(
             profileGalleryPanel, profileCommunityPanel,
             profileBadgePanel, profileBackupPanel, profileTrashPanel,
+            profileChangelogPanel
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 

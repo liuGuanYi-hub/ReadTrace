@@ -1101,6 +1101,7 @@ class BookDetailActivity : AppCompatActivity() {
     private fun renderBook(book: Book) {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
         CoverImageHelper.loadCover(coverImage, book.coverUrl)
+        updateAuroraAmbientGlow(book.coverUrl)
 
         coverImage.setOnClickListener {
             val mediaLabel = book.mediaType.displayName
@@ -1110,6 +1111,7 @@ class BookDetailActivity : AppCompatActivity() {
                     Toast.makeText(this, "✨ 已成功匹配并下载《${book.title}》官方海报！", Toast.LENGTH_SHORT).show()
                     CoverImageHelper.loadCover(coverImage, path)
                     currentBook = databaseHelper.getBook(book.id)
+                    updateAuroraAmbientGlow(path)
                 } else {
                     Toast.makeText(this, "未找到匹配的高清海报，可手动在编辑中添加图片", Toast.LENGTH_SHORT).show()
                 }
@@ -1886,6 +1888,22 @@ class BookDetailActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "生成微卡异常: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateAuroraAmbientGlow(coverPath: String?) {
+        val auroraGlowView = findViewById<View>(R.id.detailAuroraGlow) ?: return
+        com.example.readtrace.util.PaletteExtractorHelper.extractFromPathAsync(coverPath) { palette ->
+            if (isFinishing || isDestroyed) return@extractFromPathAsync
+            val gradient = com.example.readtrace.util.PaletteExtractorHelper.createAuroraGradient(palette)
+            auroraGlowView.background = gradient
+            auroraGlowView.animate().cancel()
+            auroraGlowView.alpha = 0f
+            auroraGlowView.animate()
+                .alpha(0.85f)
+                .setDuration(400L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
         }
     }
 

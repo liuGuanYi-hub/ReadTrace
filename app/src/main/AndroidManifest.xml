@@ -88,6 +88,9 @@
             android:name=".FlipNotesActivity"
             android:exported="false" />
         <activity
+            android:name=".ChangelogActivity"
+            android:exported="false" />
+        <activity
             android:name=".BookDetailActivity"
             android:exported="true" />
         <activity

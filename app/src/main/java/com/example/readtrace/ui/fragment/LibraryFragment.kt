@@ -306,9 +306,7 @@ class LibraryFragment : Fragment() {
             val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
             val matchesStatus = selectedStatus == null || book.status == selectedStatus
             val matchesKeyword = searchKeyword.isEmpty() ||
-                book.title.contains(searchKeyword, ignoreCase = true) ||
-                (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
-                (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+                com.example.readtrace.util.PinyinSearchHelper.matchesBook(book, searchKeyword)
             matchesMedia && matchesStatus && matchesKeyword
         }
         renderDynamicTags(baseFilteredBooks)
@@ -386,9 +384,7 @@ class LibraryFragment : Fragment() {
                 val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
                 val matchesStatus = selectedStatus == null || book.status == selectedStatus
                 val matchesKeyword = searchKeyword.isEmpty() ||
-                    book.title.contains(searchKeyword, ignoreCase = true) ||
-                    (book.author?.contains(searchKeyword, ignoreCase = true) == true) ||
-                    (book.category?.contains(searchKeyword, ignoreCase = true) == true)
+                    com.example.readtrace.util.PinyinSearchHelper.matchesBook(book, searchKeyword)
                 matchesMedia && matchesStatus && matchesKeyword
             }
         }
@@ -573,7 +569,13 @@ class LibraryFragment : Fragment() {
     }
 
     private fun createBookCard(book: Book): View {
-        val card = LayoutInflater.from(requireContext()).inflate(R.layout.item_book_card, libraryBooksContainer, false)
+        val swipeLayout = com.example.readtrace.widget.SwipeableActionLayout(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        val card = LayoutInflater.from(requireContext()).inflate(R.layout.item_book_card, swipeLayout, false)
         val coverImageView = card.findViewById<ImageView>(R.id.bookCardCoverImage)
         CoverImageHelper.loadCover(coverImageView, book.coverUrl)
 
@@ -623,7 +625,46 @@ class LibraryFragment : Fragment() {
             true
         }
         ViewAnimationHelper.attachSpringTouch(card, 0.97f)
-        return card
+        swipeLayout.addView(card)
+
+        swipeLayout.onSwipeRightTriggered = {
+            handleQuickMarkReading(book)
+        }
+        swipeLayout.onSwipeLeftTriggered = {
+            handleQuickTrash(book)
+        }
+
+        return swipeLayout
+    }
+
+    private fun handleQuickMarkReading(book: Book) {
+        val oldStatus = book.status
+        val updated = book.copy(status = BookStatus.READING)
+        databaseHelper.updateBook(updated)
+        refreshLibrary(forceDbReload = true)
+
+        val undoCapsule = view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+        undoCapsule?.showCapsule(
+            message = "已标记《${book.title}》为在读",
+            onUndo = {
+                databaseHelper.updateBook(book.copy(status = oldStatus))
+                refreshLibrary(forceDbReload = true)
+            },
+        )
+    }
+
+    private fun handleQuickTrash(book: Book) {
+        databaseHelper.archiveBook(book.id)
+        refreshLibrary(forceDbReload = true)
+
+        val undoCapsule = view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+        undoCapsule?.showCapsule(
+            message = "已移入回收站《${book.title}》",
+            onUndo = {
+                databaseHelper.restoreBook(book.id)
+                refreshLibrary(forceDbReload = true)
+            },
+        )
     }
 
     private fun createBookGridCard(book: Book): View {
