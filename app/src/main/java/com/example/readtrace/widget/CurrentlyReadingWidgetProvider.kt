@@ -37,15 +37,16 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(
                     R.id.widgetReadingStatusChip,
                     when (book.status) {
-                        BookStatus.READING -> "📖 在读中"
-                        BookStatus.FINISHED -> "🏆 已读完"
+                        BookStatus.READING -> "📖 品读中"
+                        BookStatus.FINISHED -> "🏆 已通关"
                         BookStatus.WISHLIST -> "✨ 想读"
                         BookStatus.PAUSED -> "⏸️ 暂停"
-                        BookStatus.DROPPED -> "📦 弃读"
+                        BookStatus.DROPPED -> "📦 归档"
                     },
                 )
 
-                // 计算已读页码与进度
+                val quote = book.shortComment?.takeIf { it.isNotBlank() } ?: "一本好书，是人类精神的纯粹印记。"
+                views.setTextViewText(R.id.widgetReadingQuote, "“$quote”")
 
                 // 封面加载 (支持本地图片与占位符)
                 var coverLoaded = false
