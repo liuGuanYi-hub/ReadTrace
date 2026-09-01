@@ -44,6 +44,7 @@ class CuratorPassCardView @JvmOverloads constructor(
     private val tvAvatar: TextView
     private val tvNickname: TextView
     private val tvTitle: TextView
+    private val tvBindingBadge: TextView
     private val tvPassId: TextView
     private val tvBio: TextView
     private val tvSyncStatus: TextView
@@ -128,8 +129,19 @@ class CuratorPassCardView @JvmOverloads constructor(
             val mTop = dpToPx(3f).toInt()
             setPadding(0, mTop, 0, 0)
         }
+        tvBindingBadge = TextView(context).apply {
+            text = ""
+            textSize = 9.5f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setTextColor(Color.parseColor("#99FFFFFF"))
+            letterSpacing = 0.06f
+            val mTop = dpToPx(2f).toInt()
+            setPadding(0, mTop, 0, 0)
+            visibility = GONE
+        }
         infoCol.addView(tvNickname)
         infoCol.addView(tvTitle)
+        infoCol.addView(tvBindingBadge)
         middleRow.addView(tvAvatar)
         middleRow.addView(infoCol)
         contentLayout.addView(middleRow)
@@ -175,9 +187,13 @@ class CuratorPassCardView @JvmOverloads constructor(
         currentAccount = account
         currentAuthStatus = status
 
-        val avatar = CuratorAccount.getAvatarOption(account.avatarKey)
-        tvAvatar.text = avatar.emoji
+        tvAvatar.text = account.displayAvatarEmoji()
         tvNickname.text = account.nickname
+
+        // 绑定徽章只在第三方登录时出现，手写入驻时保持卡面干净
+        val badge = account.bindingBadge()
+        tvBindingBadge.visibility = if (badge.isBlank()) GONE else VISIBLE
+        tvBindingBadge.text = badge
         tvTitle.text = if (status == AuthStatus.AUTHENTICATED) "✦ ${account.curatorTitle}" else "✦ 未认证自由旅人"
         tvPassId.text = "#${account.userId}"
         tvBio.text = account.bio

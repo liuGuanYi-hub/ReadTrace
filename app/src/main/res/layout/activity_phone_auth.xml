@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/readtrace_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 顶栏 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/btnPhoneAuthBack"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_glass_panel_soft"
+                    android:contentDescription="返回"
+                    android:padding="9dp"
+                    android:src="@android:drawable/ic_menu_revert"
+                    app:tint="@color/readtrace_ink" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:text="📱 手机号先锋速登"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:lineSpacingExtra="3dp"
+                android:text="用手机号绑定通行证，换设备时可作为数据恢复的权威凭证。号码仅在本机参与校验，不会上传，也不会明文保存。"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp" />
+
+            <!-- 手机号输入 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_glass_panel"
+                android:elevation="4dp"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="手机号码"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+86"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etPhoneNumber"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_input_glass"
+                        android:fontFamily="sans"
+                        android:hint="请输入 11 位手机号"
+                        android:importantForAutofill="no"
+                        android:inputType="phone"
+                        android:maxLength="11"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textColorHint="@color/readtrace_muted"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/btnRequestCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_primary_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:minWidth="104dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:text="获取验证码"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- 验证码区（获取后展开） -->
+                <LinearLayout
+                    android:id="@+id/layoutCodeSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="6 位先锋验证码"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <com.example.readtrace.widget.OtpInputView
+                        android:id="@+id/otpInputView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvSentTo"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="验证码已发送至 +86 138****8848"
+                            android:textColor="@color/readtrace_muted"
+                            android:textSize="11.5sp" />
+
+                        <TextView
+                            android:id="@+id/btnResendCode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="8dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="4dp"
+                            android:text="重新获取"
+                            android:textColor="@color/readtrace_accent"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 沙盒模式明文验证码提示 -->
+                    <TextView
+                        android:id="@+id/tvSandboxCodeHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_glass_panel_soft"
+                        android:padding="10dp"
+                        android:text="沙盒模式：验证码 123456（未接入短信平台，仅本机可见）"
+                        android:textColor="@color/readtrace_danger"
+                        android:textSize="11.5sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btnVerifyAndLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="22dp"
+                    android:background="@drawable/bg_primary_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="✦ 验证并激活通行证"
+                    android:textColor="@color/white"
+                    android:textSize="14.5sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvPhoneAuthStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text=""
+                    android:textColor="@color/readtrace_danger"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- 安全说明 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_glass_panel"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛡️ 隐私承诺"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="3dp"
+                    android:text="· 完整号码不写入任何持久化存储，落库只有脱敏串（138****8848）\n· 不用于任何营销推送，也不与第三方共享\n· 当前未接入短信平台，验证码在本地生成，仅用于跑通完整登录链路"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

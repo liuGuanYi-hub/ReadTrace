@@ -169,6 +169,24 @@
         <activity
             android:name=".ui.CuratorProfileEditActivity"
             android:exported="true" />
+
+        <!-- 📱 手机号 6 位先锋验证码速登 -->
+        <activity
+            android:name=".ui.PhoneAuthActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 💬 微信授权回调入口（SDK 硬性要求：必须位于 {applicationId}.wxapi 包下） -->
+        <activity
+            android:name=".wxapi.WXEntryActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Readtrace.Transparent" />
     </application>
+
+    <!-- targetSdk >= 30 后，检测微信是否安装需要显式声明 queries -->
+    <queries>
+        <package android:name="com.tencent.mm" />
+    </queries>
 
 </manifest>

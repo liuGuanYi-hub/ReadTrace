@@ -62,6 +62,136 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
 
+            <!-- 第三方快捷登录区 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:letterSpacing="0.1"
+                android:text="快捷登录"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp" />
+
+            <!-- 微信一键授权 -->
+            <LinearLayout
+                android:id="@+id/layoutWeChatLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="3dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_wechat_primary_button"
+                    android:gravity="center"
+                    android:text="💬"
+                    android:textSize="17sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="微信一键授权"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvWeChatLoginHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="用微信昵称与头像生成通行证"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btnWeChatLoginAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_wechat_primary_button"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="授权"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 手机号验证码速登 -->
+            <LinearLayout
+                android:id="@+id/layoutPhoneLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_glass_panel"
+                android:clickable="true"
+                android:elevation="3dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_status_chip_selected"
+                    android:gravity="center"
+                    android:text="📱"
+                    android:textSize="17sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="手机号先锋速登"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="6 位验证码 · 脱敏绑定可跨端恢复"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_primary_button"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:text="速登"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- 生物识别速登区（如果支持） -->
             <LinearLayout
                 android:id="@+id/layoutBiometricQuickLogin"

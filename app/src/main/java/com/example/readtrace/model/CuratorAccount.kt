@@ -29,6 +29,23 @@ data class AvatarOption(
 )
 
 /**
+ * 策展人通行证绑定的登录方式
+ *
+ * - [MANUAL] 手写入驻：本地自由填写昵称邮箱，无第三方绑定
+ * - [WECHAT] 微信互联：微信 OpenID 绑定，可作为跨端恢复凭证
+ * - [PHONE] 手机号速登：脱敏手机号绑定，可作为跨端恢复凭证
+ */
+enum class LoginType(
+    val label: String,
+    val badge: String,
+    val isBound: Boolean,
+) {
+    MANUAL("手写入驻", "✍️", false),
+    WECHAT("微信互联", "💬", true),
+    PHONE("手机号速登", "📱", true),
+}
+
+/**
  * 策展人账号数据模型
  */
 data class CuratorAccount(
@@ -43,7 +60,37 @@ data class CuratorAccount(
     val lastSyncTime: Long = 0L,
     val isBiometricEnabled: Boolean = false,
     val totalCurations: Int = 0,
+    // v1.1.0 多维认证扩展字段
+    val loginType: LoginType = LoginType.MANUAL,
+    val wechatOpenId: String = "",
+    val phoneMasked: String = "",
+    val thirdPartyAvatarEmoji: String = "",
 ) : Serializable {
+
+    /**
+     * 展示用头像 emoji：第三方登录优先使用第三方头像，否则回退预设艺术头像
+     */
+    fun displayAvatarEmoji(): String {
+        return thirdPartyAvatarEmoji.ifBlank { getAvatarOption(avatarKey).emoji }
+    }
+
+    /**
+     * 通行卡绑定徽章
+     *
+     * 只展示脱敏后的标识：微信取 OpenID 头尾各 4 位，手机号本身就是脱敏串。
+     * 完整凭证不进入任何 UI 文案，避免在截图、录屏场景泄露。
+     */
+    fun bindingBadge(): String {
+        return when (loginType) {
+            LoginType.WECHAT -> if (wechatOpenId.length > 10) {
+                "💬 微信 ${wechatOpenId.take(4)}****${wechatOpenId.takeLast(4)}"
+            } else {
+                "💬 微信互联"
+            }
+            LoginType.PHONE -> "📱 ${phoneMasked.ifBlank { "已绑手机号" }}"
+            LoginType.MANUAL -> ""
+        }
+    }
 
     companion object {
         val PRESET_AVATARS = listOf(

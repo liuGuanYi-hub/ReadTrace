@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wechatEntryRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#B3000000"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:id="@+id/wechatAuthCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="36dp"
+        android:layout_marginEnd="36dp"
+        android:background="@drawable/bg_wechat_auth_card"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="28dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="20dp">
+
+        <!-- 应用标识区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:fontFamily="sans"
+            android:text="✦"
+            android:textColor="#07C160"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="阅痕 ReadTrace"
+            android:textColor="#191919"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvWeChatAuthMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp"
+            android:text="沙盒模拟授权"
+            android:textColor="#FA9D3B"
+            android:textSize="11sp" />
+
+        <!-- 授权信息预览 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:background="#F7F7F7"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tvWeChatAvatarPreview"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_wechat_secondary_button"
+                android:gravity="center"
+                android:text="🌊"
+                android:textSize="22sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeChatNicknamePreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="星海拾荒者"
+                    android:textColor="#191919"
+                    android:textSize="14.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="微信昵称与头像"
+                    android:textColor="#B2B2B2"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:lineSpacingExtra="3dp"
+            android:text="将用于生成你的策展人通行证，仅保存在本机，不会上传至任何服务器。"
+            android:textColor="#7F7F7F"
+            android:textSize="11.5sp" />
+
+        <!-- 操作按钮 -->
+        <TextView
+            android:id="@+id/btnWeChatAllow"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_wechat_primary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="允许"
+            android:textColor="#FFFFFF"
+            android:textSize="15.5sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnWeChatCancel"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_wechat_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="取消"
+            android:textColor="#576B95"
+            android:textSize="15sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:text="阅痕 · 记录看过的作品，也记录当时的自己"
+            android:textColor="#C8C8C8"
+            android:textSize="10sp" />
+    </LinearLayout>
+</FrameLayout>

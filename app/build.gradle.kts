@@ -11,18 +11,29 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// 微信开放平台 AppID。
+// 未配置（留空）时，微信授权自动降级为「沙盒模拟模式」，
+// 走完整的本地授权链路但不拉起真实微信客户端，保证本地开发不被 AppID 阻塞。
+val wechatAppId: String = (project.findProperty("WECHAT_APP_ID") as String?).orEmpty()
+
 android {
     namespace = "com.example.readtrace"
     compileSdk = 37
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.readtrace"
         minSdk = 31
         targetSdk = 37
-        versionCode = 36
-        versionName = "1.0.0"
+        versionCode = 37
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "WECHAT_APP_ID", "\"$wechatAppId\"")
     }
 
     signingConfigs {

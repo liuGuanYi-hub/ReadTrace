@@ -6,6 +6,7 @@ import com.example.readtrace.model.AuthSession
 import com.example.readtrace.model.AuthStatus
 import com.example.readtrace.model.CuratorAccount
 import com.example.readtrace.model.CuratorCardTheme
+import com.example.readtrace.model.LoginType
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -59,11 +60,21 @@ class CuratorAccountManager private constructor(context: Context) {
 
     /**
      * 登录
+     *
+     * @param loginType 认证方式，决定通行证上的绑定徽章
+     * @param wechatOpenId 微信互联编号（LoginType.WECHAT 时填写）
+     * @param phoneMasked 脱敏手机号（LoginType.PHONE 时填写，如 138****8848）
+     * @param thirdPartyAvatarEmoji 第三方头像 emoji，为空时回退预设艺术头像
      */
     fun login(
         email: String,
         nickname: String = "先锋策展人",
         avatarKey: String = "statue_david",
+        loginType: LoginType = LoginType.MANUAL,
+        wechatOpenId: String = "",
+        phoneMasked: String = "",
+        thirdPartyAvatarEmoji: String = "",
+        curatorTitle: String = "先锋终身馆长",
         onSuccess: (CuratorAccount) -> Unit,
     ) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -73,14 +84,59 @@ class CuratorAccountManager private constructor(context: Context) {
             nickname = if (nickname.isBlank()) "星河馆长" else nickname,
             bio = "在书海与光影中，雕刻精神的永恒轮廓。",
             avatarKey = avatarKey,
-            curatorTitle = "先锋终身馆长",
+            curatorTitle = curatorTitle,
             cardTheme = CuratorCardTheme.OBSIDIAN_GOLD,
             joinedDate = today,
             lastSyncTime = System.currentTimeMillis(),
             isBiometricEnabled = false,
+            loginType = loginType,
+            wechatOpenId = wechatOpenId,
+            phoneMasked = phoneMasked,
+            thirdPartyAvatarEmoji = thirdPartyAvatarEmoji,
         )
         saveAccount(account, isLoggedIn = true)
         onSuccess(account)
+    }
+
+    /**
+     * 将第三方身份（微信 / 手机号）绑定到已登录的通行证上
+     *
+     * 用于「先本地手写入驻，后补绑第三方凭证」的场景；
+     * 未登录时静默返回 false，由调用方决定提示文案。
+     */
+    fun bindThirdParty(
+        loginType: LoginType,
+        openId: String = "",
+        phoneMasked: String = "",
+        avatarEmoji: String = "",
+        nickname: String = "",
+    ): Boolean {
+        val current = currentAccount ?: return false
+        if (authStatus != AuthStatus.AUTHENTICATED) return false
+        val updated = current.copy(
+            loginType = loginType,
+            wechatOpenId = openId,
+            phoneMasked = phoneMasked,
+            thirdPartyAvatarEmoji = avatarEmoji,
+            nickname = nickname.ifBlank { current.nickname },
+        )
+        updateAccount(updated)
+        return true
+    }
+
+    /**
+     * 解绑第三方身份，退回手写入驻模式（保留昵称与资料）
+     */
+    fun unbindThirdParty(): Boolean {
+        val current = currentAccount ?: return false
+        val updated = current.copy(
+            loginType = LoginType.MANUAL,
+            wechatOpenId = "",
+            phoneMasked = "",
+            thirdPartyAvatarEmoji = "",
+        )
+        updateAccount(updated)
+        return true
     }
 
     /**
@@ -157,6 +213,10 @@ class CuratorAccountManager private constructor(context: Context) {
             put("lastSyncTime", account.lastSyncTime)
             put("isBiometricEnabled", account.isBiometricEnabled)
             put("totalCurations", account.totalCurations)
+            put("loginType", account.loginType.name)
+            put("wechatOpenId", account.wechatOpenId)
+            put("phoneMasked", account.phoneMasked)
+            put("thirdPartyAvatarEmoji", account.thirdPartyAvatarEmoji)
         }.toString()
     }
 
@@ -181,9 +241,21 @@ class CuratorAccountManager private constructor(context: Context) {
                 lastSyncTime = json.optLong("lastSyncTime", 0L),
                 isBiometricEnabled = json.optBoolean("isBiometricEnabled", false),
                 totalCurations = json.optInt("totalCurations", 0),
+                loginType = parseLoginType(json.optString("loginType", LoginType.MANUAL.name)),
+                wechatOpenId = json.optString("wechatOpenId", ""),
+                phoneMasked = json.optString("phoneMasked", ""),
+                thirdPartyAvatarEmoji = json.optString("thirdPartyAvatarEmoji", ""),
             )
         } catch (e: Exception) {
             createDefaultGuestAccount()
+        }
+    }
+
+    private fun parseLoginType(name: String): LoginType {
+        return try {
+            LoginType.valueOf(name)
+        } catch (e: Exception) {
+            LoginType.MANUAL
         }
     }
 

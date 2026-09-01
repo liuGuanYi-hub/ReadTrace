@@ -7,6 +7,16 @@
 
     <style name="Theme.Readtrace" parent="Base.Theme.Readtrace" />
 
+    <!-- 💬 微信授权回调页使用的半透明浮层主题 -->
+    <style name="Theme.Readtrace.Transparent" parent="Base.Theme.Readtrace">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
     <!-- 🔮 高定毛玻璃作品选片器 BottomSheet 样式 -->
     <style name="Theme.ReadTrace.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.ReadTrace.BottomSheet.Modal</item>
