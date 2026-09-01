@@ -295,7 +295,7 @@ object RankRepository {
     }
 
     private fun primarySourceName(mediaType: MediaType): String = when (mediaType) {
-        MediaType.GAME -> "Steam 热门"
+        MediaType.GAME -> "杉果热门"
         MediaType.MUSIC -> "网易云榜单"
         else -> "主源"
     }

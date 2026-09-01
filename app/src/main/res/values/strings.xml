@@ -46,7 +46,7 @@
     <string name="discover_summary_source">简介来自 Bangumi</string>
     <string name="discover_summary_source_bangumi">简介来自 Bangumi</string>
     <string name="discover_summary_source_douban">简介来自豆瓣</string>
-    <string name="discover_summary_source_steam">简介来自 Steam</string>
+    <string name="discover_summary_source_steam">简介来自杉果商城</string>
     <string name="discover_summary_source_netease">简介来自网易云音乐</string>
     <string name="discover_summary_source_generic">简介来自网络公开数据</string>
     <string name="discover_no_meta">暂无评分信息</string>

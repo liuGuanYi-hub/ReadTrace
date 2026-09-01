@@ -17,25 +17,28 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Steam 热门游戏客户端（v4.2.21 多源改造）。
+ * Steam 热门单机游戏客户端（v1.0.4 换源：SteamSpy 被 Cloudflare 反爬后改杉果商城）。
  *
- * 背景：小黑盒（www/api/game/h5/web.xiaoheihe.cn）实测全部 404/403 不可达，
- * 按实测改用 SteamSpy（steamspy.com）公开 JSON 接口——国内直连可用（实测 200），
- * 返回全球近两周热门游戏（约 100 款），结构化数据，无需 key。
+ * 背景：SteamSpy（steamspy.com）2026 年起对 API 返回 403（Cloudflare 人机挑战），
+ * 且旧缓存曾被污染（"Steam Game N" 占位名）。为让「发现 → 游戏」榜单展示玩家熟悉的
+ * Steam 单机大作，改从国内正版游戏商城「杉果（sonkwo.hk）」首页抓取——
+ * 其首页轮播即热门单机（黑神话/FF16/人中之龙系列/生化危机/文明VI 等），
+ * 国内可达、带中文标题/封面/简介，无需 key。
  *
- * - 榜单：GET /api.php?request=top100in2weeks → {appid: {name, developer, owners}}
- * - 搜索：SteamSpy search 接口不稳定 → 在已抓取榜单内按名称本地过滤（覆盖 100 款热门）
- * - 封面：https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/library_600x900.jpg（实测 200）
+ * - 榜单：GET https://www.sonkwo.hk/ → 解析内嵌 game_sku JSON（title + itemable_id + 简介）+ 轮播卡片封面
+ * - 搜索：在已抓榜单内按名称本地过滤（覆盖首页热门，搜索冷门词走 Bangumi 补位）
+ * - 封面：https://s8.sonkwo.com/...（国内 CDN）
+ * - id：杉果 itemable_id（Steam 平台游戏，跨源防重走 source=steam + id）
  *
- * 覆盖：GAME。合规：公开接口，低频，24h 缓存。
+ * 覆盖：GAME。合规：公开网页，低频，24h 缓存。
  */
 object SteamClient {
 
     /** 条目来源标识：落库 sourceType 与跨源防重用 */
     const val SOURCE_STEAM = "steam"
 
-    private const val API = "https://steamspy.com/api.php"
-    private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ReadTrace/4.2.21"
+    private const val RANK_URL = "https://www.sonkwo.hk/"
+    private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ReadTrace/1.0.4"
     private const val CONNECT_TIMEOUT_MS = 8000
     private const val READ_TIMEOUT_MS = 15000
     private const val CACHE_DIR = "steam_cache"
@@ -47,7 +50,7 @@ object SteamClient {
     private val lastRequestAt = AtomicInteger(0)
 
     /**
-     * v4.2.23 榜单整表同步版（top100in2weeks 约 100 款），必须在后台线程调用，
+     * v1.0.4 榜单整表同步版（杉果首页热门单机），必须在后台线程调用，
      * 由 RankRepository 统一编排切片分页与搜索过滤。
      * 返回整表；null = 网络失败且无缓存兜底。
      */
@@ -57,8 +60,8 @@ object SteamClient {
         if (!forceRefresh) {
             readCache(appContext, rankKey)?.let { list -> return list }
         }
-        val json = fetch("$API?request=top100in2weeks")
-        val rank = json?.let { parseRank(it) }
+        val html = fetch(RANK_URL)
+        val rank = html?.let { parseRankHtml(it) }
         if (rank != null && rank.isNotEmpty()) writeCache(appContext, rankKey, rank)
         if (rank == null) {
             readCache(appContext, rankKey)?.let { list -> return list }
@@ -67,46 +70,82 @@ object SteamClient {
         return rank
     }
 
-    /** 详情：SteamSpy appdetails 补简介/开发者 */
+    /** 详情：杉果榜单已含中文简介，直接返回原条目（无额外网络请求） */
     fun getSubjectDetail(subject: BangumiSubject, onResult: (BangumiSubject?) -> Unit) {
         executor.execute {
-            val result = runCatching {
-                val json = fetch("$API?request=appdetails&appid=${subject.id}") ?: return@runCatching subject
-                val o = JSONObject(json)
-                val desc = o.optString("short_description").takeIf { it.isNotBlank() }
-                val dev = o.optString("developer").takeIf { it.isNotBlank() }
-                subject.copy(
-                    creator = dev ?: subject.creator,
-                    summary = desc,
-                )
-            }.getOrElse { subject }
-            mainHandler.post { onResult(result) }
+            mainHandler.post { onResult(subject) }
         }
     }
 
-    private fun parseRank(json: String): List<BangumiSubject>? = runCatching {
-        val root = JSONObject(json)
+    /**
+     * 解析杉果首页 HTML 中的热门单机游戏。
+     *
+     * 页面内嵌 JSON（`"game_sku":[{...}]`）提供：中文标题、itemable_id、中文简介；
+     * 轮播卡片提供封面（s8.sonkwo.com 国内 CDN）。两种结构各自解析后按标题去重合并。
+     */
+    private fun parseRankHtml(html: String): List<BangumiSubject>? = runCatching {
         val out = mutableListOf<BangumiSubject>()
-        val keys = root.keys()
-        while (keys.hasNext()) {
-            val key = keys.next()
-            val o = root.optJSONObject(key) ?: continue
-            val appId = key.toLongOrNull() ?: continue
-            val name = o.optString("name").trim()
-            // 防御脏数据：steamspy 或第三方缓存可能返回占位名（如 "Steam Game 21"），直接跳过
-            if (name.isEmpty() || name.startsWith("Steam Game", ignoreCase = true)) continue
+        val seenTitles = mutableSetOf<String>()
+
+        // 结构一：内嵌 JSON game_sku 块（title + itemable_id + recommend_text.default 简介）
+        val skuPattern = Regex(""""game_sku"\s*:\s*\[(.*?)\]""", RegexOption.DOT_MATCHES_ALL)
+        for (m in skuPattern.findAll(html)) {
+            val block = m.groupValues[1]
+            val titles = Regex(""""title"\s*:\s*"([^"]{2,60})"""").findAll(block)
+                .map { it.groupValues[1] }.toList()
+            val ids = Regex(""""itemable_id"\s*:\s*"(\d+)"""").findAll(block)
+                .map { it.groupValues[1] }.toList()
+            val summaries = Regex(""""default"\s*:\s*"([^"]{0,300})"""").findAll(block)
+                .map { it.groupValues[1] }.toList()
+            for (i in titles.indices) {
+                val name = titles[i].trim()
+                if (name.isEmpty() || !seenTitles.add(name)) continue
+                val appId = ids.getOrNull(i)?.toLongOrNull() ?: continue
+                out += BangumiSubject(
+                    id = appId,
+                    name = name,
+                    nameCn = name,
+                    coverUrl = null, // 封面从结构二补充
+                    ratingScore = null,
+                    creator = null,
+                    summary = summaries.getOrNull(i)?.takeIf { it.isNotBlank() },
+                    subjectType = 4,
+                    source = SOURCE_STEAM,
+                )
+            }
+        }
+
+        // 结构二：轮播卡片 <div class="img-wrap"><img src=封面 /></div><div class="game-name">标题</div>
+        val cardPattern = Regex(
+            """<div class="img-wrap"><img src="([^"]+)"[^>]*></div><div class="game-name">([^<]{2,60})</div>""",
+        )
+        for (m in cardPattern.findAll(html)) {
+            val cover = m.groupValues[1].trim()
+            val name = m.groupValues[2].trim()
+            if (name.isEmpty()) continue
+            // 已从 JSON 结构收录过的标题补封面；新标题追加
+            val existing = out.firstOrNull { it.name == name }
+            if (existing != null) {
+                if (existing.coverUrl.isNullOrBlank()) {
+                    val idx = out.indexOf(existing)
+                    out[idx] = existing.copy(coverUrl = cover)
+                }
+                continue
+            }
+            if (!seenTitles.add(name)) continue
             out += BangumiSubject(
-                id = appId,
+                id = (out.size + 1).toLong(), // 轮播卡片无 itemable_id，用占位自增 id
                 name = name,
                 nameCn = name,
-                coverUrl = "https://cdn.cloudflare.steamstatic.com/steam/apps/$appId/library_600x900.jpg",
+                coverUrl = cover,
                 ratingScore = null,
-                creator = o.optString("developer").takeIf { it.isNotBlank() },
+                creator = null,
                 summary = null,
                 subjectType = 4,
                 source = SOURCE_STEAM,
             )
         }
+
         out.takeIf { it.isNotEmpty() }
     }.getOrNull()
 
