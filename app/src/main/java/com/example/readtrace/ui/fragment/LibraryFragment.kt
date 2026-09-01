@@ -319,6 +319,9 @@ class LibraryFragment : Fragment() {
         val tagCounts = mutableMapOf<String, Int>()
         filteredBooks.forEach { book ->
             book.tags.forEach { tag ->
+                // 番剧分类下的标签聚焦于「社团」与「类型」，
+                // 自动剔除「年份」与「角色」类标签，让筛选更紧凑
+                if (selectedMediaType == MediaType.ANIME && shouldFilterAnimeTag(tag)) return@forEach
                 tagCounts[tag] = (tagCounts[tag] ?: 0) + 1
             }
         }
@@ -697,6 +700,40 @@ class LibraryFragment : Fragment() {
     }
 
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
+
+    /**
+     * 番剧分类下的标签应该聚焦于「社团」与「类型」，
+     * 自动剔除「年份」与「角色」类标签，让筛选条更紧凑。
+     *
+     * 识别规则（保守启发式，命中即过滤）：
+     * - 年份：含 2-4 位数字并以「年」结尾、或纯 2-4 位数字（"2018年" / "2022" / "2018"）；
+     * - 角色：含常见动漫称呼后缀（"波奇酱" / "桐人君" / "欧内酱"）。
+     *
+     * 注意：用户自由 tag 没有权威分类，「薇尔莉特」之类无后缀的纯角色名不会被自动过滤，
+     * 一律保留；如需更激进的识别，可在此函数内增加"常见类型词"白名单。
+     */
+    private fun shouldFilterAnimeTag(tag: String): Boolean {
+        val clean = tag.trim()
+        if (clean.isEmpty()) return true
+        if (isYearTag(clean)) return true
+        if (isCharacterTag(clean)) return true
+        return false
+    }
+
+    /** 是否是「年份」标签：纯 2-4 位数字，或 2-4 位数字 +「年」 */
+    private fun isYearTag(tag: String): Boolean =
+        tag.matches(Regex("""^\d{2,4}年?$"""))
+
+    /**
+     * 是否是「角色」标签（保守启发式，避免误伤类型/状态）
+     *
+     * 仅命中含明确动漫称谓后缀的标签：酱 / 桑 / 君
+     * （如「波奇酱」「桐人君」）。其余自由文本短标签（如「机甲」「恋爱」「京阿尼」）
+     * 一律保留，让用户在需要时手动管理——避免自动误伤类型词。
+     */
+    private fun isCharacterTag(tag: String): Boolean {
+        return tag.endsWith("酱") || tag.endsWith("桑") || tag.endsWith("君")
+    }
 
     companion object {
         private val RATING_FORMAT = DecimalFormat("0.#")
