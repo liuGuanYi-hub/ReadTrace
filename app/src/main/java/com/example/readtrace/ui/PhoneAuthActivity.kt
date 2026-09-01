@@ -125,7 +125,11 @@ class PhoneAuthActivity : AppCompatActivity() {
                     showStatus("")
 
                     if (result.sandboxCode != null) {
-                        tvSandboxCodeHint.text = "沙盒模式：验证码 ${result.sandboxCode}（未接入短信平台，仅本机可见）"
+                        tvSandboxCodeHint.text = if (result.degraded) {
+                            "短信通道暂不可用，已降级沙盒：验证码 ${result.sandboxCode}（仅本机可见）"
+                        } else {
+                            "沙盒模式：验证码 ${result.sandboxCode}（未接入短信平台，仅本机可见）"
+                        }
                         tvSandboxCodeHint.visibility = View.VISIBLE
                     } else {
                         tvSandboxCodeHint.visibility = View.GONE

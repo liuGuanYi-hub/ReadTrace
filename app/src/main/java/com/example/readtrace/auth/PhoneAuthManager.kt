@@ -2,20 +2,22 @@ package com.example.readtrace.auth
 
 import android.os.Handler
 import android.os.Looper
+import com.example.readtrace.util.AliyunSmsClient
 import java.util.concurrent.Executors
 import kotlin.random.Random
 
 /**
  * 手机号 6 位先锋验证码速登管理器
  *
- * 与微信模块一致，采用「沙盒模拟 + 正式通道预留」的双轨设计：
+ * 与微信模块一致，采用「沙盒模拟 + 正式通道」的双轨设计：
  *
- * - **沙盒模式（当前默认）**：验证码在本地生成，并通过回调直接返回给调用方展示。
+ * - **沙盒模式（未配置短信平台时）**：验证码在本地生成，并通过回调直接返回给调用方展示。
  *   这样在没有短信平台账号的情况下，整条「获取验证码 → 输入 → 校验 → 登录」链路
  *   依然可以在真机上完整跑通并验证。
- * - **正式模式**：`requestCode` 内部已预留短信平台（阿里云 / 腾讯云）与
- *   SMS Retriever API 的接入位置，接入后只需把 `dispatchSms()` 换成真实 HTTP 请求，
- *   上层调用方无需改动。
+ * - **正式模式（v1.0.3）**：在 `gradle.properties` 中配置阿里云短信
+ *   （AccessKey / 签名 / 模板）后，`requestCode` 会自动调用
+ *   [AliyunSmsClient.sendVerifyCode] 真实下发验证码短信，不再明文回传。
+ *   发送失败时自动回退沙盒（明文回传）并附带降级标记，保证链路不中断。
  *
  * 隐私约束：手机号只在本地参与校验，完整号码不写进任何持久化存储，
  * 落库的只有 `maskPhone()` 产出的脱敏串（如 138****8848）。
@@ -28,8 +30,13 @@ class PhoneAuthManager private constructor() {
          * 验证码已发出
          * @param sandboxCode 沙盒模式下回传的明文验证码，正式模式恒为 null
          * @param cooldownSeconds 重新获取需要等待的秒数
+         * @param degraded 正式通道不可用时是否降级到了沙盒回显（true 时 UI 可提示）
          */
-        data class Sent(val sandboxCode: String?, val cooldownSeconds: Int) : RequestResult()
+        data class Sent(
+            val sandboxCode: String?,
+            val cooldownSeconds: Int,
+            val degraded: Boolean = false,
+        ) : RequestResult()
 
         /** 请求被拒绝 */
         data class Rejected(val reason: String) : RequestResult()
@@ -101,20 +108,31 @@ class PhoneAuthManager private constructor() {
             pendingExpireAt = now + CODE_VALID_MILLIS
             lastRequestAt = now
 
-            // 模拟短信通道下发耗时，让加载态在本地也能被真实观察到
-            Thread.sleep(SIMULATED_NETWORK_DELAY_MS)
-
-            // 正式模式接入点：把 generateCode() 的结果交给短信平台下发，
-            // 并把 dispatchSandboxCode 的 true 改为 false，即可关闭明文回传。
-            val deliverPlaintext = dispatchSms(phone, code)
-
-            mainHandler.post {
-                onResult(
-                    RequestResult.Sent(
-                        sandboxCode = if (deliverPlaintext) code else null,
-                        cooldownSeconds = COOLDOWN_SECONDS,
+            // 正式通道（阿里云短信）已配置时真实下发；否则沙盒明文回传。
+            // 正式通道发送失败时自动降级沙盒，保证验证码链路不中断。
+            if (AliyunSmsClient.isConfigured()) {
+                AliyunSmsClient.sendVerifyCode(phone, code) { result ->
+                    mainHandler.post {
+                        onResult(
+                            RequestResult.Sent(
+                                sandboxCode = null,
+                                cooldownSeconds = COOLDOWN_SECONDS,
+                                degraded = !result.success,
+                            )
+                        )
+                    }
+                }
+            } else {
+                // 模拟短信通道下发耗时，让加载态在本地也能被真实观察到
+                Thread.sleep(SIMULATED_NETWORK_DELAY_MS)
+                mainHandler.post {
+                    onResult(
+                        RequestResult.Sent(
+                            sandboxCode = code,
+                            cooldownSeconds = COOLDOWN_SECONDS,
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -158,23 +176,6 @@ class PhoneAuthManager private constructor() {
         return buildString {
             repeat(CODE_LENGTH) { append(random.nextInt(10)) }
         }
-    }
-
-    /**
-     * 短信下发通道
-     *
-     * @return true 表示沙盒模式（明文回传验证码供本地验证），false 表示正式通道已发出
-     *
-     * 接入真实短信平台时在此处发起 HTTP 请求：
-     * ```
-     * // 阿里云 / 腾讯云短信 SDK 调用位置
-     * // SmsClient.send(phone, templateId, mapOf("code" to code))
-     * ```
-     * 同时 Android 端可配合 SMS Retriever API 做验证码自动填充。
-     */
-    private fun dispatchSms(phone: String, code: String): Boolean {
-        // 当前未接入任何短信平台，走沙盒模式
-        return true
     }
 
     companion object {

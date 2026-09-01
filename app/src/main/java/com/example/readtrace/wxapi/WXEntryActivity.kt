@@ -69,7 +69,11 @@ class WXEntryActivity : AppCompatActivity() {
 
         tvNickname.text = profile.nickname
         tvAvatar.text = profile.avatarEmoji
-        tvMode.text = "沙盒模拟授权 · 未配置微信 AppID"
+        tvMode.text = if (com.example.readtrace.BuildConfig.WECHAT_APP_ID.isBlank()) {
+            "沙盒模拟授权 · 未配置微信 AppID"
+        } else {
+            "沙盒模拟授权 · 已配置 AppID 但未集成微信 OpenSDK"
+        }
 
         ViewAnimationHelper.attachSpringTouch(btnAllow)
         ViewAnimationHelper.attachSpringTouch(btnCancel)

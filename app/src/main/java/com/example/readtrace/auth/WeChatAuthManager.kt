@@ -93,6 +93,14 @@ object WeChatAuthManager {
 
     /**
      * 当前运行模式：配置了 AppID 且已集成 OpenSDK 走正式模式，否则沙盒模式
+     *
+     * 正式模式启用条件（v1.0.3 认证正式化）：
+     * 1. `gradle.properties` 中配置 `WECHAT_APP_ID`；
+     * 2. 将微信 OpenSDK 的 aar（`wechat-sdk-android` 对应产物）放入 `app/libs/`，
+     *    使 `com.tencent.mm.opensdk.*` 在运行时可见（反射自动生效）。
+     *
+     * 两者缺一即回退沙盒：只有 AppID 无 SDK 时反射会在运行时失败，
+     * 由 [launchOfficialAuth] 给出明确原因，避免静默假装成功。
      */
     fun currentMode(): Mode {
         val appId = BuildConfig.WECHAT_APP_ID
