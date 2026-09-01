@@ -2895,16 +2895,14 @@ class BookDatabaseHelper private constructor(val context: Context) :
      * 获取书籍上次阅读的页码
      */
     fun getReadingPage(bookId: Long): Int {
-        val sp = context.getSharedPreferences("readtrace_reader_prefs", Context.MODE_PRIVATE)
-        return sp.getInt("book_page_$bookId", 0)
+        return UserPreferencesManager.getReadingPage(context, bookId)
     }
 
     /**
      * 保存书籍当前阅读页码
      */
     fun saveReadingPage(bookId: Long, pageIndex: Int) {
-        val sp = context.getSharedPreferences("readtrace_reader_prefs", Context.MODE_PRIVATE)
-        sp.edit().putInt("book_page_$bookId", pageIndex).apply()
+        UserPreferencesManager.saveReadingPage(context, bookId, pageIndex)
     }
 
     /**

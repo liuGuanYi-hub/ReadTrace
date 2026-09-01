@@ -288,11 +288,18 @@ object BookCsvParser {
         val result = mutableListOf<String>()
         val current = StringBuilder()
         var inQuotes = false
+        var i = 0
 
-        for (ch in line) {
-            when (ch) {
-                '"' -> inQuotes = !inQuotes
-                ',' -> {
+        while (i < line.length) {
+            val ch = line[i]
+            when {
+                // RFC 4180：引号字段内的 "" 是转义的引号本身
+                ch == '"' && inQuotes && i + 1 < line.length && line[i + 1] == '"' -> {
+                    current.append('"')
+                    i++
+                }
+                ch == '"' -> inQuotes = !inQuotes
+                ch == ',' -> {
                     if (inQuotes) {
                         current.append(ch)
                     } else {
@@ -302,6 +309,7 @@ object BookCsvParser {
                 }
                 else -> current.append(ch)
             }
+            i++
         }
         result.add(current.toString().trim())
         return result

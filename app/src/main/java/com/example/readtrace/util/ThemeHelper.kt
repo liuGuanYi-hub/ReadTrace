@@ -2,15 +2,12 @@ package com.example.readtrace.util
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import com.example.readtrace.data.UserPreferencesManager
 
 object ThemeHelper {
-    private const val PREFS_NAME = "readtrace_theme_prefs"
-    private const val KEY_NIGHT_MODE = "night_mode"
 
     fun applyTheme(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val mode = prefs.getInt(KEY_NIGHT_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        AppCompatDelegate.setDefaultNightMode(mode)
+        AppCompatDelegate.setDefaultNightMode(UserPreferencesManager.getNightMode(context))
     }
 
     fun isDarkMode(context: Context): Boolean {
@@ -23,18 +20,12 @@ object ThemeHelper {
         }
     }
 
-    fun getNightMode(context: Context): Int {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(KEY_NIGHT_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-    }
+    fun getNightMode(context: Context): Int = UserPreferencesManager.getNightMode(context)
 
     fun toggleDarkMode(context: Context): Boolean {
         val currentDark = isDarkMode(context)
         val newMode = if (currentDark) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putInt(KEY_NIGHT_MODE, newMode)
-            .commit()
+        UserPreferencesManager.setNightMode(context, newMode)
         AppCompatDelegate.setDefaultNightMode(newMode)
         return !currentDark
     }

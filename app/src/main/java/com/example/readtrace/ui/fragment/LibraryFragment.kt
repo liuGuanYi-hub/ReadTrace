@@ -25,6 +25,7 @@ import com.example.readtrace.AddBookActivity
 import com.example.readtrace.BookDetailActivity
 import com.example.readtrace.R
 import com.example.readtrace.data.BookDatabaseHelper
+import com.example.readtrace.data.UserPreferencesManager
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
@@ -95,8 +96,7 @@ class LibraryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         databaseHelper = BookDatabaseHelper.getInstance(requireContext())
 
-        val prefs = requireContext().getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
-        isGridView = prefs.getBoolean("pref_is_grid_view_library", false)
+        isGridView = UserPreferencesManager.isLibraryGridView(requireContext())
 
         initViews(view)
         setupListeners()
@@ -201,10 +201,7 @@ class LibraryFragment : Fragment() {
 
         btnLibraryToggleView.setOnClickListener {
             isGridView = !isGridView
-            requireContext().getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("pref_is_grid_view_library", isGridView)
-                .apply()
+            UserPreferencesManager.setLibraryGridView(requireContext(), isGridView)
             updateViewModeButton()
             refreshShelfOnly()
         }

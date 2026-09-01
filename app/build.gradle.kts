@@ -82,6 +82,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.all { test ->
+            // AGP 9 内置 Kotlin (built_in_kotlinc) 的单测运行时 classpath 缺失测试类输出，
+            // 导致 ClassNotFoundException；将测试类目录打成 jar 显式挂载（本地 JVM 单测专用，不影响 APK 构建）
+            test.dependsOn(unitTestKotlinClassesJar)
+            test.classpath += files(unitTestKotlinClassesJar.flatMap { it.archiveFile })
+        }
+    }
 }
 
 dependencies {
@@ -92,6 +101,20 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     testImplementation(libs.junit)
+    // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+// 将 AGP 9 内置 Kotlin 编译的主代码与单元测试类打包为 jar，供 testDebugUnitTest 运行时 classpath 使用。
+// 项目路径含中文与空格，AGP 测试 worker 对此类 classpath 条目解码异常导致 ClassNotFoundException；
+// 故将 jar 输出到纯 ASCII 的系统临时目录，绕开非 ASCII 条目（jar 仅数 MB，远低于 C 盘 50MB 保护线）。
+val unitTestKotlinClassesJar = tasks.register<Jar>("packageDebugUnitTestKotlinClasses") {
+    dependsOn(tasks.matching { it.name == "compileDebugKotlin" || it.name == "compileDebugUnitTestKotlin" })
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes"))
+    from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes"))
+    archiveFileName.set("readtrace-unit-test-classes.jar")
+    destinationDirectory.set(file(System.getProperty("java.io.tmpdir") + "/readtrace-unit-tests"))
 }

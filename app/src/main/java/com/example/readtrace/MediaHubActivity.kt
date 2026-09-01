@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
+import com.example.readtrace.data.UserPreferencesManager
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
@@ -85,8 +86,7 @@ class MediaHubActivity : AppCompatActivity() {
 
         databaseHelper = BookDatabaseHelper.getInstance(this)
 
-        val prefs = getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
-        isGridView = prefs.getBoolean("pref_is_grid_view_hub_${targetMediaType.databaseValue}", false)
+        isGridView = UserPreferencesManager.isHubGridView(this, targetMediaType)
 
         initViews()
         setupHeaderTheme()
@@ -138,10 +138,7 @@ class MediaHubActivity : AppCompatActivity() {
 
         btnHubToggleViewMode.setOnClickListener {
             isGridView = !isGridView
-            getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("pref_is_grid_view_hub_${targetMediaType.databaseValue}", isGridView)
-                .apply()
+            UserPreferencesManager.setHubGridView(this, targetMediaType, isGridView)
             updateViewModeButton()
             refreshShelfOnly()
         }

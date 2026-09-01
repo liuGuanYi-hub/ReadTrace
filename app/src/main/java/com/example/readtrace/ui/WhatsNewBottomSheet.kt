@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.readtrace.ChangelogActivity
 import com.example.readtrace.R
+import com.example.readtrace.data.UserPreferencesManager
 import com.example.readtrace.model.ChangelogRepository
 import com.example.readtrace.util.HapticFeedbackEngine
 
@@ -19,20 +20,15 @@ import com.example.readtrace.util.HapticFeedbackEngine
  */
 object WhatsNewBottomSheet {
 
-    private const val PREF_NAME = "readtrace_version_prefs"
-    private const val KEY_LAST_SHOWN_VERSION = "key_last_shown_version"
-
     /**
      * 检查并仅在升级到新版本后首次弹出
      */
     fun showIfUpdated(context: Context) {
         val latest = ChangelogRepository.versionHistory.firstOrNull() ?: return
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val lastShown = prefs.getString(KEY_LAST_SHOWN_VERSION, "")
 
-        if (lastShown != latest.versionName) {
+        if (UserPreferencesManager.getLastShownVersion(context) != latest.versionName) {
             showDialog(context, latest)
-            prefs.edit().putString(KEY_LAST_SHOWN_VERSION, latest.versionName).apply()
+            UserPreferencesManager.setLastShownVersion(context, latest.versionName)
         }
     }
 
