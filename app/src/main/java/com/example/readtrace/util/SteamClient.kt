@@ -93,7 +93,8 @@ object SteamClient {
             val o = root.optJSONObject(key) ?: continue
             val appId = key.toLongOrNull() ?: continue
             val name = o.optString("name").trim()
-            if (name.isEmpty()) continue
+            // 防御脏数据：steamspy 或第三方缓存可能返回占位名（如 "Steam Game 21"），直接跳过
+            if (name.isEmpty() || name.startsWith("Steam Game", ignoreCase = true)) continue
             out += BangumiSubject(
                 id = appId,
                 name = name,
@@ -125,10 +126,13 @@ object SteamClient {
         buildList {
             for (i in 0 until arr.length()) {
                 val o = arr.optJSONObject(i) ?: continue
+                val name = o.optString("name")
+                // 防御脏缓存：旧版可能落盘了占位名条目（"Steam Game N"），读取时一并过滤
+                if (name.isBlank() || name.startsWith("Steam Game", ignoreCase = true)) continue
                 add(
                     BangumiSubject(
                         id = o.optLong("id"),
-                        name = o.optString("name"),
+                        name = name,
                         nameCn = o.optString("nameCn").takeIf { it.isNotBlank() },
                         coverUrl = o.optString("cover").takeIf { it.isNotBlank() },
                         creator = o.optString("creator").takeIf { it.isNotBlank() },
