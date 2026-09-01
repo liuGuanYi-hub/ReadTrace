@@ -83,7 +83,7 @@ class MediaHubActivity : AppCompatActivity() {
         val rawMedia = intent.getStringExtra(EXTRA_MEDIA_TYPE)
         targetMediaType = MediaType.fromDatabaseValue(rawMedia) ?: MediaType.BOOK
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
 
         val prefs = getSharedPreferences("readtrace_prefs", Context.MODE_PRIVATE)
         isGridView = prefs.getBoolean("pref_is_grid_view_hub_${targetMediaType.databaseValue}", false)
@@ -598,7 +598,6 @@ class MediaHubActivity : AppCompatActivity() {
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

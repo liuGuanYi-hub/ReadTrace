@@ -25,8 +25,25 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-class BookDatabaseHelper(val context: Context) :
+class BookDatabaseHelper private constructor(val context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+
+    /**
+     * 单例生命周期保护：
+     * 拦截各 Activity/Widget 的误调用 close()，防止全局单例底层的 SQLite 连接池被意外关闭。
+     * 如需真正关闭，应随 Application 进程终止。
+     */
+    override fun close() {
+        android.util.Log.d("BookDatabaseHelper", "Single instance close() intercepted to protect connection pool.")
+    }
+
+    /**
+     * 仅供极特殊场景（如清除数据或测试重置）调用的强制关闭
+     */
+    fun forceCloseForTesting() {
+        super.close()
+        instance = null
+    }
 
     override fun onCreate(database: SQLiteDatabase) {
         database.execSQL(
@@ -2257,11 +2274,18 @@ class BookDatabaseHelper(val context: Context) :
                 CoverImageHelper.deleteCoverFile(path)
             }
 
-            // 2. 删除关联的笔记
-            db.delete(TABLE_NOTES, "$COLUMN_BOOK_ID = ?", arrayOf(bookId.toString()))
+            // 2. 级联物理删除关联的笔记与 6 大高阶维度数据
+            val bookIdStr = arrayOf(bookId.toString())
+            db.delete(TABLE_NOTES, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_READING_SESSIONS, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_BOOK_CHARACTERS, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_BOOK_OUTLINES, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_BOOK_LOCATIONS, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_BOOK_MINDPRINTS, "$COLUMN_BOOK_ID = ?", bookIdStr)
+            db.delete(TABLE_AUDIO_TRACKS, "$COLUMN_AUDIO_BOOK_ID = ?", bookIdStr)
 
             // 3. 删除书籍记录
-            val deleted = db.delete(TABLE_BOOKS, "$COLUMN_ID = ?", arrayOf(bookId.toString())) > 0
+            val deleted = db.delete(TABLE_BOOKS, "$COLUMN_ID = ?", bookIdStr) > 0
             db.setTransactionSuccessful()
             invalidateBookCache()
             return deleted
@@ -2637,11 +2661,25 @@ class BookDatabaseHelper(val context: Context) :
                 book.coverUrl?.let { CoverImageHelper.deleteCoverFile(it) }
             }
 
-            // 2. 物理删除所有归档书籍关联的笔记及单独归档的笔记
+            // 2. 获取回收站中所有被删除的书籍 ID 列表，物理级联删除 6 张关联子表
+            val trashBookIds = archivedBooks.map { it.id.toString() }
+            if (trashBookIds.isNotEmpty()) {
+                val placeholders = trashBookIds.joinToString(",") { "?" }
+                val args = trashBookIds.toTypedArray()
+                db.delete(TABLE_READING_SESSIONS, "$COLUMN_BOOK_ID IN ($placeholders)", args)
+                db.delete(TABLE_BOOK_CHARACTERS, "$COLUMN_BOOK_ID IN ($placeholders)", args)
+                db.delete(TABLE_BOOK_OUTLINES, "$COLUMN_BOOK_ID IN ($placeholders)", args)
+                db.delete(TABLE_BOOK_LOCATIONS, "$COLUMN_BOOK_ID IN ($placeholders)", args)
+                db.delete(TABLE_BOOK_MINDPRINTS, "$COLUMN_BOOK_ID IN ($placeholders)", args)
+                db.delete(TABLE_AUDIO_TRACKS, "$COLUMN_AUDIO_BOOK_ID IN ($placeholders)", args)
+            }
+
+            // 3. 物理删除所有归档书籍关联的笔记及单独归档的笔记
             val deletedNotesCount = db.delete(TABLE_NOTES, "$COLUMN_IS_DELETED = 1", null)
             val deletedBooksCount = db.delete(TABLE_BOOKS, "$COLUMN_IS_DELETED = 1", null)
 
             db.setTransactionSuccessful()
+            invalidateBookCache()
             return Pair(deletedBooksCount, deletedNotesCount)
         } finally {
             db.endTransaction()

@@ -41,7 +41,7 @@ class FlipNotesActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         initialPosition = intent.getIntExtra(EXTRA_INITIAL_POSITION, 0)
 
@@ -103,7 +103,6 @@ class FlipNotesActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

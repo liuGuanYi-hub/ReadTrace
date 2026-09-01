@@ -63,7 +63,7 @@ class CulturalPassportActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
 
         initViews()
         loadData()

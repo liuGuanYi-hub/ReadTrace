@@ -45,7 +45,7 @@ class PublishExhibitionActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         bindViews()
         loadLocalBooks()
     }
@@ -174,7 +174,6 @@ class PublishExhibitionActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 }

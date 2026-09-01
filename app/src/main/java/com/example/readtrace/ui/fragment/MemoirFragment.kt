@@ -175,7 +175,6 @@ class MemoirFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        databaseHelper.close()
         super.onDestroyView()
     }
 }

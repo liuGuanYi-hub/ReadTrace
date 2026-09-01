@@ -872,7 +872,6 @@ class HubFragment : Fragment() {
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
 
     override fun onDestroyView() {
-        databaseHelper.close()
         super.onDestroyView()
     }
 

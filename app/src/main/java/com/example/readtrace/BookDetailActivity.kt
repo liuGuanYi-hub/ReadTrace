@@ -51,7 +51,7 @@ class BookDetailActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         if (bookId == NO_BOOK_ID) {
             showMissingBookAndClose()
@@ -1895,7 +1895,6 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

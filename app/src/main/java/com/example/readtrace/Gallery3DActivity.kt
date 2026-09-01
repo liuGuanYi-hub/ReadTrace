@@ -55,7 +55,7 @@ class Gallery3DActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         bindViews()
         init3DGallery()
         configureThemes()
@@ -203,7 +203,6 @@ class Gallery3DActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

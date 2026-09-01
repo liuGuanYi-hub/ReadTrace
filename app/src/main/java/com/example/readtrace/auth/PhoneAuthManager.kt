@@ -115,7 +115,7 @@ class PhoneAuthManager private constructor() {
                     mainHandler.post {
                         onResult(
                             RequestResult.Sent(
-                                sandboxCode = null,
+                                sandboxCode = if (result.success) null else code,
                                 cooldownSeconds = COOLDOWN_SECONDS,
                                 degraded = !result.success,
                             )

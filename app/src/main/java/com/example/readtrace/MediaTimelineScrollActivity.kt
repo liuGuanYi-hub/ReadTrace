@@ -41,7 +41,7 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_timeline_scroll)
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         timelineScrollView = findViewById(R.id.mediaTimelineScrollView)
         scrollMainTitle = findViewById(R.id.scrollMainTitle)
         scrollSubTitle = findViewById(R.id.scrollSubTitle)
@@ -244,7 +244,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

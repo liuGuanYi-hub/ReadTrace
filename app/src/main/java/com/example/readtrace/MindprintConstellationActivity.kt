@@ -38,7 +38,7 @@ class MindprintConstellationActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         constellationCanvas = findViewById(R.id.constellationCanvas)
         constellationDetailCard = findViewById(R.id.constellationDetailCard)
 
@@ -208,7 +208,6 @@ class MindprintConstellationActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

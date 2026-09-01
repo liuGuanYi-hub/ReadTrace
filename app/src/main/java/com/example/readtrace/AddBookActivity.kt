@@ -643,20 +643,25 @@ class AddBookActivity : AppCompatActivity() {
         saveButton.isEnabled = false
         saveButton.alpha = 0.65f
         val isEditing = editingBookId != NO_BOOK_ID
+        var savedBookId: Long = editingBookId
+        var saveSucceeded = false
+
         runCatching {
             if (isEditing) {
-                databaseHelper.updateBook(book)
+                saveSucceeded = databaseHelper.updateBook(book)
             } else {
-                databaseHelper.insertBook(book) > 0
+                val newId = databaseHelper.insertBook(book)
+                savedBookId = newId
+                saveSucceeded = newId > 0
             }
-        }.onSuccess { saved ->
-            if (saved) {
+        }.onSuccess {
+            if (saveSucceeded) {
                 // 新作品自动生成六维心智（继承主评分），零填写成本；门槛保持中值 5.0
-                if (!isEditing) {
+                if (!isEditing && savedBookId > 0) {
                     val seed = (rating ?: 8.0).coerceIn(1.0, 10.0)
                     databaseHelper.saveMindprint(
                         com.example.readtrace.model.BookMindprint(
-                            bookId = book.id,
+                            bookId = savedBookId,
                             depthScore = seed,
                             artistryScore = seed,
                             emotionScore = seed,

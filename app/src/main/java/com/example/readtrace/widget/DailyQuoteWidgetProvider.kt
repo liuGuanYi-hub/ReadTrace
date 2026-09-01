@@ -37,7 +37,7 @@ class DailyQuoteWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray,
         excludeQuote: String? = null,
     ) {
-        val databaseHelper = BookDatabaseHelper(context)
+        val databaseHelper = BookDatabaseHelper.getInstance(context)
         val (book, quote) = databaseHelper.getRandomOrNextQuote(excludeQuote)
         val todayMinutes = databaseHelper.getTodayTotalReadingMinutes()
         val dateStr = SimpleDateFormat("MM.dd", Locale.getDefault()).format(Date())
@@ -90,7 +90,6 @@ class DailyQuoteWidgetProvider : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
-        databaseHelper.close()
     }
 
     companion object {

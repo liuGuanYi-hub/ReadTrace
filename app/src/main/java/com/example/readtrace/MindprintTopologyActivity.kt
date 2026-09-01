@@ -78,7 +78,7 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         initViews()
         initSensors()
         loadTopologyData()
@@ -254,7 +254,6 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        databaseHelper.close()
     }
 
     override fun onSensorChanged(event: SensorEvent) {

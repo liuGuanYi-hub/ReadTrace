@@ -157,7 +157,6 @@ class ConstellationFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        databaseHelper.close()
         super.onDestroyView()
     }
 }

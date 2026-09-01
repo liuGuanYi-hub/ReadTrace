@@ -52,7 +52,7 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
     )
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        val databaseHelper = BookDatabaseHelper(context)
+        val databaseHelper = BookDatabaseHelper.getInstance(context)
         val allBooks = databaseHelper.getBooks()
 
         // 每半小时轮换一次双生共鸣卡片与当前在读书籍
@@ -211,7 +211,6 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
-        databaseHelper.close()
     }
 
     private fun drawSingleMiniRadarBitmap(mindprint: BookMindprint): Bitmap {

@@ -44,7 +44,7 @@ class TrashActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         tabBooks = findViewById(R.id.trashTabBooks)
         tabNotes = findViewById(R.id.trashTabNotes)
         booksContainer = findViewById(R.id.trashBooksContainer)
@@ -256,7 +256,6 @@ class TrashActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

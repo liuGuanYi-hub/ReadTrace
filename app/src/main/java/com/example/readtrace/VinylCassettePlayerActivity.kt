@@ -145,7 +145,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         initViews()
         initSensors()

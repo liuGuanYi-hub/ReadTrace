@@ -22,7 +22,7 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
     }
 
     private fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        val databaseHelper = BookDatabaseHelper(context)
+        val databaseHelper = BookDatabaseHelper.getInstance(context)
         val book = databaseHelper.getLatestReadingBook()
 
         for (appWidgetId in appWidgetIds) {
@@ -118,7 +118,6 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
-        databaseHelper.close()
     }
 
     companion object {

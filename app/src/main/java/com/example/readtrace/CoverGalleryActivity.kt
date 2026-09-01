@@ -63,7 +63,7 @@ class CoverGalleryActivity : AppCompatActivity() {
         )
         setContentView(R.layout.activity_cover_gallery)
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
 
         initViews()
         applySystemBarInsets()

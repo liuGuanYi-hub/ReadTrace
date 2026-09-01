@@ -37,7 +37,7 @@ class BadgesActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         badgeOverallCount = findViewById(R.id.badgeOverallCount)
         badgeOverallProgressBar = findViewById(R.id.badgeOverallProgressBar)
         badgeOverallPrompt = findViewById(R.id.badgeOverallPrompt)
@@ -101,7 +101,6 @@ class BadgesActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 

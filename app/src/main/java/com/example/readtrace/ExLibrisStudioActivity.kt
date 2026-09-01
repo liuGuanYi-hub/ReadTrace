@@ -45,7 +45,7 @@ class ExLibrisStudioActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ex_libris_studio)
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         initViews()
         loadBookData()
     }

@@ -66,7 +66,7 @@ class BackupActivity : AppCompatActivity() {
             insets
         }
 
-        databaseHelper = BookDatabaseHelper(this)
+        databaseHelper = BookDatabaseHelper.getInstance(this)
         backupStatSummary = findViewById(R.id.backupStatSummary)
 
         FloatingBack.install(this)
@@ -202,7 +202,6 @@ class BackupActivity : AppCompatActivity() {
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"))
 
     override fun onDestroy() {
-        databaseHelper.close()
         super.onDestroy()
     }
 }

@@ -103,7 +103,7 @@ object CommunityRepository {
      * 将社区展厅中的书籍一键转存导入到本地 SQLite 数据库
      */
     fun saveBookToLocalShelf(context: Context, book: Book): Boolean {
-        val helper = BookDatabaseHelper(context)
+        val helper = BookDatabaseHelper.getInstance(context)
         val copy = book.copy(
             id = 0,
             status = BookStatus.WISHLIST,
@@ -111,9 +111,7 @@ object CommunityRepository {
             createdAt = "",
             updatedAt = "",
         )
-        val success = helper.insertBook(copy) > 0
-        helper.close()
-        return success
+        return helper.insertBook(copy) > 0
     }
 
     private fun ensureSeedData() {
