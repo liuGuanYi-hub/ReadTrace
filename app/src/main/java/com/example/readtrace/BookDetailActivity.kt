@@ -1372,6 +1372,59 @@ class BookDetailActivity : AppCompatActivity() {
             }
             row.addView(chip)
         }
+
+        // 🧪 P15 思想炼金碰撞入口：选择另一部作品 → 六维共鸣碰撞
+        val colliderChip = TextView(this).apply {
+            text = "🧪 思想碰撞 ➔"
+            textSize = 12f
+            setPadding(22, 10, 22, 10)
+            background = getDrawable(R.drawable.bg_dark_chip_selected)
+            setTextColor(android.graphics.Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { marginEnd = 8 }
+            setOnClickListener { showColliderPicker(book) }
+        }
+        row.addView(colliderChip)
+    }
+
+    private fun showColliderPicker(current: Book) {
+        val candidates = databaseHelper.getBooks().filter { it.id != current.id }
+        if (candidates.isEmpty()) {
+            Toast.makeText(this, "书库中还没有其它作品可以碰撞", Toast.LENGTH_SHORT).show()
+            return
+        }
+        com.example.readtrace.util.ElegantChoiceDialog.show(
+            activity = this,
+            title = "🧪 选择碰撞对象",
+            choices = candidates.map {
+                com.example.readtrace.util.ElegantChoiceDialog.Choice(
+                    label = "《${it.title}》",
+                    subtitle = "${it.mediaType.emoji} ${it.mediaType.displayName}",
+                    leadingEmoji = "🧪",
+                )
+            },
+            onSelected = { index ->
+                val other = candidates[index]
+                val result = com.example.readtrace.util.MentalColliderEngine.collide(
+                    current,
+                    other,
+                    databaseHelper.getMindprint(current.id),
+                    databaseHelper.getMindprint(other.id),
+                )
+                com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
+                com.example.readtrace.util.ElegantConfirmDialog.show(
+                    activity = this,
+                    title = "🧪 ${result.resonance}% 哲思共鸣",
+                    message = "《${result.bookA.title}》×《${result.bookB.title}》\n\n" +
+                        "主导纽带：${result.dominantDimension}\n\n「${result.trait}」",
+                    confirmText = "✨ 铭记这场对话",
+                    isDanger = false,
+                    onConfirm = {},
+                )
+            },
+        )
     }
 
     private fun showRelatedWorksDialog(current: Book, concept: String, relatedIds: List<String>) {

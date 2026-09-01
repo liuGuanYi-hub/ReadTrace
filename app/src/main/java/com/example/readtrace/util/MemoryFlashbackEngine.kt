@@ -50,8 +50,7 @@ object MemoryFlashbackEngine {
                         book = book,
                         yearsAgo = thisYear - finishYear,
                         isFinished = true,
-                        quote = book.shortComment?.takeIf { it.isNotBlank() }
-                            ?: book.review?.lineSequence()?.firstOrNull { it.isNotBlank() },
+                        quote = highlightQuote(book),
                     ),
                 )
                 return@forEach // 同一部作品只保留最有分量的一条记忆
@@ -71,6 +70,13 @@ object MemoryFlashbackEngine {
             }
         }
         return memories.sortedWith(compareByDescending<MemoryFlashback> { it.yearsAgo }.thenBy { it.book.title })
+    }
+
+    /** 高光随想：优先短评；否则从 300+ 字长评中提炼金句（P14 SmartQuoteDigestHelper）；再退回首行 */
+    private fun highlightQuote(book: Book): String? {
+        book.shortComment?.takeIf { it.isNotBlank() }?.let { return it }
+        SmartQuoteDigestHelper.digest(book.review)?.let { return it.quote }
+        return book.review?.lineSequence()?.firstOrNull { it.isNotBlank() }
     }
 
     /** 生成羊皮纸便签文案，例如：一年前的今天，你读完了《百年孤独》，当时你说：… */
