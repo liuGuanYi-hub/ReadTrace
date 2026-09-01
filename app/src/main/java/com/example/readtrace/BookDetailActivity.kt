@@ -3,6 +3,9 @@ package com.example.readtrace
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextUtils
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.EditText
@@ -1295,6 +1298,109 @@ class BookDetailActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.detailCreatedAt).text = formatTimestamp(book.createdAt)
         findViewById<TextView>(R.id.detailUpdatedAt).text = formatTimestamp(book.updatedAt)
+        renderDescription(book)
+        renderThoughtsHint(book)
+    }
+
+    // ---------------------------------------------------------------- 作品简介（外部导入收尾）
+
+    private var descriptionExpanded = false
+
+    /**
+     * 作品简介展示：默认折叠 3 行，超长时点击正文或「展开全文」切换；
+     * 底部按来源显示小字标注（手动录入的简介不标注来源）。
+     */
+    private fun renderDescription(book: Book) {
+        val label = findViewById<TextView>(R.id.detailDescriptionLabel)
+        val body = findViewById<TextView>(R.id.detailDescription)
+        val toggle = findViewById<TextView>(R.id.detailDescriptionToggle)
+        val source = findViewById<TextView>(R.id.detailDescriptionSource)
+        val desc = book.description?.trim().orEmpty()
+        if (desc.isEmpty()) {
+            label.visibility = View.GONE
+            body.visibility = View.GONE
+            toggle.visibility = View.GONE
+            source.visibility = View.GONE
+            return
+        }
+        label.visibility = View.VISIBLE
+        body.visibility = View.VISIBLE
+        val sourceLabel = descriptionSourceLabel(book.sourceType)
+        source.visibility = if (sourceLabel.isNullOrBlank()) View.GONE else View.VISIBLE
+        source.text = sourceLabel
+        descriptionExpanded = false
+        body.text = desc
+        val toggleDescription: () -> Unit = {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            descriptionExpanded = !descriptionExpanded
+            applyDescriptionState(body, toggle)
+        }
+        body.setOnClickListener { toggleDescription() }
+        toggle.setOnClickListener { toggleDescription() }
+        applyDescriptionState(body, toggle)
+    }
+
+    private fun applyDescriptionState(body: TextView, toggle: TextView) {
+        if (descriptionExpanded) {
+            body.maxLines = Int.MAX_VALUE
+            body.ellipsize = null
+            toggle.text = getString(R.string.detail_description_collapse)
+        } else {
+            body.maxLines = DESCRIPTION_COLLAPSED_LINES
+            body.ellipsize = TextUtils.TruncateAt.END
+            toggle.text = getString(R.string.detail_description_expand)
+        }
+        // 等本轮 layout 完成后测量：只有真实溢出才露出切换按钮
+        body.post {
+            toggle.visibility = if (isDescriptionOverflowing(body)) View.VISIBLE else View.GONE
+        }
+    }
+
+    /**
+     * 用 StaticLayout 全量测量真实行数。
+     * 折叠态下 TextView.layout 已被 maxLines 截断，不能直接数；
+     * 测量画笔必须保持 LEFT 对齐（CENTER 会把每行再居中，行数计算失真）。
+     */
+    private fun isDescriptionOverflowing(body: TextView): Boolean {
+        val text = body.text ?: return false
+        if (text.isEmpty()) return false
+        val width = body.width - body.paddingLeft - body.paddingRight
+        if (width <= 0) return false
+        return runCatching {
+            val layout = StaticLayout.Builder.obtain(text, 0, text.length, body.paint, width)
+                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setLineSpacing(body.lineSpacingExtra, body.lineSpacingMultiplier)
+                .setIncludePad(body.includeFontPadding)
+                .build()
+            layout.lineCount > DESCRIPTION_COLLAPSED_LINES
+        }.getOrDefault(false)
+    }
+
+    /** 简介来源标注：与落库的 sourceType 对应；手动录入（null/空）不标注 */
+    private fun descriptionSourceLabel(sourceType: String?): String? = when (sourceType) {
+        "bangumi" -> getString(R.string.discover_summary_source_bangumi)
+        "douban" -> getString(R.string.discover_summary_source_douban)
+        "steam" -> getString(R.string.discover_summary_source_steam)
+        "netease" -> getString(R.string.discover_summary_source_netease)
+        null, "" -> null
+        else -> getString(R.string.discover_summary_source_generic)
+    }
+
+    /** 骨架档案（外部导入）且短评/长评皆空 → 「还没有留下你的想法」轻提示，点击直达编辑页 */
+    private fun renderThoughtsHint(book: Book) {
+        val hint = findViewById<TextView>(R.id.detailThoughtsEmptyHint) ?: return
+        val imported = !book.sourceType.isNullOrBlank()
+        val thoughtsEmpty = book.shortComment.isNullOrBlank() && book.review.isNullOrBlank()
+        if (imported && thoughtsEmpty) {
+            hint.visibility = View.VISIBLE
+            hint.setOnClickListener {
+                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+                startActivity(AddBookActivity.createEditIntent(this, book.id))
+            }
+        } else {
+            hint.visibility = View.GONE
+            hint.setOnClickListener(null)
+        }
     }
 
     private fun renderNotes(notes: List<Note>) {
@@ -1762,6 +1868,7 @@ class BookDetailActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"
         private const val NO_BOOK_ID = -1L
+        private const val DESCRIPTION_COLLAPSED_LINES = 3
         private val RATING_FORMAT = DecimalFormat("0.#")
         private val TIMELINE_DATE_PATTERN = Regex("\\d{4}-\\d{2}-\\d{2}")
         private val DISPLAY_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")

@@ -43,6 +43,11 @@
     <string name="discover_preview_title">条目预览</string>
     <string name="discover_summary_loading">简介加载中…</string>
     <string name="discover_summary_source">简介来自 Bangumi</string>
+    <string name="discover_summary_source_bangumi">简介来自 Bangumi</string>
+    <string name="discover_summary_source_douban">简介来自豆瓣</string>
+    <string name="discover_summary_source_steam">简介来自 Steam</string>
+    <string name="discover_summary_source_netease">简介来自网易云音乐</string>
+    <string name="discover_summary_source_generic">简介来自网络公开数据</string>
     <string name="discover_no_meta">暂无评分信息</string>
     <string name="discover_status_label">标记状态（添加后可随时修改）</string>
     <string name="discover_add_button">添加至纪念</string>
@@ -120,6 +125,10 @@
     <string name="detail_finish_date">完成日期</string>
     <string name="detail_short_comment">简短评价</string>
     <string name="detail_review">读后感</string>
+    <string name="detail_description">作品简介</string>
+    <string name="detail_description_expand">展开全文 ▾</string>
+    <string name="detail_description_collapse">收起 ▴</string>
+    <string name="detail_thoughts_empty_hint">✦ 这是从外部导入的骨架档案，还没有留下你的想法。点这里补上简短评价或读后感，让它真正属于你。</string>
     <string name="detail_created_at">创建时间</string>
     <string name="detail_updated_at">更新时间</string>
     <string name="not_recorded">尚未记录</string>

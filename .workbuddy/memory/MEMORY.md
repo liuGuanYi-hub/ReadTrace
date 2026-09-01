@@ -22,14 +22,13 @@
 - adb 不在 PATH：`F:/Android/sdk/platform-tools/adb.exe`（SDK 根目录见 `local.properties` = `F:\Android\sdk`）
 - 模拟器：`F:/Android/sdk/emulator/emulator.exe -avd Medium_Phone -gpu host -no-snapshot-load`
 
-## UI 验证方法（模型看不了截图）
-- 截图无法被模型读取，用两套手段：
-  1. `adb shell uiautomator dump /sdcard/ui.xml` + `adb pull` + Python 解析 `bounds`/`text`（适合原生控件）
-     - 报 `could not get idle state` 时改用 `uiautomator dump --compressed`（稳定得多）
-     - 自定义 View 无文本节点会被压缩丢弃，改用手段 2
-  2. `adb exec-out screencap -p > x.png` + Python(PIL) 做**亮度分带**：逐行统计亮度>阈值的像素，得到「内容条带 y 区间 + x 范围/中心」，可核对自定义绘制的版式；必要时降采样成字符图粗看
-- 判断文本被截断：单行 TextView 高度只有 1 行，且估算文本宽度 > 可用宽度 ⇒ 被 `ellipsize` 切掉
-- 像素→dp 换算：用已知 dp 的控件反推 density（36dp 控件实测 95px ⇒ density ≈ 2.64）
+## UI 验证方法（2026-09-01 更新）
+- **重大变化：Read 工具现在可以直接读截图**（多模态）——`adb exec-out screencap -p > x.png` 后用 Read 打开 PNG 肉眼判断版式，首选此法（Read 显示的是缩放图，点击坐标按比例换算回实际分辨率）
+- uiautomator dump 对本 App 首页/详情页基本失效（`could not get idle state`，常驻自绘动画导致非 idle，关系统动画也无效）——不要再依赖
+- 本机 python（managed 3.13）无 PIL；Anaconda `F:/work/Anaconda/python.exe` 自带 Pillow 10.3，亮度分带/裁剪放大用它
+- 数据库查看/修改：`adb exec-out run-as com.example.readtrace cat databases/readtrace.db > x.db` 拉到本地用 Python sqlite3 查询（Git Bash 的 /tmp 与 Windows Python 路径不互通，用 `$TEMP`）；修改后 `adb push` 到 /data/local/tmp 再 `run-as cp` 覆盖回去，前后都要 force-stop；测试注入必须记录原值、验证完还原
+- 模拟器可能无网（ping 223.5.5.5 全丢），依赖联网的功能测试需先检查
+- `adb shell input text` 不支持中文；非 exported Activity 无法 `am start`（SecurityException，正常安全行为）
 
 ## Android 自定义绘制踩过的坑（2026-08-30）
 - `StaticLayout` 会自己按 `setAlignment` 计算行偏移，传入的画笔若 `textAlign=CENTER` 会把每行再居中一次，整段左偏半行宽 → 必须传 `TextPaint(src).apply { textAlign = Paint.Align.LEFT }`

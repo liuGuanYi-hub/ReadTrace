@@ -384,6 +384,49 @@
                     android:id="@+id/detailCoverUrl"
                     style="@style/ReadTraceDetailValue"
                     tools:text="https://example.com/cover.jpg" />
+
+                <TextView
+                    android:id="@+id/detailDescriptionLabel"
+                    style="@style/ReadTraceDetailLabel"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/detail_description"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/detailDescription"
+                    style="@style/ReadTraceDetailValue"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:maxLines="3"
+                    android:visibility="gone"
+                    tools:text="作品简介正文，超过三行时默认折叠，点击可展开阅读全文。"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/detailDescriptionToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:text="@string/detail_description_expand"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/detailDescriptionSource"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:text="简介来自 Bangumi"
+                    tools:visibility="visible" />
             </LinearLayout>
 
             <LinearLayout
@@ -471,6 +514,21 @@
                     style="@style/ReadTraceFieldLabel"
                     android:text="@string/detail_section_thoughts"
                     android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/detailThoughtsEmptyHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_glass_panel_soft"
+                    android:elevation="4dp"
+                    android:lineSpacingExtra="3dp"
+                    android:padding="12dp"
+                    android:text="@string/detail_thoughts_empty_hint"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
                 <TextView
                     android:id="@+id/detailShortCommentLabel"

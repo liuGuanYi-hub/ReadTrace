@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 条目预览底板：封面/标题/评分/简介 + 状态选择 + 添加至纪念 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/subjectPreviewRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -124,9 +125,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="@string/discover_summary_source"
         android:textColor="@color/readtrace_muted"
-        android:textSize="10sp" />
+        android:textSize="10sp"
+        tools:text="简介来自 Bangumi" />
 
     <TextView
         android:layout_width="wrap_content"

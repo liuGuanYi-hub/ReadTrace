@@ -417,6 +417,15 @@ class DiscoverActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.discover_import_success, Toast.LENGTH_SHORT).show()
     }
 
+    /** 预览弹窗简介来源标注：与条目实际来源一致（多源后不再一律写 Bangumi） */
+    private fun previewSourceLabel(source: String?): String = when (source) {
+        "bangumi" -> getString(R.string.discover_summary_source_bangumi)
+        DoubanClient.SOURCE_DOUBAN -> getString(R.string.discover_summary_source_douban)
+        SteamClient.SOURCE_STEAM -> getString(R.string.discover_summary_source_steam)
+        NeteaseClient.SOURCE_NETEASE -> getString(R.string.discover_summary_source_netease)
+        else -> getString(R.string.discover_summary_source_generic)
+    }
+
     private fun openSubjectPreview(subject: BangumiSubject) {
         val dialog = BottomSheetDialog(this, R.style.Theme_ReadTrace_BottomSheetDialog)
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_subject_preview, null)
@@ -441,6 +450,7 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }.ifEmpty { null } ?: getString(R.string.discover_no_meta)
         summaryView.text = subject.summary ?: getString(R.string.discover_summary_loading)
+        view.findViewById<TextView>(R.id.previewSourceNote).text = previewSourceLabel(subject.source)
         subject.tags.take(3).let { tags ->
             if (tags.isNotEmpty()) {
                 metaView.text = "${metaView.text} · ${tags.joinToString(" / ")}"
