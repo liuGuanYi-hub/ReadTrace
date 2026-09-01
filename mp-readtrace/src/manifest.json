@@ -1,0 +1,21 @@
+{
+  "name": "阅痕 ReadTrace",
+  "appid": "YOUR_WECHAT_APPID",
+  "description": "记录你读过的作品，也记录你当时的心境。",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "mp-weixin": {
+    "appid": "YOUR_WECHAT_APPID",
+    "setting": {
+      "urlCheck": true,
+      "minified": true
+    },
+    "requiredPrivateInfos": [],
+    "permission": {
+      "scope.userLocation": {
+        "desc": "阅痕不会使用你的位置信息"
+      }
+    },
+    "usingComponents": true
+  }
+}

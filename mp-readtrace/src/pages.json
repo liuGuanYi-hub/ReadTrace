@@ -1,0 +1,13 @@
+{
+  "pages": [
+    { "path": "pages/library/index", "style": { "navigationBarTitleText": "阅痕 · 库藏" } },
+    { "path": "pages/quick-log/index", "style": { "navigationBarTitleText": "极速速记", "style": "custom" } }
+  ],
+  "globalStyle": {
+    "navigationBarBackgroundColor": "#05070B",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#05070B",
+    "backgroundTextStyle": "dark"
+  },
+  "sitemapLocation": "sitemap.json"
+}

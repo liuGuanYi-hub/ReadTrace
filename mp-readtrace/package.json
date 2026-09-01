@@ -1,0 +1,20 @@
+{
+  "name": "mp-readtrace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "阅痕 ReadTrace 微信小程序端（uni-app Vue3 + TS）：与 Android 端数据模型同构的轻量展厅与速记端",
+  "scripts": {
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-4020920240930001",
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-mp-weixin": "3.0.0-4020920240930001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-4020920240930001",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8"
+  }
+}
