@@ -49,6 +49,12 @@ class Gallery3DActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_gallery_3d)
 
+        // 🔮 P12 批次E：切换至 2.5D visionOS 空间视差展厅
+        findViewById<android.widget.TextView>(R.id.gallerySwitchSpatial).setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this)
+            startActivity(android.content.Intent(this, SpatialParallaxGalleryActivity::class.java))
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.galleryRoot)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)

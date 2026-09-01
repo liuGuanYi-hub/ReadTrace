@@ -38,6 +38,18 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/gallerySwitchSpatial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/bg_dark_chip"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="🔮 2.5D 模式"
+                android:textColor="@color/white"
+                android:textSize="11sp" />
+
+            <TextView
                 android:id="@+id/gallerySubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
