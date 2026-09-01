@@ -483,7 +483,11 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                 }
                 if (draggedNode != null) {
                     HapticFeedbackEngine.stampImpact(context)
-                    SpatialAudioEngine.playCelestialTone(pan = (tx / width.toFloat()) * 2f - 1f)
+                    // 🎵 P14 引力琴：评分越高音频率越高（432Hz ~ 528Hz）
+                    SpatialAudioEngine.playCelestialTone(
+                        pan = (tx / width.toFloat()) * 2f - 1f,
+                        frequencyHz = 432.0 + ((draggedNode?.book?.rating ?: 5.0).coerceIn(1.0, 10.0) / 10.0) * 96.0,
+                    )
                     parent?.requestDisallowInterceptTouchEvent(true)
                     return true
                 }
@@ -507,7 +511,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                     val isTap = hypot(tx - touchDownX, ty - touchDownY) <= touchSlop
                     if (isTap) {
                         HapticFeedbackEngine.lightClick(context)
-                        SpatialAudioEngine.playCelestialTone()
+                        SpatialAudioEngine.playCelestialTone(
+                            frequencyHz = 432.0 + ((node.book.rating ?: 5.0).coerceIn(1.0, 10.0) / 10.0) * 96.0,
+                        )
                         onNodeClickListener?.invoke(node.book)
                     }
                     draggedNode = null

@@ -161,8 +161,9 @@ object SpatialAudioEngine {
 
     /**
      * 6. 🌌 心智星系空灵共鸣泛音 (528Hz 治愈声波)
+     * 🎵 P14 宇宙引力琴：按评分分级——高分天体奏 528Hz，低分奏 432Hz 宇宙基准频率
      */
-    fun playCelestialTone(pan: Float = 0f) {
+    fun playCelestialTone(pan: Float = 0f, frequencyHz: Double = 528.0) {
         audioExecutor.execute {
             val durationMs = 280
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -174,7 +175,8 @@ object SpatialAudioEngine {
             for (i in 0 until numSamples) {
                 val t = i.toDouble() / SAMPLE_RATE
                 val decay = Math.exp(-t * 8.0)
-                val chime = sin(2.0 * Math.PI * 528.0 * t) * 0.6 + sin(2.0 * Math.PI * 1056.0 * t) * 0.4
+                val chime = sin(2.0 * Math.PI * frequencyHz * t) * 0.6 +
+                    sin(2.0 * Math.PI * frequencyHz * 2.0 * t) * 0.4
                 val sampleVal = (chime * decay * 22000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 

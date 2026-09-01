@@ -107,6 +107,8 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    // P14 Web 微卡二维码生成（纯 JVM 核心，无额外传递依赖）
+    implementation("com.google.zxing:core:3.5.3")
     testImplementation(libs.junit)
     // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
     testImplementation("org.json:json:20240303")
