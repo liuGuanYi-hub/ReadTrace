@@ -8,7 +8,6 @@ import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
@@ -69,6 +68,16 @@ class MindprintTopologyView @JvmOverloads constructor(
     private var yawDeg = 45f
     private var pitchDeg = 55f
     private var zoomScale = 1.0f
+
+    // 每帧预计算的旋转三角函数缓存，避免在网格循环中反复执行 toRadians/cos
+    private var cosYaw = 1f
+    private var sinYaw = 0f
+    private var cosPitch = 1f
+    private var sinPitch = 0f
+
+    // 投影结果复用缓冲：零分配渲染（单点复用 tmpPt，多点并行场景复用 quadBuf 槽位）
+    private val tmpPt = FloatArray(2)
+    private val quadBuf = FloatArray(8)
 
     // 陀螺仪视差
     var gyroOffsetX = 0f
@@ -244,6 +253,11 @@ class MindprintTopologyView @JvmOverloads constructor(
         val cellH = (w * 0.024f) * zoomScale
         val elevationScale = 140f * zoomScale
 
+        cosYaw = Math.cos(Math.toRadians(yawDeg.toDouble())).toFloat()
+        sinYaw = Math.sin(Math.toRadians(yawDeg.toDouble())).toFloat()
+        cosPitch = Math.cos(Math.toRadians(pitchDeg.toDouble())).toFloat()
+        sinPitch = Math.sin(Math.toRadians(pitchDeg.toDouble())).toFloat()
+
         when (renderMode) {
             RenderMode.CONTOUR -> drawContourLayers(canvas, cx, cy, cellW, cellH, elevationScale)
             RenderMode.WIREFRAME -> drawWireframeMesh(canvas, cx, cy, cellW, cellH, elevationScale)
@@ -254,24 +268,19 @@ class MindprintTopologyView @JvmOverloads constructor(
         drawLandmarkBeacons(canvas, cx, cy, cellW, cellH, elevationScale)
     }
 
-    private fun project3D(gx: Float, gy: Float, gz: Float, cx: Float, cy: Float, cellW: Float, cellH: Float, elevationScale: Float): PointF {
+    private fun project3D(gx: Float, gy: Float, gz: Float, cx: Float, cy: Float, cellW: Float, cellH: Float, elevationScale: Float, out: FloatArray, offset: Int = 0) {
         val half = gridSize * 0.5f
         val x = (gx - half) * cellW
         val y = (gy - half) * cellH
         val z = gz * elevationScale
 
-        val yawRad = Math.toRadians(yawDeg.toDouble())
-        val pitchRad = Math.toRadians(pitchDeg.toDouble())
-
         // 绕 Y 轴偏航旋转 (Yaw)
-        val xRot = (x * cos(yawRad) - y * sin(yawRad)).toFloat()
-        val yRot = (x * sin(yawRad) + y * cos(yawRad)).toFloat()
+        val xRot = x * cosYaw - y * sinYaw
+        val yRot = x * sinYaw + y * cosYaw
 
         // 绕 X 轴俯仰投影 (Pitch)
-        val screenX = cx + xRot
-        val screenY = cy + (yRot * sin(pitchRad) - z * cos(pitchRad)).toFloat()
-
-        return PointF(screenX, screenY)
+        out[offset] = cx + xRot
+        out[offset + 1] = cy + yRot * sinPitch - z * cosPitch
     }
 
     private fun drawWireframeMesh(canvas: Canvas, cx: Float, cy: Float, cellW: Float, cellH: Float, elevationScale: Float) {
@@ -283,8 +292,8 @@ class MindprintTopologyView @JvmOverloads constructor(
             for (j in 0 until gridSize) {
                 val gz = heightGrid[i][j]
                 if (gz < sliceThreshold) continue
-                val pt = project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale)
-                if (j == 0) gridPath.moveTo(pt.x, pt.y) else gridPath.lineTo(pt.x, pt.y)
+                project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale, tmpPt)
+                if (j == 0) gridPath.moveTo(tmpPt[0], tmpPt[1]) else gridPath.lineTo(tmpPt[0], tmpPt[1])
             }
             paint.color = getElevationColor(heightGrid[i][gridSize / 2])
             canvas.drawPath(gridPath, paint)
@@ -295,8 +304,8 @@ class MindprintTopologyView @JvmOverloads constructor(
             for (i in 0 until gridSize) {
                 val gz = heightGrid[i][j]
                 if (gz < sliceThreshold) continue
-                val pt = project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale)
-                if (i == 0) gridPath.moveTo(pt.x, pt.y) else gridPath.lineTo(pt.x, pt.y)
+                project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale, tmpPt)
+                if (i == 0) gridPath.moveTo(tmpPt[0], tmpPt[1]) else gridPath.lineTo(tmpPt[0], tmpPt[1])
             }
             paint.color = getElevationColor(heightGrid[gridSize / 2][j])
             canvas.drawPath(gridPath, paint)
@@ -314,8 +323,8 @@ class MindprintTopologyView @JvmOverloads constructor(
             gridPath.reset()
             for (j in 0 until gridSize step 2) {
                 val gz = heightGrid[i][j]
-                val pt = project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale)
-                if (j == 0) gridPath.moveTo(pt.x, pt.y) else gridPath.lineTo(pt.x, pt.y)
+                project3D(i.toFloat(), j.toFloat(), gz, cx, cy, cellW, cellH, elevationScale, tmpPt)
+                if (j == 0) gridPath.moveTo(tmpPt[0], tmpPt[1]) else gridPath.lineTo(tmpPt[0], tmpPt[1])
             }
             canvas.drawPath(gridPath, paint)
         }
@@ -333,9 +342,9 @@ class MindprintTopologyView @JvmOverloads constructor(
                         val h01 = heightGrid[i][j + 1]
 
                         if ((h00 >= levelH && h10 < levelH) || (h00 < levelH && h10 >= levelH)) {
-                            val pt1 = project3D(i + 0.5f, j.toFloat(), levelH, cx, cy, cellW, cellH, elevationScale)
-                            val pt2 = project3D(i.toFloat(), j + 0.5f, levelH, cx, cy, cellW, cellH, elevationScale)
-                            canvas.drawLine(pt1.x, pt1.y, pt2.x, pt2.y, paint)
+                            project3D(i + 0.5f, j.toFloat(), levelH, cx, cy, cellW, cellH, elevationScale, quadBuf, 0)
+                            project3D(i.toFloat(), j + 0.5f, levelH, cx, cy, cellW, cellH, elevationScale, quadBuf, 2)
+                            canvas.drawLine(quadBuf[0], quadBuf[1], quadBuf[2], quadBuf[3], paint)
                         }
                     }
                 }
@@ -351,16 +360,16 @@ class MindprintTopologyView @JvmOverloads constructor(
                 val gz = (heightGrid[i][j] + heightGrid[i + 1][j] + heightGrid[i][j + 1] + heightGrid[i + 1][j + 1]) / 4f
                 if (gz < sliceThreshold) continue
 
-                val p00 = project3D(i.toFloat(), j.toFloat(), heightGrid[i][j], cx, cy, cellW, cellH, elevationScale)
-                val p10 = project3D(i + 1f, j.toFloat(), heightGrid[i + 1][j], cx, cy, cellW, cellH, elevationScale)
-                val p11 = project3D(i + 1f, j + 1f, heightGrid[i + 1][j + 1], cx, cy, cellW, cellH, elevationScale)
-                val p01 = project3D(i.toFloat(), j + 1f, heightGrid[i][j + 1], cx, cy, cellW, cellH, elevationScale)
+                project3D(i.toFloat(), j.toFloat(), heightGrid[i][j], cx, cy, cellW, cellH, elevationScale, quadBuf, 0)
+                project3D(i + 1f, j.toFloat(), heightGrid[i + 1][j], cx, cy, cellW, cellH, elevationScale, quadBuf, 2)
+                project3D(i + 1f, j + 1f, heightGrid[i + 1][j + 1], cx, cy, cellW, cellH, elevationScale, quadBuf, 4)
+                project3D(i.toFloat(), j + 1f, heightGrid[i][j + 1], cx, cy, cellW, cellH, elevationScale, quadBuf, 6)
 
                 gridPath.reset()
-                gridPath.moveTo(p00.x, p00.y)
-                gridPath.lineTo(p10.x, p10.y)
-                gridPath.lineTo(p11.x, p11.y)
-                gridPath.lineTo(p01.x, p01.y)
+                gridPath.moveTo(quadBuf[0], quadBuf[1])
+                gridPath.lineTo(quadBuf[2], quadBuf[3])
+                gridPath.lineTo(quadBuf[4], quadBuf[5])
+                gridPath.lineTo(quadBuf[6], quadBuf[7])
                 gridPath.close()
 
                 paint.color = getElevationColor(gz, alpha = 160)
@@ -373,10 +382,10 @@ class MindprintTopologyView @JvmOverloads constructor(
         beacons.forEach { beacon ->
             val gz = heightGrid[beacon.gx.toInt()][beacon.gy.toInt()]
             if (gz >= sliceThreshold) {
-                val basePt = project3D(beacon.gx, beacon.gy, 0f, cx, cy, cellW, cellH, elevationScale)
-                val peakPt = project3D(beacon.gx, beacon.gy, gz, cx, cy, cellW, cellH, elevationScale)
-                beacon.screenX = peakPt.x
-                beacon.screenY = peakPt.y
+                project3D(beacon.gx, beacon.gy, 0f, cx, cy, cellW, cellH, elevationScale, quadBuf, 0)
+                project3D(beacon.gx, beacon.gy, gz, cx, cy, cellW, cellH, elevationScale, quadBuf, 2)
+                beacon.screenX = quadBuf[2]
+                beacon.screenY = quadBuf[3]
 
                 val isSelected = selectedBeacon?.book?.id == beacon.book.id
 
@@ -385,7 +394,7 @@ class MindprintTopologyView @JvmOverloads constructor(
                 paint.strokeWidth = if (isSelected) 2.5f else 1.2f
                 paint.color = Color.argb(if (isSelected) 220 else 120, 77, 238, 234)
                 paint.pathEffect = DashPathEffect(floatArrayOf(8f, 6f), 0f)
-                canvas.drawLine(basePt.x, basePt.y, peakPt.x, peakPt.y, paint)
+                canvas.drawLine(quadBuf[0], quadBuf[1], quadBuf[2], quadBuf[3], paint)
                 paint.pathEffect = null
 
                 // B. 水晶方尖碑顶部菱形信标
@@ -401,10 +410,10 @@ class MindprintTopologyView @JvmOverloads constructor(
 
                 val diamondSize = (if (isSelected) 10f else 6.5f) * zoomScale
                 val diamondPath = Path().apply {
-                    moveTo(peakPt.x, peakPt.y - diamondSize)
-                    lineTo(peakPt.x + diamondSize, peakPt.y)
-                    lineTo(peakPt.x, peakPt.y + diamondSize)
-                    lineTo(peakPt.x - diamondSize, peakPt.y)
+                    moveTo(quadBuf[2], quadBuf[3] - diamondSize)
+                    lineTo(quadBuf[2] + diamondSize, quadBuf[3])
+                    lineTo(quadBuf[2], quadBuf[3] + diamondSize)
+                    lineTo(quadBuf[2] - diamondSize, quadBuf[3])
                     close()
                 }
                 canvas.drawPath(diamondPath, paint)
@@ -415,7 +424,7 @@ class MindprintTopologyView @JvmOverloads constructor(
                     textPaint.isFakeBoldText = isSelected
                     textPaint.color = if (isSelected) Color.WHITE else Color.parseColor("#D5DFEE")
                     val title = if (beacon.book.title.length > 7) beacon.book.title.take(6) + ".." else beacon.book.title
-                    canvas.drawText("${beacon.book.mediaType.emoji} $title", peakPt.x + diamondSize + 6f, peakPt.y + 4f, textPaint)
+                    canvas.drawText("${beacon.book.mediaType.emoji} $title", quadBuf[2] + diamondSize + 6f, quadBuf[3] + 4f, textPaint)
                 }
             }
         }

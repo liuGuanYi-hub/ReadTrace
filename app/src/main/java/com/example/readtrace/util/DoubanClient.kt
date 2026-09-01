@@ -35,6 +35,34 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object DoubanClient {
 
+    // --- 预编译正则常量：避免在榜单/搜索循环解析中反复构建正则语法树（提升 HTML 解析吞吐） ---
+    private val RE_00 = Regex("<tr class=\"item\">([\\s\\S]*?)</tr>")
+    private val RE_01 = Regex("subject/(\\d+)/?")
+    private val RE_02 = Regex("<div class=\"pl2\">[\\s\\S]*?<a[^>]*title=\"([^\"]{1,80})\"")
+    private val RE_03 = Regex("<a[^>]*title=\"([^\"]{1,80})\"")
+    private val RE_04 = Regex("rating_nums\">([\\d.]+)<")
+    private val RE_05 = Regex("<img[^>]*src=\"([^\"]+)\"")
+    private val RE_06 = Regex("<div class=\"pl2\">[\\s\\S]*?<p class=\"pl\">([^<]{1,120})</p>")
+    private val RE_07 = Regex("<div class=\"item\">([\\s\\S]*?)(?=<div class=\"item\")")
+    private val RE_08 = Regex("<span class=\"title\">([^<]{1,80})</span>")
+    private val RE_09 = Regex("rating_num\" property=\"v:average\">([\\d.]+)<")
+    private val RE_10 = Regex("<p>[\\s\\S]*?(?:导演|导演:)\\s*([^<\\n]{1,40})")
+    private val RE_11 = Regex("<li[^>]*>([\\s\\S]*?class=\"pl2\"[\\s\\S]*?)</li>")
+    private val RE_12 = Regex("<a[^>]*>([^<]{1,80})</a>")
+    private val RE_13 = Regex("<img[^>]*src=\"([^\"]+)\"[^>]*>")
+    private val RE_14 = Regex("<p class=\"pl\">([^<]{1,120})</p>")
+    private val RE_15 = Regex("<div class=\"item-root\"[^>]*>([\\s\\S]*?)(?=<div class=\"item-root\")")
+    private val RE_16 = Regex("class=\"title-text\"[^>]*>([^<]{1,80})<")
+    private val RE_17 = Regex("subject-cast\">([^<]{1,120})<")
+    private val RE_18 = Regex("<title>([^<]{1,80}?)\\s*\\(豆瓣\\)")
+    private val RE_19 = Regex("property=\"v:average\">([\\d.]+)<")
+    private val RE_20 = Regex("<span property=\"v:summary\"[^>]*>([\\s\\S]*?)</span>")
+    private val RE_21 = Regex("<div id=\"link-report-intra\"[^>]*>([\\s\\S]*?)</div>")
+    private val RE_22 = Regex("<[^>]+>")
+    private val RE_23 = Regex("\\s+")
+    private val RE_24 = Regex("<div id=\"info\"[^>]*>([\\s\\S]*?)</div>")
+    private val RE_25 = Regex("\\([^)]*\\)")
+
     /** 条目来源标识：落库 sourceType 与跨源防重用 */
     const val SOURCE_DOUBAN = "douban"
 
@@ -176,16 +204,16 @@ object DoubanClient {
     /** 读书 Top250 table 结构 */
     private fun parseRankTable(html: String): List<BangumiSubject> {
         val out = mutableListOf<BangumiSubject>()
-        for (m in Regex("<tr class=\"item\">([\\s\\S]*?)</tr>").findAll(html).take(120)) {
+        for (m in RE_00.findAll(html).take(120)) {
             val block = m.groupValues[1]
-            val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
-            val title = Regex("<div class=\"pl2\">[\\s\\S]*?<a[^>]*title=\"([^\"]{1,80})\"").find(block)
+            val id = RE_01.find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
+            val title = RE_02.find(block)
                 ?.groupValues?.get(1)
-                ?: Regex("<a[^>]*title=\"([^\"]{1,80})\"").find(block)?.groupValues?.get(1)
+                ?: RE_03.find(block)?.groupValues?.get(1)
                 ?: continue
-            val rating = Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)?.toDoubleOrNull()
-            val cover = Regex("<img[^>]*src=\"([^\"]+)\"").find(block)?.groupValues?.get(1)
-            val creator = Regex("<div class=\"pl2\">[\\s\\S]*?<p class=\"pl\">([^<]{1,120})</p>").find(block)?.groupValues?.get(1)
+            val rating = RE_04.find(block)?.groupValues?.get(1)?.toDoubleOrNull()
+            val cover = RE_05.find(block)?.groupValues?.get(1)
+            val creator = RE_06.find(block)?.groupValues?.get(1)
             out += BangumiSubject(
                 id = id,
                 name = title.trim(),
@@ -205,14 +233,14 @@ object DoubanClient {
     private fun parseRankGridView(html: String): List<BangumiSubject> {
         val out = mutableListOf<BangumiSubject>()
         val body = html + "<div class=\"item\""
-        for (m in Regex("<div class=\"item\">([\\s\\S]*?)(?=<div class=\"item\")").findAll(body).take(120)) {
+        for (m in RE_07.findAll(body).take(120)) {
             val block = m.groupValues[1]
-            val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
-            val title = Regex("<span class=\"title\">([^<]{1,80})</span>").find(block)?.groupValues?.get(1) ?: continue
-            val rating = Regex("rating_num\" property=\"v:average\">([\\d.]+)<").find(block)?.groupValues?.get(1)
+            val id = RE_01.find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
+            val title = RE_08.find(block)?.groupValues?.get(1) ?: continue
+            val rating = RE_09.find(block)?.groupValues?.get(1)
                 ?.toDoubleOrNull()
-            val cover = Regex("<img[^>]*src=\"([^\"]+)\"").find(block)?.groupValues?.get(1)
-            val creator = Regex("<p>[\\s\\S]*?(?:导演|导演:)\\s*([^<\\n]{1,40})").find(block)?.groupValues?.get(1)
+            val cover = RE_05.find(block)?.groupValues?.get(1)
+            val creator = RE_10.find(block)?.groupValues?.get(1)
             out += BangumiSubject(
                 id = id,
                 name = title.trim(),
@@ -234,7 +262,7 @@ object DoubanClient {
         buildList {
             for (i in 0 until data.length()) {
                 val o = data.optJSONObject(i) ?: continue
-                val id = Regex("subject/(\\d+)/?").find(o.optString("url"))?.groupValues?.get(1)?.toLongOrNull()
+                val id = RE_01.find(o.optString("url"))?.groupValues?.get(1)?.toLongOrNull()
                     ?: continue
                 val title = o.optString("title").trim()
                 if (title.isEmpty()) continue
@@ -267,17 +295,17 @@ object DoubanClient {
     private fun parseList(html: String, mediaType: MediaType, keyword: String): List<BangumiSubject> {
         val results = mutableListOf<BangumiSubject>()
         // 兼容 chart 页（class="pl2"）与 search.douban.com 新版（class="item-root" / title-text）
-        val chartBlock = Regex("<li[^>]*>([\\s\\S]*?class=\"pl2\"[\\s\\S]*?)</li>").findAll(html)
+        val chartBlock = RE_11.findAll(html)
         for (m in chartBlock.take(100)) {
             val block = m.groupValues[1]
             val id = Regex("https?://${hostOf(mediaType)}\\.douban\\.com/subject/(\\d+)/?").find(block)
                 ?.groupValues?.get(1)?.toLongOrNull() ?: continue
-            val title = Regex("<a[^>]*>([^<]{1,80})</a>").find(block)?.groupValues?.get(1)
+            val title = RE_12.find(block)?.groupValues?.get(1)
                 ?.trim() ?: continue
-            val rating = Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)
+            val rating = RE_04.find(block)?.groupValues?.get(1)
                 ?.toDoubleOrNull()
-            val cover = Regex("<img[^>]*src=\"([^\"]+)\"[^>]*>").find(block)?.groupValues?.get(1)
-            val castRaw = Regex("<p class=\"pl\">([^<]{1,120})</p>").find(block)?.groupValues?.get(1)
+            val cover = RE_13.find(block)?.groupValues?.get(1)
+            val castRaw = RE_14.find(block)?.groupValues?.get(1)
             results += BangumiSubject(
                 id = id,
                 name = title,
@@ -294,16 +322,16 @@ object DoubanClient {
 
         // search.douban.com 新版结构：整页找所有 item-root 块，尾部补哨兵保证最后一条不漏
         val body = html + "<div class=\"item-root\""
-        val items = Regex("<div class=\"item-root\"[^>]*>([\\s\\S]*?)(?=<div class=\"item-root\")").findAll(body)
+        val items = RE_15.findAll(body)
         for (m in items.take(100)) {
             val block = m.groupValues[1]
-            val id = Regex("subject/(\\d+)/?").find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
-            val title = Regex("class=\"title-text\"[^>]*>([^<]{1,80})<").find(block)?.groupValues?.get(1)
+            val id = RE_01.find(block)?.groupValues?.get(1)?.toLongOrNull() ?: continue
+            val title = RE_16.find(block)?.groupValues?.get(1)
                 ?.trim() ?: continue
-            val rating = Regex("rating_nums\">([\\d.]+)<").find(block)?.groupValues?.get(1)
+            val rating = RE_04.find(block)?.groupValues?.get(1)
                 ?.toDoubleOrNull()
-            val cover = Regex("<img[^>]*src=\"([^\"]+)\"[^>]*>").find(block)?.groupValues?.get(1)
-            val cast = Regex("subject-cast\">([^<]{1,120})<").find(block)?.groupValues?.get(1)
+            val cover = RE_13.find(block)?.groupValues?.get(1)
+            val cast = RE_17.find(block)?.groupValues?.get(1)
             results += BangumiSubject(
                 id = id,
                 name = title,
@@ -320,24 +348,24 @@ object DoubanClient {
     }
 
     private fun parseDetail(html: String, subject: BangumiSubject, mediaType: MediaType): BangumiSubject {
-        val title = Regex("<title>([^<]{1,80}?)\\s*\\(豆瓣\\)").find(html)?.groupValues?.get(1)
+        val title = RE_18.find(html)?.groupValues?.get(1)
             ?.trim() ?: subject.displayTitle
-        val rating = Regex("property=\"v:average\">([\\d.]+)<").find(html)?.groupValues?.get(1)
+        val rating = RE_19.find(html)?.groupValues?.get(1)
             ?.toDoubleOrNull() ?: subject.ratingScore
         // 简介：link-report-intra 区块（新版与历史版结构）
-        val summary = Regex("<span property=\"v:summary\"[^>]*>([\\s\\S]*?)</span>").find(html)
+        val summary = RE_20.find(html)
             ?.groupValues?.get(1)
-            ?: Regex("<div id=\"link-report-intra\"[^>]*>([\\s\\S]*?)</div>").find(html)
+            ?: RE_21.find(html)
                 ?.groupValues?.get(1)
         val cleanSummary = summary?.let { s ->
-            s.replace(Regex("<[^>]+>"), "")
+            s.replace(RE_22, "")
                 .replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
                 .replace("&#13;", "").replace("&quot;", "\"")
-                .replace(Regex("\\s+"), " ").trim()
+                .replace(RE_23, " ").trim()
                 .takeIf { it.length >= 2 }
         }
         // 创作者：info 区块「作者 / 导演 / 表演者」链接文本
-        val creator = Regex("<div id=\"info\"[^>]*>([\\s\\S]*?)</div>").find(html)?.groupValues?.get(1)
+        val creator = RE_24.find(html)?.groupValues?.get(1)
             ?.let { info ->
                 val key = when (mediaType) {
                     MediaType.ANIME, MediaType.MOVIE -> "导演"
@@ -359,8 +387,8 @@ object DoubanClient {
     /** 榜单页 cast 行清理：去掉「(作者) (译者)」等注记，保留人名 */
     private fun cleanCast(raw: String): String {
         var s = raw
-        Regex("\\([^)]*\\)").findAll(s).forEach { s = s.replace(it.value, "") }
-        return s.replace(Regex("\\s+"), " ").trim().takeIf { it.isNotEmpty() } ?: raw.trim()
+        RE_25.findAll(s).forEach { s = s.replace(it.value, "") }
+        return s.replace(RE_23, " ").trim().takeIf { it.isNotEmpty() } ?: raw.trim()
     }
 
     // ---------------------------------------------------------------- 缓存

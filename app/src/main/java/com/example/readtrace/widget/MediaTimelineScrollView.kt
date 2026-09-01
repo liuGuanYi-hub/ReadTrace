@@ -16,7 +16,6 @@ import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 open class MediaTimelineScrollView @JvmOverloads constructor(
@@ -38,8 +37,18 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
     var groupedByYear: Map<String, List<Book>> = emptyMap()
         protected set
 
-    /** 封面位图内存缓存 */
-    private val coverBitmaps = ConcurrentHashMap<String, Bitmap>()
+    /** 封面位图内存缓存：按字节计量的 LRU 上限（约堆 1/8），防止长时间浏览无限累积导致 OOM */
+    private val coverBitmaps = object : android.util.LruCache<String, Bitmap>(
+        (Runtime.getRuntime().maxMemory() / 8).toInt().coerceAtLeast(4 * 1024 * 1024),
+    ) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount.coerceAtLeast(1)
+    }
+
+    override fun onDetachedFromWindow() {
+        // 脱离窗口时安全清空缓存（位图可能仍被 CoverImageHelper 共享持有，只逐出不 recycle）
+        coverBitmaps.evictAll()
+        super.onDetachedFromWindow()
+    }
 
     /** 点击与长按监听器 */
     var onBookClickListener: ((Book) -> Unit)? = null
@@ -115,10 +124,10 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         // 异步预加载所有封面图片
         bookList.forEach { book ->
             val url = book.coverUrl?.trim().orEmpty()
-            if (url.isNotBlank() && !coverBitmaps.containsKey(url)) {
+            if (url.isNotBlank() && coverBitmaps.get(url) == null) {
                 CoverImageHelper.loadCoverBitmap(context, url, 200, 300) { bmp ->
                     if (bmp != null) {
-                        coverBitmaps[url] = bmp
+                        coverBitmaps.put(url, bmp)
                         postInvalidate()
                     }
                 }
@@ -558,7 +567,7 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
                 val coverBottom = coverTop + cardLayout.coverHeight
                 val coverRect = RectF(coverLeft, coverTop, coverRight, coverBottom)
 
-                val bmp = book.coverUrl?.trim()?.let { coverBitmaps[it] }
+                val bmp = book.coverUrl?.trim()?.let { coverBitmaps.get(it) }
                 if (bmp != null && !bmp.isRecycled) {
                     val roundPath = Path().apply {
                         addRoundRect(coverRect, 8f, 8f, Path.Direction.CW)

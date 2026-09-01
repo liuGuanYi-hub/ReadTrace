@@ -979,6 +979,16 @@ class BookDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // 主动回收时间轴长图位图，避免高分辨率 ARGB_8888 长图滞留至 GC
+        pendingTimelineBitmap?.recycle()
+        pendingTimelineBitmap = null
+    }
+
+    private var pendingTimelineBitmap: android.graphics.Bitmap? = null
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
     private fun exportTimelineAsLongImage() {
         val timelineView = findViewById<View>(R.id.detailTimelineSection)
         if (timelineView == null || timelineView.width <= 0 || timelineView.height <= 0) {
@@ -987,6 +997,8 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         try {
+            // 主线程仅执行绘制采样（毫秒级），PNG 压缩与磁盘 I/O 全部移交后台线程
+            pendingTimelineBitmap?.recycle()
             val bitmap = android.graphics.Bitmap.createBitmap(
                 timelineView.width,
                 timelineView.height,
@@ -994,47 +1006,57 @@ class BookDetailActivity : AppCompatActivity() {
             )
             val canvas = android.graphics.Canvas(bitmap)
             timelineView.draw(canvas)
+            pendingTimelineBitmap = bitmap
 
             val bookName = currentBook?.title?.replace(" ", "_") ?: "book"
             val filename = "ReadTrace_Timeline_${bookName}_${System.currentTimeMillis()}.png"
-            var fos: java.io.OutputStream? = null
-            var success = false
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val resolver = contentResolver
-                val contentValues = android.content.ContentValues().apply {
-                    put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                    put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
-                    put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+            Thread {
+                var success = false
+                runCatching {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        val resolver = contentResolver
+                        val contentValues = android.content.ContentValues().apply {
+                            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/ReadTrace")
+                        }
+                        val imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                        if (imageUri != null) {
+                            resolver.openOutputStream(imageUri)?.use { fos ->
+                                success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+                            }
+                        }
+                    } else {
+                        val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES).toString() + "/ReadTrace"
+                        val file = java.io.File(imagesDir)
+                        if (!file.exists()) file.mkdirs()
+                        val imageFile = java.io.File(file, filename)
+                        java.io.FileOutputStream(imageFile).use { fos ->
+                            success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+                        }
+                    }
+                }.onFailure { e ->
+                    e.printStackTrace()
                 }
-                val imageUri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                if (imageUri != null) {
-                    fos = resolver.openOutputStream(imageUri)
-                    success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos!!)
-                }
-            } else {
-                val imagesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES).toString() + "/ReadTrace"
-                val file = java.io.File(imagesDir)
-                if (!file.exists()) file.mkdirs()
-                val imageFile = java.io.File(file, filename)
-                fos = java.io.FileOutputStream(imageFile)
-                success = bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
-            }
-            fos?.close()
 
-            if (success) {
-                ElegantConfirmDialog.show(
-                    activity = this,
-                    title = "🎉 时间轴长图已生成",
-                    message = "全息心路长图已成功保存至系统相册！是否立即分享给书友？",
-                    confirmText = "🔗 立即分享",
-                    cancelText = "稍后再说",
-                    isDanger = false,
-                    onConfirm = { shareTimelineBitmap(bitmap) },
-                )
-            } else {
-                Toast.makeText(this, "导出长图失败，请稍后重试", Toast.LENGTH_SHORT).show()
-            }
+                mainHandler.post {
+                    if (isFinishing || isDestroyed) return@post
+                    if (success) {
+                        ElegantConfirmDialog.show(
+                            activity = this,
+                            title = "🎉 时间轴长图已生成",
+                            message = "全息心路长图已成功保存至系统相册！是否立即分享给书友？",
+                            confirmText = "🔗 立即分享",
+                            cancelText = "稍后再说",
+                            isDanger = false,
+                            onConfirm = { shareTimelineBitmap(bitmap) },
+                        )
+                    } else {
+                        Toast.makeText(this, "导出长图失败，请稍后重试", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.start()
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "生成长图出现异常: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -1910,10 +1932,6 @@ class BookDetailActivity : AppCompatActivity() {
     private fun showMissingBookAndClose() {
         Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
         finish()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
     companion object {

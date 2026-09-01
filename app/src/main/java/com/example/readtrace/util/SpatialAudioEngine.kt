@@ -3,6 +3,8 @@ package com.example.readtrace.util
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.os.Handler
+import android.os.Looper
 import java.util.concurrent.Executors
 import kotlin.math.sin
 
@@ -23,6 +25,7 @@ import kotlin.math.sin
 object SpatialAudioEngine {
 
     private val audioExecutor = Executors.newFixedThreadPool(2)
+    private val mainHandler = Handler(Looper.getMainLooper())
     private const val SAMPLE_RATE = 44100
 
     /**
@@ -212,6 +215,18 @@ object SpatialAudioEngine {
                 }
                 override fun onPeriodicNotification(track: AudioTrack?) {}
             })
+
+            // 兜底释放：部分设备 onMarkerReached 可能不回调，按音频时长 + 500ms 延迟兜底 release，
+            // 防止高频交互下 AudioTrack 句柄累积耗尽系统上限（32 个）
+            val durationMs = pcmBuffer.size / 2 * 1000L / SAMPLE_RATE
+            mainHandler.postDelayed({
+                runCatching {
+                    if (audioTrack.state != AudioTrack.STATE_UNINITIALIZED) {
+                        audioTrack.stop()
+                        audioTrack.release()
+                    }
+                }
+            }, durationMs + 500L)
         }
     }
 }
