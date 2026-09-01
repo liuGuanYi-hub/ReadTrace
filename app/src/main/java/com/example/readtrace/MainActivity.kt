@@ -68,9 +68,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 记录上次已处理的剪贴板原文，避免同一内容反复打扰 */
+    private var lastSniffedClipboard: String? = null
+
     override fun onResume() {
         super.onResume()
         com.example.readtrace.ui.WhatsNewBottomSheet.showIfUpdated(this)
+        // P11 智能剪贴板嗅探：检测外部复制的书名/作品链接，弹出极光收录胶囊
+        lastSniffedClipboard = com.example.readtrace.util.ClipboardSnifferHelper
+            .sniffAndOffer(this, lastSniffedClipboard) ?: lastSniffedClipboard
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

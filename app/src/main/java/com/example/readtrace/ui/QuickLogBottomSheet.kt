@@ -52,7 +52,10 @@ object QuickLogBottomSheet {
     private var pickedSubject: BangumiSubject? = null
     private val pickedTags = mutableSetOf<String>()
 
-    fun show(activity: Activity) {
+    private fun MediaType.defaultQuickStatus(): com.example.readtrace.model.BookStatus =
+        com.example.readtrace.model.BookStatus.WISHLIST
+
+    fun show(activity: Activity, prefillTitle: String? = null) {
         val dialog = Dialog(activity)
         val view = LayoutInflater.from(activity).inflate(R.layout.layout_dialog_quick_log, null)
         dialog.setContentView(view)
@@ -164,7 +167,13 @@ object QuickLogBottomSheet {
             activity.startActivity(android.content.Intent(activity, AddBookActivity::class.java))
         }
 
+        view.tag = dialog
         dialog.show()
+        // 剪贴板嗅探预填：进入弹窗即自动触发联想搜索
+        prefillTitle?.takeIf { it.isNotBlank() }?.let { prefill ->
+            searchInput.setText(prefill)
+            searchInput.setSelection(prefill.length)
+        }
     }
 
     /** 刷新媒介胶囊选中态 */
@@ -192,14 +201,27 @@ object QuickLogBottomSheet {
             resultScroll.visibility = View.GONE
             return
         }
+        // ✍️ 一句话自然语言速记：`读完 三体 9分 #科幻` 直接结构化，置顶一键入库
+        if (com.example.readtrace.util.NaturalQuickAddParser.looksLikeQuickLog(keyword)) {
+            val parsed = com.example.readtrace.util.NaturalQuickAddParser.parse(keyword)
+            if (parsed != null) {
+                resultScroll.visibility = View.VISIBLE
+                resultList.addView(
+                    makeNaturalQuickRow(context, parsed, resultScroll, confirmSection),
+                )
+            }
+        }
+
         sessionToken = RankRepository.startSession(currentMedia, keyword)
         val token = sessionToken
         RankRepository.loadPage(context, token, forceRefresh = false) { page ->
             if (token != sessionToken) return@loadPage // 会话已过期
             val items = page?.items.orEmpty()
             if (items.isEmpty()) {
-                resultScroll.visibility = View.VISIBLE
-                resultList.addView(makeHintRow(context, "未找到相关作品，试试换个关键词"))
+                if (resultList.childCount == 0) {
+                    resultScroll.visibility = View.VISIBLE
+                    resultList.addView(makeHintRow(context, "未找到相关作品，试试换个关键词"))
+                }
                 return@loadPage
             }
             resultScroll.visibility = View.VISIBLE
@@ -344,6 +366,63 @@ object QuickLogBottomSheet {
             ).show()
         } else {
             Toast.makeText(context, "入库失败，请重试", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** 构造一句话速记置顶行：展示解析结果，点击直接落库 */
+    private fun makeNaturalQuickRow(
+        context: Context,
+        parsed: com.example.readtrace.util.NaturalQuickAddParser.ParsedQuickLog,
+        resultScroll: ScrollView,
+        confirmSection: LinearLayout,
+    ): View {
+        val statusLabel = parsed.status?.getDisplayName(currentMedia) ?: currentMedia.defaultQuickStatus().getDisplayName(currentMedia)
+        val ratingLabel = parsed.rating?.let { " · ⭐$it" }.orEmpty()
+        val tagLabel = parsed.tags.take(3).joinToString("/", prefix = " · #") { it }
+
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16, 12, 16, 12)
+            background = context.getDrawable(R.drawable.bg_dark_chip_selected)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { bottomMargin = 8 }
+            addView(
+                TextView(context).apply {
+                    text = "✍️ 一句话速记《${parsed.title}》"
+                    textSize = 14f
+                    setTextColor(Color.WHITE)
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                },
+            )
+            addView(
+                TextView(context).apply {
+                    text = "$statusLabel$ratingLabel$tagLabel · 点击直接入库 ➔"
+                    textSize = 11f
+                    setTextColor(Color.parseColor("#CCFFFFFF"))
+                },
+            )
+            setOnClickListener {
+                HapticFeedbackEngine.stampImpact(context)
+                insertQuickWork(
+                    context,
+                    BookDatabaseHelper.getInstance(context),
+                    BangumiSubject(
+                        id = 0L,
+                        name = parsed.title,
+                        nameCn = parsed.title,
+                        coverUrl = null,
+                        summary = null,
+                        tags = parsed.tags,
+                    ),
+                    parsed.status ?: currentMedia.defaultQuickStatus(),
+                    parsed.tags.ifEmpty { listOf(currentMedia.name) },
+                    parsed.rating,
+                )
+                // 关闭弹窗：通过根 view tag 定位宿主 dialog
+                (rootView.tag as? Dialog)?.dismiss()
+            }
         }
     }
 
