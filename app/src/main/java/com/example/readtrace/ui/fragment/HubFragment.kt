@@ -162,6 +162,11 @@ class HubFragment : Fragment() {
             com.example.readtrace.ui.QuickLogBottomSheet.show(requireActivity())
         }
 
+        // ⏳ P15 StandBy 禅意伴读钟
+        view?.findViewById<View>(R.id.capsuleStandByClock)?.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.readtrace.StandByZenDeskActivity::class.java))
+        }
+
         importPresetBtn.setOnClickListener {
             startActivity(DataMigrationActivity.createIntent(requireContext()))
         }

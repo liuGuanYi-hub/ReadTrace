@@ -125,8 +125,16 @@ object ClipboardSnifferHelper {
                     insertDoubanByLinkId(activity, sniff.subjectId)
                 }
             }
-            Kind.BANGUMI_URL, Kind.STEAM_URL -> {
-                message.text = "📋 检测到外部平台链接，可前往搬家中心收录"
+            Kind.BANGUMI_URL -> {
+                message.text = "📋 检测到 Bangumi 链接，正在直取官方元数据…"
+                action.text = "立即收录 ➔"
+                action.setOnClickListener {
+                    dialog.dismiss()
+                    insertBangumiByLinkId(activity, sniff.subjectId)
+                }
+            }
+            Kind.STEAM_URL -> {
+                message.text = "📋 检测到 Steam 链接，可前往搬家中心收录"
                 action.text = "前往 ➔"
                 action.setOnClickListener {
                     dialog.dismiss()
@@ -138,6 +146,43 @@ object ClipboardSnifferHelper {
         }
         close.setOnClickListener { dialog.dismiss() }
         dialog.show()
+    }
+
+    /** Bangumi 链接 0 误差直取：按 subject id 拉取官方元数据，直接以「想看」状态落库 */
+    private fun insertBangumiByLinkId(activity: Activity, subjectId: Long?) {
+        val id = subjectId ?: return
+        Thread {
+            val subject = com.example.readtrace.util.BangumiApiClient.fetchSubjectByIdSync(id)
+            if (subject == null || subject.displayTitle.isBlank()) {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Toast.makeText(activity, "未能获取该链接的作品信息", Toast.LENGTH_SHORT).show()
+                }
+                return@Thread
+            }
+            val databaseHelper = BookDatabaseHelper.getInstance(activity)
+            val newId = databaseHelper.insertBook(
+                Book(
+                    title = subject.displayTitle,
+                    author = subject.creator,
+                    coverUrl = subject.coverUrl,
+                    category = subject.tags.firstOrNull(),
+                    tags = subject.tags,
+                    status = com.example.readtrace.model.BookStatus.WISHLIST,
+                    mediaType = MediaType.ANIME,
+                    sourceType = subject.source,
+                    sourceId = subject.id.toString(),
+                    remoteRating = subject.ratingScore,
+                    description = subject.summary,
+                ),
+            )
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                Toast.makeText(
+                    activity,
+                    if (newId > 0) "⚡ 已收录《${subject.displayTitle}》至想看" else "收录失败，请重试",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }.start()
     }
 
     /** 豆瓣链接 0 误差直取：按 subject id 拉取官方元数据，直接以「想看」状态落库 */

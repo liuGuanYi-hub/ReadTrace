@@ -376,6 +376,34 @@ object BangumiApiClient {
     // ---------------------------------------------------------------- HTTP
 
     /** 返回响应体字符串；HTTP 非 200 或异常返回 null */
+    /**
+     * P15 深度链接直取：按 Bangumi subject id 拉取官方元数据（GET /v0/subjects/{id}）。
+     * 需在后台线程调用；null = 网络失败或条目不存在。
+     */
+    fun fetchSubjectByIdSync(id: Long): BangumiSubject? {
+        val raw = request(path = "/v0/subjects/$id", method = "GET") ?: return null
+        return runCatching {
+            val obj = JSONObject(raw)
+            BangumiSubject(
+                id = id,
+                name = obj.optString("name"),
+                nameCn = obj.optString("name_cn").takeIf { it.isNotBlank() },
+                coverUrl = obj.optJSONObject("images")?.optString("large")
+                    ?.takeIf { it.isNotBlank() },
+                summary = obj.optString("summary").takeIf { it.isNotBlank() },
+                ratingScore = obj.optJSONObject("rating")?.optDouble("score")?.takeIf { !it.isNaN() },
+                date = obj.optString("date").takeIf { it.isNotBlank() },
+                tags = obj.optJSONArray("tags")?.let { arr ->
+                    (0 until arr.length()).mapNotNull { i ->
+                        arr.optJSONObject(i)?.optString("name")?.takeIf { t -> t.isNotBlank() }
+                    }
+                }.orEmpty(),
+                creator = null,
+                source = "bangumi",
+            )
+        }.getOrNull()
+    }
+
     private fun request(path: String, method: String, body: ByteArray? = null): String? = runCatching {
         val conn = (URL(BASE_URL + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method

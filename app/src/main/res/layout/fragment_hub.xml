@@ -328,6 +328,38 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <!-- 胶囊 0: ⏳ StandBy 禅意伴读钟 (P15) -->
+                    <LinearLayout
+                        android:id="@+id/capsuleStandByClock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/bg_glass_panel"
+                        android:clickable="true"
+                        android:elevation="4dp"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⏳"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:fontFamily="sans"
+                            android:text="伴读钟"
+                            android:textColor="@color/readtrace_ink"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
                     <!-- 胶囊 1: 📻 声学磁带机 -->
                     <LinearLayout
                         android:id="@+id/capsuleVinylPlayer"

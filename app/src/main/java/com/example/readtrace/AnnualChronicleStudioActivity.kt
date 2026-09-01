@@ -114,7 +114,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
                 "精神海拔持续抬升，认知星系继续扩张。",
         )
 
-        // 页 2 · 宏观足迹
+        // 页 2 · 宏观足迹 + 文化年轮
         addPage(
             title = "🗺️ 宏观足迹",
             body = "📖 收录作品：${stats.addedCount} 部\n" +
@@ -122,6 +122,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
                 "⏳ 专注沉浸：${formatMinutes(stats.sessionMinutes)}\n" +
                 "✍️ 留下随想与笔记：${stats.noteCount} 条\n" +
                 "🏷️ 最常用标签：${stats.topTags.joinToString(" · ") { "${it.first}(${it.second})" }.ifBlank { "—行迹尚浅 —" }}",
+            monthlyFinished = stats.monthlyFinished,
         )
 
         // 页 3 · 巅峰海拔：六维心智雷达
@@ -161,7 +162,12 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         )
     }
 
-    private fun addPage(title: String, body: String, radar: com.example.readtrace.model.BookMindprint? = null) {
+    private fun addPage(
+        title: String,
+        body: String,
+        radar: com.example.readtrace.model.BookMindprint? = null,
+        monthlyFinished: IntArray? = null,
+    ) {
         val density = resources.displayMetrics.density
         fun dp(v: Int) = (v * density).toInt()
 
@@ -194,6 +200,23 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
                 setPadding(0, dp(10), 0, 0)
             },
         )
+
+        // 🌲 P15 文化宇宙年轮：月度完读足迹转为年轮环带
+        monthlyFinished?.let { monthly ->
+            page.addView(
+                com.example.readtrace.widget.CulturalTreeRingsView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        dp(230),
+                    ).apply {
+                        topMargin = dp(12)
+                        gravity = android.view.Gravity.CENTER_HORIZONTAL
+                    }
+                    // 完读部数 → 沉浸深度量级（每部折算 30 分钟基准）
+                    setData(IntArray(12) { monthly[it] * 30 })
+                },
+            )
+        }
 
         radar?.let { mp ->
             page.addView(
