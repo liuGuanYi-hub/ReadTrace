@@ -78,6 +78,14 @@ object MemoryFlashbackEngine {
         val yearText = when (memory.yearsAgo) {
             1 -> "一年"
             2 -> "两年"
+            3 -> "三年"
+            4 -> "四年"
+            5 -> "五年"
+            6 -> "六年"
+            7 -> "七年"
+            8 -> "八年"
+            9 -> "九年"
+            10 -> "十年"
             else -> "${memory.yearsAgo} 年"
         }
         val action = if (memory.isFinished) "读完了" else "开始了"
