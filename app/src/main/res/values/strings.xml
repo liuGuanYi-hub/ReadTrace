@@ -38,6 +38,7 @@
     <string name="discover_search_button">搜索</string>
     <string name="discover_source_note">书影音来自豆瓣公开页 · 游戏来自 Bangumi · 低频请求已限流</string>
     <string name="discover_empty">没有找到相关作品\n换个关键词，或切换媒介分类再试试\n🔄 点击此处重试</string>
+    <string name="discover_empty_network_error">网络加载失败\n请检查网络连接后重试\n🔄 点击此处重试</string>
     <string name="discover_cover_desc">作品封面</string>
     <string name="discover_owned_badge">已收藏</string>
     <string name="discover_preview_title">条目预览</string>
@@ -131,6 +132,8 @@
     <string name="detail_thoughts_empty_hint">✦ 这是从外部导入的骨架档案，还没有留下你的想法。点这里补上简短评价或读后感，让它真正属于你。</string>
     <string name="detail_created_at">创建时间</string>
     <string name="detail_updated_at">更新时间</string>
+    <string name="detail_remote_rating_adopt">✦ 远程评分 %1$s / 5（%2$s）· 点击采用</string>
+    <string name="detail_remote_rating_adopted">已采用远程评分</string>
     <string name="not_recorded">尚未记录</string>
     <string name="book_not_found">这本书已经不在当前书架中</string>
     <string name="archive_confirm_title">归档这本书？</string>

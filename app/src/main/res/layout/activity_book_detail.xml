@@ -471,6 +471,20 @@
                     tools:text="8.5 / 10" />
 
                 <TextView
+                    android:id="@+id/detailRemoteRatingAdopt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_glass_panel_soft"
+                    android:elevation="4dp"
+                    android:padding="10dp"
+                    android:textColor="@color/readtrace_accent"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="远程评分 8.5 / 10 · 点击采用"
+                    tools:visibility="visible" />
+
+                <TextView
                     style="@style/ReadTraceDetailLabel"
                     android:layout_marginTop="16dp"
                     android:text="@string/detail_tags" />

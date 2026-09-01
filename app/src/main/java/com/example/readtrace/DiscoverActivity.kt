@@ -261,7 +261,7 @@ class DiscoverActivity : AppCompatActivity() {
         emptyView.visibility = View.GONE
         gridView.visibility = View.GONE
         modeTitle.text = if (keyword.isEmpty()) {
-            getString(R.string.discover_mode_rank)
+            getString(R.string.discover_mode_rank) + " · " + selectedMediaType.displayName
         } else {
             getString(R.string.discover_mode_search, keyword)
         }
@@ -290,6 +290,12 @@ class DiscoverActivity : AppCompatActivity() {
                 if (adapter.itemDataCount() == 0) {
                     emptyView.visibility = View.VISIBLE
                     gridView.visibility = View.GONE
+                    // 交互优化：区分「网络失败」与「确实没有数据」
+                    emptyView.text = if (result == null) {
+                        getString(R.string.discover_empty_network_error)
+                    } else {
+                        getString(R.string.discover_empty)
+                    }
                     sourceNote.text = getString(R.string.discover_source_note)
                 } else {
                     adapter.setFooterState(FOOTER_END)
@@ -312,7 +318,8 @@ class DiscoverActivity : AppCompatActivity() {
         modeTitle.text = buildString {
             append(
                 if (keyword.isEmpty()) {
-                    getString(R.string.discover_mode_rank)
+                    // 榜单模式带当前分类名，如「🔥 热门榜单 · 番剧」
+                    getString(R.string.discover_mode_rank) + " · " + selectedMediaType.displayName
                 } else {
                     getString(R.string.discover_mode_search, keyword)
                 },

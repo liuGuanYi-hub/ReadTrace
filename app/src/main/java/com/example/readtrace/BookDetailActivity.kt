@@ -1269,6 +1269,7 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailRatingHolo)?.setRating(book.rating, animate = true)
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
+        renderRemoteRatingAdopt(book)
         findViewById<TextView>(R.id.detailCoverUrl).text =
             if (CoverImageHelper.isLanCoverKey(book.coverUrl)) "国内图源封面（联网自动加载）" else valueOrFallback(book.coverUrl)
         findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
@@ -1304,6 +1305,34 @@ class BookDetailActivity : AppCompatActivity() {
     // ---------------------------------------------------------------- 作品简介（外部导入收尾）
 
     private var descriptionExpanded = false
+
+    /**
+     * 远程评分 → 个人评分联动引导：
+     * 外部导入条目（有 remoteRating）且个人 rating 未填时，
+     * 在评分区展示引导条，点击一键采用远程评分写入个人评分。
+     */
+    private fun renderRemoteRatingAdopt(book: Book) {
+        val adopt = findViewById<TextView>(R.id.detailRemoteRatingAdopt) ?: return
+        val remote = book.remoteRating
+        if (remote == null || book.rating != null) {
+            adopt.visibility = View.GONE
+            adopt.setOnClickListener(null)
+            return
+        }
+        val stars = remote / 2.0
+        adopt.text = getString(
+            R.string.detail_remote_rating_adopt,
+            RATING_FORMAT.format(stars),
+            book.sourceType?.let { descriptionSourceLabel(it) } ?: getString(R.string.discover_summary_source_generic),
+        )
+        adopt.visibility = View.VISIBLE
+        adopt.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            databaseHelper.updateBook(book.copy(rating = remote, updatedAt = formatNowTimestamp()))
+            Toast.makeText(this, R.string.detail_remote_rating_adopted, Toast.LENGTH_SHORT).show()
+            renderBook(book.copy(rating = remote))
+        }
+    }
 
     /**
      * 作品简介展示：默认折叠 3 行，超长时点击正文或「展开全文」切换；
@@ -1586,6 +1615,12 @@ class BookDetailActivity : AppCompatActivity() {
         runCatching {
             OffsetDateTime.parse(value).format(DISPLAY_TIME_FORMAT)
         }.getOrDefault(valueOrFallback(value))
+
+    /** 当前时间戳（ISO-8601，与数据库时间格式一致），用于 updateBook 时刷新 updatedAt */
+    private fun formatNowTimestamp(): String =
+        runCatching {
+            java.time.OffsetDateTime.now().format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        }.getOrDefault(valueOrFallback(bookId.toString()))
 
     private fun showSelectWidgetThemeDialog() {
         val themes = com.example.readtrace.model.WidgetCardTheme.values()

@@ -305,6 +305,15 @@ object CoverImageHelper {
 
             if (networkUrl != null) {
                 bitmap = downloadRemoteCover(appContext, networkUrl, THUMB_WIDTH, THUMB_HEIGHT, cacheKeyFor = trimmed)
+                // 弱网/图源不可达时，预置封面键回退 APK 内置兜底资产，避免裸占位图
+                if (bitmap == null && isLanCoverKey(trimmed)) {
+                    bitmap = decodeSampledBitmapFromAsset(
+                        appContext,
+                        BUNDLED_ASSET_PREFIX + trimmed,
+                        THUMB_WIDTH,
+                        THUMB_HEIGHT,
+                    )
+                }
             } else if (bundledAssetUri != null) {
                 // 映射未收录的键回退 APK 内置兜底封面
                 bitmap = decodeSampledBitmapFromAsset(appContext, bundledAssetUri, THUMB_WIDTH, THUMB_HEIGHT)
