@@ -546,6 +546,48 @@
                     android:textSize="11.5sp" />
             </LinearLayout>
 
+            <!-- 4.5 🕯️ 那年今日 · 时光回溯便签 (P12) -->
+            <LinearLayout
+                android:id="@+id/memoryFlashbackRibbon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_parchment_ribbon"
+                android:clickable="true"
+                android:elevation="5dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🕯️ 那年今日 · 时光回溯"
+                    android:textColor="#3D2E1E"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <com.example.readtrace.widget.DropCapTextView
+                    android:id="@+id/memoryFlashbackText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="#2A2016"
+                    android:textSize="13.5sp" />
+
+                <TextView
+                    android:id="@+id/memoryFlashbackHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="end"
+                    android:text="轻触唤醒那段记忆 ➔"
+                    android:textColor="#7A6852"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
             <!-- 5. ⚡ 精神能量多维统计面板 -->
             <LinearLayout
                 android:layout_width="match_parent"

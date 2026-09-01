@@ -1324,6 +1324,79 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailUpdatedAt).text = formatTimestamp(book.updatedAt)
         renderDescription(book)
         renderThoughtsHint(book)
+        renderConceptWeb(book)
+    }
+
+    /**
+     * 🌌 P12 双向概念脉络：解析读后感/短评/笔记中的 [[双链]]，点击展开引用该概念的跨媒介藏品
+     */
+    private fun renderConceptWeb(book: Book) {
+        val scroll = findViewById<View>(R.id.conceptWebScroll) ?: return
+        val row = findViewById<LinearLayout>(R.id.conceptWebRow) ?: return
+
+        val notesTexts = databaseHelper.getNotes(book.id).map { it.content }
+        val conceptIndex = com.example.readtrace.util.BidirectionalConceptHelper.buildConceptIndex(
+            databaseHelper.getBooks().map { b ->
+                b.id.toString() to listOfNotNull(b.shortComment, b.review) +
+                    databaseHelper.getNotes(b.id).map { it.content }
+            },
+        )
+
+        val localConcepts = com.example.readtrace.util.BidirectionalConceptHelper
+            .buildConceptIndex(listOf(book.id.toString() to (listOfNotNull(book.shortComment, book.review) + notesTexts)))
+            .keys
+        if (localConcepts.isEmpty()) {
+            scroll.visibility = View.GONE
+            return
+        }
+
+        row.removeAllViews()
+        scroll.visibility = View.VISIBLE
+        localConcepts.forEach { concept ->
+            val related = com.example.readtrace.util.BidirectionalConceptHelper
+                .relatedWorkIds(conceptIndex, concept, excludeWorkId = book.id.toString())
+            val chip = TextView(this).apply {
+                text = "🌌 $concept · ${related.size} 部共鸣"
+                textSize = 12f
+                setPadding(22, 10, 22, 10)
+                background = getDrawable(R.drawable.bg_dark_chip)
+                setTextColor(android.graphics.Color.parseColor("#CCFFFFFF"))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { marginEnd = 8 }
+            }
+            chip.setOnClickListener {
+                com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this)
+                showRelatedWorksDialog(book, concept, related)
+            }
+            row.addView(chip)
+        }
+    }
+
+    private fun showRelatedWorksDialog(current: Book, concept: String, relatedIds: List<String>) {
+        val relatedBooks = relatedIds.mapNotNull { id ->
+            databaseHelper.getBooks().firstOrNull { it.id.toString() == id }
+        }
+        if (relatedBooks.isEmpty()) {
+            Toast.makeText(this, "「$concept」暂无其它共读作品", Toast.LENGTH_SHORT).show()
+            return
+        }
+        com.example.readtrace.util.ElegantChoiceDialog.show(
+            activity = this,
+            title = "🌌 「$concept」概念脉络",
+            choices = relatedBooks.map {
+                com.example.readtrace.util.ElegantChoiceDialog.Choice(
+                    label = "《${it.title}》",
+                    subtitle = "${it.mediaType.emoji} ${it.mediaType.displayName}" +
+                        (it.rating?.let { r -> " · ⭐$r" } ?: ""),
+                    leadingEmoji = it.mediaType.emoji,
+                )
+            },
+            onSelected = { index ->
+                startActivity(createIntent(this, relatedBooks[index].id))
+            },
+        )
     }
 
     // ---------------------------------------------------------------- 作品简介（外部导入收尾）

@@ -226,6 +226,32 @@ class HubFragment : Fragment() {
         homeSubtitle.text = com.example.readtrace.util.CircadianLightingEngine.getCircadianSummary()
         updateThemeToggleIcon()
         refreshDashboard()
+        refreshMemoryFlashback()
+    }
+
+    /**
+     * 🕯️ P12 那年今日 · 时光回溯：检索历史同日完读/开读记忆并唤醒羊皮纸便签
+     */
+    private fun refreshMemoryFlashback() {
+        val ribbon = view?.findViewById<View>(R.id.memoryFlashbackRibbon) ?: return
+        val text = view?.findViewById<com.example.readtrace.widget.DropCapTextView>(R.id.memoryFlashbackText) ?: return
+        val memories = com.example.readtrace.util.MemoryFlashbackEngine
+            .findFlashbacks(databaseHelper.getBooks())
+        if (memories.isEmpty()) {
+            ribbon.visibility = View.GONE
+            return
+        }
+        text.setEditorialText(com.example.readtrace.util.MemoryFlashbackEngine.formatRibbonText(memories.first()))
+        ribbon.visibility = View.VISIBLE
+        ribbon.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(requireContext())
+            startActivity(
+                com.example.readtrace.BookDetailActivity.createIntent(
+                    requireContext(),
+                    memories.first().book.id,
+                ),
+            )
+        }
     }
 
     override fun onPause() {

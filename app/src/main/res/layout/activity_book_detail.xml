@@ -574,6 +574,22 @@
                     style="@style/ReadTraceDetailValue"
                     android:layout_marginTop="6dp"
                     tools:text="“读完后仍然会想起其中的海风和沉默。”" />
+
+                <!-- P12 🌌 双向概念脉络 chips -->
+                <HorizontalScrollView
+                    android:id="@+id/conceptWebScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:scrollbars="none"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/conceptWebRow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
             </LinearLayout>
 
             <LinearLayout
