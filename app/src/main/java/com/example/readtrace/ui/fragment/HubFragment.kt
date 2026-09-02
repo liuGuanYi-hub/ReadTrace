@@ -1,4 +1,4 @@
-﻿package com.example.readtrace.ui.fragment
+package com.example.readtrace.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
@@ -64,6 +64,8 @@ class HubFragment : Fragment() {
     private var currentHeroBook: Book? = null
 
     // 💎 5 大 44dp 晶体工坊胶囊
+    private lateinit var capsulePersonalizedDiscovery: View
+    private lateinit var capsuleStandByClock: View
     private lateinit var capsuleVinylPlayer: View
     private lateinit var capsuleExLibris: View
     private lateinit var capsuleMediaTimeline: View
@@ -126,6 +128,8 @@ class HubFragment : Fragment() {
         heroBtnDetail = view.findViewById(R.id.heroBtnDetail)
 
         // Capsules
+        capsulePersonalizedDiscovery = view.findViewById(R.id.capsulePersonalizedDiscovery)
+        capsuleStandByClock = view.findViewById(R.id.capsuleStandByClock)
         capsuleVinylPlayer = view.findViewById(R.id.capsuleVinylPlayer)
         capsuleExLibris = view.findViewById(R.id.capsuleExLibris)
         capsuleMediaTimeline = view.findViewById(R.id.capsuleMediaTimeline)
@@ -149,6 +153,7 @@ class HubFragment : Fragment() {
         listOf(
             addBtn, importPresetBtn, backupBtn, themeToggleButton,
             heroBtnRead, heroBtnDetail,
+            capsulePersonalizedDiscovery, capsuleStandByClock,
             capsuleVinylPlayer, capsuleExLibris, capsuleMediaTimeline, capsule3DGallery, capsuleMindprintTopology,
             btnRefreshParchmentQuote,
         ).forEach {
@@ -162,8 +167,16 @@ class HubFragment : Fragment() {
             com.example.readtrace.ui.QuickLogBottomSheet.show(requireActivity())
         }
 
+        // ✨ P22 精神品味探索与个性化推荐
+        capsulePersonalizedDiscovery.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            com.example.readtrace.ui.PersonalizedDiscoveryBottomSheet.show(requireActivity()) {
+                refreshDashboard()
+            }
+        }
+
         // ⏳ P15 StandBy 禅意伴读钟
-        view?.findViewById<View>(R.id.capsuleStandByClock)?.setOnClickListener {
+        capsuleStandByClock.setOnClickListener {
             startActivity(Intent(requireContext(), com.example.readtrace.StandByZenDeskActivity::class.java))
         }
 
@@ -192,7 +205,7 @@ class HubFragment : Fragment() {
             }
         }
 
-        // 5 大先锋微胶囊跳转
+        // 微胶囊跳转
         capsuleVinylPlayer.setOnClickListener {
             startActivity(Intent(requireContext(), VinylCassettePlayerActivity::class.java))
         }

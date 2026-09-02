@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -328,7 +328,39 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <!-- 胶囊 0: ⏳ StandBy 禅意伴读钟 (P15) -->
+                    <!-- 胶囊 0: ✨ 精神品味探索与个性推荐 (P22) -->
+                    <LinearLayout
+                        android:id="@+id/capsulePersonalizedDiscovery"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/bg_dark_chip_selected"
+                        android:clickable="true"
+                        android:elevation="4dp"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✨"
+                            android:textSize="15sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:fontFamily="sans"
+                            android:text="精神探索"
+                            android:textColor="@color/white"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- 胶囊 0.5: ⏳ StandBy 禅意伴读钟 (P15) -->
                     <LinearLayout
                         android:id="@+id/capsuleStandByClock"
                         android:layout_width="wrap_content"

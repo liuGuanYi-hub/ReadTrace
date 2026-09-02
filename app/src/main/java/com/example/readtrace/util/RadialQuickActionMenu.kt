@@ -163,6 +163,11 @@ object RadialQuickActionMenu {
                     onUpdate()
                 }
             },
+            Action("✨", "品味探索") {
+                com.example.readtrace.ui.PersonalizedDiscoveryBottomSheet.show(activity) {
+                    onUpdate()
+                }
+            },
             Action("🗑️", "移入回收") {
                 val db = com.example.readtrace.data.BookDatabaseHelper.getInstance(activity)
                 db.archiveBook(book.id)
