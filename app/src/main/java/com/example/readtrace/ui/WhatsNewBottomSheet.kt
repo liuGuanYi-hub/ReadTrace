@@ -1,4 +1,4 @@
-﻿package com.example.readtrace.ui
+package com.example.readtrace.ui
 
 import android.app.Dialog
 import android.content.Context
@@ -45,7 +45,7 @@ object WhatsNewBottomSheet {
             )
         }
 
-        view.findViewById<TextView>(R.id.tvWhatsNewVersion).text = "阅痕 ReadTrace "
+        view.findViewById<TextView>(R.id.tvWhatsNewVersion).text = "阅痕 ReadTrace ${version.versionName}"
         view.findViewById<TextView>(R.id.tvWhatsNewSubtitle).text = version.tagTitle
 
         val listContainer = view.findViewById<LinearLayout>(R.id.whatsNewListContainer)
@@ -55,11 +55,11 @@ object WhatsNewBottomSheet {
         val density = context.resources.displayMetrics.density
         version.highlights.take(4).forEach { text ->
             val tv = TextView(context).apply {
-                this.text = "✦ "
+                this.text = "✦ $text"
                 textSize = 13f
                 setTextColor(Color.parseColor("#E0E6ED"))
                 setLineSpacing(0f, 1.2f)
-                setPadding(0, (4 * density).toInt(), 0, (4 * density).toInt())
+                setPadding(0, (6 * density).toInt(), 0, (6 * density).toInt())
             }
             listContainer.addView(tv)
         }

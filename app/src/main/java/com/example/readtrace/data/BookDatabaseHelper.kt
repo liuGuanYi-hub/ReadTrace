@@ -2000,6 +2000,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
 
     private fun invalidateBookCache() {
         bookListCache = null
+        ConceptIndexRepository.invalidate()
     }
 
     fun insertBook(book: Book): Long {
@@ -2525,7 +2526,9 @@ class BookDatabaseHelper private constructor(val context: Context) :
             put(COLUMN_IS_DELETED, 0)
             putNull(COLUMN_DELETED_AT)
         }
-        return writableDatabase.insertOrThrow(TABLE_NOTES, null, values)
+        val id = writableDatabase.insertOrThrow(TABLE_NOTES, null, values)
+        ConceptIndexRepository.invalidate()
+        return id
     }
 
     fun getNotes(bookId: Long): List<Note> =
@@ -2564,12 +2567,14 @@ class BookDatabaseHelper private constructor(val context: Context) :
         val values = note.toContentValues().apply {
             put(COLUMN_UPDATED_AT, currentTimestamp())
         }
-        return writableDatabase.update(
+        val count = writableDatabase.update(
             TABLE_NOTES,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(note.id.toString(), "0"),
-        ) > 0
+        )
+        if (count > 0) ConceptIndexRepository.invalidate()
+        return count > 0
     }
 
     fun archiveNote(noteId: Long): Boolean {
@@ -2580,12 +2585,14 @@ class BookDatabaseHelper private constructor(val context: Context) :
             put(COLUMN_DELETED_AT, now)
             put(COLUMN_UPDATED_AT, now)
         }
-        return writableDatabase.update(
+        val count = writableDatabase.update(
             TABLE_NOTES,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(noteId.toString(), "0"),
-        ) > 0
+        )
+        if (count > 0) ConceptIndexRepository.invalidate()
+        return count > 0
     }
 
     /**
@@ -2599,12 +2606,14 @@ class BookDatabaseHelper private constructor(val context: Context) :
             putNull(COLUMN_DELETED_AT)
             put(COLUMN_UPDATED_AT, now)
         }
-        return writableDatabase.update(
+        val count = writableDatabase.update(
             TABLE_NOTES,
             values,
             "$COLUMN_ID = ? AND $COLUMN_IS_DELETED = ?",
             arrayOf(noteId.toString(), "1"),
-        ) > 0
+        )
+        if (count > 0) ConceptIndexRepository.invalidate()
+        return count > 0
     }
 
     /**

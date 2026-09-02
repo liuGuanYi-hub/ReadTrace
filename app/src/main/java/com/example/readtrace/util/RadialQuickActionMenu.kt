@@ -95,6 +95,20 @@ object RadialQuickActionMenu {
                     .setDuration(220L)
                     .setInterpolator(android.view.animation.OvershootInterpolator(1.2f))
                     .start()
+
+                setOnTouchListener { v, event ->
+                    when (event.action) {
+                        android.view.MotionEvent.ACTION_DOWN -> {
+                            HapticFeedbackEngine.needleDropCrackle(activity)
+                            v.animate().scaleX(1.18f).scaleY(1.18f).setDuration(100L).start()
+                        }
+                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                            v.animate().scaleX(1f).scaleY(1f).setDuration(100L).start()
+                        }
+                    }
+                    false
+                }
+
                 setOnClickListener {
                     HapticFeedbackEngine.cartridgeSnap(activity)
                     dialog.dismiss()
@@ -105,5 +119,50 @@ object RadialQuickActionMenu {
         }
 
         dialog.show()
+    }
+
+    /**
+     * 为藏品快速构建高频 5 大动作集 (切态 / 速记 / 概念共鸣 / 票根工坊 / 移入回收站)
+     */
+    fun buildDefaultActions(
+        activity: Activity,
+        book: Book,
+        onUpdate: () -> Unit,
+    ): List<Action> {
+        val nextStatus = when (book.status) {
+            com.example.readtrace.model.BookStatus.WISHLIST -> com.example.readtrace.model.BookStatus.READING
+            com.example.readtrace.model.BookStatus.READING -> com.example.readtrace.model.BookStatus.FINISHED
+            else -> com.example.readtrace.model.BookStatus.WISHLIST
+        }
+        return listOf(
+            Action("⚡", "切为${nextStatus.getDisplayName(book.mediaType)}") {
+                val db = com.example.readtrace.data.BookDatabaseHelper.getInstance(activity)
+                db.updateBook(book.copy(status = nextStatus))
+                onUpdate()
+            },
+            Action("📝", "速写笔记") {
+                val intent = android.content.Intent(activity, com.example.readtrace.BookDetailActivity::class.java).apply {
+                    putExtra("book_id", book.id)
+                }
+                activity.startActivity(intent)
+            },
+            Action("🌌", "概念脉络") {
+                val intent = android.content.Intent(activity, com.example.readtrace.BookDetailActivity::class.java).apply {
+                    putExtra("book_id", book.id)
+                }
+                activity.startActivity(intent)
+            },
+            Action("🎟️", "纪念票根") {
+                val intent = android.content.Intent(activity, com.example.readtrace.MovieTicketPosterActivity::class.java).apply {
+                    putExtra("book_id", book.id)
+                }
+                activity.startActivity(intent)
+            },
+            Action("🗑️", "移入回收") {
+                val db = com.example.readtrace.data.BookDatabaseHelper.getInstance(activity)
+                db.archiveBook(book.id)
+                onUpdate()
+            },
+        )
     }
 }

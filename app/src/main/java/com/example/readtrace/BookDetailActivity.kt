@@ -1403,30 +1403,21 @@ class BookDetailActivity : AppCompatActivity() {
         val row = findViewById<LinearLayout>(R.id.conceptWebRow) ?: return
 
         val bookId = book.id
-        Thread {
+        com.example.readtrace.data.ConceptIndexRepository.ensureIndexedAsync(this) { _ ->
             val notesTexts = databaseHelper.getNotes(bookId).map { it.content }
-            val localConcepts = com.example.readtrace.util.BidirectionalConceptHelper
-                .buildConceptIndex(listOf(bookId.toString() to (listOfNotNull(book.shortComment, book.review) + notesTexts)))
-                .keys
+            val fullText = (listOfNotNull(book.shortComment, book.review) + notesTexts).joinToString(" ")
+            val localConcepts = com.example.readtrace.util.BidirectionalConceptHelper.extractConcepts(fullText)
             if (localConcepts.isEmpty()) {
                 mainHandler.post {
                     if (isFinishing || isDestroyed || currentBook?.id != bookId) return@post
                     scroll.visibility = View.GONE
                 }
-                return@Thread
+                return@ensureIndexedAsync
             }
 
-            val allBooks = databaseHelper.getBooks()
-            val conceptIndex = com.example.readtrace.util.BidirectionalConceptHelper.buildConceptIndex(
-                allBooks.map { b ->
-                    b.id.toString() to listOfNotNull(b.shortComment, b.review) +
-                        databaseHelper.getNotes(b.id).map { it.content }
-                },
-            )
-
             val chipsData = localConcepts.map { concept ->
-                val related = com.example.readtrace.util.BidirectionalConceptHelper
-                    .relatedWorkIds(conceptIndex, concept, excludeWorkId = bookId.toString())
+                val related = com.example.readtrace.data.ConceptIndexRepository
+                    .getRelatedWorkIds(concept, excludeWorkId = bookId.toString())
                 concept to related
             }
 
@@ -1468,7 +1459,7 @@ class BookDetailActivity : AppCompatActivity() {
                 }
                 row.addView(colliderChip)
             }
-        }.start()
+        }
     }
 
     private fun showColliderPicker(current: Book) {

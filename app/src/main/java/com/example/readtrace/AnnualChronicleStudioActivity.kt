@@ -42,7 +42,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         }
         findViewById<TextView>(R.id.chronicleExport).setOnClickListener {
             HapticFeedbackEngine.stampImpact(this)
-            exportChronicle()
+            showExportMenu()
         }
 
         buildChronicle()
@@ -278,7 +278,20 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
     private fun formatMinutes(minutes: Int): String =
         if (minutes >= 60) "${minutes / 60} 小时 ${minutes % 60} 分钟" else "$minutes 分钟"
 
-    // ---------------------------------------------------------------- 4K 长图导出
+    // ---------------------------------------------------------------- 导出工坊 (4K 长图 & 多页矢量 PDF)
+
+    private fun showExportMenu() {
+        val options = arrayOf("🖼️ 导出 4K 印刷级长图 (PNG)", "📄 导出多页矢量画册 (PDF)")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("✨ 选择导出格式")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> exportChronicle()
+                    1 -> exportChronicleAsPdf()
+                }
+            }
+            .show()
+    }
 
     private fun exportChronicle() {
         val scroll = findViewById<ScrollView>(R.id.chronicleScroll)
@@ -337,6 +350,85 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
                     if (success) "✨ 年鉴长图已保存至相册 /Pictures/ReadTrace" else "导出失败，请重试",
                     Toast.LENGTH_LONG,
                 ).show()
+            }
+        }.start()
+    }
+
+    /**
+     * F8: 将 6 页年鉴按 A4 标准分页导出为多页高清矢量 PDF 画册
+     */
+    private fun exportChronicleAsPdf() {
+        val scroll = findViewById<ScrollView>(R.id.chronicleScroll)
+        val content = scroll.getChildAt(0)
+        if (content.width <= 0) {
+            Toast.makeText(this, "画册尚未渲染完成，请稍候", Toast.LENGTH_SHORT).show()
+            return
+        }
+        Toast.makeText(this, "正在生成多页矢量 PDF 画册…", Toast.LENGTH_SHORT).show()
+
+        Thread {
+            var success = false
+            var fileUri: android.net.Uri? = null
+            val filename = "ReadTrace_AnnualChronicle_${year}_${System.currentTimeMillis()}.pdf"
+            val pdfDocument = android.graphics.pdf.PdfDocument()
+
+            try {
+                // A4 标准比例 (1 : 1.414)
+                val pageWidth = content.width
+                val pageHeight = (pageWidth * 1.414f).toInt().coerceAtLeast(600)
+                val totalPages = Math.ceil(content.height.toDouble() / pageHeight).toInt().coerceAtLeast(1)
+
+                for (pageIndex in 0 until totalPages) {
+                    val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageIndex + 1).create()
+                    val page = pdfDocument.startPage(pageInfo)
+                    val canvas = page.canvas
+
+                    canvas.save()
+                    canvas.translate(0f, -pageIndex * pageHeight.toFloat())
+                    content.draw(canvas)
+                    canvas.restore()
+
+                    pdfDocument.finishPage(page)
+                }
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    val resolver = contentResolver
+                    val values = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                        put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                        put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOCUMENTS + "/ReadTrace")
+                    }
+                    resolver.insert(android.provider.MediaStore.Files.getContentUri("external"), values)?.let { uri ->
+                        fileUri = uri
+                        resolver.openOutputStream(uri)?.use { out ->
+                            pdfDocument.writeTo(out)
+                            success = true
+                        }
+                    }
+                } else {
+                    val dir = java.io.File(
+                        android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS),
+                        "ReadTrace",
+                    ).apply { if (!exists()) mkdirs() }
+                    val file = java.io.File(dir, filename)
+                    java.io.FileOutputStream(file).use { out ->
+                        pdfDocument.writeTo(out)
+                        success = true
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                pdfDocument.close()
+            }
+
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (success) {
+                    Toast.makeText(this, "📄 年鉴 PDF 已保存至 /Documents/ReadTrace", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, "PDF 导出失败，请重试", Toast.LENGTH_SHORT).show()
+                }
             }
         }.start()
     }
