@@ -10,8 +10,47 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 顶部操作栏：手电筒补光、连续批量扫码切换与完成 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="48dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/scannerTorch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_dark_chip"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="🔦 补光"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/scannerBatchToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_dark_chip"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="⚡ 单本模式"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+
     <!-- 取景框高亮线框 -->
     <View
+        android:id="@+id/scannerViewfinder"
         android:layout_width="260dp"
         android:layout_height="150dp"
         android:layout_gravity="center"
@@ -29,7 +68,7 @@
             android:id="@+id/scannerHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="对准实体书封底条码\n0.2 秒本地识别 · 自动补齐封面与作者"
+            android:text="对准实体书封底条码\n双指缩放 · 0.2 秒本地离线识别"
             android:gravity="center"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
@@ -42,7 +81,7 @@
             android:background="@drawable/bg_dark_chip"
             android:paddingHorizontal="22dp"
             android:paddingVertical="10dp"
-            android:text="✕ 收起"
+            android:text="✕ 结束扫码"
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
     </LinearLayout>

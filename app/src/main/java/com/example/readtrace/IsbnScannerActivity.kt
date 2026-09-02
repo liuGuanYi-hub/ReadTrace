@@ -38,7 +38,15 @@ class IsbnScannerActivity : AppCompatActivity() {
 
     private lateinit var previewView: PreviewView
     private lateinit var hintText: TextView
+    private lateinit var btnTorch: TextView
+    private lateinit var btnBatchToggle: TextView
+    private lateinit var viewfinder: android.view.View
     private val analysisExecutor = Executors.newSingleThreadExecutor()
+    private var camera: androidx.camera.core.Camera? = null
+    private var isTorchOn = false
+    private var isBatchMode = false
+    private var batchCount = 0
+    private val scannedIsbns = mutableSetOf<String>()
     private var handled = false
 
     private val cameraPermissionLauncher =
@@ -55,7 +63,12 @@ class IsbnScannerActivity : AppCompatActivity() {
 
         previewView = findViewById(R.id.scannerPreview)
         hintText = findViewById(R.id.scannerHint)
+        btnTorch = findViewById(R.id.scannerTorch)
+        btnBatchToggle = findViewById(R.id.scannerBatchToggle)
+        viewfinder = findViewById(R.id.scannerViewfinder)
         findViewById<TextView>(R.id.scannerClose).setOnClickListener { finish() }
+
+        setupControls()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
@@ -63,6 +76,45 @@ class IsbnScannerActivity : AppCompatActivity() {
             startCamera()
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun setupControls() {
+        // 🔦 手电筒补光常开切换
+        btnTorch.setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            isTorchOn = !isTorchOn
+            camera?.cameraControl?.enableTorch(isTorchOn)
+            btnTorch.text = if (isTorchOn) "💡 关灯" else "🔦 补光"
+        }
+
+        // 📦 连续批量扫入模式切换
+        btnBatchToggle.setOnClickListener {
+            HapticFeedbackEngine.lightClick(this)
+            isBatchMode = !isBatchMode
+            btnBatchToggle.text = if (isBatchMode) "📦 批量模式 ($batchCount)" else "⚡ 单本模式"
+            Toast.makeText(
+                this,
+                if (isBatchMode) "已开启连续扫码模式：扫完一本可直接扫下一本" else "已切换为单本扫码模式",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
+        // 🔍 双指变焦 Pinch-to-zoom
+        val scaleDetector = android.view.ScaleGestureDetector(
+            this,
+            object : android.view.ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: android.view.ScaleGestureDetector): Boolean {
+                    val currentZoom = camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: 1f
+                    val delta = detector.scaleFactor
+                    camera?.cameraControl?.setZoomRatio((currentZoom * delta).coerceIn(1f, 5f))
+                    return true
+                }
+            },
+        )
+        previewView.setOnTouchListener { _, event ->
+            scaleDetector.onTouchEvent(event)
+            true
         }
     }
 
@@ -88,7 +140,7 @@ class IsbnScannerActivity : AppCompatActivity() {
                     }
 
                 provider.unbindAll()
-                provider.bindToLifecycle(
+                camera = provider.bindToLifecycle(
                     this,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
@@ -115,8 +167,15 @@ class IsbnScannerActivity : AppCompatActivity() {
                 val raw = barcodes.firstOrNull()?.rawValue ?: return@addOnSuccessListener
                 if (handled) return@addOnSuccessListener
                 val isbn = normalizeIsbn(raw) ?: return@addOnSuccessListener
+                if (isBatchMode && scannedIsbns.contains(isbn)) return@addOnSuccessListener
+
                 handled = true
-                runOnUiThread { HapticFeedbackEngine.cartridgeSnap(this) }
+                runOnUiThread {
+                    HapticFeedbackEngine.cartridgeSnap(this)
+                    viewfinder.animate().scaleX(1.08f).scaleY(1.08f).setDuration(120).withEndAction {
+                        viewfinder.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+                    }.start()
+                }
                 fetchAndInsert(isbn)
             }
             .addOnCompleteListener { imageProxy.close() }
@@ -153,12 +212,31 @@ class IsbnScannerActivity : AppCompatActivity() {
                         description = subject.summary,
                     ),
                 )
-                Toast.makeText(
-                    this,
-                    if (newId > 0) "⚡ 已收录《${subject.displayTitle}》至想读" else "收录失败，请重试",
-                    Toast.LENGTH_SHORT,
-                ).show()
-                finish()
+                scannedIsbns.add(isbn)
+                batchCount++
+
+                if (isBatchMode) {
+                    runOnUiThread {
+                        btnBatchToggle.text = "📦 批量模式 ($batchCount)"
+                        hintText.text = "⚡ 已收录第 $batchCount 本《${subject.displayTitle}》\n继续对准下一本书封底条码…"
+                        Toast.makeText(
+                            this,
+                            "📦 已连续收录 ($batchCount): 《${subject.displayTitle}》",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        // 1.2 秒后放开下一次识别防抖
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            handled = false
+                        }, 1200L)
+                    }
+                } else {
+                    Toast.makeText(
+                        this,
+                        if (newId > 0) "⚡ 已收录《${subject.displayTitle}》至想读" else "收录失败，请重试",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    finish()
+                }
             } else {
                 handled = false
                 runOnUiThread {
@@ -170,6 +248,7 @@ class IsbnScannerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        runCatching { camera?.cameraControl?.enableTorch(false) }
         analysisExecutor.shutdown()
     }
 }

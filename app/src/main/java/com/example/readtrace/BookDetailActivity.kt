@@ -1053,13 +1053,22 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         try {
-            // 主线程仅执行绘制采样（毫秒级），PNG 压缩与磁盘 I/O 全部移交后台线程
+            // P3 内存保护：主线程采样时若高度超限（如多笔记巨长轴）按比例缩放至 ≤4096px，防止 OOM
+            val maxDimension = 4096f
+            val rawHeight = timelineView.height.toFloat()
+            val scale = if (rawHeight > maxDimension) maxDimension / rawHeight else 1.0f
+            val targetWidth = (timelineView.width * scale).toInt().coerceAtLeast(1)
+            val targetHeight = (timelineView.height * scale).toInt().coerceAtLeast(1)
+
             val bitmap = android.graphics.Bitmap.createBitmap(
-                timelineView.width,
-                timelineView.height,
+                targetWidth,
+                targetHeight,
                 android.graphics.Bitmap.Config.ARGB_8888,
             )
             val canvas = android.graphics.Canvas(bitmap)
+            if (scale < 1.0f) {
+                canvas.scale(scale, scale)
+            }
             timelineView.draw(canvas)
             pendingTimelineBitmap = bitmap
 

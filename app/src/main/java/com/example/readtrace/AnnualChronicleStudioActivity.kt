@@ -35,11 +35,10 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
 
         pagesContainer = findViewById(R.id.chroniclePages)
         findViewById<TextView>(R.id.chronicleBack).setOnClickListener { finish() }
-        findViewById<TextView>(R.id.chronicleYearToggle).setOnClickListener {
-            year = if (year == LocalDate.now().year) LocalDate.now().year - 1 else LocalDate.now().year
-            (it as TextView).text = year.toString()
-            HapticFeedbackEngine.pageTurnRustle(this)
-            buildChronicle()
+        val tvYearToggle = findViewById<TextView>(R.id.chronicleYearToggle)
+        tvYearToggle.text = year.toString()
+        tvYearToggle.setOnClickListener {
+            showYearPicker(tvYearToggle)
         }
         findViewById<TextView>(R.id.chronicleExport).setOnClickListener {
             HapticFeedbackEngine.stampImpact(this)
@@ -47,6 +46,23 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         }
 
         buildChronicle()
+    }
+
+    private fun showYearPicker(anchor: TextView) {
+        val currentYear = LocalDate.now().year
+        val years = (currentYear downTo (currentYear - 5)).map { it.toString() }.toTypedArray()
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("选择盘点年份")
+        builder.setItems(years) { _, which ->
+            val selected = years[which].toInt()
+            if (selected != year) {
+                year = selected
+                anchor.text = year.toString()
+                HapticFeedbackEngine.pageTurnRustle(this)
+                buildChronicle()
+            }
+        }
+        builder.show()
     }
 
     // ---------------------------------------------------------------- 统计
@@ -59,6 +75,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         val topTags: List<Pair<String, Int>>,
         val bestWorks: List<Book>,
         val monthlyFinished: IntArray, // 长度 12
+        val monthlyMinutes: IntArray,  // 长度 12
     )
 
     private fun collectStats(): ChronicleStats {
@@ -68,9 +85,8 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
 
         val added = allBooks.filter { it.createdAt.startsWith(prefix) }
         val finished = allBooks.filter { it.finishDate?.startsWith(prefix) == true }
-        val minutes = dbHelper.getAllReadingSessions()
-            .filter { it.createdAt.startsWith(prefix) }
-            .sumOf { it.durationMinutes }
+        val allSessions = dbHelper.getAllReadingSessions().filter { it.createdAt.startsWith(prefix) }
+        val minutes = allSessions.sumOf { it.durationMinutes }
         val notes = allBooks.sumOf { b -> dbHelper.getNotes(b.id).count { it.createdAt.startsWith(prefix) } }
 
         val tagStats = dbHelper.getAllUniqueTags()
@@ -87,6 +103,15 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
             }
         }
 
+        val monthlyMins = IntArray(12)
+        allSessions.forEach { session ->
+            if (session.createdAt.length >= 7) {
+                session.createdAt.substring(5, 7).toIntOrNull()?.let { month ->
+                    if (month in 1..12) monthlyMins[month - 1] += session.durationMinutes
+                }
+            }
+        }
+
         return ChronicleStats(
             addedCount = added.size,
             finishedCount = finished.size,
@@ -95,6 +120,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
             topTags = tagStats.take(6),
             bestWorks = best,
             monthlyFinished = monthly,
+            monthlyMinutes = monthlyMins,
         )
     }
 
@@ -263,9 +289,19 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         }
         Toast.makeText(this, "正在渲染印刷级长图…", Toast.LENGTH_SHORT).show()
 
-        // 主线程离屏绘制采样，PNG 压缩与 I/O 全部移交后台
-        val bitmap = Bitmap.createBitmap(content.width, content.height, Bitmap.Config.ARGB_8888)
-        content.draw(Canvas(bitmap))
+        // P3 内存保护：限制最大维度 4096px，动态按比例缩放，避免多页超大长图 OOM
+        val maxDimension = 4096f
+        val rawHeight = content.height.toFloat()
+        val scale = if (rawHeight > maxDimension) maxDimension / rawHeight else 1.0f
+        val targetWidth = (content.width * scale).toInt().coerceAtLeast(1)
+        val targetHeight = (content.height * scale).toInt().coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        if (scale < 1.0f) {
+            canvas.scale(scale, scale)
+        }
+        content.draw(canvas)
         val filename = "ReadTrace_AnnualChronicle_${year}_${System.currentTimeMillis()}.png"
 
         Thread {
