@@ -67,9 +67,9 @@ object ChangelogRepository {
             versionName = "v1.0.2",
             releaseDate = "2026-08-25",
             isLatest = false,
-            tagTitle = "🏛️ 策展人全息通行证与先锋视觉",
+            tagTitle = "🏛️ 策展人全息通行证与成就体系",
             highlights = listOf(
-                "🌌 策展人 3D 全息通行证卡片与先锋徽章体系",
+                "🌌 策展人 3D 全息通行证卡片与成就徽章体系",
                 "📻 磁带黑胶双模声学工坊与 432Hz 宇宙引力律动",
                 "📊 精神维度拓扑雷达与六维心智模型深度交互",
                 "☁️ 端到端 WebDAV 云端备份与数据安全加密",

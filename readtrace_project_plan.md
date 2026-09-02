@@ -2191,4 +2191,26 @@ graph TD
 | **Phase 1: 必修缺陷清零** | B1~B6 全部修复（含单元测试：来源断言/年轮可见性间接断言） | RadialQuickActionMenu / CulturalTreeRingsView / ProfileFragment / EdgeSwipeDismissHelper / BookDetailActivity / QuickLogBottomSheet | 真机冒烟：径向环居中弹出；年轮正常渐显；个人页同步走真实 WebDAV；返回按钮可点；连续两次导出长图不崩溃；速记记录 sourceType 为空 |
 | **Phase 2: 交互与跨端收尾** | B7 滑动下沉修复 + B8 小程序方法降级 + F3 深链 intent-filter | CosmicGravityGraphView / DioramaBoxView / sync.ts / AndroidManifest | 2.5D 展厅全区域可滑动；扫码 `readtrace://work/{id}` 直达详情；小程序同步在不支持 MKCOL 的服务器上仍能完成 PUT |
 | **Phase 3: 性能纵深** | P1~P7 全量落地（后台化 + 缓存单例 + apply 修正） | BookDetailActivity / AnnualChronicle / UserPreferencesManager / BookSimilarityEngine / 新增 ConceptIndexRepository | 大库（500+ 部）详情页与年鉴进入无卡顿；StrictMode 无主线程磁盘读写告警 |
-| **Phase 4: 功能演进** | F1~F10 按优先级排期（建议 F2/F4 → F5/F8 → 其余） | 各模块 | 每项独立验收，随 v4.5.0 发布 |
+| **Phase 4: 功能演进** | F1~F10 按优先级排期（建议 F2/F4 → F5/F8 → 其余） | 各模块 | 每项独立验收，随 v1.0.5 发布 |
+
+---
+
+## 37. P21 极智赋能与语用归真专项 (AI Story Engine & Terminology Purification)
+
+### 37.1 研发背景与核心诉求
+在完成了五大媒介基础管理、空间全感官交互与 P20 缺陷清零后，针对产品智能化与语用自然度进行专项深化：
+1. **AI 智能赋能（角色表与分幕大纲）**：为作品快速生成结构化主要人物小传（姓名、身份、关键特征）与故事分幕大纲（起承转合核心脉络），支持一键填入简介或存为深度大纲笔记；
+2. **语用归真与去浮夸（De-slop）**：全面清理过去堆砌的生硬“先锋”、“独秀”、“速登”等过度炫酷的黑话，回归自然、优雅、清晰易懂的高级阅读审美与真实产品用语。
+
+### 37.2 核心系统技术与架构
+1. **`AiAssistantEngine`（智能大纲与角色分析引擎）**：
+   - 兼容 OpenAI / DeepSeek / Kimi / 通义千问 / 本地 Ollama 接口标准；
+   - 支持在设置中自定义 API Key、Base URL 与 Model；
+   - 内置离线经典名作（《三体》《百年孤独》《小王子》等）高精知识库与通用智能推导兜底，保证离线 100% 优雅可用。
+2. **`AiStoryAssistantBottomSheet`（AI 交互微卡底板）**：
+   - 半屏流光面板展示核心主旨、角色卡片与分幕大纲；
+   - 提供「📥 填入作品简介」与「📝 存为大纲笔记」一键落库按钮；
+   - 详情页与径向快捷环双入口直达。
+3. **全局文案去浮夸重塑**：
+   - 登录/通行证/设置/更新日志中“先锋策展人”统一更正为“阅读策展人”，“先锋速登”更正为“快捷登录”，“先锋验证码”更正为“短信验证码”。
+

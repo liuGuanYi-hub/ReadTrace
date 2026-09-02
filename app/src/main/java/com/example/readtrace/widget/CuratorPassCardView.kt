@@ -117,7 +117,7 @@ class CuratorPassCardView @JvmOverloads constructor(
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         tvNickname = TextView(context).apply {
-            text = "先锋策展人"
+            text = "阅读策展人"
             textSize = 18f
             typeface = android.graphics.Typeface.DEFAULT_BOLD
             setTextColor(Color.WHITE)

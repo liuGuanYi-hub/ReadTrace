@@ -69,7 +69,7 @@ object BiometricAuthHelper {
     fun authenticate(
         activity: Activity,
         title: String = "策展人生物识别",
-        subtitle: String = "请验证指纹或面容以解锁您的先锋展厅与云端藏馆",
+        subtitle: String = "请验证指纹或面容以解锁您的私人藏馆与展厅",
         onSuccess: () -> Unit,
         onError: (errorCode: Int, errString: CharSequence) -> Unit,
         onFailed: () -> Unit = {},

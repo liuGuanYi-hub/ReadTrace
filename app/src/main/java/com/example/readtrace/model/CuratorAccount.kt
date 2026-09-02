@@ -42,7 +42,7 @@ enum class LoginType(
 ) {
     MANUAL("手写入驻", "✍️", false),
     WECHAT("微信互联", "💬", true),
-    PHONE("手机号速登", "📱", true),
+    PHONE("手机快捷登录", "📱", true),
 }
 
 /**
@@ -51,7 +51,7 @@ enum class LoginType(
 data class CuratorAccount(
     val userId: String = "RT-${(1000..9999).random()}-2026",
     val email: String = "",
-    val nickname: String = "先锋策展人",
+    val nickname: String = "阅读策展人",
     val bio: String = "在书海与光影中，雕刻精神的永恒轮廓。",
     val avatarKey: String = "statue_david",
     val curatorTitle: String = "特约星河馆长",

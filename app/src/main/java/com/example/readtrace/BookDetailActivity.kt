@@ -1563,18 +1563,30 @@ class BookDetailActivity : AppCompatActivity() {
      */
     private fun renderDescription(book: Book) {
         val label = findViewById<TextView>(R.id.detailDescriptionLabel)
+        val btnAi = findViewById<View>(R.id.btnAiStoryAssistant)
         val body = findViewById<TextView>(R.id.detailDescription)
         val toggle = findViewById<TextView>(R.id.detailDescriptionToggle)
         val source = findViewById<TextView>(R.id.detailDescriptionSource)
+
+        btnAi?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            com.example.readtrace.ui.AiStoryAssistantBottomSheet.show(this, book) {
+                val updated = databaseHelper.getBook(book.id) ?: book
+                currentBook = updated
+                renderBook(updated)
+                renderCharacters(databaseHelper.getCharacters(book.id))
+                renderOutlines(databaseHelper.getOutlines(book.id))
+                renderNotes(databaseHelper.getNotes(book.id))
+            }
+        }
+
         val desc = book.description?.trim().orEmpty()
         if (desc.isEmpty()) {
-            label.visibility = View.GONE
             body.visibility = View.GONE
             toggle.visibility = View.GONE
             source.visibility = View.GONE
             return
         }
-        label.visibility = View.VISIBLE
         body.visibility = View.VISIBLE
         val sourceLabel = descriptionSourceLabel(book.sourceType)
         source.visibility = if (sourceLabel.isNullOrBlank()) View.GONE else View.VISIBLE

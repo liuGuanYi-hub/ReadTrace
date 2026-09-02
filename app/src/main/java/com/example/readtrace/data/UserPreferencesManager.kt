@@ -144,6 +144,40 @@ object UserPreferencesManager {
             .edit().putBoolean(KEY_WEBDAV_AUTO_SYNC, enabled).apply()
     }
 
+    // --- 🤖 AI 助手配置 (readtrace_ai_prefs) ---
+
+    private const val PREFS_AI = "readtrace_ai_prefs"
+    private const val KEY_AI_API_KEY = "ai_api_key"
+    private const val KEY_AI_BASE_URL = "ai_base_url"
+    private const val KEY_AI_MODEL = "ai_model"
+
+    fun getAiApiKey(context: Context): String =
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .getString(KEY_AI_API_KEY, "").orEmpty()
+
+    fun setAiApiKey(context: Context, key: String) {
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .edit().putString(KEY_AI_API_KEY, key.trim()).apply()
+    }
+
+    fun getAiBaseUrl(context: Context): String =
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .getString(KEY_AI_BASE_URL, "https://api.deepseek.com/v1").orEmpty().ifBlank { "https://api.deepseek.com/v1" }
+
+    fun setAiBaseUrl(context: Context, url: String) {
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .edit().putString(KEY_AI_BASE_URL, url.trim()).apply()
+    }
+
+    fun getAiModel(context: Context): String =
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .getString(KEY_AI_MODEL, "deepseek-chat").orEmpty().ifBlank { "deepseek-chat" }
+
+    fun setAiModel(context: Context, model: String) {
+        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+            .edit().putString(KEY_AI_MODEL, model.trim()).apply()
+    }
+
     // --- 📖 阅读页码 (readtrace_reader_prefs) ---
 
     fun getReadingPage(context: Context, bookId: Long): Int =

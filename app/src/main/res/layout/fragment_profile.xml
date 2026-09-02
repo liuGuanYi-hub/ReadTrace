@@ -499,7 +499,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="查看历史版本迭代、先锋交互与质感演进纪要"
+                android:text="查看历史版本迭代与演进纪要"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
         </LinearLayout>

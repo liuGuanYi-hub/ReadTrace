@@ -212,7 +212,7 @@ class CuratorAuthActivity : AppCompatActivity() {
                     val updated = account.copy(bio = if (bio.isEmpty()) account.bio else bio, cardTheme = selectedTheme)
                     accountManager.updateAccount(updated)
                     HapticFeedbackEngine.stampImpact(this@CuratorAuthActivity)
-                    Toast.makeText(this, "✦ 欢迎入驻！先锋策展人通行证已激活", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "✦ 欢迎入驻！策展人通行证已激活", Toast.LENGTH_SHORT).show()
                     finish()
                 }
             )
@@ -227,14 +227,14 @@ class CuratorAuthActivity : AppCompatActivity() {
         layoutBiometricQuickLogin.setOnClickListener {
             BiometricAuthHelper.authenticate(
                 activity = this,
-                title = "策展人生物识别速登",
-                subtitle = "验证指纹或面容以解锁您的专属展厅",
+                title = "策展人快捷认证",
+                subtitle = "验证指纹或面容以解锁您的专属藏馆",
                 onSuccess = {
-                    Toast.makeText(this, "✦ 生物识别验证通过，已登入展厅", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "✦ 快捷验证通过，已解锁藏馆", Toast.LENGTH_SHORT).show()
                     finish()
                 },
                 onError = { _, err ->
-                    Toast.makeText(this, "生物认证失败: $err", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "认证失败: $err", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -252,7 +252,7 @@ class CuratorAuthActivity : AppCompatActivity() {
         val previewAccount = CuratorAccount(
             userId = accountManager.currentAccount?.userId ?: "RT-8848-2026",
             email = if (email.isEmpty()) "curator@readtrace.space" else email,
-            nickname = if (nickname.isEmpty()) "先锋策展人" else nickname,
+            nickname = if (nickname.isEmpty()) "阅读策展人" else nickname,
             bio = if (bio.isEmpty()) "在书海与光影中，雕刻精神的永恒轮廓。" else bio,
             avatarKey = selectedAvatarKey,
             curatorTitle = bound?.curatorTitle ?: "特约星河馆长",

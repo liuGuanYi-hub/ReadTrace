@@ -68,13 +68,13 @@ class CuratorAccountManager private constructor(context: Context) {
      */
     fun login(
         email: String,
-        nickname: String = "先锋策展人",
+        nickname: String = "阅读策展人",
         avatarKey: String = "statue_david",
         loginType: LoginType = LoginType.MANUAL,
         wechatOpenId: String = "",
         phoneMasked: String = "",
         thirdPartyAvatarEmoji: String = "",
-        curatorTitle: String = "先锋终身馆长",
+        curatorTitle: String = "终身荣誉馆长",
         onSuccess: (CuratorAccount) -> Unit,
     ) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -232,7 +232,7 @@ class CuratorAccountManager private constructor(context: Context) {
             CuratorAccount(
                 userId = json.optString("userId", "RT-8848-2026"),
                 email = json.optString("email", ""),
-                nickname = json.optString("nickname", "先锋策展人"),
+                nickname = json.optString("nickname", "阅读策展人"),
                 bio = json.optString("bio", "在书海与光影中，雕刻精神的永恒轮廓。"),
                 avatarKey = json.optString("avatarKey", "statue_david"),
                 curatorTitle = json.optString("curatorTitle", "特约星河馆长"),

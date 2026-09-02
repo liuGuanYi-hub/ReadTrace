@@ -158,6 +158,11 @@ object RadialQuickActionMenu {
                 }
                 activity.startActivity(intent)
             },
+            Action("🤖", "AI大纲") {
+                com.example.readtrace.ui.AiStoryAssistantBottomSheet.show(activity, book) {
+                    onUpdate()
+                }
+            },
             Action("🗑️", "移入回收") {
                 val db = com.example.readtrace.data.BookDatabaseHelper.getInstance(activity)
                 db.archiveBook(book.id)
