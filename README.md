@@ -1,17 +1,18 @@
-# 阅痕 ReadTrace v1.0.0 — 个人精神文化印记与 3D 虚拟展厅
+# 阅痕 ReadTrace v1.0.5 — 个人精神文化印记与 3D 虚拟展厅
 
 > **Android 原生开发 · OpenGL ES 3D 展厅 · 3D 情绪等高线拓扑 · 3D 时空穿梭虫洞 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 3D 拟真翻书 · Glance 桌面小组件 · 纯本地数据掌控**
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-[![Version](https://img.shields.io/badge/Release-v1.0.0%20(Milestone)-3A6348.svg)](docs/RELEASE_NOTES_v1.0.0.md)
+[![Version](https://img.shields.io/badge/Release-v1.0.5-3A6348.svg)](docs/RELEASE_NOTES_v1.0.5.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Interactive%20Archify-0284c7.svg)](docs/readtrace-architecture.html)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与先锋美学虚拟展厅**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级 Bento Grid 布局、3D 高斯势能等高线地形图、3D 时空穿梭虫洞、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、3D 陀螺仪全息光影与 Glance 桌面微缩视窗**，让每一次翻阅、追番、观影与通关都成为一场触手可及的艺术漫游。
 
-> 📢 **v1.0.0 正式里程碑版本发布**：历经早期探索演进，现全量核心系统（五大媒介、美术馆展厅、四大沉浸系统、纪念工坊、一体化极简筛选）已全量稳定收敛，正式确立并发布 **v1.0.0 里程碑正式版**。详见 [v1.0.0 官方发布说明](docs/RELEASE_NOTES_v1.0.0.md)。
+> 📢 **v1.0.5 正式里程碑版本发布**：历经 P11~P19 架构与功能飞跃，现已完成 **P20 缺陷清零、性能纵深治理与全维体验演进**，全量核心系统（五大媒介、极速速记、ISBN 连续扫码、白噪音伴读、WebDAV 自动同步、一体化极简筛选）全量稳定收敛。详见 [v1.0.5 官方发布说明](docs/RELEASE_NOTES_v1.0.5.md) 与 [系统架构交互全景图](docs/readtrace-architecture.html)。
 
 ---
 
@@ -98,28 +99,57 @@
 
 ---
 
-## 🛠️ 技术架构
+## 🛠️ 系统架构与技术拓扑 (System Architecture)
+
+> 💡 **交互式全景架构图已上线**：支持深浅色自适应主题切换、物理流光动效与 4K 超清矢量导出，点击体验 👉 **[阅痕 ReadTrace 系统架构全景交互图 (Archify)](docs/readtrace-architecture.html)**
 
 ```mermaid
-graph TD
-    A[ReadTrace Client] --> B[UI Layer: ViewPager2 / Bento Grid / Glassmorphism]
-    A --> C[P1: 3D Vinyl & Cassette Player System]
-    A --> D[P2: Haptic Vibration & Spatial Audio Engine]
-    A --> E[P3: 3D Time Warp Tunnel & Memory Capsules]
-    A --> F[P4: 3D Mindprint Topology & Iso-Contour Map]
-    A --> G[P5: Pioneer Micro-Motion & Matrix Decryption]
-    A --> H[P6: Museum-Grade Curatorial Aesthetics & Circadian Optics]
-    A --> I[Render Engine: OpenGL ES 3.0 / GLSL / Custom Canvas]
-    A --> J[Motion & Sensor: GyroscopeParallax / CircadianLighting / FilmGrain]
-    A --> K[Desktop Widgets: AndroidX Glance / AppWidgets]
-    A --> L[Data Layer: SQLite DB v3 / SAF Multi-Format Export]
+graph LR
+    subgraph Client [终端触达与交互层]
+        UA[Android 策展端 Native]
+        UMP[微信小程序端 Uni-App]
+        UWEB[Web 微卡 / DeepLink]
+    end
+
+    subgraph Presentation [展示与工坊层]
+        QL[极速速记与扫码]
+        BH[Bento 策展大厅与藏库]
+        VS[3D 黑胶工坊与年鉴画册]
+        MPU[小程序跨媒介漫游]
+    end
+
+    subgraph CoreEngine [核心计算与处理引擎]
+        EP[分词与拼音引擎]
+        ES[心智雷达与概念网]
+        EA[微声学与 PCM 白噪音]
+        EY[WebDAV 同步编排]
+    end
+
+    subgraph Storage [本地持久化 Local-First]
+        SQL[(SQLite 核心单例)]
+        PRF[(用户偏好 SharedPreferences)]
+        CC[(封面缓存与 4K 内存保护)]
+    end
+
+    subgraph SovereignCloud [云端与数据主权服务]
+        DOUBAN[豆瓣公开源解析]
+        BGM[Bangumi 开源 API]
+        AUTH[阿里云短信 / 微信鉴权]
+        WD[(私有 WebDAV / NAS 备份)]
+    end
+
+    Client --> Presentation
+    Presentation --> CoreEngine
+    CoreEngine --> Storage
+    CoreEngine --> SovereignCloud
+    Storage --> SovereignCloud
 ```
 
-- **UI 架构**：AndroidX ViewPager2 + OpenGL ES 3.0 + Glance AppWidgets + Material & Glassmorphism Design
-- **核心先锋引擎**：`CircadianLightingEngine` + `MindprintTopologyView` + `TimeWarpTunnelView` + `VinylTurntableView` + `CassetteDeckView` + `HapticFeedbackEngine` + `SpatialAudioEngine`
-- **殿堂级动效与组件库**：`OverlappingBentoCard` + `DropCapTextView` + `EditorialBadgeView` + `FilmGrainOverlayView` + `PrismaticChromaticView` + `HapticTickSlider` + `BorderBeamFrameLayout` + `ScrambleTextView` + `HolographicRatingView` + `AuroraFluidBackgroundView`
-- **数据存储**：Android SQLite 数据库 (DB v3) + SAF 存储访问框架
-- **开发语言**：Kotlin 100%
+### 🏛️ 核心技术矩阵
+- **终端与 UI 架构**：Android Native (Kotlin 100% / API 31+) + 微信小程序端 (Uni-App / Vue 3 / TypeScript) + Web 微卡深链
+- **3D 渲染与声光系统**：OpenGL ES 3.0/2.0 + GLSL 着色器 + 纯 PCM 程序化实时双耳空间音频/白噪音合成器 + 物理线性马达触觉矩阵 (`HapticFeedbackEngine`)
+- **智能计算引擎**：自然语言速记分词器 (`NaturalQuickAddParser`) + GB2312 拼音首字母模糊秒搜 (`PinyinSearchHelper`) + 六维心智复合势能拓扑 (`MindprintTopologyView`) + 双链概念网 (`[[Concept]]`)
+- **Local-First 数据主权**：SQLite 单例防误关（6 张子表单事务级联物理安全） + WebDAV 双向增量同步（坚果云 / NAS / Nextcloud 12h 静默自动校验）
 - **构建系统**：Android Gradle Plugin 9.1.1 + Gradle 9.3.1 (compileSdk: 37 / minSdk: 31)
 
 ---
