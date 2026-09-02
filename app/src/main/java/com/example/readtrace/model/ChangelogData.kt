@@ -1,4 +1,4 @@
-﻿package com.example.readtrace.model
+package com.example.readtrace.model
 
 /**
  * 版本演进纪要数据模型 (Changelog Version Record)
@@ -15,9 +15,25 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
-            versionName = "v4.4.0",
+            versionName = "v4.5.0",
             releaseDate = "2026-09-02",
             isLatest = true,
+            tagTitle = "🛡️ P20 缺陷清零、性能纵深与全维体验演进 (Grand Release)",
+            highlights = listOf(
+                "🛡️ 8大缺陷证据级清零：彻底修复径向环定位错位、文化年轮动画、真实 WebDAV 引擎串联、返回键避让及长图位图保护",
+                "⚡ ISBN 连续批量扫码：CameraX 手电筒补光常开、双指 1x~5x 变焦缩放与防抖连扫闭环",
+                "📋 智能剪贴板 Host 媒介判别：按 URL 域名自动精准识别电影/音乐/图书/游戏并匹配想看/想读/想听落库",
+                "🎧 伴读钟白噪音与沉浸打卡：纯 PCM 内存实时合成 4 类无缝循环白噪音，伴读退出自动沉淀专注会话",
+                "☁️ WebDAV 每日静默自动同步：启动时智能增量校验，守护跨端数据主权",
+                "🔍 速记弹窗拼音优先置顶：输入拼音首字母秒搜本地藏品库并高亮置顶，无需网络请求即刻唤起",
+                "🏆 年度年鉴自由选年：历年年鉴自由切换，专注月度分布改由实际分钟数精准聚合",
+                "🚀 全链路性能纵深治理：概念网与年鉴统计全量后台异步化，长图导出内存安全保护，消除 N+1 查询",
+            ),
+        ),
+        ChangelogVersion(
+            versionName = "v4.4.0",
+            releaseDate = "2026-09-02",
+            isLatest = false,
             tagTitle = "🚀 极简心流与精神重逢 (Super Epoch)",
             highlights = listOf(
                 "⚡ 3秒极速速记：主页「+」直弹半屏速记，边搜边选自动补齐元数据，点状态键即入库",
