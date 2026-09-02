@@ -54,6 +54,12 @@ class BookDetailActivity : AppCompatActivity() {
         databaseHelper = BookDatabaseHelper.getInstance(this)
         bookId = intent.getLongExtra(EXTRA_BOOK_ID, NO_BOOK_ID)
         if (bookId == NO_BOOK_ID) {
+            val dataUri = intent.data
+            if (dataUri != null && dataUri.scheme.equals("readtrace", ignoreCase = true) && dataUri.host.equals("work", ignoreCase = true)) {
+                bookId = dataUri.lastPathSegment?.toLongOrNull() ?: NO_BOOK_ID
+            }
+        }
+        if (bookId == NO_BOOK_ID) {
             showMissingBookAndClose()
             return
         }
@@ -1015,7 +1021,9 @@ class BookDetailActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // 主动回收时间轴长图位图，避免高分辨率 ARGB_8888 长图滞留至 GC
-        pendingTimelineBitmap?.recycle()
+        if (pendingTimelineBitmap?.isRecycled == false) {
+            pendingTimelineBitmap?.recycle()
+        }
         pendingTimelineBitmap = null
     }
 
@@ -1046,7 +1054,6 @@ class BookDetailActivity : AppCompatActivity() {
 
         try {
             // 主线程仅执行绘制采样（毫秒级），PNG 压缩与磁盘 I/O 全部移交后台线程
-            pendingTimelineBitmap?.recycle()
             val bitmap = android.graphics.Bitmap.createBitmap(
                 timelineView.width,
                 timelineView.height,
@@ -1112,6 +1119,10 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     private fun shareTimelineBitmap(bitmap: android.graphics.Bitmap) {
+        if (bitmap.isRecycled) {
+            Toast.makeText(this, "图片已释放，请重新点击导出", Toast.LENGTH_SHORT).show()
+            return
+        }
         try {
             val cachePath = java.io.File(cacheDir, "images")
             cachePath.mkdirs()
@@ -1382,59 +1393,73 @@ class BookDetailActivity : AppCompatActivity() {
         val scroll = findViewById<View>(R.id.conceptWebScroll) ?: return
         val row = findViewById<LinearLayout>(R.id.conceptWebRow) ?: return
 
-        val notesTexts = databaseHelper.getNotes(book.id).map { it.content }
-        val conceptIndex = com.example.readtrace.util.BidirectionalConceptHelper.buildConceptIndex(
-            databaseHelper.getBooks().map { b ->
-                b.id.toString() to listOfNotNull(b.shortComment, b.review) +
-                    databaseHelper.getNotes(b.id).map { it.content }
-            },
-        )
-
-        val localConcepts = com.example.readtrace.util.BidirectionalConceptHelper
-            .buildConceptIndex(listOf(book.id.toString() to (listOfNotNull(book.shortComment, book.review) + notesTexts)))
-            .keys
-        if (localConcepts.isEmpty()) {
-            scroll.visibility = View.GONE
-            return
-        }
-
-        row.removeAllViews()
-        scroll.visibility = View.VISIBLE
-        localConcepts.forEach { concept ->
-            val related = com.example.readtrace.util.BidirectionalConceptHelper
-                .relatedWorkIds(conceptIndex, concept, excludeWorkId = book.id.toString())
-            val chip = TextView(this).apply {
-                text = "🌌 $concept · ${related.size} 部共鸣"
-                textSize = 12f
-                setPadding(22, 10, 22, 10)
-                background = getDrawable(R.drawable.bg_dark_chip)
-                setTextColor(android.graphics.Color.parseColor("#CCFFFFFF"))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                ).apply { marginEnd = 8 }
+        val bookId = book.id
+        Thread {
+            val notesTexts = databaseHelper.getNotes(bookId).map { it.content }
+            val localConcepts = com.example.readtrace.util.BidirectionalConceptHelper
+                .buildConceptIndex(listOf(bookId.toString() to (listOfNotNull(book.shortComment, book.review) + notesTexts)))
+                .keys
+            if (localConcepts.isEmpty()) {
+                mainHandler.post {
+                    if (isFinishing || isDestroyed || currentBook?.id != bookId) return@post
+                    scroll.visibility = View.GONE
+                }
+                return@Thread
             }
-            chip.setOnClickListener {
-                com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this)
-                showRelatedWorksDialog(book, concept, related)
-            }
-            row.addView(chip)
-        }
 
-        // 🧪 P15 思想炼金碰撞入口：选择另一部作品 → 六维共鸣碰撞
-        val colliderChip = TextView(this).apply {
-            text = "🧪 思想碰撞 ➔"
-            textSize = 12f
-            setPadding(22, 10, 22, 10)
-            background = getDrawable(R.drawable.bg_dark_chip_selected)
-            setTextColor(android.graphics.Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { marginEnd = 8 }
-            setOnClickListener { showColliderPicker(book) }
-        }
-        row.addView(colliderChip)
+            val allBooks = databaseHelper.getBooks()
+            val conceptIndex = com.example.readtrace.util.BidirectionalConceptHelper.buildConceptIndex(
+                allBooks.map { b ->
+                    b.id.toString() to listOfNotNull(b.shortComment, b.review) +
+                        databaseHelper.getNotes(b.id).map { it.content }
+                },
+            )
+
+            val chipsData = localConcepts.map { concept ->
+                val related = com.example.readtrace.util.BidirectionalConceptHelper
+                    .relatedWorkIds(conceptIndex, concept, excludeWorkId = bookId.toString())
+                concept to related
+            }
+
+            mainHandler.post {
+                if (isFinishing || isDestroyed || currentBook?.id != bookId) return@post
+                row.removeAllViews()
+                scroll.visibility = View.VISIBLE
+                chipsData.forEach { (concept, related) ->
+                    val chip = TextView(this@BookDetailActivity).apply {
+                        text = "🌌 $concept · ${related.size} 部共鸣"
+                        textSize = 12f
+                        setPadding(22, 10, 22, 10)
+                        background = getDrawable(R.drawable.bg_dark_chip)
+                        setTextColor(android.graphics.Color.parseColor("#CCFFFFFF"))
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                        ).apply { marginEnd = 8 }
+                    }
+                    chip.setOnClickListener {
+                        com.example.readtrace.util.HapticFeedbackEngine.pageTurnRustle(this@BookDetailActivity)
+                        showRelatedWorksDialog(book, concept, related)
+                    }
+                    row.addView(chip)
+                }
+
+                // 🧪 P15 思想炼金碰撞入口：选择另一部作品 → 六维共鸣碰撞
+                val colliderChip = TextView(this@BookDetailActivity).apply {
+                    text = "🧪 思想碰撞 ➔"
+                    textSize = 12f
+                    setPadding(22, 10, 22, 10)
+                    background = getDrawable(R.drawable.bg_dark_chip_selected)
+                    setTextColor(android.graphics.Color.WHITE)
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply { marginEnd = 8 }
+                    setOnClickListener { showColliderPicker(book) }
+                }
+                row.addView(colliderChip)
+            }
+        }.start()
     }
 
     private fun showColliderPicker(current: Book) {

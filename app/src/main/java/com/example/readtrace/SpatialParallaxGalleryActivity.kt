@@ -168,7 +168,7 @@ class SpatialParallaxGalleryActivity : AppCompatActivity() {
         }
     }
 
-    override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
         when (event.actionMasked) {
             android.view.MotionEvent.ACTION_DOWN -> {
                 downX = event.x
@@ -177,15 +177,18 @@ class SpatialParallaxGalleryActivity : AppCompatActivity() {
             android.view.MotionEvent.ACTION_UP -> {
                 val dx = event.x - downX
                 if (Math.abs(dx) > 120f && System.currentTimeMillis() - downTime < 600L) {
-                    index = if (dx < 0) (index + 1).coerceAtMost(works.size - 1) else (index - 1).coerceAtLeast(0)
-                    // 移除旧标本盒（counterText/exit 保留）
-                    while (stage.childCount > 2) stage.removeViewAt(2)
-                    HapticFeedbackEngine.pageTurnRustle(this)
-                    showAt(index)
-                    return true
+                    val nextIndex = if (dx < 0) (index + 1).coerceAtMost(works.size - 1) else (index - 1).coerceAtLeast(0)
+                    if (nextIndex != index) {
+                        index = nextIndex
+                        // 移除旧标本盒（counterText/exit 保留）
+                        while (stage.childCount > 2) stage.removeViewAt(2)
+                        HapticFeedbackEngine.pageTurnRustle(this)
+                        showAt(index)
+                        return true
+                    }
                 }
             }
         }
-        return super.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
     }
 }

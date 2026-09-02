@@ -179,14 +179,26 @@ class ProfileFragment : Fragment() {
         profileCuratorPassCard.setOnClickListener { openAuthOrEdit() }
 
         btnProfileSyncVault.setOnClickListener {
+            val config = com.example.readtrace.sync.WebDavSyncEngine.loadConfig(requireContext())
+            if (!config.isConfigured) {
+                android.widget.Toast.makeText(requireContext(), "🛡️ 请先配置 WebDAV 云端保险库", android.widget.Toast.LENGTH_SHORT).show()
+                startActivity(Intent(requireContext(), com.example.readtrace.WebDavConfigActivity::class.java))
+                return@setOnClickListener
+            }
             btnProfileSyncNow.text = "⏳ 同步中..."
-            com.example.readtrace.sync.CloudSyncEngine.performSync(requireContext()) { result ->
+            com.example.readtrace.sync.WebDavSyncEngine.performSync(requireContext()) { result ->
                 if (isAdded) {
                     btnProfileSyncNow.text = "🔄 立即同步"
                     android.widget.Toast.makeText(requireContext(), result.message, android.widget.Toast.LENGTH_SHORT).show()
-                    refreshProfileDataAsync()
+                    if (result.success) {
+                        refreshProfileDataAsync()
+                    }
                 }
             }
+        }
+        btnProfileSyncVault.setOnLongClickListener {
+            startActivity(Intent(requireContext(), com.example.readtrace.WebDavConfigActivity::class.java))
+            true
         }
 
         profileGalleryPanel.setOnClickListener {

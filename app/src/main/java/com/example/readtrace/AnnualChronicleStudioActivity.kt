@@ -101,65 +101,72 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
     // ---------------------------------------------------------------- 画册构建
 
     private fun buildChronicle() {
-        val stats = collectStats()
         pagesContainer.removeAllViews()
+        val currentYear = year
+        Thread {
+            val stats = collectStats()
+            val persona = BookDatabaseHelper.getInstance(this).getAnnualMindprintPersona()
+            runOnUiThread {
+                if (isFinishing || isDestroyed || currentYear != year) return@runOnUiThread
+                pagesContainer.removeAllViews()
 
-        // 页 1 · 封面：策展人白金通行证
-        addPage(
-            title = "🏆 $year 年度精神年鉴",
-            body = "阅痕 ReadTrace · 策展人白金通行证\n\n" +
-                "这一年，你在精神的旷野中跋涉，\n" +
-                "把 ${stats.addedCount} 部作品纳入私人宇宙，\n" +
-                "在 ${stats.finishedCount} 个故事里抵达终点。\n\n" +
-                "精神海拔持续抬升，认知星系继续扩张。",
-        )
+                // 页 1 · 封面：策展人白金通行证
+                addPage(
+                    title = "🏆 $year 年度精神年鉴",
+                    body = "阅痕 ReadTrace · 策展人白金通行证\n\n" +
+                        "这一年，你在精神的旷野中跋涉，\n" +
+                        "把 ${stats.addedCount} 部作品纳入私人宇宙，\n" +
+                        "在 ${stats.finishedCount} 个故事里抵达终点。\n\n" +
+                        "精神海拔持续抬升，认知星系继续扩张。",
+                )
 
-        // 页 2 · 宏观足迹 + 文化年轮
-        addPage(
-            title = "🗺️ 宏观足迹",
-            body = "📖 收录作品：${stats.addedCount} 部\n" +
-                "🏆 读完 / 看完 / 通关：${stats.finishedCount} 部\n" +
-                "⏳ 专注沉浸：${formatMinutes(stats.sessionMinutes)}\n" +
-                "✍️ 留下随想与笔记：${stats.noteCount} 条\n" +
-                "🏷️ 最常用标签：${stats.topTags.joinToString(" · ") { "${it.first}(${it.second})" }.ifBlank { "—行迹尚浅 —" }}",
-            monthlyFinished = stats.monthlyFinished,
-        )
+                // 页 2 · 宏观足迹 + 文化年轮
+                addPage(
+                    title = "🗺️ 宏观足迹",
+                    body = "📖 收录作品：${stats.addedCount} 部\n" +
+                        "🏆 读完 / 看完 / 通关：${stats.finishedCount} 部\n" +
+                        "⏳ 专注沉浸：${formatMinutes(stats.sessionMinutes)}\n" +
+                        "✍️ 留下随想与笔记：${stats.noteCount} 条\n" +
+                        "🏷️ 最常用标签：${stats.topTags.joinToString(" · ") { "${it.first}(${it.second})" }.ifBlank { "—行迹尚浅 —" }}",
+                    monthlyFinished = stats.monthlyFinished,
+                )
 
-        // 页 3 · 巅峰海拔：六维心智雷达
-        val persona = BookDatabaseHelper.getInstance(this).getAnnualMindprintPersona()
-        addPage(
-            title = "⛰️ 巅峰海拔 · 六维心智",
-            body = persona?.let {
-                "年度心智画像：${it.personaTitle} —— ${it.personaDesc}"
-            } ?: "完读作品后，六维心智雷达将在此点亮你的年度地貌。",
-            radar = persona?.avgMindprint,
-        )
+                // 页 3 · 巅峰海拔：六维心智雷达
+                addPage(
+                    title = "⛰️ 巅峰海拔 · 六维心智",
+                    body = persona?.let {
+                        "年度心智画像：${it.personaTitle} —— ${it.personaDesc}"
+                    } ?: "完读作品后，六维心智雷达将在此点亮你的年度地貌。",
+                    radar = persona?.avgMindprint,
+                )
 
-        // 页 4 · 灵魂金句（首字下沉由 DropCapTextView 承担）
-        val quoteBook = stats.bestWorks.firstOrNull()
-        addPage(
-            title = "📜 灵魂金句",
-            body = quoteBook?.let {
-                "「${it.shortComment ?: it.review?.lineSequence()?.firstOrNull() ?: "这一年的沉默也是一种回答。"}」\n\n" +
-                    "—— 《${it.title}》 · ${it.rating ?: "-"}/10"
-            } ?: "今年尚未留下足够深刻的一句话，来年继续。",
-        )
+                // 页 4 · 灵魂金句（首字下沉由 DropCapTextView 承担）
+                val quoteBook = stats.bestWorks.firstOrNull()
+                addPage(
+                    title = "📜 灵魂金句",
+                    body = quoteBook?.let {
+                        "「${it.shortComment ?: it.review?.lineSequence()?.firstOrNull() ?: "这一年的沉默也是一种回答。"}」\n\n" +
+                            "—— 《${it.title}》 · ${it.rating ?: "-"}/10"
+                    } ?: "今年尚未留下足够深刻的一句话，来年继续。",
+                )
 
-        // 页 5 · 跨媒介星轨
-        val starTrail = stats.bestWorks.joinToString("\n") { book ->
-            "${book.mediaType.emoji} 《${book.title}》 · ⭐${book.rating}"
-        }
-        addPage(
-            title = "🌌 跨媒介星轨",
-            body = if (starTrail.isBlank()) "暂无高分跨媒介共振。" else "年度精神引力最强的三颗星：\n\n$starTrail",
-        )
+                // 页 5 · 跨媒介星轨
+                val starTrail = stats.bestWorks.joinToString("\n") { book ->
+                    "${book.mediaType.emoji} 《${book.title}》 · ⭐${book.rating}"
+                }
+                addPage(
+                    title = "🌌 跨媒介星轨",
+                    body = if (starTrail.isBlank()) "暂无高分跨媒介共振。" else "年度精神引力最强的三颗星：\n\n$starTrail",
+                )
 
-        // 页 6 · 护照印迹：月度完读分布
-        val bar = buildMonthlyBar(stats.monthlyFinished)
-        addPage(
-            title = "🛂 护照印迹 · 月度完读",
-            body = bar,
-        )
+                // 页 6 · 护照印迹：月度完读分布
+                val bar = buildMonthlyBar(stats.monthlyFinished)
+                addPage(
+                    title = "🛂 护照印迹 · 月度完读",
+                    body = bar,
+                )
+            }
+        }.start()
     }
 
     private fun addPage(

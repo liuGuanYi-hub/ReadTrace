@@ -39,7 +39,7 @@ object UserPreferencesManager {
         context.getSharedPreferences(PREFS_THEME, Context.MODE_PRIVATE)
             .edit()
             .putInt(KEY_NIGHT_MODE, mode)
-            .commit()
+            .apply()
     }
 
     // --- 🖤 主题扩展旗标（OLED 纯黑等，readtrace_theme_prefs） ---

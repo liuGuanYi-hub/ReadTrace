@@ -43,6 +43,19 @@ object EdgeSwipeDismissHelper {
         strip.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    // 避让左上角悬浮返回键 / 顶部工具栏热区，避免遮挡点击
+                    val orb = activity.findViewById<ViewGroup>(android.R.id.content)?.findViewWithTag<View>("floating_back_orb")
+                    if (orb != null && orb.isShown) {
+                        val orbRect = android.graphics.Rect()
+                        orb.getGlobalVisibleRect(orbRect)
+                        orbRect.inset(-dp(8f), -dp(8f)) // 8dp 触控保护
+                        if (orbRect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+                            return@setOnTouchListener false
+                        }
+                    } else if (event.y < dp(64f)) {
+                        return@setOnTouchListener false
+                    }
+
                     tracking = true
                     downY = event.y
                     true

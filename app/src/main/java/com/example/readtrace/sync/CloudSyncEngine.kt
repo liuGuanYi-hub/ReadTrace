@@ -7,9 +7,13 @@ import com.example.readtrace.model.AuthStatus
 import java.util.concurrent.Executors
 
 /**
- * Local-First 离线优先云同步引擎
- * 负责本地 SQLite 与云端保险库的数据增量比对、时间戳同步与状态维护
+ * Local-First 离线优先云同步引擎（模拟桩）
+ * @deprecated 请统一迁移至 [WebDavSyncEngine]，具备真实端到端 WebDAV 增量同步能力。
  */
+@Deprecated(
+    message = "已由 WebDavSyncEngine 替代，提供真实 WebDAV 同步",
+    replaceWith = ReplaceWith("WebDavSyncEngine"),
+)
 object CloudSyncEngine {
 
     private val executor = Executors.newSingleThreadExecutor()

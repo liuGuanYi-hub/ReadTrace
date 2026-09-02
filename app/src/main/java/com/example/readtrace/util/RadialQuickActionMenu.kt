@@ -63,18 +63,38 @@ object RadialQuickActionMenu {
             FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER),
         )
 
-        // 径向微胶囊：从顶部起顺时针均分
+        // 径向微胶囊：以中心徽章为原点顺时针环绕展开
         actions.forEachIndexed { index, action ->
             val angle = Math.PI * 2 * index / actions.size - Math.PI / 2
-            val lp = FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp.leftMargin = (Math.cos(angle) * radius).toInt() + dp(120)
-            lp.topMargin = (Math.sin(angle) * radius).toInt() + dp(150)
+            val targetTx = (Math.cos(angle) * radius).toFloat()
+            val targetTy = (Math.sin(angle) * radius).toFloat()
+
+            val lp = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER,
+            )
             val pill = TextView(activity).apply {
                 text = "${action.emoji} ${action.label}"
                 textSize = 12f
                 setTextColor(Color.WHITE)
                 setBackgroundResource(R.drawable.bg_dark_chip_selected)
                 setPadding(dp(16), dp(9), dp(16), dp(9))
+                // 入场动画：从中心径向弹出
+                translationX = 0f
+                translationY = 0f
+                scaleX = 0.6f
+                scaleY = 0.6f
+                alpha = 0f
+                animate()
+                    .translationX(targetTx)
+                    .translationY(targetTy)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+                    .setDuration(220L)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(1.2f))
+                    .start()
                 setOnClickListener {
                     HapticFeedbackEngine.cartridgeSnap(activity)
                     dialog.dismiss()
@@ -83,9 +103,6 @@ object RadialQuickActionMenu {
             }
             root.addView(pill, lp)
         }
-
-        // 环外任意区域点击收起
-        root.setOnTouchListener { _, _ -> dialog.dismiss(); true }
 
         dialog.show()
     }

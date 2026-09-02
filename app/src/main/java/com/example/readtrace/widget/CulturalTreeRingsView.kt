@@ -32,8 +32,12 @@ class CulturalTreeRingsView @JvmOverloads constructor(
         textSize = 22f
     }
 
-    /** 逐环渐入动画进度 0..1 */
     private var revealProgress = 0f
+    private var revealAnimator: android.animation.ValueAnimator? = null
+
+    init {
+        textPaint.textSize = 11f * context.resources.displayMetrics.density
+    }
 
     fun setData(minutes: IntArray) {
         monthlyMinutes = IntArray(12) { minutes.getOrElse(it) { 0 } }
@@ -42,10 +46,21 @@ class CulturalTreeRingsView @JvmOverloads constructor(
     }
 
     private fun animateReveal() {
-        animate().setDuration(600L).setUpdateListener { animator ->
-            revealProgress = animator.animatedFraction
-            invalidate()
-        }.start()
+        revealAnimator?.cancel()
+        revealAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 650L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener { animator ->
+                revealProgress = (animator.animatedValue as? Float) ?: 0f
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        revealAnimator?.cancel()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -74,7 +89,8 @@ class CulturalTreeRingsView @JvmOverloads constructor(
             if (radius <= ringGap * 0.4f) break
 
             // 环带宽度 1.5dp ~ 6dp，随沉浸深度增厚；空月为极细暗环
-            ringPaint.strokeWidth = (2f + intensity * 10f) * revealProgress
+            val density = resources.displayMetrics.density
+            ringPaint.strokeWidth = (1.5f + intensity * 4.5f) * density * revealProgress
             val alpha = if (minutes > 0) (70 + intensity * 160).toInt() else 34
             ringPaint.color = when (monthIndex % 4) {
                 0 -> Color.argb(alpha, 77, 238, 234)   // 晶青

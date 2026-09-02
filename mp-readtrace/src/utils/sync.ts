@@ -144,7 +144,13 @@ export async function performSync(): Promise<SyncResult> {
     })),
   };
 
-  await request('MKCOL', 'readtrace/', config);
+  // 尝试创建目录（部分服务器自动建目录，微信环境若拦截非标方法则静默降级直接 PUT）
+  try {
+    await request('MKCOL', 'readtrace/', config);
+  } catch {
+    // 微信小程序非标 HTTP 方法拦截兜底，静默降级
+  }
+
   const put = await request('PUT', REMOTE_BACKUP, config, JSON.stringify(payload));
   if (put.status < 200 || put.status > 299) {
     return { success: false, pulledWorks, pushedWorks: 0, message: `上传失败: HTTP ${put.status}` };

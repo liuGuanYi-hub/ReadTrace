@@ -340,6 +340,8 @@ object QuickLogBottomSheet {
         status: BookStatus,
         tags: List<String>,
         rating: Double?,
+        explicitSourceType: String? = subject.source,
+        explicitSourceId: String? = subject.id.takeIf { it > 0 }?.toString(),
     ) {
         val today = LocalDate.now().toString()
         val book = Book(
@@ -356,8 +358,8 @@ object QuickLogBottomSheet {
             finishDate = if (status == BookStatus.FINISHED) today else null,
             createdAt = "",
             updatedAt = "",
-            sourceType = subject.source,
-            sourceId = subject.id.toString(),
+            sourceType = explicitSourceType,
+            sourceId = explicitSourceId,
             remoteRating = subject.ratingScore,
             description = subject.summary,
         )
@@ -410,9 +412,9 @@ object QuickLogBottomSheet {
             setOnClickListener {
                 HapticFeedbackEngine.stampImpact(context)
                 insertQuickWork(
-                    context,
-                    BookDatabaseHelper.getInstance(context),
-                    BangumiSubject(
+                    context = context,
+                    databaseHelper = BookDatabaseHelper.getInstance(context),
+                    subject = BangumiSubject(
                         id = 0L,
                         name = parsed.title,
                         nameCn = parsed.title,
@@ -420,9 +422,11 @@ object QuickLogBottomSheet {
                         summary = null,
                         tags = parsed.tags,
                     ),
-                    parsed.status ?: currentMedia.defaultQuickStatus(),
-                    parsed.tags.ifEmpty { listOf(currentMedia.name) },
-                    parsed.rating,
+                    status = parsed.status ?: currentMedia.defaultQuickStatus(),
+                    tags = parsed.tags.ifEmpty { listOf(currentMedia.name) },
+                    rating = parsed.rating,
+                    explicitSourceType = null,
+                    explicitSourceId = null,
                 )
                 // 关闭弹窗：通过根 view tag 定位宿主 dialog
                 (rootView.tag as? Dialog)?.dismiss()

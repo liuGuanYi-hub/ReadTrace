@@ -23,11 +23,12 @@ object BookSimilarityEngine {
         val allBooks = databaseHelper.getBooks().filter { it.id != targetBook.id }
         if (allBooks.isEmpty()) return emptyList()
 
-        val targetMp = databaseHelper.getMindprint(targetBook.id)
+        val allMindprints = databaseHelper.getAllMindprints()
+        val targetMp = allMindprints[targetBook.id] ?: databaseHelper.getMindprint(targetBook.id)
         val targetRegion = detectRegion(targetBook)
 
         val scored = allBooks.map { candidate ->
-            val candidateMp = databaseHelper.getMindprint(candidate.id)
+            val candidateMp = allMindprints[candidate.id] ?: BookMindprint(bookId = candidate.id)
             val candidateRegion = detectRegion(candidate)
 
             // 1. 六维心智欧氏空间距离相似度 (40% 权重)
