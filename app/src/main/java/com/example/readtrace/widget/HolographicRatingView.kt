@@ -219,11 +219,11 @@ class HolographicRatingView @JvmOverloads constructor(
             textPaint.color = Color.parseColor("#E0A96D") // 典雅烫金色
         }
 
-        val scoreStr = String.format(Locale.getDefault(), "%.1f", currentDisplayScore / 2.0)
+        val scoreStr = String.format(Locale.getDefault(), "%.1f", currentDisplayScore)
         canvas.drawText(scoreStr, currentX, centerY + h * 0.18f, textPaint)
 
         val scoreTextWidth = textPaint.measureText(scoreStr)
-        canvas.drawText("/ 5.0", currentX + scoreTextWidth + 8f, centerY + h * 0.16f, subTextPaint)
+        canvas.drawText("/ 10.0", currentX + scoreTextWidth + 8f, centerY + h * 0.16f, subTextPaint)
     }
 
     private fun drawSingleStar(canvas: Canvas, cx: Float, cy: Float, radius: Float, isFull: Boolean, isHalf: Boolean) {

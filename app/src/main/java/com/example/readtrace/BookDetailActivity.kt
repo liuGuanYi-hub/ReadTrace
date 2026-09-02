@@ -1357,8 +1357,29 @@ class BookDetailActivity : AppCompatActivity() {
         }
 
         findViewById<TextView>(R.id.detailBookAuthor).text = valueOrFallback(book.author)
-        findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailHolographicRating)?.setRating(book.rating, animate = true)
-        findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailRatingHolo)?.setRating(book.rating, animate = true)
+        val holoRating = findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailHolographicRating)
+        holoRating?.setRating(book.rating, animate = true)
+        holoRating?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            com.example.readtrace.ui.DimensionalScoringBottomSheet.show(
+                activity = this,
+                workTitle = book.title,
+                mediaType = book.mediaType,
+                currentScore = book.rating,
+            ) { newScore ->
+                val updated = book.copy(rating = newScore)
+                databaseHelper.updateBook(updated)
+                currentBook = updated
+                renderBook(updated)
+            }
+        }
+
+        val holoRating2 = findViewById<com.example.readtrace.widget.HolographicRatingView>(R.id.detailRatingHolo)
+        holoRating2?.setRating(book.rating, animate = true)
+        holoRating2?.setOnClickListener {
+            holoRating?.performClick()
+        }
+
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         renderRemoteRatingAdopt(book)
@@ -1369,7 +1390,7 @@ class BookDetailActivity : AppCompatActivity() {
             val stars = (it / 2.0)
             val full = stars.toInt()
             val starText = "★".repeat(full) + "☆".repeat((5 - full).coerceAtLeast(0))
-            "$starText  ${RATING_FORMAT.format(stars)} / 5"
+            "$starText  ${String.format(java.util.Locale.getDefault(), "%.1f", it)} / 10.0 · ${com.example.readtrace.util.DimensionalScoringEngine.getShortTierLabel(it)}"
         } ?: getString(R.string.not_recorded)
         findViewById<TextView>(R.id.detailTags).text =
             if (book.tags.isEmpty()) {
@@ -1837,7 +1858,7 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun buildHeroMeta(book: Book): String {
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
+            "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it) + " 分"
         } ?: getString(R.string.not_recorded)
         return listOfNotNull(
             book.status.getDisplayName(book.mediaType),

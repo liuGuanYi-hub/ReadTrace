@@ -453,9 +453,23 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:layout_weight="1"
-                        android:text="4 星 · 力荐"
-                        android:textColor="@color/readtrace_muted"
-                        android:textSize="13sp" />
+                        android:text="8.0 分 · 扎实良作"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnOpenDimensionalScoring"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_dark_chip_selected"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="📐 多维细分"
+                        android:textColor="@android:color/white"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <TextView

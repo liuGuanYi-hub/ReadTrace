@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scoringSheetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_work_picker_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingTop="10dp">
+
+    <!-- 顶部居中拉手 -->
+    <View
+        android:layout_width="38dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_sheet_handle" />
+
+    <!-- 顶栏标题 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:id="@+id/txtScoringTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📐 多维加权微评分工坊"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtScoringSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="基于媒介 4 大核心维度，自动加权计算 10.0 高精评分"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- 实时总分与感官评语看板 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_dark_chip"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="14dp"
+        android:paddingHorizontal="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtLiveTotalScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8.8"
+                android:textColor="#E0A96D"
+                android:textSize="36sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="6dp"
+                android:text="/ 10.0"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtLiveTierLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_dark_chip_selected"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:text="✦ 扎实良作 · 亮点鲜明，值得品味与重温"
+            android:textColor="@android:color/white"
+            android:textSize="11.5sp" />
+    </LinearLayout>
+
+    <!-- 四维微打分容器 -->
+    <LinearLayout
+        android:id="@+id/scoringDimensionsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp" />
+
+    <!-- 底部 0.1 游标微调与快捷操作 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btnMinusTenth"
+            android:layout_width="48dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_status_chip"
+            android:gravity="center"
+            android:text="-0.1"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12.5sp"
+            android:textStyle="bold" />
+
+        <SeekBar
+            android:id="@+id/seekFineTune"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="88" />
+
+        <TextView
+            android:id="@+id/btnPlusTenth"
+            android:layout_width="48dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_status_chip"
+            android:gravity="center"
+            android:text="+0.1"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12.5sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 确认并保存按钮 -->
+    <TextView
+        android:id="@+id/btnConfirmScore"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_dark_chip_selected"
+        android:gravity="center"
+        android:text="✓ 确认微评分"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+</LinearLayout>

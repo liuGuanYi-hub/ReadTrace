@@ -52,7 +52,7 @@ class AddBookActivity : AppCompatActivity() {
     private var selectedStatus: BookStatus = BookStatus.READING
     private lateinit var starViews: List<TextView>
     private lateinit var starHint: TextView
-    private var selectedStars: Double = 4.0 // 默认 4 星
+    private var selectedScore10: Double = 8.0 // 默认 8.0 分 (10 分制)
     private lateinit var tagsInput: EditText
     private lateinit var sectionThoughtsTitle: TextView
     private lateinit var shortCommentLabel: TextView
@@ -174,6 +174,18 @@ class AddBookActivity : AppCompatActivity() {
             findViewById(R.id.star5),
         )
         starHint = findViewById(R.id.starHint)
+        findViewById<View>(R.id.btnOpenDimensionalScoring)?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+            com.example.readtrace.ui.DimensionalScoringBottomSheet.show(
+                activity = this,
+                workTitle = titleInput.text.toString().trim().ifBlank { "作品" },
+                mediaType = selectedMediaType,
+                currentScore = selectedScore10,
+            ) { newScore ->
+                selectedScore10 = newScore
+                renderStarSelection()
+            }
+        }
         setupStarRating()
         applyCompactMode()
         tagsInput = findViewById(R.id.tagsInput)
@@ -436,7 +448,7 @@ class AddBookActivity : AppCompatActivity() {
         updateStatusChipsText()
         updateStatusSelectionUI()
         book.rating?.let { r ->
-            selectedStars = (r / 2.0).toInt().coerceIn(1, 5).toDouble()
+            selectedScore10 = r.coerceIn(0.0, 10.0)
             renderStarSelection()
         }
         tagsInput.setText(book.tags.joinToString("，"))
@@ -871,7 +883,7 @@ class AddBookActivity : AppCompatActivity() {
     private fun setupStarRating() {
         starViews.forEachIndexed { index, star ->
             star.setOnClickListener {
-                selectedStars = (index + 1).toDouble()
+                selectedScore10 = (index + 1) * 2.0
                 renderStarSelection()
                 com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
             }
@@ -880,17 +892,20 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     private fun renderStarSelection() {
+        val activeStars = (selectedScore10 / 2.0).coerceIn(0.0, 5.0)
         starViews.forEachIndexed { index, star ->
             star.setTextColor(
-                if (index < selectedStars.toInt()) android.graphics.Color.parseColor("#F4A261")
-                else android.graphics.Color.parseColor("#3A3630"),
+                if (index + 1 <= activeStars || (index < activeStars && activeStars - index >= 0.5)) {
+                    android.graphics.Color.parseColor("#F4A261")
+                } else {
+                    android.graphics.Color.parseColor("#3A3630")
+                }
             )
         }
-        val labels = listOf("", "尚可", "一般", "喜欢", "力荐", "此生挚爱")
-        starHint.text = "${selectedStars.toInt()} 星 · ${labels[selectedStars.toInt()]}"
+        starHint.text = "${String.format(Locale.getDefault(), "%.1f", selectedScore10)} 分 · ${com.example.readtrace.util.DimensionalScoringEngine.getShortTierLabel(selectedScore10)}"
     }
 
-    private fun parseRating(): Double? = selectedStars * 2.0
+    private fun parseRating(): Double? = selectedScore10
 
     /** 两步式记录：新增模式默认只展示核心字段，其余折叠待「补充详细信息」展开 */
     private val collapsedViewIds = listOf(

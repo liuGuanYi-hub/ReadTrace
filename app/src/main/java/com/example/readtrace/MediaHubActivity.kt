@@ -474,7 +474,7 @@ class MediaHubActivity : AppCompatActivity() {
         card.findViewById<TextView>(R.id.bookCardAuthor).text = book.author ?: getString(R.string.unknown_author)
 
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
+            "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it)
         } ?: getString(R.string.unrated)
         card.findViewById<TextView>(R.id.bookCardMeta).visibility = View.GONE
         card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
@@ -530,7 +530,7 @@ class MediaHubActivity : AppCompatActivity() {
         card.findViewById<TextView>(R.id.bookGridAuthor).text = book.author ?: getString(R.string.unknown_author)
 
         val ratingLabel = book.rating?.let {
-            getString(R.string.rating_format, RATING_FORMAT.format(it / 2.0))
+            "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it)
         } ?: getString(R.string.unrated)
         card.findViewById<TextView>(R.id.bookGridRating).text = ratingLabel
 
