@@ -2260,5 +2260,21 @@ graph TD
    - `AddBookActivity` 评分大字显示 `8.8 分 · 扎实良作` 并支持「📐 多维细分」；
    - `MediaHubActivity` 与 `BookDetailActivity` 统一以 10 分制标准展示。
 
+---
+
+## 40. P24 极速心流：新增作品页『AI 智能一键补齐』体系 (AI One-Click Work Metadata Auto-Completer)
+
+### 40.1 研发背景与核心诉求
+手动录入作品时，用户常常面临需要反复切换应用查找作者、分类、标签与简介的繁琐流程，造成严重的输入中断与心流流失。为实现“3 秒极速建档”，在 `AddBookActivity` 核心输入区接入全局 AI 智能一键补齐引擎。
+
+### 40.2 核心系统技术与架构
+1. **`AiAssistantEngine.autoFillWorkMetadata`（智能补齐引擎）**：
+   - **双轨架构**：内置书/影/音/游/漫经典作品权威元数据库（0ms 秒级离线响应）+ 在线大模型（DeepSeek/OpenAI 等）结构化 JSON 实时解析；
+   - **全字段覆盖**：一次性解析并返回创作者、题材分类、4 个精准标签、精炼核心主旨简介与 10 分制建议基准评分；
+2. **表单自动化与微交互**：
+   - 标题输入区上方接入 `btnAiAutoFill`（`✨ AI 智能一键补齐`）；
+   - 补齐后自动平滑展开全部折叠字段，并触发 `HapticFeedbackEngine.stampImpact` 弹簧触感反馈。
+
+
 
 

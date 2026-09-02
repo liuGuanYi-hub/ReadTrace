@@ -38,6 +38,15 @@ object AiAssistantEngine {
         val isFromOffline: Boolean = false,
     )
 
+    data class AutoFillWorkResult(
+        val author: String,
+        val category: String,
+        val tags: List<String>,
+        val description: String,
+        val suggestedRating: Double,
+        val isFromOffline: Boolean = false,
+    )
+
     /**
      * 发起分析请求（网络优先，无 Key 或异常时自动平滑降级至离线知识库）
      */
@@ -267,6 +276,252 @@ object AiAssistantEngine {
                 OutlineChapter("高潮 / 转", "命运决战与认知破局", "所有矛盾在此刻集中爆发，主角做出决定性的牺牲与终极选择。"),
                 OutlineChapter("尾声 / 合", "余韵悠长与主题升华", "风暴停息后的重构与反思，给读者/观众留下深远的心灵回响。"),
             ),
+            isFromOffline = true,
+        )
+    }
+
+    /**
+     * 智能一键补全作品元数据（创作者、分类、标签、简介、建议评分）
+     */
+    fun autoFillWorkMetadata(
+        context: Context,
+        title: String,
+        mediaType: MediaType,
+        callback: (AutoFillWorkResult) -> Unit,
+    ) {
+        val cleanTitle = title.trim()
+        if (cleanTitle.isBlank()) {
+            callback(getOfflineAutoFill(cleanTitle, mediaType))
+            return
+        }
+
+        val apiKey = UserPreferencesManager.getAiApiKey(context)
+        val baseUrl = UserPreferencesManager.getAiBaseUrl(context)
+        val model = UserPreferencesManager.getAiModel(context)
+
+        // 离线名作高精库优先匹配
+        val offline = getOfflineAutoFill(cleanTitle, mediaType)
+        if (offline.isFromOffline && !offline.author.startsWith("佚名")) {
+            callback(offline)
+            return
+        }
+
+        // 无 API Key 则直接降级返回
+        if (apiKey.isBlank()) {
+            callback(offline)
+            return
+        }
+
+        Thread {
+            try {
+                val cleanUrl = baseUrl.trimEnd('/') + "/chat/completions"
+                val url = URL(cleanUrl)
+                val conn = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 12000
+                    readTimeout = 25000
+                    doOutput = true
+                    doInput = true
+                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+                    setRequestProperty("Authorization", "Bearer $apiKey")
+                }
+
+                val prompt = """
+                    请根据作品名《$cleanTitle》（媒介类型：${mediaType.displayName}），补全该作品的权威元数据。
+                    请严格输出合法的 JSON 对象，格式如下：
+                    {
+                      "author": "创作者/原作者/导演/开发商/作曲家",
+                      "category": "主要类型分类（如：奇幻 / 治愈、魔幻现实主义、动作角色扮演、硬核科幻）",
+                      "tags": ["核心标签1", "标签2", "标签3", "标签4"],
+                      "description": "精炼的核心主旨与故事背景介绍（80-120字左右）",
+                      "suggestedRating": 9.2
+                    }
+                    要求：
+                    1. 只输出纯 JSON 对象，不要附加 markdown 或解释说明；
+                    2. suggestedRating 为 10 分制评分（0.0 ~ 10.0）。
+                """.trimIndent()
+
+                val bodyJson = JSONObject().apply {
+                    put("model", model)
+                    put("messages", JSONArray().apply {
+                        put(JSONObject().apply {
+                            put("role", "system")
+                            put("content", "你是一位精通跨媒介艺术档案的专业策展人，只输出合法的纯 JSON 对象。")
+                        })
+                        put(JSONObject().apply {
+                            put("role", "user")
+                            put("content", prompt)
+                        })
+                    })
+                    put("temperature", 0.3)
+                }
+
+                OutputStreamWriter(conn.outputStream, "UTF-8").use { it.write(bodyJson.toString()) }
+
+                val code = conn.responseCode
+                if (code == 200) {
+                    val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
+                    val respText = reader.readText()
+                    val respJson = JSONObject(respText)
+                    val content = respJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
+                    val parsed = parseAutoFillJson(content)
+                    if (parsed != null) {
+                        callback(parsed)
+                        return@Thread
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            callback(offline)
+        }.start()
+    }
+
+    private fun parseAutoFillJson(rawText: String): AutoFillWorkResult? {
+        return try {
+            val clean = rawText.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
+            val obj = JSONObject(clean)
+            val tagsList = mutableListOf<String>()
+            val tagsArr = obj.optJSONArray("tags")
+            if (tagsArr != null) {
+                for (i in 0 until tagsArr.length()) {
+                    tagsList.add(tagsArr.getString(i))
+                }
+            }
+            AutoFillWorkResult(
+                author = obj.optString("author", "未知创作者"),
+                category = obj.optString("category", "综合艺术"),
+                tags = tagsList.ifEmpty { listOf("艺术", "佳作") },
+                description = obj.optString("description", ""),
+                suggestedRating = obj.optDouble("suggestedRating", 8.8),
+                isFromOffline = false,
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * 离线经典高精作品元数据库
+     */
+    private fun getOfflineAutoFill(title: String, mediaType: MediaType): AutoFillWorkResult {
+        val t = title.trim().lowercase()
+        val catalog = mapOf(
+            "夏目友人帐" to AutoFillWorkResult(
+                author = "绿川幸",
+                category = "奇幻 / 治愈",
+                tags = listOf("治愈", "温情", "妖怪", "日常"),
+                description = "少年夏目贵志因继承了外婆玲子的友人帐，开始与保镖猫咪老师一同将名字归还给妖怪们，在人与妖的交织中体会温柔与释怀。",
+                suggestedRating = 9.4,
+                isFromOffline = true,
+            ),
+            "紫罗兰永恒花园" to AutoFillWorkResult(
+                author = "晓佳奈 · 京都动画",
+                category = "剧情 / 奇幻",
+                tags = listOf("治愈", "成长", "爱", "唯美"),
+                description = "曾经作为战争机器的少女薇尔莉特，在战后成为自动手记人偶，在为他人代写书信的旅途中，逐渐领悟少佐留下的「我爱你」的真正含义。",
+                suggestedRating = 9.2,
+                isFromOffline = true,
+            ),
+            "摇曳露营" to AutoFillWorkResult(
+                author = "Afro · C-Station",
+                category = "日常 / 治愈",
+                tags = listOf("日常", "治愈", "露营", "美食"),
+                description = "讲述喜爱独自露营的志摩凛与开朗少女各务原抚子相遇后，与户外活动同好会伙伴们在富士山脚下享受冬日露营与美食的悠闲日常。",
+                suggestedRating = 9.3,
+                isFromOffline = true,
+            ),
+            "虫师" to AutoFillWorkResult(
+                author = "漆原友纪",
+                category = "奇幻 / 哲思",
+                tags = listOf("治愈", "自然", "奇幻", "哲思"),
+                description = "游走在幽暗与微光之中的虫师银古，穿梭于人与原始生命体「虫」的交错边缘，讲述万物共生、静谧深远的自然诗篇。",
+                suggestedRating = 9.5,
+                isFromOffline = true,
+            ),
+            "三体" to AutoFillWorkResult(
+                author = "刘慈欣",
+                category = "硬核科幻",
+                tags = listOf("科幻", "宇宙", "文明", "黑暗森林"),
+                description = "人类文明在文化浩劫与现代科学危机中向宇宙发出第一声呼喊，引发了与四光年外三体文明长达数百年的生死博弈与文明兴衰。",
+                suggestedRating = 9.5,
+                isFromOffline = true,
+            ),
+            "百年孤独" to AutoFillWorkResult(
+                author = "加西亚·马尔克斯",
+                category = "魔幻现实主义",
+                tags = listOf("孤独", "家族", "史诗", "经典"),
+                description = "布恩迪亚家族七代人在加勒比海沿岸小镇马孔多的百年兴衰史，魔幻与现实交织，揭示了拉丁美洲乃至整个人类文明深沉的孤独宿命。",
+                suggestedRating = 9.4,
+                isFromOffline = true,
+            ),
+            "小王子" to AutoFillWorkResult(
+                author = "安托万·德·圣-埃克苏佩里",
+                category = "童话哲思",
+                tags = listOf("童心", "爱", "治愈", "哲思"),
+                description = "来自 B612 小行星的小王子在星际漫游中审视成人的荒谬世界，在地球与狐狸和飞行员相遇，领悟了「驯服、责任与爱」的永恒真理。",
+                suggestedRating = 9.6,
+                isFromOffline = true,
+            ),
+            "星际穿越" to AutoFillWorkResult(
+                author = "克里斯托弗·诺兰",
+                category = "硬核科幻",
+                tags = listOf("科幻", "太空", "爱", "硬核"),
+                description = "在地球资源枯竭的末日未来，前宇航员库珀告别儿女穿过虫洞前往未知星系寻找人类新家园，在五维空间与引力波中见证超越时间的爱。",
+                suggestedRating = 9.4,
+                isFromOffline = true,
+            ),
+            "海伯利安" to AutoFillWorkResult(
+                author = "丹·西蒙斯",
+                category = "太空歌剧",
+                tags = listOf("科幻", "太空歌剧", "诗性", "神作"),
+                description = "在宇宙末日临近之际，七位朝圣者前往偏远星球海伯利安的光阴冢，向掌控时间与痛苦的神祇「伯劳」倾诉各自的坎特伯雷式悲欢故事。",
+                suggestedRating = 9.3,
+                isFromOffline = true,
+            ),
+            "攻壳机动队" to AutoFillWorkResult(
+                author = "士郎正宗 · 神山健治",
+                category = "赛博朋克",
+                tags = listOf("赛博朋克", "科幻", "哲学", "神作"),
+                description = "在义体化高度发达的未来社会，公安九课少佐草薙素子率领队员追查顶级黑客案件，在数码海洋与机械身躯中追寻灵魂与自我意识的存在。",
+                suggestedRating = 9.6,
+                isFromOffline = true,
+            ),
+            "非自然死亡" to AutoFillWorkResult(
+                author = "野木亚纪子",
+                category = "悬疑职场",
+                tags = listOf("悬疑", "法医", "职场", "神作"),
+                description = "在非自然死亡原因研究所（UDI）里，法医三澄美琴与解剖学者们直面一具具不自然的遗体，追寻真相，只为了让生者更好地活下去。",
+                suggestedRating = 9.4,
+                isFromOffline = true,
+            ),
+            "艾尔登法环" to AutoFillWorkResult(
+                author = "FromSoftware · 宫崎英高",
+                category = "动作角色扮演",
+                tags = listOf("魂系", "开放世界", "奇幻", "神作"),
+                description = "褪色者受赐福指引重返交界地，探索宏大而残破的黄金律法世界，挑战半神诸王，探寻艾尔登之王的宿命与破碎的真相。",
+                suggestedRating = 9.6,
+                isFromOffline = true,
+            ),
+        )
+
+        catalog.entries.firstOrNull { t.contains(it.key) }?.value?.let { return it }
+
+        // 通用兜底
+        val defaultCategory = when (mediaType) {
+            MediaType.BOOK -> "文学作品"
+            MediaType.ANIME -> "动画番剧"
+            MediaType.MOVIE -> "影视作品"
+            MediaType.GAME -> "电子游戏"
+            MediaType.MUSIC -> "流行音乐"
+        }
+        return AutoFillWorkResult(
+            author = "佚名 / 创作者",
+            category = defaultCategory,
+            tags = listOf(mediaType.displayName, "精选佳作"),
+            description = "《${title.ifBlank { "该作品" }}》是一部具有独特艺术表现力与情感感染力的${mediaType.displayName}佳作。",
+            suggestedRating = 8.5,
             isFromOffline = true,
         )
     }

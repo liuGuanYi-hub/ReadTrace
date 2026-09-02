@@ -154,6 +154,60 @@ class AddBookActivity : AppCompatActivity() {
         formSubtitle = findViewById(R.id.formSubtitle)
         titleLabel = findViewById(R.id.titleLabel)
         titleInput = findViewById(R.id.titleInput)
+
+        findViewById<TextView>(R.id.btnAiAutoFill)?.setOnClickListener {
+            val title = titleInput.text.toString().trim()
+            if (title.isEmpty()) {
+                android.widget.Toast.makeText(this, "请先输入作品名称再进行 AI 补全", android.widget.Toast.LENGTH_SHORT).show()
+                titleInput.requestFocus()
+                return@setOnClickListener
+            }
+
+            val btn = it as TextView
+            btn.text = "✨ 补齐中…"
+            btn.isEnabled = false
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+
+            com.example.readtrace.util.AiAssistantEngine.autoFillWorkMetadata(
+                context = this,
+                title = title,
+                mediaType = selectedMediaType,
+            ) { result ->
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    btn.text = "✨ AI 智能一键补齐"
+                    btn.isEnabled = true
+
+                    expandFullForm()
+
+                    if (authorInput.text.isNullOrBlank() || authorInput.text.toString() == "佚名") {
+                        authorInput.setText(result.author)
+                    }
+
+                    if (selectedCategory.isNullOrBlank() || selectedCategory == "未分类") {
+                        selectedCategory = result.category
+                        rebuildCategoryChips()
+                    }
+
+                    val currentTags = tagsInput.text.toString().split("，", ",", "、").map { it.trim() }.filter { it.isNotBlank() }
+                    val merged = (currentTags + result.tags).distinct()
+                    tagsInput.setText(merged.joinToString("，"))
+
+                    if (shortCommentInput.text.isNullOrBlank()) {
+                        shortCommentInput.setText(result.description)
+                    }
+
+                    if (selectedScore10 == 8.0 || selectedScore10 == 0.0) {
+                        selectedScore10 = result.suggestedRating
+                        renderStarSelection()
+                    }
+
+                    com.example.readtrace.util.HapticFeedbackEngine.stampImpact(this)
+                    android.widget.Toast.makeText(this, "✨ 已为您智能补全《$title》的全部信息！", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         authorLabel = findViewById(R.id.authorLabel)
         authorInput = findViewById(R.id.authorInput)
         coverUrlInput = findViewById(R.id.coverUrlInput)
