@@ -97,6 +97,7 @@ object UserPreferencesManager {
     private const val KEY_WEBDAV_USER = "webdav_user"
     private const val KEY_WEBDAV_PASSWORD = "webdav_password"
     private const val KEY_WEBDAV_LAST_SYNC = "webdav_last_sync_at"
+    private const val KEY_WEBDAV_AUTO_SYNC = "webdav_auto_sync_enabled"
 
     fun getWebDavServer(context: Context): String =
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
@@ -132,6 +133,15 @@ object UserPreferencesManager {
     fun setWebDavLastSyncAt(context: Context, timestamp: Long) {
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
             .edit().putLong(KEY_WEBDAV_LAST_SYNC, timestamp).apply()
+    }
+
+    fun isWebDavAutoSyncEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getBoolean(KEY_WEBDAV_AUTO_SYNC, true)
+
+    fun setWebDavAutoSyncEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_WEBDAV_AUTO_SYNC, enabled).apply()
     }
 
     // --- 📖 阅读页码 (readtrace_reader_prefs) ---

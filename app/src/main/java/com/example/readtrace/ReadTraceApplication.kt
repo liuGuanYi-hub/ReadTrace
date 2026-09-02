@@ -13,5 +13,6 @@ class ReadTraceApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeHelper.applyTheme(this)
+        com.example.readtrace.sync.WebDavSyncEngine.performAutoSyncIfDue(this)
     }
 }

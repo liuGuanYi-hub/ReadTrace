@@ -75,6 +75,29 @@ object WebDavSyncEngine {
         }
     }
 
+    /**
+     * 静默日常自动增量同步：配置已就绪且距离上次同步超过 12 小时时在后台静默执行
+     */
+    fun performAutoSyncIfDue(context: Context, onComplete: ((SyncResult) -> Unit)? = null) {
+        val appContext = context.applicationContext
+        val config = loadConfig(appContext)
+        if (!config.isConfigured || !UserPreferencesManager.isWebDavAutoSyncEnabled(appContext)) return
+
+        val lastSync = UserPreferencesManager.getWebDavLastSyncAt(appContext)
+        val elapsedHours = (System.currentTimeMillis() - lastSync) / (1000 * 3600)
+        if (elapsedHours < 12 && lastSync > 0) return
+
+        executor.execute {
+            val result = runCatching { doSync(appContext) }
+                .getOrElse {
+                    SyncResult(false, 0, 0, 0, false, "静默同步异常: ${it.message ?: "网络波动"}")
+                }
+            if (onComplete != null) {
+                mainHandler.post { onComplete(result) }
+            }
+        }
+    }
+
     private fun doSync(context: Context): SyncResult {
         val config = loadConfig(context)
         if (!config.isConfigured) {

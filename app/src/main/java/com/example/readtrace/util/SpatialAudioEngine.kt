@@ -187,6 +187,89 @@ object SpatialAudioEngine {
         }
     }
 
+    private var ambientTrack: AudioTrack? = null
+
+    /**
+     * 7. 🌧️ 程序化无缝白噪音伴读声场（0 外部资源、纯 PCM 实时合成）
+     * @param modeIndex 0: 雨夜, 1: 松林, 2: 咖啡馆, 3: 柴火, 4: 静音
+     */
+    fun startAmbient(modeIndex: Int) {
+        stopAmbient()
+        if (modeIndex == 4) return // 🔇 静音
+
+        audioExecutor.execute {
+            val numSamples = SAMPLE_RATE
+            val buffer = ShortArray(numSamples * 2)
+
+            for (i in 0 until numSamples) {
+                val t = i.toDouble() / SAMPLE_RATE
+                val sampleVal = when (modeIndex) {
+                    0 -> { // 🌧️ 雨夜: 白噪声 + 雨滴
+                        val white = (Math.random() * 2.0 - 1.0)
+                        val drop = if (Math.random() < 0.003) sin(2.0 * Math.PI * 720.0 * t) * 0.4 else 0.0
+                        ((white * 0.35 + drop) * 11000).toInt()
+                    }
+                    1 -> { // 🌲 松林: 慢速风声调制
+                        val wind = sin(2.0 * Math.PI * 0.25 * t) * 0.5 + 0.5
+                        val noise = (Math.random() * 2.0 - 1.0) * wind
+                        (noise * 9500).toInt()
+                    }
+                    2 -> { // ☕ 咖啡馆: 432Hz 治愈微波 + 极低底噪
+                        val hum = sin(2.0 * Math.PI * 432.0 * t) * 0.25
+                        val noise = (Math.random() * 2.0 - 1.0) * 0.25
+                        ((hum + noise) * 8500).toInt()
+                    }
+                    3 -> { // 🔥 柴火: 炭火爆裂噼啪声
+                        val base = (Math.random() * 2.0 - 1.0) * 0.12
+                        val pop = if (Math.random() < 0.004) (Math.random() * 2.0 - 1.0) * 0.75 else 0.0
+                        ((base + pop) * 13000).toInt()
+                    }
+                    else -> 0
+                }
+                val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
+                buffer[i * 2] = shortVal
+                buffer[i * 2 + 1] = shortVal
+            }
+
+            runCatching {
+                val track = AudioTrack.Builder()
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build(),
+                    )
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(SAMPLE_RATE)
+                            .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                            .build(),
+                    )
+                    .setBufferSizeInBytes(buffer.size * 2)
+                    .setTransferMode(AudioTrack.MODE_STATIC)
+                    .build()
+
+                track.write(buffer, 0, buffer.size)
+                track.setLoopPoints(0, numSamples, -1) // 无限循环
+                track.play()
+                ambientTrack = track
+            }
+        }
+    }
+
+    fun stopAmbient() {
+        runCatching {
+            ambientTrack?.let {
+                if (it.state != AudioTrack.STATE_UNINITIALIZED) {
+                    it.stop()
+                    it.release()
+                }
+            }
+            ambientTrack = null
+        }
+    }
+
     private fun playPcmStereo(pcmBuffer: ShortArray) {
         runCatching {
             val audioTrack = AudioTrack.Builder()

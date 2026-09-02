@@ -35,28 +35,45 @@ object ClipboardSnifferHelper {
         val kind: Kind,
         val title: String?,
         val subjectId: Long?,
+        val mediaType: MediaType? = null,
     )
 
     enum class Kind { TITLE, DOUBAN_URL, BANGUMI_URL, STEAM_URL }
 
-    private val DOUBAN_SUBJECT = Regex("""(?:book|movie|music|www)\.douban\.com/subject/(\d+)""")
-    private val BANGUMI_SUBJECT = Regex("""bgm\.tv/subject/(\d+)""")
+    private val DOUBAN_MOVIE = Regex("""movie\.douban\.com/subject/(\d+)""")
+    private val DOUBAN_MUSIC = Regex("""music\.douban\.com/subject/(\d+)""")
+    private val DOUBAN_BOOK = Regex("""book\.douban\.com/subject/(\d+)""")
+    private val DOUBAN_GENERAL = Regex("""(?:www\.)?douban\.com/subject/(\d+)""")
+    private val DOUBAN_ISBN = Regex("""(?:book\.)?douban\.com/isbn/(\d+)""")
+    private val BANGUMI_SUBJECT = Regex("""(?:bgm\.tv|bangumi\.tv|chii\.in)/subject/(\d+)""")
     private val STEAM_APP = Regex("""store\.steampowered\.com/app/(\d+)""")
     private val BOOK_TITLE_MARK = Regex("""《([^《》]{1,60})》""")
 
-    /** 解析剪贴板文本，可识别则返回嗅探结果 */
+    /** 解析剪贴板文本，按 host 自动识别媒介类别 */
     fun detect(rawContent: String?): ClipboardSniff? {
         val content = rawContent?.trim().orEmpty()
         if (content.isEmpty() || content.length > 300) return null
 
-        DOUBAN_SUBJECT.find(content)?.let {
-            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull())
+        DOUBAN_MOVIE.find(content)?.let {
+            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull(), MediaType.MOVIE)
+        }
+        DOUBAN_MUSIC.find(content)?.let {
+            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull(), MediaType.MUSIC)
+        }
+        DOUBAN_BOOK.find(content)?.let {
+            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull(), MediaType.BOOK)
+        }
+        DOUBAN_GENERAL.find(content)?.let {
+            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull(), MediaType.BOOK)
+        }
+        DOUBAN_ISBN.find(content)?.let {
+            return ClipboardSniff(Kind.DOUBAN_URL, null, it.groupValues[1].toLongOrNull(), MediaType.BOOK)
         }
         BANGUMI_SUBJECT.find(content)?.let {
-            return ClipboardSniff(Kind.BANGUMI_URL, null, it.groupValues[1].toLongOrNull())
+            return ClipboardSniff(Kind.BANGUMI_URL, null, it.groupValues[1].toLongOrNull(), MediaType.ANIME)
         }
         STEAM_APP.find(content)?.let {
-            return ClipboardSniff(Kind.STEAM_URL, null, it.groupValues[1].toLongOrNull())
+            return ClipboardSniff(Kind.STEAM_URL, null, it.groupValues[1].toLongOrNull(), MediaType.GAME)
         }
         if (content.contains("http")) return null
 
@@ -118,11 +135,16 @@ object ClipboardSnifferHelper {
                 }
             }
             Kind.DOUBAN_URL -> {
-                message.text = "📋 检测到豆瓣作品链接，正在直取元数据…"
+                val mediaLabel = when (sniff.mediaType) {
+                    MediaType.MOVIE -> "🎬 豆瓣电影"
+                    MediaType.MUSIC -> "🎵 豆瓣音乐"
+                    else -> "📖 豆瓣图书"
+                }
+                message.text = "📋 检测到 $mediaLabel 链接，正在直取元数据…"
                 action.text = "立即收录 ➔"
                 action.setOnClickListener {
                     dialog.dismiss()
-                    insertDoubanByLinkId(activity, sniff.subjectId)
+                    insertDoubanByLinkId(activity, sniff.subjectId, sniff.mediaType ?: MediaType.BOOK)
                 }
             }
             Kind.BANGUMI_URL -> {
@@ -134,7 +156,7 @@ object ClipboardSnifferHelper {
                 }
             }
             Kind.STEAM_URL -> {
-                message.text = "📋 检测到 Steam 链接，可前往搬家中心收录"
+                message.text = "📋 检测到 Steam 游戏链接，可前往搬家中心收录"
                 action.text = "前往 ➔"
                 action.setOnClickListener {
                     dialog.dismiss()
@@ -185,15 +207,16 @@ object ClipboardSnifferHelper {
         }.start()
     }
 
-    /** 豆瓣链接 0 误差直取：按 subject id 拉取官方元数据，直接以「想看」状态落库 */
-    private fun insertDoubanByLinkId(activity: Activity, subjectId: Long?) {
+    /** 豆瓣链接 0 误差直取：按 subject id 及目标媒介拉取官方元数据，直接以对应想看/想读/想听落库 */
+    private fun insertDoubanByLinkId(activity: Activity, subjectId: Long?, mediaType: MediaType = MediaType.BOOK) {
         val id = subjectId ?: return
         val probe = BangumiSubject(id = id, name = "", nameCn = null, coverUrl = null)
-        DoubanClient.getSubjectDetail(probe, MediaType.BOOK) { subject ->
+        DoubanClient.getSubjectDetail(probe, mediaType) { subject ->
             if (subject == null || subject.displayTitle.isBlank()) {
                 Toast.makeText(activity, "未能获取该链接的作品信息", Toast.LENGTH_SHORT).show()
                 return@getSubjectDetail
             }
+            val defaultStatus = com.example.readtrace.model.BookStatus.WISHLIST
             val databaseHelper = BookDatabaseHelper.getInstance(activity)
             val newId = databaseHelper.insertBook(
                 Book(
@@ -202,8 +225,8 @@ object ClipboardSnifferHelper {
                     coverUrl = subject.coverUrl,
                     category = subject.tags.firstOrNull(),
                     tags = subject.tags,
-                    status = com.example.readtrace.model.BookStatus.WISHLIST,
-                    mediaType = MediaType.BOOK,
+                    status = defaultStatus,
+                    mediaType = mediaType,
                     sourceType = DoubanClient.SOURCE_DOUBAN,
                     sourceId = subject.id.toString(),
                     remoteRating = subject.ratingScore,
@@ -212,7 +235,7 @@ object ClipboardSnifferHelper {
             )
             Toast.makeText(
                 activity,
-                if (newId > 0) "⚡ 已收录《${subject.displayTitle}》至想读" else "收录失败，请重试",
+                if (newId > 0) "⚡ 已收录《${subject.displayTitle}》· ${defaultStatus.getDisplayName(mediaType)}" else "收录失败，请重试",
                 Toast.LENGTH_SHORT,
             ).show()
         }

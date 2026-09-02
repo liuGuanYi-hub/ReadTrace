@@ -56,6 +56,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var currentIndex = 0
     private var isPlaying = false
     private var isCassetteMode = false // false 为黑胶模式, true 为磁带模式
+    private var sessionStartTimeMs: Long = SystemClock.elapsedRealtime()
 
     // 控件引用
     private lateinit var particleBackgroundView: AudioVisualizerParticleView
@@ -318,6 +319,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             currentAmbientIndex = (currentAmbientIndex + 1) % ambientModes.size
             val ambient = ambientModes[currentAmbientIndex]
             btnAmbientSound.text = ambient
+            com.example.readtrace.util.SpatialAudioEngine.startAmbient(currentAmbientIndex)
             Toast.makeText(this, "伴随声场：$ambient", Toast.LENGTH_SHORT).show()
         }
 
@@ -834,6 +836,19 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        com.example.readtrace.util.SpatialAudioEngine.stopAmbient()
+        val elapsedMinutes = ((SystemClock.elapsedRealtime() - sessionStartTimeMs) / 60000L).toInt()
+        val currentBook = playlist.getOrNull(currentIndex)
+        if (elapsedMinutes >= 1 && currentBook != null) {
+            databaseHelper.insertReadingSession(
+                com.example.readtrace.model.ReadingSession(
+                    bookId = currentBook.id,
+                    durationMinutes = elapsedMinutes,
+                    thought = "🎧 伴读沉浸 ${elapsedMinutes} 分钟 · ${ambientModes[currentAmbientIndex]}",
+                    createdAt = java.time.LocalDate.now().toString(),
+                ),
+            )
+        }
         handler.removeCallbacks(playRunnable)
         handler.removeCallbacks(previewStopRunnable)
         releaseMediaPlayer()
