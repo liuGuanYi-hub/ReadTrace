@@ -5,10 +5,15 @@
       <text class="subtitle">微信轻量漫游端 · 与 App 数据互通</text>
     </view>
 
-    <!-- 搜索与媒介筛选 -->
+    <!-- 搜索与媒介/状态筛选 -->
     <view class="filters">
       <input class="search" v-model="keyword" placeholder="🔍 搜索书名 / 创作者" placeholder-class="ph" />
       <scroll-view scroll-x class="media-row">
+        <view
+          class="chip"
+          :class="{ active: mediaFilter === '' }"
+          @tap="mediaFilter = ''"
+        >🌐 全部媒介</view>
         <view
           v-for="(m, key) in MEDIA_LABEL"
           :key="key"
@@ -16,6 +21,21 @@
           :class="{ active: mediaFilter === key }"
           @tap="mediaFilter = key as MediaType"
         >{{ m.emoji }} {{ m.name }}</view>
+      </scroll-view>
+
+      <scroll-view scroll-x class="status-row-filter">
+        <view
+          class="chip status-chip"
+          :class="{ active: statusFilter === '' }"
+          @tap="statusFilter = ''"
+        >全部状态</view>
+        <view
+          v-for="(label, key) in STATUS_LABEL"
+          :key="key"
+          class="chip status-chip"
+          :class="{ active: statusFilter === key }"
+          @tap="statusFilter = key as BookStatus"
+        >{{ label }}</view>
       </scroll-view>
     </view>
 
@@ -39,14 +59,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import type { Book, MediaType } from '../../utils/models';
+import { computed, ref, watch } from 'vue';
+import type { Book, BookStatus, MediaType } from '../../utils/models';
 import { MEDIA_LABEL, STATUS_LABEL } from '../../utils/models';
 import { loadLocalWorks } from '../../utils/sync';
 
 const keyword = ref('');
-const mediaFilter = ref<MediaType | ''>('');
+const mediaFilter = ref<MediaType | ''>(uni.getStorageSync('rt_mp_media_filter') || '');
+const statusFilter = ref<BookStatus | ''>(uni.getStorageSync('rt_mp_status_filter') || '');
 const works = ref<Book[]>([]);
+
+watch(mediaFilter, (val) => uni.setStorageSync('rt_mp_media_filter', val));
+watch(statusFilter, (val) => uni.setStorageSync('rt_mp_status_filter', val));
+
+// @ts-expect-error uni-app 页面参数获取与生命周期
+onLoad((options: any) => {
+  if (options?.media) mediaFilter.value = options.media;
+  if (options?.status) statusFilter.value = options.status;
+});
 
 // onShow 时刷新本地缓存（Local-First，离线可用）
 // @ts-expect-error uni-app 生命周期
@@ -55,9 +85,10 @@ onShow(() => { works.value = loadLocalWorks(); });
 const filtered = computed(() =>
   works.value.filter((b) => {
     const okMedia = !mediaFilter.value || b.mediaType === mediaFilter.value;
+    const okStatus = !statusFilter.value || b.status === statusFilter.value;
     const kw = keyword.value.trim().toLowerCase();
     const okKw = !kw || b.title.toLowerCase().includes(kw) || (b.author || '').toLowerCase().includes(kw);
-    return okMedia && okKw;
+    return okMedia && okStatus && okKw;
   }),
 );
 
@@ -86,11 +117,13 @@ function goQuickLog() {
 }
 .ph { color: #556; }
 .media-row { white-space: nowrap; margin-top: 16rpx; }
+.status-row-filter { white-space: nowrap; margin-top: 12rpx; }
 .chip {
   display: inline-block; padding: 12rpx 24rpx; margin-right: 12rpx; border-radius: 40rpx;
   background: rgba(255, 255, 255, 0.08); color: #99aabb; font-size: 24rpx;
 }
 .chip.active { background: #3a6348; color: #fff; }
+.status-chip.active { background: rgba(255, 231, 0, 0.85); color: #2b1a0e; font-weight: bold; }
 .card {
   display: flex; margin-bottom: 20rpx; padding: 20rpx; border-radius: 20rpx;
   background: linear-gradient(145deg, #0c111c, #111a2b); border: 1rpx solid rgba(255, 255, 255, 0.06);

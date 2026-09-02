@@ -205,7 +205,7 @@ object QuickLogBottomSheet {
             resultScroll.visibility = View.GONE
             return
         }
-        // ✍️ 一句话自然语言速记：`读完 三体 9分 #科幻` 直接结构化，置顶一键入库
+        // ✍️ 1. 一句话自然语言速记：`读完 三体 9分 #科幻` 直接结构化，置顶一键入库
         if (com.example.readtrace.util.NaturalQuickAddParser.looksLikeQuickLog(keyword)) {
             val parsed = com.example.readtrace.util.NaturalQuickAddParser.parse(keyword)
             if (parsed != null) {
@@ -216,6 +216,30 @@ object QuickLogBottomSheet {
             }
         }
 
+        // 📚 2. 本地藏品拼音简拼与模糊秒搜（置顶已收录作品）
+        val dbHelper = BookDatabaseHelper.getInstance(context)
+        val localMatches = dbHelper.getBooks().filter {
+            !it.isDeleted && com.example.readtrace.util.PinyinSearchHelper.matchesBook(it, keyword)
+        }
+        if (localMatches.isNotEmpty()) {
+            resultScroll.visibility = View.VISIBLE
+            localMatches.take(3).forEach { book ->
+                val localSubject = BangumiSubject(
+                    id = book.id,
+                    name = book.title,
+                    nameCn = book.title,
+                    coverUrl = book.coverUrl,
+                    creator = listOfNotNull(book.author, book.status.getDisplayName(book.mediaType)).joinToString(" · "),
+                    ratingScore = book.rating,
+                    tags = book.tags,
+                    source = book.sourceType ?: "local",
+                    summary = book.description,
+                )
+                resultList.addView(makeResultRow(context, localSubject, resultScroll, confirmSection, isLocal = true))
+            }
+        }
+
+        // 🌐 3. 网络联想搜索（当前媒介源）
         sessionToken = RankRepository.startSession(currentMedia, keyword)
         val token = sessionToken
         RankRepository.loadPage(context, token, forceRefresh = false) { page ->
@@ -230,7 +254,7 @@ object QuickLogBottomSheet {
             }
             resultScroll.visibility = View.VISIBLE
             items.take(15).forEach { subject ->
-                resultList.addView(makeResultRow(context, subject, resultScroll, confirmSection))
+                resultList.addView(makeResultRow(context, subject, resultScroll, confirmSection, isLocal = false))
             }
         }
     }
@@ -241,12 +265,15 @@ object QuickLogBottomSheet {
         subject: BangumiSubject,
         resultScroll: ScrollView,
         confirmSection: LinearLayout,
+        isLocal: Boolean = false,
     ): View {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(12, 10, 12, 10)
-            background = context.getDrawable(R.drawable.bg_quick_status_idle)
+            background = context.getDrawable(
+                if (isLocal) R.drawable.bg_dark_chip_selected else R.drawable.bg_quick_status_idle,
+            )
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
