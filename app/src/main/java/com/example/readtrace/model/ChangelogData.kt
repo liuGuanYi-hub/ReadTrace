@@ -15,7 +15,7 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
-            versionName = "v4.5.0",
+            versionName = "v1.0.5",
             releaseDate = "2026-09-02",
             isLatest = true,
             tagTitle = "🛡️ P20 缺陷清零、性能纵深与全维体验演进 (Grand Release)",
@@ -31,7 +31,7 @@ object ChangelogRepository {
             ),
         ),
         ChangelogVersion(
-            versionName = "v4.4.0",
+            versionName = "v1.0.4",
             releaseDate = "2026-09-02",
             isLatest = false,
             tagTitle = "🚀 极简心流与精神重逢 (Super Epoch)",
@@ -45,12 +45,12 @@ object ChangelogRepository {
                 "🏆 策展人年度精神年鉴：六页美术馆级画册 + 文化年轮图谱，一键导出印刷级长图",
                 "🎛️ 长按径向快捷环与全屏边缘侧滑返回，OLED 曜石真黑熄屏模式上线",
                 "🧪 思想炼金碰撞机与 432/528Hz 宇宙引力琴：跨媒介哲学对话即刻生成",
-                "🌐 2.5D visionOS 空间标本盒展厅，与经典 3D 展厅双模共存"
-            )
+                "🌐 2.5D visionOS 空间标本盒展厅，与经典 3D 展厅双模共存",
+            ),
         ),
         ChangelogVersion(
-            versionName = "v4.3.0",
-            releaseDate = "2026-09-02",
+            versionName = "v1.0.3",
+            releaseDate = "2026-09-01",
             isLatest = false,
             tagTitle = "🌌 顶级开源交互与底层加固 (Epic Milestone)",
             highlights = listOf(
@@ -60,11 +60,11 @@ object ChangelogRepository {
                 "🔍 拼音首字母模糊秒搜：支持输入「st」秒搜《三体》，「nsy」命中《女神异闻录5》",
                 "👑 黄金星轨 App 官方图标与深空哲人头像全分辨率切图部署上线",
                 "🛡️ SQLite 单例防误关生命周期保护与 6 张子表单事务级联物理删除彻底加固",
-                "📜 全景版本演进纪要与 What\'s New 升级探索微视窗上线"
-            )
+                "📜 全景版本演进纪要与 What\'s New 升级探索微视窗上线",
+            ),
         ),
         ChangelogVersion(
-            versionName = "v4.2.0",
+            versionName = "v1.0.2",
             releaseDate = "2026-08-25",
             isLatest = false,
             tagTitle = "🏛️ 策展人全息通行证与先锋视觉",
@@ -72,11 +72,11 @@ object ChangelogRepository {
                 "🌌 策展人 3D 全息通行证卡片与先锋徽章体系",
                 "📻 磁带黑胶双模声学工坊与 432Hz 宇宙引力律动",
                 "📊 精神维度拓扑雷达与六维心智模型深度交互",
-                "☁️ 端到端 WebDAV 云端备份与数据安全加密"
-            )
+                "☁️ 端到端 WebDAV 云端备份与数据安全加密",
+            ),
         ),
         ChangelogVersion(
-            versionName = "v4.1.0",
+            versionName = "v1.0.1",
             releaseDate = "2026-08-10",
             isLatest = false,
             tagTitle = "✨ 泛媒介统一归藏与多维时空画卷",
@@ -84,8 +84,8 @@ object ChangelogRepository {
                 "🎬 书籍/番剧/电影/游戏/音乐五大媒介全链路打通",
                 "📜 流体时光画卷 MediaTimeline 深度长图导出",
                 "🎴 3D 陀螺仪视差画廊与实体藏书票 Ex-Libris 工坊",
-                "⚡ 首页骨架屏瞬时唤醒与 60FPS 流体动效升级"
-            )
+                "⚡ 首页骨架屏瞬时唤醒与 60FPS 流体动效升级",
+            ),
         ),
         ChangelogVersion(
             versionName = "v1.0.0",
