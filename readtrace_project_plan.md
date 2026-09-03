@@ -2767,7 +2767,14 @@ P35 实施后：
 
 按用户全局规则（项目 MEMORY 中"版本名 1.0.x 走到 30 之后才升 1.1"）：
 
-- `versionCode`：42 ✅（已从 41 升级）
-- `versionName`：**1.0.6** ✅
-- APK 同步产出 `ReadTrace_1.0.6.apk`（项目根，gitignored）
+- `versionCode`：43 ✅（42 → 43）
+- `versionName`：**1.0.7** ✅（1.0.6 为 P35 Phase 1 中间态，1.0.7 为移除 ISBN 扫码后的瘦身正式版，APK 44.5MB → 20.9MB）
+- APK 同步产出 `ReadTrace_1.0.7.apk`（项目根，gitignored）
 - commit message 风格：`优化：主页分页化重塑，首屏独尊记录台居中，下沉探索内容至第二页`
+
+#### 45.7.1 1.0.7 发版收尾记录（2026-09-03）
+
+- 应用内版本演进纪要（`model/ChangelogData.kt`）头部同步 v1.0.7（isLatest）与 v1.0.6 两条记录，v1.0.5 取消 isLatest；
+- 发布说明 `docs/RELEASE_NOTES_v1.0.7.md` 落盘；
+- 1.0.7 冒烟通过：模拟器冷启动 → 安装 Success → MainActivity 进程存活 → versionCode=43/versionName=1.0.7 → crash buffer 空；
+- 版本规划、应用内版本演进纪要、发布说明随发版 commit 一并推送 origin/main。
