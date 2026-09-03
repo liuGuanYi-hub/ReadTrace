@@ -115,10 +115,10 @@ class BookDetailActivity : AppCompatActivity() {
             startActivity(AddNoteActivity.createAddIntent(this, bookId))
         }
         findViewById<View>(R.id.detailAddCharButton).setOnClickListener {
-            showAddCharacterDialog()
+            showCharacterSourceDialog()
         }
         findViewById<View>(R.id.detailAddOutlineButton).setOnClickListener {
-            showAddOutlineDialog()
+            showOutlineSourceDialog()
         }
         findViewById<View>(R.id.detailEditMindprintBtn).setOnClickListener {
             showEditMindprintDialog()
@@ -335,6 +335,74 @@ class BookDetailActivity : AppCompatActivity() {
         }
     }
 
+    /** 角色来源选择：AI 智能生成（需已配置 sk- 密钥）或手动录入 */
+    private fun showCharacterSourceDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("👥 添加人物角色")
+            .setItems(arrayOf("✨ AI 智能生成角色谱（约 1~3 分钟）", "✍️ 手动添加角色")) { _, which ->
+                if (which == 0) generateCharactersWithAi() else showAddCharacterDialog()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** 用 AI 生成作品的核心人物角色谱，按姓名去重后追加入库 */
+    private fun generateCharactersWithAi() {
+        val book = currentBook ?: return
+        val addBtn = findViewById<TextView>(R.id.detailAddCharButton)
+        addBtn.text = "⏳ AI 生成中..."
+        addBtn.isEnabled = false
+        Toast.makeText(this, "AI 正在梳理《${book.title}》的核心人物，请稍候", Toast.LENGTH_SHORT).show()
+
+        com.example.readtrace.util.AiAssistantEngine.analyzeStory(
+            context = this,
+            title = book.title,
+            author = book.author,
+            mediaType = book.mediaType,
+            existingSummary = book.description,
+        ) { analysis ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                addBtn.text = "+ 添加角色"
+                addBtn.isEnabled = true
+
+                if (analysis.characters.isEmpty()) {
+                    Toast.makeText(this, "AI 未返回可用角色，请稍后重试", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+
+                // 按姓名去重：已存在的角色不重复写入，新角色追加入库
+                val existingNames = databaseHelper.getCharacters(bookId)
+                    .filter { !it.isDeleted }
+                    .map { it.name.trim() }
+                    .toHashSet()
+                var added = 0
+                analysis.characters.forEach { c ->
+                    if (c.name.isNotBlank() && existingNames.add(c.name.trim())) {
+                        databaseHelper.insertCharacter(
+                            com.example.readtrace.model.BookCharacter(
+                                bookId = bookId,
+                                name = c.name,
+                                roleTitle = c.identity,
+                                description = c.description,
+                                avatarEmoji = "🎭",
+                            )
+                        )
+                        added += 1
+                    }
+                }
+                renderCharacters(databaseHelper.getCharacters(bookId))
+
+                val tip = when {
+                    added == 0 -> "AI 返回的角色均已存在，未新增"
+                    analysis.isFromOffline -> "已按离线知识库生成 $added 位角色（未配置 AI 密钥或连接失败）"
+                    else -> "✨ AI 已生成 $added 位核心人物"
+                }
+                Toast.makeText(this, tip, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     private fun showAddCharacterDialog() {
         ElegantFormDialog.show(
             this,
@@ -411,6 +479,68 @@ class BookDetailActivity : AppCompatActivity() {
             com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(delBtn)
 
             container.addView(item)
+        }
+    }
+
+    /** 大纲来源选择：AI 智能生成（需已配置 sk- 密钥）或手动录入 */
+    private fun showOutlineSourceDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🗺️ 添加章节大纲")
+            .setItems(arrayOf("✨ AI 智能生成大纲（约 1~3 分钟）", "✍️ 手动添加大纲")) { _, which ->
+                if (which == 0) generateOutlinesWithAi() else showAddOutlineDialog()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    /** 用 AI 生成整部作品的章节大纲，逐段追加入库（不覆盖已有大纲） */
+    private fun generateOutlinesWithAi() {
+        val book = currentBook ?: return
+        val addBtn = findViewById<TextView>(R.id.detailAddOutlineButton)
+        addBtn.text = "⏳ AI 生成中..."
+        addBtn.isEnabled = false
+        Toast.makeText(this, "AI 正在梳理《${book.title}》的章节脉络，请稍候", Toast.LENGTH_SHORT).show()
+
+        com.example.readtrace.util.AiAssistantEngine.analyzeStory(
+            context = this,
+            title = book.title,
+            author = book.author,
+            mediaType = book.mediaType,
+            existingSummary = book.description,
+        ) { analysis ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                addBtn.text = "+ 添加大纲"
+                addBtn.isEnabled = true
+
+                if (analysis.outline.isEmpty()) {
+                    Toast.makeText(this, "AI 未返回可用大纲，请稍后重试", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+
+                // 追加写入：序号接在现有大纲之后，不覆盖用户已录内容
+                var order = databaseHelper.getOutlines(bookId).size
+                analysis.outline.forEach { o ->
+                    order += 1
+                    databaseHelper.insertOutline(
+                        com.example.readtrace.model.BookOutline(
+                            bookId = bookId,
+                            chapterOrder = order,
+                            title = o.title,
+                            summary = o.summary,
+                            keyTakeaways = o.phase,
+                        )
+                    )
+                }
+                renderOutlines(databaseHelper.getOutlines(bookId))
+
+                val tip = if (analysis.isFromOffline) {
+                    "已按离线知识库生成 ${analysis.outline.size} 段大纲（未配置 AI 密钥或连接失败）"
+                } else {
+                    "✨ AI 已生成 ${analysis.outline.size} 段章节大纲"
+                }
+                Toast.makeText(this, tip, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

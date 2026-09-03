@@ -238,8 +238,13 @@ object AiStoryAssistantBottomSheet {
             dialog.dismiss()
         }
 
-        runAnalysis()
         dialog.show()
+        // 只需粘贴 sk- 密钥即可启用 AI；未配置时先弹配置引导，取消则离线知识库兜底
+        if (UserPreferencesManager.getAiApiKey(activity).isBlank()) {
+            showConfigDialog(activity) { runAnalysis() }
+        } else {
+            runAnalysis()
+        }
     }
 
     private fun buildFormattedText(a: AiAssistantEngine.AiStoryAnalysis): String {
@@ -286,6 +291,7 @@ object AiStoryAssistantBottomSheet {
             textSize = 13f
             setTextColor(activity.getColor(R.color.readtrace_ink))
             setPadding(0, dp(12), 0, 0)
+            visibility = View.GONE
         }
         val etUrl = EditText(activity).apply {
             hint = UserPreferencesManager.DEFAULT_AI_BASE_URL
@@ -293,6 +299,7 @@ object AiStoryAssistantBottomSheet {
             textSize = 13f
             setBackgroundResource(R.drawable.bg_input_glass)
             setPadding(dp(12), dp(8), dp(12), dp(8))
+            visibility = View.GONE
         }
 
         val tvModelLabel = TextView(activity).apply {
@@ -300,6 +307,7 @@ object AiStoryAssistantBottomSheet {
             textSize = 13f
             setTextColor(activity.getColor(R.color.readtrace_ink))
             setPadding(0, dp(12), 0, 0)
+            visibility = View.GONE
         }
         val etModel = EditText(activity).apply {
             hint = UserPreferencesManager.DEFAULT_AI_MODEL
@@ -307,19 +315,39 @@ object AiStoryAssistantBottomSheet {
             textSize = 13f
             setBackgroundResource(R.drawable.bg_input_glass)
             setPadding(dp(12), dp(8), dp(12), dp(8))
+            visibility = View.GONE
         }
 
         // Key 只落在本机私有 SharedPreferences，不写入任何代码与仓库，需向用户明示
         val tvTip = TextView(activity).apply {
-            text = "密钥仅保存在本机，不随备份上传；推理型模型生成较慢，已改用流式请求以避免中途断连。"
+            text = "只需粘贴 sk- 密钥即可使用，默认接入 B.AI 聚合网关（glm-5.3-flash）；密钥仅保存在本机，不随备份上传。"
             textSize = 11f
             setTextColor(activity.getColor(R.color.readtrace_muted))
             setLineSpacing(0f, 1.3f)
             setPadding(0, dp(12), 0, 0)
         }
 
+        // 只需填 sk- 即可使用；接口地址与模型收进高级选项，默认值已预置
+        var advancedVisible = false
+        val tvAdvanced = TextView(activity).apply {
+            text = "▸ 高级选项（接口地址 / 模型）"
+            textSize = 12f
+            setTextColor(activity.getColor(R.color.readtrace_accent))
+            setPadding(0, dp(12), 0, 0)
+            setOnClickListener {
+                advancedVisible = !advancedVisible
+                text = if (advancedVisible) "▾ 高级选项（接口地址 / 模型）" else "▸ 高级选项（接口地址 / 模型）"
+                val adv = if (advancedVisible) View.VISIBLE else View.GONE
+                tvUrlLabel.visibility = adv
+                etUrl.visibility = adv
+                tvModelLabel.visibility = adv
+                etModel.visibility = adv
+            }
+        }
+
         layout.addView(tvKeyLabel)
         layout.addView(etKey)
+        layout.addView(tvAdvanced)
         layout.addView(tvUrlLabel)
         layout.addView(etUrl)
         layout.addView(tvModelLabel)
@@ -336,7 +364,8 @@ object AiStoryAssistantBottomSheet {
                 Toast.makeText(activity, "AI 配置已保存", Toast.LENGTH_SHORT).show()
                 onSaved()
             }
-            .setNegativeButton("取消", null)
+            // 取消也继续分析：无密钥时走离线知识库兜底，避免底板卡在加载态
+            .setNegativeButton("取消") { _, _ -> onSaved() }
             .show()
     }
 }
