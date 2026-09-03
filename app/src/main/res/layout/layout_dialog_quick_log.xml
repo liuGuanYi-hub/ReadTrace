@@ -160,15 +160,6 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/quickLogScanEntry"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="📷 扫码"
-            android:textColor="#80FFFFFF"
-            android:textSize="12sp" />
-
-        <TextView
             android:id="@+id/quickLogAdvancedEntry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

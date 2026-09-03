@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
@@ -121,10 +120,6 @@
         <activity
             android:name=".AddBookActivity"
             android:exported="true" />
-        <activity
-            android:name=".IsbnScannerActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
         <activity
             android:name=".WebDavConfigActivity"
             android:exported="false" />

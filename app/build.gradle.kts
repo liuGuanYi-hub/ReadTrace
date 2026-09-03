@@ -100,13 +100,6 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    // P11 离线 ISBN 扫码：CameraX 预览 + ML Kit 本地条码模型（bundle 内置，0 网络延迟）
-    val cameraxVersion = "1.3.4"
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:$cameraxVersion")
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
     // P14 Web 微卡二维码生成（纯 JVM 核心，无额外传递依赖）
     implementation("com.google.zxing:core:3.5.3")
     testImplementation(libs.junit)

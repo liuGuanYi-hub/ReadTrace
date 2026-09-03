@@ -166,10 +166,6 @@ object QuickLogBottomSheet {
             dialog.dismiss()
             activity.startActivity(android.content.Intent(activity, AddBookActivity::class.java))
         }
-        view.findViewById<TextView>(R.id.quickLogScanEntry).setOnClickListener {
-            dialog.dismiss()
-            activity.startActivity(android.content.Intent(activity, com.example.readtrace.IsbnScannerActivity::class.java))
-        }
 
         view.tag = dialog
         dialog.show()
