@@ -148,8 +148,9 @@ class HubFragment : Fragment() {
         // 跑马灯/策展主位等自然下沉到第二页及以后
         hubScroll = view.findViewById(R.id.hubScroll)
         firstScreenStage.post {
-            firstScreenStage.minimumHeight =
-                hubScroll.height - hubScroll.paddingTop - hubScroll.paddingBottom
+            // 舞台高度 = ScrollView 内容区全高（只扣顶部 padding）：
+            // 舞台底边贴住屏幕底，滚动位置 0 时第二页内容（跑马灯/Hero 等）完全在屏幕外
+            firstScreenStage.minimumHeight = hubScroll.height - hubScroll.paddingTop
             headerPanel.minimumHeight = headerPanel.width
         }
 
