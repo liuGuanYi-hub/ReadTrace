@@ -39,13 +39,23 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-        <!-- 顶部 Header 面板 -->
+        <!-- 🗂️ 第一页 · 「清爽记录台」舞台（P35 Phase 1）：
+             高度由 HubFragment 在运行时设为首屏可视高度，面板在其中垂直水平居中；
+             跑马灯/策展主位/那年今日/工坊胶囊等全部自然下沉到第二页及以后 -->
+        <FrameLayout
+            android:id="@+id/firstScreenStage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <!-- 顶部 Header 面板（P35：正方形记录台，内容垂直居中，高度运行时=宽） -->
         <LinearLayout
             android:id="@+id/headerPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@drawable/bg_glass_panel"
             android:elevation="6dp"
+            android:gravity="center_vertical"
             android:orientation="vertical"
             android:padding="18dp">
 
@@ -173,8 +183,9 @@
                 </LinearLayout>
             </HorizontalScrollView>
         </LinearLayout>
+        </FrameLayout>
 
-        <!-- 🌊 0. 【先锋无限流光跑马灯】(60fps Infinite Marquee Stream) -->
+        <!-- 🌊 0. 【先锋无限流光跑马灯】(60fps Infinite Marquee Stream) — P35 起下沉至第二页 -->
         <com.example.readtrace.widget.InfiniteMarqueeView
             android:id="@+id/hubInfiniteMarquee"
             android:layout_width="match_parent"
@@ -329,17 +340,8 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 策展金句引言（首字下沉排版） -->
-                <com.example.readtrace.widget.DropCapTextView
-                    android:id="@+id/heroBookQuote"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_glass_panel_soft"
-                    android:padding="12dp"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="13sp"
-                    tools:text="“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”" />
+                <!-- P35：长随想引言（heroBookQuote）与「展开全文」开关已整段移除，
+                     长文本内容保留在详情页展示，首屏只留封面/标题/评分/操作 -->
 
                 <!-- 双操作按钮 -->
                 <LinearLayout

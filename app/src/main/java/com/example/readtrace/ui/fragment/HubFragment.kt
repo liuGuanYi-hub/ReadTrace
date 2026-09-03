@@ -42,6 +42,9 @@ class HubFragment : Fragment() {
     // Header
     private lateinit var auroraBackgroundView: com.example.readtrace.widget.AuroraFluidBackgroundView
     private lateinit var homeTitle: TextView
+    private lateinit var headerPanel: View
+    private lateinit var firstScreenStage: View
+    private lateinit var hubScroll: android.widget.ScrollView
     private lateinit var homeSubtitle: TextView
     private lateinit var themeToggleButton: TextView
     private lateinit var addBtn: TextView
@@ -58,7 +61,6 @@ class HubFragment : Fragment() {
     private lateinit var heroBookTitle: TextView
     private lateinit var heroBookAuthor: TextView
     private lateinit var heroBookRating: TextView
-    private lateinit var heroBookQuote: com.example.readtrace.widget.DropCapTextView
     private lateinit var heroBtnRead: TextView
     private lateinit var heroBtnDetail: TextView
     private var currentHeroBook: Book? = null
@@ -136,6 +138,15 @@ class HubFragment : Fragment() {
                 view.findViewById(R.id.memoryPanel),
             ),
         )
+
+        // 🗂️ P35 第一页「清爽记录台」：记录面板呈正方形（宽=高）并在首屏内垂直水平居中；
+        // 跑马灯/策展主位等自然下沉到第二页及以后
+        hubScroll = view.findViewById(R.id.hubScroll)
+        firstScreenStage.post {
+            firstScreenStage.minimumHeight =
+                hubScroll.height - hubScroll.paddingTop - hubScroll.paddingBottom
+            headerPanel.minimumHeight = headerPanel.width
+        }
     }
 
     private fun setupGyroscopeParallax() {
@@ -194,6 +205,10 @@ class HubFragment : Fragment() {
         backupBtn = view.findViewById(R.id.backupButton)
         trashBtn = view.findViewById(R.id.trashButton)
 
+        // 🗂️ P35 第一页「清爽记录台」舞台：headerPanel 的居中容器
+        firstScreenStage = view.findViewById(R.id.firstScreenStage)
+        headerPanel = view.findViewById(R.id.headerPanel)
+
         // 🌟 Hero
         heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
         heroSpecularOverlay = view.findViewById(R.id.heroSpecularOverlay)
@@ -205,7 +220,6 @@ class HubFragment : Fragment() {
         heroBookTitle = view.findViewById(R.id.heroBookTitle)
         heroBookAuthor = view.findViewById(R.id.heroBookAuthor)
         heroBookRating = view.findViewById(R.id.heroBookRating)
-        heroBookQuote = view.findViewById(R.id.heroBookQuote)
         heroBtnRead = view.findViewById(R.id.heroBtnRead)
         heroBtnDetail = view.findViewById(R.id.heroBtnDetail)
 
@@ -254,7 +268,8 @@ class HubFragment : Fragment() {
 
         // P11 极简心流：主页「+」直弹 3 秒极速速记半屏 Sheet（高级录入仍可在 Sheet 内进入）
         addBtn.setOnClickListener {
-            com.example.readtrace.ui.QuickLogBottomSheet.show(requireActivity())
+            // P35 调整：不再弹「⚡ 极速速记」半屏 Sheet，直接进入完整添加页
+            startActivity(Intent(requireContext(), com.example.readtrace.AddBookActivity::class.java))
         }
         importPresetBtn.setOnClickListener { showImportCsvDialog() }
         trashBtn.setOnClickListener { startActivity(TrashActivity.createIntent(requireContext())) }
@@ -413,13 +428,7 @@ class HubFragment : Fragment() {
             val rating = featuredBook.rating
             heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating / 2.0)} · 精神典藏" else "✦ 重点策展推荐"
 
-            val quote = featuredBook.shortComment?.takeIf { it.isNotBlank() }
-                ?: featuredBook.review?.takeIf { it.isNotBlank() }
-                ?: databaseHelper.getNotes(featuredBook.id).firstOrNull()?.content
-                ?: "“你在你的玫瑰花身上耗费的时间，使你的玫瑰花变得如此重要。”"
-            val formattedQuote = if (quote.startsWith("“")) quote else "“$quote”"
-            heroBookQuote.setEditorialText(formattedQuote)
-
+            // P35：长随想（heroBookQuote）已整段移除——首屏只保留封面/标题/评分/操作，长文本留在详情页
             if (!featuredBook.coverUrl.isNullOrBlank()) {
                 heroBookCover.visibility = View.VISIBLE
                 heroCoverPlaceholder.visibility = View.GONE
