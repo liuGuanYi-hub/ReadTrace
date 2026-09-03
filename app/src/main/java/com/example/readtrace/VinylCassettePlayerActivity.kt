@@ -611,7 +611,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         cloudRetryUsed = false
         releaseMediaPlayer()
         tvPlayPauseLabel.text = "⏳ 取曲中..."
-        tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}"
+        // 云歌单曲目信息全量联动：磁带/黑胶卡面、顶栏副标题与底部播报统一为当前歌曲，
+        // 避免磁带仍残留上一部本地作品的标题（如《不法侵入》）与实际播放内容不一致
+        val artist = track.artists.ifBlank { "未知歌手" }
+        cassetteDeckView.trackTitle = track.name
+        cassetteDeckView.artistName = artist
+        vinylTurntableView.trackTitle = track.name
+        vinylTurntableView.artistName = artist
+        tvPlayerSubtitle.text = "《${track.name}》· $artist"
+        tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}${if (track.artists.isNotBlank()) " - ${track.artists}" else ""}"
         com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
             if (isDestroyed) return@fetchTrackStreamUrl
             if (url.isNullOrBlank()) {
@@ -687,13 +695,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         mediaPlayer = player
         player.prepareAsync()
         tvPlayPauseLabel.text = "⏳ 缓冲中..."
-        val artist = track.artists.ifBlank { "" }
-        tvTrackArtistInfo.text =
-            "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}${if (artist.isNotBlank()) " · $artist" else ""}"
-        val plName = cloudPlaylistName
-        if (!plName.isNullOrBlank()) {
-            tvPlayerSubtitle.text = "☁️ $plName · Hi-Res 模拟声场"
-        }
+        // 曲目标题已在 playCloudTrack 统一联动，此处不再覆盖，避免顶栏副标题被歌单名顶掉
     }
 
     /**
