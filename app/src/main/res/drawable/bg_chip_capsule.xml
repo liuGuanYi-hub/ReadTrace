@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主页晶体工坊胶囊专用背景：无内边距、浅色页面下有清晰对比的圆角胶囊 -->
+<!-- 与 bg_glass_panel 共用同一组主题色（readtrace_chip / readtrace_glass_stroke），仅去掉了 20dp 内边距 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/readtrace_chip" />
+    <stroke
+        android:width="0.8dp"
+        android:color="@color/readtrace_glass_stroke" />
+    <corners android:radius="22dp" />
+</shape>
