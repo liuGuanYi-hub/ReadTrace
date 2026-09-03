@@ -248,16 +248,6 @@
                     android:contentDescription="下一曲"
                     android:src="@android:drawable/ic_media_next" />
 
-                <TextView
-                    android:id="@+id/btnAmbientSound"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_player_chip"
-                    android:gravity="center"
-                    android:text="🌧️"
-                    android:textColor="#74EE15"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
             </LinearLayout>
 
             <!-- 外部真实播放跳转：拉起网易云音乐搜索当前曲目 -->

@@ -158,6 +158,20 @@ class BookDatabaseHelper private constructor(val context: Context) :
             // v12：无表结构变更；新增两款预设游戏（魔兽争霸3：冰封王座 / 虐杀原形），
             // 并让 rich_content 的章节大纲（outline）参与播种，实际写入在 runPresetSeedsOnce 中完成。
         }
+if (oldVersion < 13) {
+            // v13：移除两部会因搜索三级匹配播错歌的预设单曲（TAIKUTSU/沈香学 专辑条目），
+            // 同步清理其曲目试听记录，防止孤儿行残留。
+            val removedTitles = arrayOf("TAIKUTSU (退屈)", "沈香学 (Jin Kou Gaku 专辑)")
+            database.execSQL(
+                "DELETE FROM $TABLE_AUDIO_TRACKS WHERE $COLUMN_AUDIO_BOOK_ID IN " +
+                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music')",
+                removedTitles,
+            )
+            database.execSQL(
+                "DELETE FROM $TABLE_BOOKS WHERE $COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music'",
+                removedTitles,
+            )
+        }
     }
 
     private fun createNotesTable(database: SQLiteDatabase) {
@@ -1539,19 +1553,6 @@ class BookDatabaseHelper private constructor(val context: Context) :
                     mindprint = floatArrayOf(9.5f, 9.8f, 9.6f, 9.4f, 6.0f, 8.0f),
                 ),
                 MusicEntry(
-                    title = "TAIKUTSU (退屈)",
-                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
-                    category = "疾走放克摇滚",
-                    status = "finished",
-                    year = "2024",
-                    tags = listOf("2024年", "超自然当哒当联动", "炸裂贝斯", "音速暴击", "真夜中"),
-                    rating = 4.9,
-                    shortComment = "用狂暴的贝斯轰碎无聊日常，在超自然的夜色中掀起狂澜！",
-                    review = "极速狂飙的贝斯与二胡传统民乐音色奇妙碰撞，真夜中独门的高密度音乐轰炸，打破一切审美疲劳。",
-                    coverUrl = "covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
-                    mindprint = floatArrayOf(9.0f, 9.6f, 9.2f, 9.5f, 5.0f, 8.5f),
-                ),
-                MusicEntry(
                     title = "花一匁 (Hanaichimonme)",
                     artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
                     category = "和风放克摇滚 / 殿堂主打",
@@ -1563,19 +1564,6 @@ class BookDatabaseHelper private constructor(val context: Context) :
                     review = "3rd 专辑《沈香学》核心主打神作。将日本古老童谣《花一匁》解构重组为充满朋克反叛精神与精巧律动的殿堂级放克曲。",
                     coverUrl = "covers/netease_bmjKC1odG-1spq20rjjebg___109951168657437538.jpg",
                     mindprint = floatArrayOf(9.6f, 10.0f, 9.8f, 9.6f, 5.5f, 9.0f),
-                ),
-                MusicEntry(
-                    title = "沈香学 (Jin Kou Gaku 专辑)",
-                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
-                    category = "正规概念专辑 / 殿堂之作",
-                    status = "finished",
-                    year = "2023",
-                    tags = listOf("2023年", "公信榜冠军", "沈香学", "年度神专", "真夜中"),
-                    rating = 5.0,
-                    shortComment = "像沉香一样历经伤口与岁月沉淀，在深夜里散发出幽微而绝美的香气。",
-                    review = "真夜中集大成的第3张正规概念专辑。收录《残机》《綺羅キラー》《消えてしまいそうです》等多首殿堂名曲，狂放与细腻并存。",
-                    coverUrl = "covers/netease_K91EJHEHhOie6daCAnM2Tw___109951168661764575.jpg",
-                    mindprint = floatArrayOf(9.8f, 10.0f, 9.8f, 9.6f, 6.0f, 9.5f),
                 ),
                 MusicEntry(
                     title = "不法侵入 (Trespass)",
@@ -3792,7 +3780,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 12
+        const val DATABASE_VERSION = 13
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

@@ -75,7 +75,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var btnPrevTrack: ImageButton
     private lateinit var btnNextTrack: ImageButton
     private lateinit var btnSpeedToggle: TextView
-    private lateinit var btnAmbientSound: TextView
     private lateinit var btnOpenNetease: TextView
     private lateinit var btnCloudPlaylist: TextView
 
@@ -155,9 +154,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private val ambientModes = listOf("🌧️ 雨夜", "🌲 松林", "☕ 咖啡馆", "🔥 柴火", "🔇 静音")
-    private var currentAmbientIndex = 0
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -211,7 +207,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnPrevTrack = findViewById(R.id.btnPrevTrack)
         btnNextTrack = findViewById(R.id.btnNextTrack)
         btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
-        btnAmbientSound = findViewById(R.id.btnAmbientSound)
         btnOpenNetease = findViewById(R.id.btnOpenNetease)
         btnCloudPlaylist = findViewById(R.id.btnCloudPlaylist)
 
@@ -351,16 +346,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             val is33 = btnSpeedToggle.text.contains("33")
             btnSpeedToggle.text = if (is33) "45" else "33"
             Toast.makeText(this, if (is33) "切换至 45 RPM 典藏高保真转速" else "切换至 33 1/3 RPM 标准密纹转速", Toast.LENGTH_SHORT).show()
-        }
-
-        // 氛围白噪音切换
-        btnAmbientSound.setOnClickListener {
-            triggerHapticClick()
-            currentAmbientIndex = (currentAmbientIndex + 1) % ambientModes.size
-            val ambient = ambientModes[currentAmbientIndex]
-            btnAmbientSound.text = ambient
-            com.example.readtrace.util.SpatialAudioEngine.startAmbient(currentAmbientIndex)
-            Toast.makeText(this, "伴随声场：$ambient", Toast.LENGTH_SHORT).show()
         }
 
         // 我的歌单：绑定会员 Cookie 后直接播自己歌单里的完整曲目
@@ -564,8 +549,57 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 fragmentManager = supportFragmentManager,
                 title = "☁️ 我的歌单（${playlists.size}）",
                 items = items,
-                onSelected = { which -> loadCloudTrackList(playlists[which]) },
+                onSelected = { which ->
+                    val pl = playlists[which]
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("☁️ ${pl.name}")
+                        .setItems(arrayOf("▶ 在唱机播放", "📥 导入全部曲目为藏品")) { _, which2 ->
+                            if (which2 == 0) loadCloudTrackList(pl) else importCloudPlaylistToLibrary(pl)
+                        }
+                        .setNegativeButton("取消", null)
+                        .show()
+                },
             )
+        }
+    }
+
+    /** 把整个歌单导入为音乐藏品：按网易云曲目 ID 去重，只追加新歌，绝不覆盖已入库条目 */
+    private fun importCloudPlaylistToLibrary(playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist) {
+        Toast.makeText(this, "正在读取《${playlist.name}》曲目...", Toast.LENGTH_SHORT).show()
+        com.example.readtrace.util.NeteasePreviewHelper.fetchPlaylistTracks(this, playlist.id) { tracks ->
+            if (isDestroyed) return@fetchPlaylistTracks
+            if (tracks.isNullOrEmpty()) {
+                Toast.makeText(this, "《${playlist.name}》没有可导入的曲目", Toast.LENGTH_LONG).show()
+                return@fetchPlaylistTracks
+            }
+            Thread {
+                val fresh = mutableListOf<com.example.readtrace.model.Book>()
+                tracks.forEach { t ->
+                    if (t.name.isNotBlank() &&
+                        databaseHelper.findBookBySource("netease", t.id.toString()) == null
+                    ) {
+                        fresh += com.example.readtrace.model.Book(
+                            title = t.name,
+                            author = t.artists.ifBlank { null },
+                            category = "网易云歌单 · ${playlist.name}",
+                            status = com.example.readtrace.model.BookStatus.FINISHED,
+                            mediaType = com.example.readtrace.model.MediaType.MUSIC,
+                            sourceType = "netease",
+                            sourceId = t.id.toString(),
+                        )
+                    }
+                }
+                val inserted = if (fresh.isEmpty()) 0 else databaseHelper.insertBooksBatch(fresh)
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    val skipped = tracks.size - fresh.size
+                    Toast.makeText(
+                        this,
+                        "📥 导入完成：新增 $inserted 首" + if (skipped > 0) "（已在藏库，跳过 $skipped 首）" else "",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }.start()
         }
     }
 
@@ -953,7 +987,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        com.example.readtrace.util.SpatialAudioEngine.stopAmbient()
         val elapsedMinutes = ((SystemClock.elapsedRealtime() - sessionStartTimeMs) / 60000L).toInt()
         val currentBook = playlist.getOrNull(currentIndex)
         if (elapsedMinutes >= 1 && currentBook != null) {
@@ -961,7 +994,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 com.example.readtrace.model.ReadingSession(
                     bookId = currentBook.id,
                     durationMinutes = elapsedMinutes,
-                    thought = "🎧 伴读沉浸 ${elapsedMinutes} 分钟 · ${ambientModes[currentAmbientIndex]}",
+                    thought = "🎧 伴读沉浸 ${elapsedMinutes} 分钟 · 拟真黑胶唱机",
                     createdAt = java.time.LocalDate.now().toString(),
                 ),
             )
