@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.readtrace.BackupActivity
 import com.example.readtrace.BadgesActivity
-import com.example.readtrace.Gallery3DActivity
 import com.example.readtrace.R
 import com.example.readtrace.TrashActivity
 import com.example.readtrace.community.ui.CommunityActivity
@@ -115,9 +114,9 @@ class ProfileFragment : Fragment() {
         val unlockedCount = badges.count { it.isUnlocked }
         profileBadgeSummary.text = "已解锁 $unlockedCount / ${badges.size} 枚专属精神荣誉勋章"
         profileGallerySummary.text = if (featuredCount > 0) {
-            "基于 OpenGL 的 360° 环形悬浮立体展台（已精选 $featuredCount 部藏品）"
+            "2.5D 空间深度视差标本盒展厅（已精选 $featuredCount 部藏品）"
         } else {
-            "基于 OpenGL 的 360° 环形悬浮立体展台与全息封面流"
+            "2.5D 空间深度视差标本盒展厅，陀螺仪 + 触控双通道视差"
         }
     }
 
@@ -202,7 +201,8 @@ class ProfileFragment : Fragment() {
         }
 
         profileGalleryPanel.setOnClickListener {
-            startActivity(Gallery3DActivity.createIntent(requireContext()))
+            // 2.5D visionOS 空间深度视差展厅（替代经典 3D 展厅入口）
+            startActivity(Intent(requireContext(), com.example.readtrace.SpatialParallaxGalleryActivity::class.java))
         }
 
         // P28 我的最爱跨媒介心选展厅
@@ -214,16 +214,6 @@ class ProfileFragment : Fragment() {
         // P12 策展人年度精神年鉴入口
         view?.findViewById<View>(R.id.profileChroniclePanel)?.setOnClickListener {
             startActivity(Intent(requireContext(), com.example.readtrace.AnnualChronicleStudioActivity::class.java))
-        }
-
-        // 🖤 P14 OLED 曜石真黑开关
-        view?.findViewById<View>(R.id.profileOledPanel)?.setOnClickListener {
-            val enabled = !com.example.readtrace.util.ObsidianPureBlackEngine.isEnabled(requireContext())
-            com.example.readtrace.util.ObsidianPureBlackEngine.setEnabled(requireContext(), enabled)
-            view?.findViewById<TextView>(R.id.profileOledTitle)?.text =
-                if (enabled) "🖤 OLED 曜石真黑 · 开" else "🖤 OLED 曜石真黑 · 关"
-            com.example.readtrace.util.HapticFeedbackEngine.cartridgeSnap(requireContext())
-            requireActivity().recreate()
         }
 
         profileCommunityPanel.setOnClickListener {

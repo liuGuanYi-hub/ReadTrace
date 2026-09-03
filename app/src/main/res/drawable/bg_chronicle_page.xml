@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 年鉴画册页专用底色：年鉴为导出画册，须日夜恒定深色（与根布局 #05070B 同系），
+     不能用日夜双态的 bg_glass_panel——否则日间白底配近白正文会不可读 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#12151C" />
+    <corners android:radius="20dp" />
+</shape>

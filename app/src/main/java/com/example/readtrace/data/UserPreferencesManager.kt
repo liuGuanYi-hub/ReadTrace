@@ -42,17 +42,6 @@ object UserPreferencesManager {
             .apply()
     }
 
-    // --- 🖤 主题扩展旗标（OLED 纯黑等，readtrace_theme_prefs） ---
-
-    fun isThemeFlag(context: Context, key: String): Boolean =
-        context.getSharedPreferences(PREFS_THEME, Context.MODE_PRIVATE)
-            .getBoolean(key, false)
-
-    fun setThemeFlag(context: Context, key: String, value: Boolean) {
-        context.getSharedPreferences(PREFS_THEME, Context.MODE_PRIVATE)
-            .edit().putBoolean(key, value).apply()
-    }
-
     // --- 🗂️ 视图模式 (readtrace_prefs) ---
 
     fun isLibraryGridView(context: Context): Boolean =

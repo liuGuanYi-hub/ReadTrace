@@ -10,11 +10,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import com.example.readtrace.BackupActivity
 import com.example.readtrace.BookDetailActivity
 import com.example.readtrace.CulturalPassportActivity
-import com.example.readtrace.Gallery3DActivity
 import com.example.readtrace.GameCartridgePosterActivity
 import com.example.readtrace.MediaTimelineScrollActivity
 import com.example.readtrace.MindprintTopologyActivity
@@ -147,9 +147,11 @@ class HubFragment : Fragment() {
         )
 
         // 🗂️ P35 第一页「清爽记录台」：记录面板呈正方形（宽=高）并在首屏内垂直水平居中；
-        // 跑马灯/策展主位等自然下沉到第二页及以后
+        // 跑马灯/策展主位等自然下沉到第二页及以后。
+        // 用 doOnLayout 代替 post：Fragment 视图 post 时可能尚未完成首次 layout，
+        // 高度读到 0 会让舞台塌陷，第二页内容全部涌上首屏
         hubScroll = view.findViewById(R.id.hubScroll)
-        firstScreenStage.post {
+        firstScreenStage.doOnLayout {
             // 舞台高度 = ScrollView 内容区全高（只扣顶部 padding）：
             // 舞台底边贴住屏幕底，滚动位置 0 时第二页内容（跑马灯/Hero 等）完全在屏幕外
             firstScreenStage.minimumHeight = hubScroll.height - hubScroll.paddingTop
@@ -364,7 +366,8 @@ class HubFragment : Fragment() {
             startActivity(MediaTimelineScrollActivity.createIntent(requireContext()))
         }
         capsule3DGallery.setOnClickListener {
-            startActivity(Gallery3DActivity.createIntent(requireContext()))
+            // 2.5D visionOS 空间深度视差展厅（替代经典 3D 展厅入口）
+            startActivity(Intent(requireContext(), com.example.readtrace.SpatialParallaxGalleryActivity::class.java))
         }
         capsuleMindprintTopology.setOnClickListener {
             startActivity(Intent(requireContext(), MindprintTopologyActivity::class.java))

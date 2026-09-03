@@ -206,7 +206,8 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
 
         val page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = getDrawable(R.drawable.bg_glass_panel)
+            // 画册页底色固定深色：年鉴须日夜恒定（导出一致），且避免日间玻璃白底配近白正文不可读
+            setBackgroundResource(R.drawable.bg_chronicle_page)
             elevation = dp(6).toFloat()
             setPadding(dp(18), dp(18), dp(18), dp(20))
             layoutParams = LinearLayout.LayoutParams(
@@ -219,7 +220,8 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
             TextView(this).apply {
                 text = title
                 textSize = 17f
-                setTextColor(getColor(R.color.readtrace_accent))
+                // 固定用夜间 accent 色：深色画册底上日间深绿对比度不足
+                setTextColor(android.graphics.Color.parseColor("#5E9E71"))
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
             },
         )
