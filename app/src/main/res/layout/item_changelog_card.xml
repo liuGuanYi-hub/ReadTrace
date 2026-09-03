@@ -26,7 +26,7 @@
             android:layout_width="2dp"
             android:layout_height="match_parent"
             android:layout_marginTop="4dp"
-            android:background="#20FFFFFF" />
+            android:background="@color/readtrace_glass_stroke" />
     </LinearLayout>
 
     <!-- 版本内容卡片 -->
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
                 android:text="v4.3.0"
-                android:textColor="@color/white"
+                android:textColor="@color/readtrace_ink"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 

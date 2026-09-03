@@ -2,7 +2,6 @@
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -67,9 +66,10 @@ class ChangelogActivity : AppCompatActivity() {
             item.highlights.forEach { text ->
                 val tv = TextView(this).apply {
                     this.text = text
-                    textSize = 12.5f
-                    setTextColor(Color.parseColor("#C8D1E0"))
-                    setLineSpacing(0f, 1.25f)
+                    textSize = 13.5f
+                    // 纳入日夜色牌：硬编码淡蓝灰在日间白卡上对比度严重不足
+                    setTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.readtrace_ink))
+                    setLineSpacing(0f, 1.3f)
                     val mBottom = dpToPx(5)
                     setPadding(0, 0, 0, mBottom)
                 }
