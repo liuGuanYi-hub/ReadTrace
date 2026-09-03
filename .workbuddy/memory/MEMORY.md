@@ -16,6 +16,7 @@
 - **「我的最爱」在主页第二页**：那年今日之后 `favShowcaseSection`（默认 gone），`renderFavoriteStrip()` 五媒介分表 flatMap + rankOrder 排序，无收藏隐藏；卡片 `item_hub_favorite_card.xml`（88×124 封面 + 金色 NO.x 角标），无封面时 `loadCover(cover, null, placeholder)` 占位降级（emoji + 标题前 4 字）
 - 弹窗统一设计语言：主页导入书单弹窗弃 AlertDialog，改 `bg_elegant_dialog` 玻璃容器 + 行式选项逐段渐入 + `attachSpringTouch` + 描边取消胶囊（与 ElegantFormDialog 一致）
 - 滚动条收敛：主页 hubScroll / 回收站 ScrollView 一律 `android:scrollbars="none"`
+- **2026-09-03 决定：不再需要 ISBN 扫码**——已移除 ML Kit barcode-scanning + CameraX（曾致 APK 44.5MB，移除后 20.9MB），扫码入口/相机权限/IsbnScannerActivity 全清；zxing core（二维码生成）保留
 
 ## 打包命令
 - 构建前必须指定 JDK：`export JAVA_HOME="C:/Users/ZZD/.jdks/dragonwell-ex-21.0.9"`
