@@ -64,6 +64,13 @@ class CuratorFavoritesActivity : AppCompatActivity() {
         )
         setContentView(R.layout.activity_curator_favorites)
 
+        // 项目标准状态栏补偿：edge-to-edge 下内容不再顶格进状态栏
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.favoritesRoot)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         databaseHelper = BookDatabaseHelper.getInstance(this)
 
         val targetMediaType = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.let {

@@ -4,7 +4,7 @@
     android:id="@+id/chronicleRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#05070B"
+    android:background="@drawable/bg_readtrace_home"
     android:orientation="vertical">
 
     <LinearLayout
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:padding="8dp"
             android:text="←"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/readtrace_ink"
             android:textSize="18sp" />
 
         <TextView
@@ -29,7 +29,7 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="🏆 策展人年度精神年鉴"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/readtrace_ink"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -37,11 +37,11 @@
             android:id="@+id/chronicleYearToggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_dark_chip"
+            android:background="@drawable/bg_secondary_button"
             android:paddingHorizontal="14dp"
             android:paddingVertical="8dp"
             android:text="2026"
-            android:textColor="#FFE700"
+            android:textColor="@color/readtrace_ink"
             android:textSize="13sp" />
 
         <TextView
@@ -49,11 +49,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:background="@drawable/bg_dark_chip_selected"
+            android:background="@drawable/bg_secondary_button"
             android:paddingHorizontal="14dp"
             android:paddingVertical="8dp"
             android:text="⬇️ 4K 长图"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/readtrace_ink"
             android:textSize="13sp" />
     </LinearLayout>
 

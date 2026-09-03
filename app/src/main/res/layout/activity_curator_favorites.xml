@@ -4,8 +4,7 @@
     android:id="@+id/favoritesRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/readtrace_background"
-    android:fitsSystemWindows="true"
+    android:background="@drawable/bg_readtrace_home"
     android:orientation="vertical">
 
     <!-- 顶栏 -->

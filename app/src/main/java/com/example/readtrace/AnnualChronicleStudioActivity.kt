@@ -10,6 +10,8 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
@@ -32,6 +34,13 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_annual_chronicle)
+
+        // 项目标准状态栏补偿：内容不再顶格进状态栏
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.chronicleRoot)) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         pagesContainer = findViewById(R.id.chroniclePages)
         findViewById<TextView>(R.id.chronicleBack).setOnClickListener { finish() }
