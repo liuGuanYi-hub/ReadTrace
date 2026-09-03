@@ -72,6 +72,21 @@ object NeteasePreviewHelper {
     }
 
     /**
+     * 播放器直链请求头：与取链请求保持同一套 UA/Referer/Cookie。
+     * 网易云 CDN 常校验 Referer/UA，裸 setDataSource(url) 会被 403/302 拒导致 prepare 失败。
+     * Cookie 仅发往网易云域名，仅存应用私有 SharedPreferences，不落日志不入 Git。
+     */
+    fun buildPlaybackHeaders(context: Context?): Map<String, String> {
+        val headers = linkedMapOf(
+            "User-Agent" to UA,
+            "Referer" to "https://music.163.com/",
+        )
+        val musicU = getMusicUCookie(context)
+        if (musicU != null) headers["Cookie"] = "MUSIC_U=$musicU"
+        return headers
+    }
+
+    /**
      * 从用户粘贴的任意文本中提取 MUSIC_U 值。
      * 支持三种输入：裸值（32~ 位字母数字）/ "MUSIC_U=xxx" 键值对 / 整段 cookies.txt 或 Cookie 头。
      * 提取不出时返回 null。

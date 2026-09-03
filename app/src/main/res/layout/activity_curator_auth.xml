@@ -274,8 +274,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
+                    android:fadeScrollbars="false"
                     android:overScrollMode="never"
-                    android:scrollbars="none">
+                    android:scrollbarAlwaysDrawHorizontalTrack="false"
+                    android:scrollbarSize="3dp"
+                    android:scrollbarThumbHorizontal="@color/readtrace_accent"
+                    android:scrollbars="horizontal">
 
                     <LinearLayout
                         android:id="@+id/layoutAvatarList"

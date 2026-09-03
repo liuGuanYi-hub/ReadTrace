@@ -36,11 +36,14 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
+                <!-- 标题可压缩省略，窄屏下为右侧两个 chip 让位，避免 chip 被推出屏幕 -->
                 <TextView
                     android:id="@+id/tvPlayerTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:fontFamily="serif"
+                    android:maxLines="1"
                     android:text="💽 拟真黑胶唱机"
                     android:textColor="@color/player_text_primary"
                     android:textSize="16sp"

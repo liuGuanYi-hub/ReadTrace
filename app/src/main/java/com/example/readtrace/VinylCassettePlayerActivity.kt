@@ -84,6 +84,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var cloudIndex = -1
     private var cloudPlaylistName: String? = null
 
+    // insets 幂等基准：首次分发时记录 XML 初始 padding，此后不再累加
+    private var hudInitialPaddingTop = -1
+    private var hudInitialPaddingBottom = -1
+
     // 传感器
     private var sensorManager: SensorManager? = null
     private var rotationSensor: Sensor? = null
@@ -97,6 +101,31 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var wasPlayingBeforeSeek = false
     private var audioFocusRequest: AudioFocusRequest? = null
     private lateinit var audioManager: AudioManager
+
+    // ===== 播放准备态与失败恢复 =====
+    /** prepareAsync 进行中；releaseMediaPlayer 与超时兜底据此判断是否存在非法状态调用 */
+    private var isPreparing = false
+
+    /** 正在准备的云歌单曲目（null 表示本地曲路径），供 prepare 超时兜底区分恢复分支 */
+    private var preparingCloudTrack: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack? = null
+
+    /** 同一次云播失败后是否已自动重新取链重试过（直链现取现用，允许一次重试） */
+    private var cloudRetryUsed = false
+
+    /** prepare 15 秒超时兜底：弱网下避免永久「缓冲中」，用户无从区分卡住与失败 */
+    private val prepareTimeoutRunnable = Runnable {
+        if (!isPreparing) return@Runnable
+        isPreparing = false
+        val cloudTrack = preparingCloudTrack
+        if (cloudTrack != null) {
+            handleCloudPlaybackFailure(cloudTrack, "⏳ 音源准备超时，正在重新取链…")
+        } else {
+            releaseMediaPlayer()
+            isPlaying = false
+            setPlayingUi(false)
+            Toast.makeText(this, "⏳ 音源准备超时，请点击重试", Toast.LENGTH_LONG).show()
+        }
+    }
 
     // ===== 网易云 15s 试听状态 =====
     private var previewActive = false
@@ -137,12 +166,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         )
         setContentView(R.layout.activity_vinyl_cassette_player)
 
-        // 系统栏避让统一由内容层按 WindowInsets 处理，不再写死顶栏 paddingTop；粒子背景保持全屏沉浸
+        // 系统栏避让统一由内容层按 WindowInsets 处理；粒子背景保持全屏沉浸。
+        // insets 回调会被多次触发（重新 attach / 配置变化），必须以 XML 初始 padding 为基准
+        // 幂等计算，否则 paddingBottom 会在每次分发时单调累加，把底部控制卡片顶出屏幕。
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.vinylPlayerHudRoot)) { view, insets ->
             val systemBars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom + view.paddingBottom)
+            if (hudInitialPaddingTop < 0) {
+                hudInitialPaddingTop = view.paddingTop
+                hudInitialPaddingBottom = view.paddingBottom
+            }
+            view.setPadding(
+                systemBars.left,
+                hudInitialPaddingTop + systemBars.top,
+                systemBars.right,
+                hudInitialPaddingBottom + systemBars.bottom,
+            )
             insets
         }
 
@@ -567,6 +607,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "歌单曲目已失效，请重新选择", Toast.LENGTH_SHORT).show()
             return
         }
+        // 新的一次用户/连播动作重置自动重试额度
+        cloudRetryUsed = false
         releaseMediaPlayer()
         tvPlayPauseLabel.text = "⏳ 取曲中..."
         tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}"
@@ -586,41 +628,64 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (!requestAudioFocus()) {
             Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
         }
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build(),
-            )
-            setDataSource(url)
-            setOnPreparedListener { mp ->
-                totalSecondsMs = mp.duration.toLong()
-                updatePlaybackProgress()
-                if (isPlaying) {
-                    mp.start()
-                    setPlayingUi(true)
-                    handler.post(playRunnable)
-                } else {
-                    setPlayingUi(false)
-                }
-            }
-            setOnCompletionListener {
-                // 云歌单内自动连播下一首
-                if (cloudTracks.isNotEmpty()) {
-                    cloudIndex = (cloudIndex + 1) % cloudTracks.size
-                    playCloudTrack()
-                } else {
-                    playNextAuto()
-                }
-            }
-            setOnErrorListener { _, what, extra ->
-                Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)", Toast.LENGTH_LONG).show()
-                true
-            }
-            prepareAsync()
+        // 直链请求头与取链请求保持一致：网易云 CDN 常校验 Referer/UA，裸请求会被 403/302 拒导致 prepare 失败
+        val headers = com.example.readtrace.util.NeteasePreviewHelper.buildPlaybackHeaders(this)
+        val player = MediaPlayer()
+        player.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build(),
+        )
+        val dataSourceOk = runCatching {
+            player.setDataSource(this@VinylCassettePlayerActivity, Uri.parse(url), headers)
+        }.isSuccess
+        if (!dataSourceOk) {
+            runCatching { player.release() }
+            handleCloudPlaybackFailure(track, "播放源无法访问，已尝试重新取链")
+            return
         }
-        isPlaying = true
+        isPreparing = true
+        preparingCloudTrack = track
+        handler.removeCallbacks(prepareTimeoutRunnable)
+        handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
+        player.setOnPreparedListener { mp ->
+            isPreparing = false
+            preparingCloudTrack = null
+            handler.removeCallbacks(prepareTimeoutRunnable)
+            totalSecondsMs = mp.duration.toLong()
+            updatePlaybackProgress()
+            // isPlaying 在 prepared 确认后才置真：prepare 失败时不再残留「假播放」状态误导 UI
+            isPlaying = true
+            mp.start()
+            setPlayingUi(true)
+            handler.post(playRunnable)
+        }
+        player.setOnCompletionListener {
+            // 云歌单内自动连播下一首
+            if (cloudTracks.isNotEmpty()) {
+                cloudIndex = (cloudIndex + 1) % cloudTracks.size
+                playCloudTrack()
+            } else {
+                playNextAuto()
+            }
+        }
+        player.setOnInfoListener { _, what, _ ->
+            when (what) {
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> tvPlayPauseLabel.text = "⏳ 缓冲中..."
+                MediaPlayer.MEDIA_INFO_BUFFERING_END -> if (isPlaying) tvPlayPauseLabel.text = "⏸ 暂停聆听"
+            }
+            false
+        }
+        player.setOnBufferingUpdateListener { _, percent ->
+            if (isPreparing) tvPlayPauseLabel.text = "⏳ 缓冲中 $percent%"
+        }
+        player.setOnErrorListener { _, what, extra ->
+            handleCloudPlaybackFailure(track, "播放出错 (code $what/$extra)，正在尝试恢复…")
+            true
+        }
+        mediaPlayer = player
+        player.prepareAsync()
         tvPlayPauseLabel.text = "⏳ 缓冲中..."
         val artist = track.artists.ifBlank { "" }
         tvTrackArtistInfo.text =
@@ -725,12 +790,14 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             )
             setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
             setOnPreparedListener { mp ->
+                isPreparing = false
+                handler.removeCallbacks(prepareTimeoutRunnable)
                 totalSecondsMs = mp.duration.toLong()
                 if (track.durationMs <= 0) {
                     databaseHelper.updateAudioTrackDuration(track.id, totalSecondsMs)
                 }
                 updatePlaybackProgress()
-                if (isPlaying) {
+                if (this@VinylCassettePlayerActivity.isPlaying) {
                     mp.start()
                     setPlayingUi(true)
                     handler.post(playRunnable)
@@ -746,7 +813,13 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 playNextAuto()
             }
             setOnErrorListener { _, what, extra ->
+                isPreparing = false
+                handler.removeCallbacks(prepareTimeoutRunnable)
                 Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)，文件可能已失效", Toast.LENGTH_LONG).show()
+                // 复位播放态与按钮文案，避免 UI 死锁在「缓冲中」无法重试（须显式限定 Activity 字段，
+                // 否则 isPlaying 会解析到 MediaPlayer 自身的 val 属性导致赋值失败）
+                this@VinylCassettePlayerActivity.isPlaying = false
+                setPlayingUi(false)
                 // 试听外链带时间戳会过期失效：自动移除旧链接并重新联网取试听，避免反复报错
                 if (isNeteasePreviewTrack(track)) {
                     databaseHelper.deleteAudioTrack(track.id)
@@ -755,14 +828,14 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 }
                 true
             }
+            isPreparing = true
+            handler.removeCallbacks(prepareTimeoutRunnable)
+            handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
             prepareAsync()
             tvPlayPauseLabel.text = "⏳ 缓冲中..."
         }
 
-        if (!isPlaying) {
-            isPlaying = true
-            setPlayingUi(true)
-        }
+        isPlaying = true
         // 曲目信息联动
         tvTrackArtistInfo.text = "—— 正在播放 ${index + 1}/${currentAudioTracks.size} · ${track.title}"
     }
@@ -793,14 +866,56 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     private fun releaseMediaPlayer() {
         mediaPlayer?.run {
-            runCatching { stop() }
+            // 先解绑回调：旧实例的 onError/onPrepared 若异步打到新会话上，会出现「新曲缓冲却弹播放出错」
+            runCatching { setOnErrorListener(null) }
+            runCatching { setOnPreparedListener(null) }
+            runCatching { setOnCompletionListener(null) }
+            runCatching { setOnInfoListener(null) }
+            runCatching { setOnBufferingUpdateListener(null) }
+            // stop() 仅在 Prepared/Started/Paused/Stopped/Completed 合法；实例常仍在 Preparing 态，
+            // 会触发 native -38。reset() 在任意状态合法，用它替代。
+            runCatching { reset() }
             runCatching { release() }
         }
         mediaPlayer = null
+        isPreparing = false
+        preparingCloudTrack = null
         handler.removeCallbacks(playRunnable)
         handler.removeCallbacks(previewStopRunnable)
+        handler.removeCallbacks(prepareTimeoutRunnable)
         previewActive = false
         previewElapsedMs = 0L
+    }
+
+    /**
+     * 云歌单播放失败统一恢复：复位播放态与按钮文案，并对同一次播放
+     * 自动重新取链重试一次（直链现取现用，取链失败或重试仍败则停在可重试态）。
+     */
+    private fun handleCloudPlaybackFailure(
+        track: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack,
+        toastMsg: String?,
+    ) {
+        releaseMediaPlayer()
+        isPlaying = false
+        setPlayingUi(false)
+        if (toastMsg != null) {
+            Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
+        }
+        if (!cloudRetryUsed) {
+            cloudRetryUsed = true
+            tvPlayPauseLabel.text = "⏳ 重新取链..."
+            com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
+                if (isDestroyed) return@fetchTrackStreamUrl
+                if (url.isNullOrBlank()) {
+                    tvPlayPauseLabel.text = "▶ 开始放唱"
+                } else {
+                    playCloudUrl(url, track)
+                }
+            }
+        } else {
+            cloudRetryUsed = false
+            tvPlayPauseLabel.text = "▶ 开始放唱"
+        }
     }
 
     private fun formatMs(ms: Long): String {
@@ -879,6 +994,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
         /** 免费曲目试听片段的限播时长（约 15 秒） */
         const val PREVIEW_LIMIT_MS = 15_000L
+
+        /** 云直链 prepare 超时兜底：弱网下避免永久「缓冲中」 */
+        const val PREPARE_TIMEOUT_MS = 15_000L
 
         /** 会员曲目兜底试听片段的限播时长（约 30 秒） */
         const val PREVIEW_LIMIT_VIP_MS = 30_000L
