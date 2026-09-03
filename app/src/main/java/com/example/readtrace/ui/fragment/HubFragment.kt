@@ -1,6 +1,5 @@
 package com.example.readtrace.ui.fragment
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -50,6 +49,9 @@ class HubFragment : Fragment() {
     private lateinit var arcCountMovie: TextView
     private lateinit var arcCountGame: TextView
     private lateinit var arcCountMusic: TextView
+    private lateinit var favShowcaseSection: View
+    private lateinit var favStripContainer: android.widget.LinearLayout
+    private lateinit var btnFavSeeAll: View
     private lateinit var homeSubtitle: TextView
     private lateinit var themeToggleButton: TextView
     private lateinit var addBtn: TextView
@@ -232,6 +234,9 @@ class HubFragment : Fragment() {
         arcCountMovie = view.findViewById(R.id.arcCountMovie)
         arcCountGame = view.findViewById(R.id.arcCountGame)
         arcCountMusic = view.findViewById(R.id.arcCountMusic)
+        favShowcaseSection = view.findViewById(R.id.favShowcaseSection)
+        favStripContainer = view.findViewById(R.id.favStripContainer)
+        btnFavSeeAll = view.findViewById(R.id.btnFavSeeAll)
 
         // 🌟 Hero
         heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
@@ -298,6 +303,12 @@ class HubFragment : Fragment() {
         importPresetBtn.setOnClickListener { showImportCsvDialog() }
         trashBtn.setOnClickListener { startActivity(TrashActivity.createIntent(requireContext())) }
         backupBtn.setOnClickListener { startActivity(Intent(requireContext(), BackupActivity::class.java)) }
+
+        // 💖 P28→P35：第二页「我的最爱」区块「全部」入口
+        btnFavSeeAll.setOnClickListener {
+            startActivity(com.example.readtrace.CuratorFavoritesActivity.createIntent(requireContext()))
+        }
+        ViewAnimationHelper.attachSpringTouch(btnFavSeeAll)
 
         // 🌟 Hero 策展位交互
         heroBtnRead.setOnClickListener {
@@ -420,6 +431,42 @@ class HubFragment : Fragment() {
         renderParchmentQuote()
 
         renderMemoryCard()
+        renderFavoriteStrip()
+    }
+
+    /** 💖 P28→P35：主页第二页「我的最爱 · 心选展厅」横滑带（无收藏时整块隐藏） */
+    private fun renderFavoriteStrip() {
+        if (!::favStripContainer.isInitialized) return
+        val items = MediaType.values().flatMap { databaseHelper.getFavoritesByMediaType(it) }
+            .sortedWith(compareBy({ it.mediaType.ordinal }, { it.rankOrder }, { it.id }))
+        if (items.isEmpty()) {
+            favShowcaseSection.visibility = View.GONE
+            return
+        }
+        favShowcaseSection.visibility = View.VISIBLE
+        favStripContainer.removeAllViews()
+        val inflater = layoutInflater
+        items.forEachIndexed { index, item ->
+            val card = inflater.inflate(R.layout.item_hub_favorite_card, favStripContainer, false)
+            val cover = card.findViewById<ImageView>(R.id.favCardCover)
+            val placeholder = card.findViewById<TextView>(R.id.favCardPlaceholder)
+            val rank = card.findViewById<TextView>(R.id.favCardRank)
+            val title = card.findViewById<TextView>(R.id.favCardTitle)
+            if (item.book.coverUrl.isNullOrBlank()) {
+                // 无封面：占位卡显示媒介 emoji + 标题前四字（与 Hero 占位同款降级）
+                placeholder.text = "${item.book.mediaType.emoji}\n${item.book.title.take(4)}"
+                com.example.readtrace.util.CoverImageHelper.loadCover(cover, null, placeholder)
+            } else {
+                com.example.readtrace.util.CoverImageHelper.loadCover(cover, item.book.coverUrl)
+            }
+            title.text = item.book.title
+            rank.text = "NO.${index + 1}"
+            card.setOnClickListener {
+                startActivity(BookDetailActivity.createIntent(requireContext(), item.book.id))
+            }
+            ViewAnimationHelper.attachSpringTouch(card)
+            favStripContainer.addView(card)
+        }
     }
 
     private val lastStatValues = intArrayOf(-1, -1, -1, -1)
@@ -538,28 +585,105 @@ class HubFragment : Fragment() {
     }
 
     private fun showImportCsvDialog() {
-        val options = arrayOf(
-            "📚 导入预设名著经典 (54 本)",
-            "🌸 导入预设追番史 (70 部)",
-            "🎬 导入预设经典电影 (11 部)",
-            "🎮 导入预设 Steam 游戏 (67 款)",
-            "🌟 一键全量合入 (202 部神作)",
-            "📂 选择本地 CSV 文件...",
+        val options = listOf(
+            "📚  导入预设名著经典 (54 本)",
+            "🌸  导入预设追番史 (70 部)",
+            "🎬  导入预设经典电影 (11 部)",
+            "🎮  导入预设 Steam 游戏 (67 款)",
+            "🌟  一键全量合入 (202 部神作)",
+            "📂  选择本地 CSV 文件...",
         )
-        AlertDialog.Builder(requireContext())
-            .setTitle("📥 批量导入精神清单")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单")
-                    1 -> importAssetCsv("preset_anime.csv", MediaType.ANIME, "追番清单")
-                    2 -> importAssetCsv("preset_movies.csv", MediaType.MOVIE, "电影清单")
-                    3 -> importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单")
-                    4 -> importAllPresetCsvs()
-                    5 -> selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv"))
-                }
+        val actions: List<() -> Unit> = listOf(
+            { importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单") },
+            { importAssetCsv("preset_anime.csv", MediaType.ANIME, "追番清单") },
+            { importAssetCsv("preset_movies.csv", MediaType.MOVIE, "电影清单") },
+            { importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单") },
+            { importAllPresetCsvs() },
+            { selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv")) },
+        )
+
+        val density = resources.displayMetrics.density
+        fun dp(v: Int) = (v * density).toInt()
+
+        // 与 ElegantFormDialog 同一设计语言：深色玻璃圆角容器 + hairline 描边
+        val container = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(20))
+            setBackgroundResource(R.drawable.bg_elegant_dialog)
+        }
+        val titleView = TextView(requireContext()).apply {
+            text = "📥 批量导入精神清单"
+            textSize = 16.5f
+            setTextColor(requireContext().getColor(R.color.readtrace_ink))
+            letterSpacing = 0.02f
+        }
+        container.addView(titleView)
+        container.addView(TextView(requireContext()).apply {
+            text = "选一份预设书单，或从本地 CSV 带回你的记录"
+            textSize = 11.5f
+            setTextColor(requireContext().getColor(R.color.readtrace_muted))
+            setPadding(0, dp(4), 0, dp(6))
+        })
+
+        var importDialog: android.app.Dialog? = null
+        options.forEachIndexed { index, label ->
+            val row = TextView(requireContext()).apply {
+                text = label
+                textSize = 14f
+                setTextColor(requireContext().getColor(R.color.readtrace_ink))
+                setBackgroundResource(R.drawable.bg_form_input)
+                setPadding(dp(14), dp(12), dp(14), dp(12))
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply { topMargin = if (index == 0) 0 else dp(8) }
+                alpha = 0f
+                translationY = dp(10).toFloat()
+                animate().alpha(1f).translationY(0f)
+                    .setStartDelay(80L + index * 45L)
+                    .setDuration(280L)
+                    .start()
             }
-            .setNegativeButton("取消", null)
-            .show()
+            ViewAnimationHelper.attachSpringTouch(row)
+            row.setOnClickListener {
+                importDialog?.dismiss()
+                actions[index].invoke()
+            }
+            container.addView(row)
+        }
+
+        val btnCancel = TextView(requireContext()).apply {
+            text = "取 消"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            isAllCaps = false
+            setTextColor(requireContext().getColor(R.color.chip_idle_text))
+            setBackgroundResource(R.drawable.bg_chip_picker_idle)
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(44),
+            ).apply { topMargin = dp(14) }
+        }
+        ViewAnimationHelper.attachSpringTouch(btnCancel)
+        btnCancel.setOnClickListener { importDialog?.dismiss() }
+        container.addView(btnCancel)
+
+        importDialog = android.app.Dialog(requireContext()).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(container)
+            window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setLayout(
+                    (resources.displayMetrics.widthPixels * 0.88f).toInt(),
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+                setGravity(android.view.Gravity.CENTER)
+            }
+        }
+        // 进场：容器上浮渐入
+        container.translationY = dp(24).toFloat()
+        container.animate().translationY(0f).setDuration(300L).start()
+        importDialog.show()
     }
 
     private fun importAssetCsv(assetFileName: String, defaultMedia: MediaType, categoryName: String) {

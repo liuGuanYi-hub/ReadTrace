@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主页第二页 · 「我的最爱 · 心选展厅」横向滑动单卡（P28→P35） -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="92dp"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <ImageView
+            android:id="@+id/favCardCover"
+            android:layout_width="88dp"
+            android:layout_height="124dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_book_card"
+            android:clipToOutline="true"
+            android:elevation="5dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/favCardPlaceholder"
+            android:layout_width="88dp"
+            android:layout_height="124dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_book_card"
+            android:clipToOutline="true"
+            android:elevation="5dp"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="2dp"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/favCardRank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_gold_badge"
+            android:elevation="7dp"
+            android:paddingStart="6dp"
+            android:paddingTop="1dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="1dp"
+            android:text="NO.1"
+            android:textColor="@color/readtrace_gold_accent"
+            android:textSize="9.5sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/favCardTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:fontFamily="serif"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/readtrace_muted"
+        android:textSize="10.5sp" />
+</LinearLayout>
