@@ -59,9 +59,48 @@
             android:orientation="vertical"
             android:padding="18dp">
 
+            <!-- ✦ 眉标行：档案馆刊号感（杂志封面式排版顶层） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans"
+                    android:letterSpacing="0.18"
+                    android:text="PERSONAL ARCHIVE · EST. 2026"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/archiveIssueTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:letterSpacing="0.18"
+                    android:text="VOL. I"
+                    android:textColor="@color/readtrace_gold_accent"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 刊眉分隔线 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/readtrace_glass_stroke" />
+
+            <!-- 大标题行 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -73,7 +112,7 @@
                     android:fontFamily="serif"
                     android:text="@string/home_title"
                     android:textColor="@color/readtrace_ink"
-                    android:textSize="26sp"
+                    android:textSize="30sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -93,18 +132,164 @@
                 android:id="@+id/homeSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:fontFamily="sans"
                 android:lineSpacingExtra="2dp"
                 android:text="美术馆策展空间 · 记录看过的作品，也记录当时的自己"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
+            <!-- ✦ 五媒介藏品统计网格（正方形腹地：一眼看到全部精神领土） -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="20dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/arcCountBook"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="0"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="📚 书籍"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/arcCountAnime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="0"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="🌸 动画"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/arcCountMovie"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="0"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="🎬 电影"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/arcCountGame"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="0"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="🎮 游戏"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/arcCountMusic"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:text="0"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="🎵 音乐"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 操作区分隔线 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/readtrace_glass_stroke" />
+
             <!-- 快速功能操作条 -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="16dp"
                 android:overScrollMode="never"
                 android:scrollbars="none">
 
@@ -117,15 +302,16 @@
                     <TextView
                         android:id="@+id/addButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
+                        android:layout_height="40dp"
                         android:background="@drawable/bg_primary_button"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:text="@string/home_add"
+                        android:letterSpacing="0.04"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:text="＋ 添加新作"
                         android:textColor="@color/white"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -133,15 +319,16 @@
                     <TextView
                         android:id="@+id/importPresetButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
+                        android:letterSpacing="0.04"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
                         android:text="@string/home_import_preset"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
@@ -150,15 +337,16 @@
                     <TextView
                         android:id="@+id/backupButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
+                        android:letterSpacing="0.04"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
                         android:text="📦 备份"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
@@ -167,22 +355,34 @@
                     <TextView
                         android:id="@+id/trashButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_secondary_button"
                         android:clickable="true"
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
+                        android:letterSpacing="0.04"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
                         android:text="@string/home_trash"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </HorizontalScrollView>
-        </LinearLayout>
+
+            <!-- ✦ 页脚铭文行：项目理念常驻 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="serif"
+                android:letterSpacing="0.08"
+                android:text="— 记录看过的作品，也记录当时的自己 —"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="10.5sp" />
+            </LinearLayout>
         </FrameLayout>
 
         <!-- 🌊 0. 【先锋无限流光跑马灯】(60fps Infinite Marquee Stream) — P35 起下沉至第二页 -->

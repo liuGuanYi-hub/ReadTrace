@@ -45,6 +45,11 @@ class HubFragment : Fragment() {
     private lateinit var headerPanel: View
     private lateinit var firstScreenStage: View
     private lateinit var hubScroll: android.widget.ScrollView
+    private lateinit var arcCountBook: TextView
+    private lateinit var arcCountAnime: TextView
+    private lateinit var arcCountMovie: TextView
+    private lateinit var arcCountGame: TextView
+    private lateinit var arcCountMusic: TextView
     private lateinit var homeSubtitle: TextView
     private lateinit var themeToggleButton: TextView
     private lateinit var addBtn: TextView
@@ -147,6 +152,19 @@ class HubFragment : Fragment() {
                 hubScroll.height - hubScroll.paddingTop - hubScroll.paddingBottom
             headerPanel.minimumHeight = headerPanel.width
         }
+
+        // 🗂️ 记录台进场：轻微缩放 + 淡入（杂志封面翻开感）
+        headerPanel.alpha = 0f
+        headerPanel.scaleX = 0.96f
+        headerPanel.scaleY = 0.96f
+        headerPanel.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setStartDelay(80L)
+            .setDuration(420L)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(1.6f))
+            .start()
     }
 
     private fun setupGyroscopeParallax() {
@@ -208,6 +226,11 @@ class HubFragment : Fragment() {
         // 🗂️ P35 第一页「清爽记录台」舞台：headerPanel 的居中容器
         firstScreenStage = view.findViewById(R.id.firstScreenStage)
         headerPanel = view.findViewById(R.id.headerPanel)
+        arcCountBook = view.findViewById(R.id.arcCountBook)
+        arcCountAnime = view.findViewById(R.id.arcCountAnime)
+        arcCountMovie = view.findViewById(R.id.arcCountMovie)
+        arcCountGame = view.findViewById(R.id.arcCountGame)
+        arcCountMusic = view.findViewById(R.id.arcCountMusic)
 
         // 🌟 Hero
         heroCuratorialCard = view.findViewById(R.id.heroCuratorialCard)
@@ -370,6 +393,16 @@ class HubFragment : Fragment() {
         animateStatCountUp(statFinishedValue, finished, 2)
         animateStatCountUp(statWishlistValue, wishlist, 3)
         statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average() / 2.0)}"
+
+        // 🗂️ P35 记录台五媒介藏品计数（正方形腹地的精神领土一览）
+        if (::arcCountBook.isInitialized) {
+            val byMedia = allBooks.groupBy { it.mediaType }
+            arcCountBook.text = "${byMedia[MediaType.BOOK]?.size ?: 0}"
+            arcCountAnime.text = "${byMedia[MediaType.ANIME]?.size ?: 0}"
+            arcCountMovie.text = "${byMedia[MediaType.MOVIE]?.size ?: 0}"
+            arcCountGame.text = "${byMedia[MediaType.GAME]?.size ?: 0}"
+            arcCountMusic.text = "${byMedia[MediaType.MUSIC]?.size ?: 0}"
+        }
 
 
         val phase = com.example.readtrace.util.CircadianLightingEngine.getCurrentPhase()
