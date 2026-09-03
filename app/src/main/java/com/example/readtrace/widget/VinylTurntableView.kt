@@ -42,6 +42,8 @@ class VinylTurntableView @JvmOverloads constructor(
     }
     private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    /** 封面缩放专用：启用过滤与抗锯齿，避免缩放锯齿与摩尔纹 */
+    private val coverPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val armPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val armShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -247,18 +249,24 @@ class VinylTurntableView @JvmOverloads constructor(
         val bmp = coverBitmap
         if (bmp != null) {
             canvas.save()
+            // 半径留 0.995 倍抗锯齿余量，避免圆边毛刺
+            val drawRadius = labelRadius * 0.96f
             val clipPath = Path().apply {
-                addCircle(cx, cy, labelRadius * 0.96f, Path.Direction.CW)
+                addCircle(cx, cy, drawRadius * 0.995f, Path.Direction.CW)
             }
             canvas.clipPath(clipPath)
-            val srcRect = android.graphics.Rect(0, 0, bmp.width, bmp.height)
+            // center-crop：取 bitmap 中心正方形区域再缩放，非 1:1 封面不再被拉伸变形
+            val side = minOf(bmp.width, bmp.height)
+            val srcLeft = (bmp.width - side) / 2
+            val srcTop = (bmp.height - side) / 2
+            val srcRect = android.graphics.Rect(srcLeft, srcTop, srcLeft + side, srcTop + side)
             val dstRect = RectF(
-                cx - labelRadius * 0.96f,
-                cy - labelRadius * 0.96f,
-                cx + labelRadius * 0.96f,
-                cy + labelRadius * 0.96f,
+                cx - drawRadius,
+                cy - drawRadius,
+                cx + drawRadius,
+                cy + drawRadius,
             )
-            canvas.drawBitmap(bmp, srcRect, dstRect, null)
+            canvas.drawBitmap(bmp, srcRect, dstRect, coverPaint)
             canvas.restore()
         } else {
             labelPaint.shader = RadialGradient(

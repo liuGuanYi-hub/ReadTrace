@@ -137,44 +137,15 @@ class CuratorAuthActivity : AppCompatActivity() {
     }
 
     private fun setupAvatarSelector() {
-        layoutAvatarList.removeAllViews()
-        CuratorAccount.PRESET_AVATARS.forEachIndexed { index, avatar ->
-            val isSelected = avatar.key == selectedAvatarKey
-            val itemView = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                gravity = Gravity.CENTER_HORIZONTAL
-                val pad = dpToPx(8)
-                setPadding(pad, pad, pad, pad)
-                val params = LinearLayout.LayoutParams(dpToPx(64), LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                    if (index > 0) marginStart = dpToPx(8)
-                }
-                layoutParams = params
-                isClickable = true
-                isFocusable = true
-                setBackgroundResource(if (isSelected) R.drawable.bg_status_chip_selected else R.drawable.bg_tag_outline_chip)
-                setOnClickListener {
-                    selectedAvatarKey = avatar.key
-                    setupAvatarSelector()
-                    updatePreview()
-                }
-            }
-
-            val tvEmoji = TextView(this).apply {
-                text = avatar.emoji
-                textSize = 22f
-                gravity = Gravity.CENTER
-            }
-            val tvName = TextView(this).apply {
-                text = avatar.name
-                textSize = 10f
-                setTextColor(ContextCompat.getColor(this@CuratorAuthActivity, if (isSelected) R.color.white else R.color.readtrace_muted))
-                gravity = Gravity.CENTER
-                val mTop = dpToPx(3)
-                setPadding(0, mTop, 0, 0)
-            }
-            itemView.addView(tvEmoji)
-            itemView.addView(tvName)
-            layoutAvatarList.addView(itemView)
+        // 头像卡片几何规格统一由 AvatarChipBuilder 维护，与档案定制页共用同一实现
+        com.example.readtrace.util.AvatarChipBuilder.setup(
+            this,
+            layoutAvatarList,
+            selectedAvatarKey,
+        ) { key ->
+            selectedAvatarKey = key
+            setupAvatarSelector()
+            updatePreview()
         }
     }
 

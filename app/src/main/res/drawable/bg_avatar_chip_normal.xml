@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 艺术头像卡片未选中态：与选中态 bg_avatar_chip_selected 保持同一几何规格（圆角 16dp + 1dp 描边），
+     仅填充色与描边色不同，消除选中/未选中视觉体量差异 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#081A1C19" />
+    <stroke
+        android:width="1dp"
+        android:color="#201A1C19" />
+    <corners android:radius="16dp" />
+</shape>
