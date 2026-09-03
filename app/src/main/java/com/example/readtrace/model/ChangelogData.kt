@@ -15,9 +15,33 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
+            versionName = "v1.0.7",
+            releaseDate = "2026-09-03",
+            isLatest = true,
+            tagTitle = "📦 APK 减重与安装精简 (Slim Release)",
+            highlights = listOf(
+                "⚖️ 移除 ISBN 扫码功能（ML Kit + CameraX）与相机权限，APK 由 44.5MB 减半至 20.9MB，安装更轻盈",
+                "🏛️ 主页分页化重塑：首屏独尊清爽记录台，探索内容下沉第二页，我的最爱心选展厅横滑带入住主页",
+                "🎨 导入书单弹窗统一玻璃拟态风格，回收站与主页滚动条静默收敛",
+                "🧪 新增扫描能力移除后全链路回归冒烟通过，无崩溃无异常",
+            ),
+        ),
+        ChangelogVersion(
+            versionName = "v1.0.6",
+            releaseDate = "2026-09-03",
+            isLatest = false,
+            tagTitle = "🏛️ 主页分页化重塑 (P35 Phase 1)",
+            highlights = listOf(
+                "🎯 首屏独尊：清爽记录台占满整屏居中呈现，Hero 随想整段移除，其余内容滚动至第二页",
+                "⭐ 我的最爱心选展厅：横滑金色 NO.x 角标封面带入住主页第二页，无封面自动占位降级",
+                "📜 导入书单弹窗统一玻璃容器风格：行式选项渐入 + 弹性触感 + 金色胶囊按钮",
+                "🪄 首页与回收站滚动条静默隐藏，滚动区域视觉更纯净",
+            ),
+        ),
+        ChangelogVersion(
             versionName = "v1.0.5",
             releaseDate = "2026-09-02",
-            isLatest = true,
+            isLatest = false,
             tagTitle = "🛡️ P20 缺陷清零、性能纵深与全维体验演进 (Grand Release)",
             highlights = listOf(
                 "🛡️ 8大缺陷证据级清零：彻底修复径向环定位错位、文化年轮动画、真实 WebDAV 引擎串联、返回键避让及长图位图保护",
