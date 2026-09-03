@@ -64,6 +64,11 @@ class ScrambleTextView @JvmOverloads constructor(
 
     fun triggerScramble(duration: Long = 480L) {
         animator?.cancel()
+        // XML 直接配置文本时 targetString 未初始化（如主页标题），懒取当前文本作为
+        // 解密目标；否则点击会走 length==0 分支把 text 清空，标题凭空消失。
+        if (targetString.isEmpty() && text.isNotEmpty()) {
+            targetString = text.toString()
+        }
         val length = targetString.length
         if (length == 0) {
             text = ""
