@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
                 android:text="阅痕 ReadTrace v4.3.0"
-                android:textColor="@color/white"
+                android:textColor="@color/readtrace_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 

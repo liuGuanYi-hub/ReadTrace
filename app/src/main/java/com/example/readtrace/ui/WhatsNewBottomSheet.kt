@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.example.readtrace.ChangelogActivity
 import com.example.readtrace.R
 import com.example.readtrace.data.UserPreferencesManager
@@ -39,8 +40,10 @@ object WhatsNewBottomSheet {
 
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            // 大屏/平板限宽 420dp，避免按屏宽比例拉伸过度
+            val maxWidth = (420 * context.resources.displayMetrics.density).toInt()
             setLayout(
-                (context.resources.displayMetrics.widthPixels * 0.92).toInt(),
+                minOf((context.resources.displayMetrics.widthPixels * 0.92).toInt(), maxWidth),
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
@@ -57,7 +60,8 @@ object WhatsNewBottomSheet {
             val tv = TextView(context).apply {
                 this.text = "✦ $text"
                 textSize = 13f
-                setTextColor(Color.parseColor("#E0E6ED"))
+                // 纳入日夜色牌：硬编码浅灰白在日间玻璃底上对比度仅 1.06:1，几乎不可读
+                setTextColor(ContextCompat.getColor(context, R.color.readtrace_ink))
                 setLineSpacing(0f, 1.2f)
                 setPadding(0, (6 * density).toInt(), 0, (6 * density).toInt())
             }
