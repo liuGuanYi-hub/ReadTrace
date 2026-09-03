@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_work_picker_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="24dp">
+
+    <!-- 顶部手柄 -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_sheet_handle" />
+
+    <!-- 标题栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/pickerDialogTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:text="添加作品到最爱" />
+
+            <TextView
+                android:id="@+id/pickerDialogSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12sp"
+                android:text="从已有作品库中挑选加入" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnPickerClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="✕"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 搜索输入框 -->
+    <EditText
+        android:id="@+id/pickerSearchInput"
+        style="@style/ReadTraceInput"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="12dp"
+        android:hint="🔍 搜索作品名称或作者..."
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:maxLines="1"
+        android:textSize="13.5sp" />
+
+    <!-- 作品列表 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:layout_marginTop="8dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pickerRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingVertical="4dp" />
+
+        <TextView
+            android:id="@+id/pickerEmptyView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="暂无符合条件的已有作品"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </FrameLayout>
+
+    <!-- 确认添加按钮 -->
+    <Button
+        android:id="@+id/btnConfirmAdd"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_primary_button"
+        android:text="＋ 添加作品 (已选 0 部)"
+        android:textColor="@android:color/white"
+        android:textSize="14.5sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+
+    <CheckBox
+        android:id="@+id/pickerCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <ImageView
+        android:id="@+id/pickerBookCover"
+        android:layout_width="44dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="8dp"
+        android:background="#1A888888"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_launcher_foreground" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/pickerBookTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="14.5sp"
+            android:textStyle="bold"
+            tools:text="夏目友人帐" />
+
+        <TextView
+            android:id="@+id/pickerBookAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp"
+            tools:text="绿川幸 · 奇幻 / 治愈" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/pickerBookRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#D97706"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                tools:text="★ 9.4" />
+
+            <TextView
+                android:id="@+id/pickerBookStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11sp"
+                tools:text="已读完" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

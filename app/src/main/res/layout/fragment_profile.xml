@@ -198,6 +198,38 @@
                 android:textSize="12.5sp" />
         </LinearLayout>
 
+        <!-- ❤️ 我的最爱 (P28) -->
+        <LinearLayout
+            android:id="@+id/profileFavoritesPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="4dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="❤️ 我的最爱 · 跨媒介心选"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans"
+                android:text="书籍、番剧、电影、游戏、音乐五大分类心选收藏，支持金标排位与一键导出长图"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
         <!-- 🏆 策展人年度精神年鉴 (P12) -->
         <LinearLayout
             android:id="@+id/profileChroniclePanel"

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/favoritesRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/readtrace_background"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <!-- 顶栏 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/btnFavoritesBack"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="←"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/favoritesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="我的最爱"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/favoritesSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="人生心选 · 跨媒介作品集"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11.5sp" />
+        </LinearLayout>
+
+        <!-- 导出长图分享按钮 -->
+        <TextView
+            android:id="@+id/btnExportFavoritesPoster"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:text="📸 导出长图"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 5 大类分类横向标签栏 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/favCategoryGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tabFavBook"
+                style="@style/ReadTraceStatusChip"
+                android:background="@drawable/bg_status_chip_selected"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="📚 书籍"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/tabFavAnime"
+                style="@style/ReadTraceStatusChip"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="🎬 番剧" />
+
+            <TextView
+                android:id="@+id/tabFavMovie"
+                style="@style/ReadTraceStatusChip"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="🎥 电影" />
+
+            <TextView
+                android:id="@+id/tabFavGame"
+                style="@style/ReadTraceStatusChip"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="🎮 游戏" />
+
+            <TextView
+                android:id="@+id/tabFavMusic"
+                style="@style/ReadTraceStatusChip"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="🎵 音乐" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- 主内容区：列表与空状态 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/favRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingBottom="80dp"
+            android:paddingTop="4dp" />
+
+        <!-- 空状态展示 -->
+        <LinearLayout
+            android:id="@+id/favEmptyContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="32dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌟"
+                android:textSize="48sp" />
+
+            <TextView
+                android:id="@+id/favEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="当前分类还没有添加最爱作品"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="15.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/favEmptyDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="从书库中挑几部对你意义深远的神作放进来吧"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp" />
+
+            <Button
+                android:id="@+id/btnEmptyAddWork"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_primary_button"
+                android:paddingHorizontal="24dp"
+                android:text="＋ 添加作品"
+                android:textColor="@android:color/white"
+                android:textSize="13.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 底部常驻悬浮「＋ 添加作品」按钮 -->
+        <Button
+            android:id="@+id/btnBottomAddWork"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_primary_button"
+            android:elevation="6dp"
+            android:text="＋ 添加作品"
+            android:textColor="@android:color/white"
+            android:textSize="14.5sp"
+            android:textStyle="bold" />
+
+    </FrameLayout>
+
+</LinearLayout>

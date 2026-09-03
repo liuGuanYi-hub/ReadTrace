@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    android:background="@drawable/bg_glass_panel"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- 金标排位序号 -->
+        <TextView
+            android:id="@+id/favRankBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_gold_badge"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:textColor="#92400E"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            tools:text="No.1 最爱" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- 移除按钮 -->
+        <TextView
+            android:id="@+id/btnRemoveFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:text="移除"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/favCover"
+            android:layout_width="60dp"
+            android:layout_height="84dp"
+            android:background="#1A888888"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/ic_launcher_foreground" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/favTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="夏目友人帐" />
+
+            <TextView
+                android:id="@+id/favAuthor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="12.5sp"
+                tools:text="绿川幸 · 奇幻 / 治愈" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/favRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#D97706"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="★ 9.4 分" />
+
+                <TextView
+                    android:id="@+id/favStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="11.5sp"
+                    tools:text="已读完" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 为什么喜欢 / 推荐语区域 -->
+    <LinearLayout
+        android:id="@+id/favTaglineContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_chip_picker_idle"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="❝"
+            android:textColor="#D97706"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/favTaglineText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12.5sp"
+            tools:text="温柔得让人想哭的神作，每次看都能治愈一整年。" />
+
+        <TextView
+            android:id="@+id/btnEditTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="✎"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</LinearLayout>

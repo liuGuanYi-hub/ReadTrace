@@ -93,6 +93,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
         createLocationsTable(database)
         createMindprintsTable(database)
         createAudioTracksTable(database)
+        createFavoritesTable(database)
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -149,6 +150,9 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         "($COLUMN_SOURCE_TYPE, $COLUMN_SOURCE_ID)",
                 )
             }
+        }
+        if (oldVersion < 11) {
+            createFavoritesTable(database)
         }
     }
 
@@ -2160,6 +2164,26 @@ class BookDatabaseHelper private constructor(val context: Context) :
         )
     }
 
+    private fun createFavoritesTable(database: SQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS $TABLE_FAVORITES (
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_FAVORITE_BOOK_ID INTEGER NOT NULL UNIQUE,
+                $COLUMN_FAVORITE_MEDIA_TYPE TEXT NOT NULL,
+                $COLUMN_FAVORITE_RANK_ORDER INTEGER NOT NULL DEFAULT 0,
+                $COLUMN_FAVORITE_CUSTOM_TAGLINE TEXT,
+                $COLUMN_CREATED_AT TEXT NOT NULL,
+                FOREIGN KEY ($COLUMN_FAVORITE_BOOK_ID) REFERENCES $TABLE_BOOKS($COLUMN_ID)
+            )
+            """.trimIndent(),
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_favorites_media ON $TABLE_FAVORITES " +
+                "($COLUMN_FAVORITE_MEDIA_TYPE, $COLUMN_FAVORITE_RANK_ORDER)",
+        )
+    }
+
     fun getAudioTracks(bookId: Long): List<com.example.readtrace.model.AudioTrackItem> {
         val tracks = mutableListOf<com.example.readtrace.model.AudioTrackItem>()
         readableDatabase.query(
@@ -3595,6 +3619,122 @@ class BookDatabaseHelper private constructor(val context: Context) :
             putNullable(COLUMN_CHAPTER, chapter)
         }
 
+    data class CuratorFavoriteItem(
+        val id: Long,
+        val book: Book,
+        val mediaType: MediaType,
+        val rankOrder: Int,
+        val customTagline: String?,
+        val createdAt: String,
+    )
+
+    fun addFavorite(bookId: Long, mediaType: MediaType, rankOrder: Int = 0, tagline: String? = null): Boolean {
+        return try {
+            val db = writableDatabase
+            val cv = ContentValues().apply {
+                put(COLUMN_FAVORITE_BOOK_ID, bookId)
+                put(COLUMN_FAVORITE_MEDIA_TYPE, mediaType.name.lowercase())
+                put(COLUMN_FAVORITE_RANK_ORDER, rankOrder)
+                put(COLUMN_FAVORITE_CUSTOM_TAGLINE, tagline)
+                put(COLUMN_CREATED_AT, currentTimestamp())
+            }
+            db.insertWithOnConflict(TABLE_FAVORITES, null, cv, SQLiteDatabase.CONFLICT_REPLACE) > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun removeFavorite(bookId: Long): Boolean {
+        return try {
+            writableDatabase.delete(TABLE_FAVORITES, "$COLUMN_FAVORITE_BOOK_ID = ?", arrayOf(bookId.toString())) > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun isFavorite(bookId: Long): Boolean {
+        return try {
+            val cursor = readableDatabase.query(
+                TABLE_FAVORITES,
+                arrayOf(COLUMN_ID),
+                "$COLUMN_FAVORITE_BOOK_ID = ?",
+                arrayOf(bookId.toString()),
+                null, null, null,
+            )
+            val exists = cursor.moveToFirst()
+            cursor.close()
+            exists
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun updateFavoriteTagline(bookId: Long, tagline: String?): Boolean {
+        return try {
+            val cv = ContentValues().apply {
+                put(COLUMN_FAVORITE_CUSTOM_TAGLINE, tagline)
+            }
+            writableDatabase.update(TABLE_FAVORITES, cv, "$COLUMN_FAVORITE_BOOK_ID = ?", arrayOf(bookId.toString())) > 0
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun updateFavoriteRank(bookId: Long, newRank: Int): Boolean {
+        return try {
+            val cv = ContentValues().apply {
+                put(COLUMN_FAVORITE_RANK_ORDER, newRank)
+            }
+            writableDatabase.update(TABLE_FAVORITES, cv, "$COLUMN_FAVORITE_BOOK_ID = ?", arrayOf(bookId.toString())) > 0
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun getFavoritesByMediaType(mediaType: MediaType): List<CuratorFavoriteItem> {
+        val result = mutableListOf<CuratorFavoriteItem>()
+        val db = readableDatabase
+        val query = """
+            SELECT f.$COLUMN_ID as fav_id, f.$COLUMN_FAVORITE_BOOK_ID as fav_book_id,
+                   f.$COLUMN_FAVORITE_RANK_ORDER as fav_rank, f.$COLUMN_FAVORITE_CUSTOM_TAGLINE as fav_tagline,
+                   f.$COLUMN_CREATED_AT as fav_created_at, b.*
+            FROM $TABLE_FAVORITES f
+            INNER JOIN $TABLE_BOOKS b ON f.$COLUMN_FAVORITE_BOOK_ID = b.$COLUMN_ID
+            WHERE f.$COLUMN_FAVORITE_MEDIA_TYPE = ? AND b.$COLUMN_IS_DELETED = 0
+            ORDER BY f.$COLUMN_FAVORITE_RANK_ORDER ASC, f.$COLUMN_ID ASC
+        """.trimIndent()
+
+        val cursor = db.rawQuery(query, arrayOf(mediaType.name.lowercase()))
+        while (cursor.moveToNext()) {
+            val favId = cursor.getLong(cursor.getColumnIndexOrThrow("fav_id"))
+            val rank = cursor.getInt(cursor.getColumnIndexOrThrow("fav_rank"))
+            val tagline = cursor.getString(cursor.getColumnIndexOrThrow("fav_tagline"))
+            val favCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow("fav_created_at"))
+            val book = cursor.toBook()
+            result.add(
+                CuratorFavoriteItem(
+                    id = favId,
+                    book = book,
+                    mediaType = mediaType,
+                    rankOrder = rank,
+                    customTagline = tagline,
+                    createdAt = favCreatedAt,
+                )
+            )
+        }
+        cursor.close()
+        return result
+    }
+
+    fun getFavoriteCount(): Int {
+        val cursor = readableDatabase.rawQuery("SELECT COUNT(*) FROM $TABLE_FAVORITES", null)
+        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        cursor.close()
+        return count
+    }
+
     private fun currentTimestamp(): String =
         OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
@@ -3605,13 +3745,18 @@ class BookDatabaseHelper private constructor(val context: Context) :
         @Volatile
         private var bookListCache: List<Book>? = null
         private val bookListCacheLock = Any()
+        const val TABLE_FAVORITES = "curator_favorites"
+        const val COLUMN_FAVORITE_BOOK_ID = "book_id"
+        const val COLUMN_FAVORITE_MEDIA_TYPE = "media_type"
+        const val COLUMN_FAVORITE_RANK_ORDER = "rank_order"
+        const val COLUMN_FAVORITE_CUSTOM_TAGLINE = "custom_tagline"
         const val TABLE_AUDIO_TRACKS = "audio_tracks"
         const val COLUMN_AUDIO_BOOK_ID = "book_id"
         const val COLUMN_AUDIO_ORDER = "track_order"
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 10
+        const val DATABASE_VERSION = 11
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

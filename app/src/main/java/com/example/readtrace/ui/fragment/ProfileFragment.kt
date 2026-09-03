@@ -205,6 +205,12 @@ class ProfileFragment : Fragment() {
             startActivity(Gallery3DActivity.createIntent(requireContext()))
         }
 
+        // P28 我的最爱跨媒介心选展厅
+        view?.findViewById<View>(R.id.profileFavoritesPanel)?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
+            startActivity(com.example.readtrace.CuratorFavoritesActivity.createIntent(requireContext()))
+        }
+
         // P12 策展人年度精神年鉴入口
         view?.findViewById<View>(R.id.profileChroniclePanel)?.setOnClickListener {
             startActivity(Intent(requireContext(), com.example.readtrace.AnnualChronicleStudioActivity::class.java))

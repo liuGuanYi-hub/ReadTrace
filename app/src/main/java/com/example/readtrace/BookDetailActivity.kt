@@ -1380,6 +1380,24 @@ class BookDetailActivity : AppCompatActivity() {
             holoRating?.performClick()
         }
 
+        val btnToggleFav = findViewById<TextView>(R.id.btnToggleFavorite)
+        val isFav = databaseHelper.isFavorite(book.id)
+        btnToggleFav?.text = if (isFav) "❤️" else "🤍"
+        btnToggleFav?.setOnClickListener {
+            val currentlyFav = databaseHelper.isFavorite(book.id)
+            if (currentlyFav) {
+                databaseHelper.removeFavorite(book.id)
+                btnToggleFav.text = "🤍"
+                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+                Toast.makeText(this, "已从【我的最爱】中移除", Toast.LENGTH_SHORT).show()
+            } else {
+                databaseHelper.addFavorite(book.id, book.mediaType)
+                btnToggleFav.text = "❤️"
+                com.example.readtrace.util.HapticFeedbackEngine.stampImpact(this)
+                Toast.makeText(this, "✨ 已加入【我的最爱 · ${book.mediaType.displayName}】！", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         renderRemoteRatingAdopt(book)
