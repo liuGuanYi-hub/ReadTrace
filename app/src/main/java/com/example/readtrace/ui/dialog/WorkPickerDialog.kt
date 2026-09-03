@@ -33,7 +33,7 @@ object WorkPickerDialog {
         alreadyFavoriteBookIds: Set<Long>,
         onWorksSelected: (List<Book>) -> Unit,
     ) {
-        val dialog = BottomSheetDialog(activity)
+        val dialog = BottomSheetDialog(activity, R.style.Theme_ReadTrace_BottomSheetDialog)
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_work_picker, null)
         dialog.setContentView(view)
 
@@ -44,10 +44,14 @@ object WorkPickerDialog {
         val titleView = view.findViewById<TextView>(R.id.pickerDialogTitle)
         val subtitleView = view.findViewById<TextView>(R.id.pickerDialogSubtitle)
         val searchInput = view.findViewById<EditText>(R.id.pickerSearchInput)
+        val btnClearSearch = view.findViewById<View>(R.id.btnPickerClearSearch)
         val recyclerView = view.findViewById<RecyclerView>(R.id.pickerRecyclerView)
         val emptyView = view.findViewById<TextView>(R.id.pickerEmptyView)
         val btnConfirm = view.findViewById<Button>(R.id.btnConfirmAdd)
         val btnClose = view.findViewById<View>(R.id.btnPickerClose)
+
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnClose)
+        com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btnConfirm)
 
         titleView.text = "添加${mediaType.displayName}到最爱"
         subtitleView.text = "已有 ${selectableBooks.size} 部可选${mediaType.displayName}作品"
@@ -103,6 +107,7 @@ object WorkPickerDialog {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val query = s?.toString()?.trim().orEmpty().lowercase()
+                btnClearSearch?.visibility = if (query.isNotBlank()) View.VISIBLE else View.GONE
                 displayList = if (query.isBlank()) {
                     selectableBooks
                 } else {
@@ -125,6 +130,10 @@ object WorkPickerDialog {
             override fun afterTextChanged(s: Editable?) {}
         })
 
+        btnClearSearch?.setOnClickListener {
+            searchInput.setText("")
+        }
+
         btnConfirm.setOnClickListener {
             val selected = selectableBooks.filter { selectedBookIds.contains(it.id) }
             if (selected.isNotEmpty()) {
@@ -135,6 +144,7 @@ object WorkPickerDialog {
         }
 
         btnClose.setOnClickListener {
+            HapticFeedbackEngine.lightClick(activity)
             dialog.dismiss()
         }
 

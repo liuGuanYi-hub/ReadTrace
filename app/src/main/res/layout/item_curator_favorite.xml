@@ -119,48 +119,4 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 为什么喜欢 / 推荐语区域 -->
-    <LinearLayout
-        android:id="@+id/favTaglineContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_chip_picker_idle"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="❝"
-            android:textColor="#D97706"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/favTaglineText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="@color/readtrace_ink"
-            android:textSize="12.5sp"
-            tools:text="温柔得让人想哭的神作，每次看都能治愈一整年。" />
-
-        <TextView
-            android:id="@+id/btnEditTagline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="✎"
-            android:textColor="@color/readtrace_muted"
-            android:textSize="12sp" />
-    </LinearLayout>
-
 </LinearLayout>

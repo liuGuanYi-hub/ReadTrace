@@ -94,9 +94,6 @@ class CuratorFavoritesActivity : AppCompatActivity() {
             onItemClicked = { item ->
                 startActivity(BookDetailActivity.createIntent(this, item.book.id))
             },
-            onEditTaglineClicked = { item ->
-                showEditTaglineDialog(item)
-            },
             onRemoveClicked = { item ->
                 confirmRemoveFavorite(item)
             }
@@ -194,39 +191,21 @@ class CuratorFavoritesActivity : AppCompatActivity() {
         }
     }
 
-    private fun showEditTaglineDialog(item: BookDatabaseHelper.CuratorFavoriteItem) {
-        val input = EditText(this).apply {
-            hint = "写一句为什么喜欢这部作品..."
-            setText(item.customTagline.orEmpty())
-            setSelection(text.length)
-            setPadding(48, 36, 48, 36)
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("为什么喜欢《${item.book.title}》")
-            .setView(input)
-            .setPositiveButton("保存") { _, _ ->
-                val newTagline = input.text.toString().trim()
-                databaseHelper.updateFavoriteTagline(item.book.id, newTagline.ifBlank { null })
-                HapticFeedbackEngine.lightClick(this)
-                loadFavorites()
-            }
-            .setNegativeButton("取消", null)
-            .show()
-    }
-
     private fun confirmRemoveFavorite(item: BookDatabaseHelper.CuratorFavoriteItem) {
-        AlertDialog.Builder(this)
-            .setTitle("从最爱移除")
-            .setMessage("确定要将《${item.book.title}》从最爱列表中移除吗？")
-            .setPositiveButton("移除") { _, _ ->
+        com.example.readtrace.util.ElegantConfirmDialog.show(
+            activity = this,
+            title = "从最爱移除",
+            message = "确定要将《${item.book.title}》从最爱列表中移除吗？",
+            confirmText = "移除",
+            cancelText = "保留",
+            isDanger = true,
+            onConfirm = {
                 databaseHelper.removeFavorite(item.book.id)
                 HapticFeedbackEngine.lightClick(this)
                 Toast.makeText(this, "已移除《${item.book.title}》", Toast.LENGTH_SHORT).show()
                 loadFavorites()
             }
-            .setNegativeButton("保留", null)
-            .show()
+        )
     }
 
     private fun exportFavoritesPoster() {
@@ -285,7 +264,6 @@ class CuratorFavoritesActivity : AppCompatActivity() {
     private class FavoritesAdapter(
         private var items: List<BookDatabaseHelper.CuratorFavoriteItem>,
         private val onItemClicked: (BookDatabaseHelper.CuratorFavoriteItem) -> Unit,
-        private val onEditTaglineClicked: (BookDatabaseHelper.CuratorFavoriteItem) -> Unit,
         private val onRemoveClicked: (BookDatabaseHelper.CuratorFavoriteItem) -> Unit,
     ) : RecyclerView.Adapter<FavoritesAdapter.ViewHolder>() {
 
@@ -326,18 +304,6 @@ class CuratorFavoritesActivity : AppCompatActivity() {
             holder.status.text = book.status.displayName
             CoverImageHelper.loadCover(holder.cover, book.coverUrl)
 
-            if (!item.customTagline.isNullOrBlank()) {
-                holder.taglineText.text = item.customTagline
-                holder.taglineText.setTextColor(holder.itemView.context.getColor(R.color.readtrace_ink))
-            } else {
-                holder.taglineText.text = "+ 写一句为什么喜欢 (选填)"
-                holder.taglineText.setTextColor(holder.itemView.context.getColor(R.color.readtrace_muted))
-            }
-
-            holder.taglineContainer.setOnClickListener {
-                onEditTaglineClicked(item)
-            }
-
             holder.btnRemove.setOnClickListener {
                 onRemoveClicked(item)
             }
@@ -357,8 +323,6 @@ class CuratorFavoritesActivity : AppCompatActivity() {
             val author: TextView = view.findViewById(R.id.favAuthor)
             val rating: TextView = view.findViewById(R.id.favRating)
             val status: TextView = view.findViewById(R.id.favStatus)
-            val taglineContainer: View = view.findViewById(R.id.favTaglineContainer)
-            val taglineText: TextView = view.findViewById(R.id.favTaglineText)
         }
     }
 }
