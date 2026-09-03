@@ -3,13 +3,7 @@ package com.example.readtrace.util
 import android.content.Context
 import com.example.readtrace.data.UserPreferencesManager
 import com.example.readtrace.model.MediaType
-import org.json.JSONArray
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * 🤖 AI 角色与故事大纲分析引擎 (AiAssistantEngine)
@@ -70,70 +64,40 @@ object AiAssistantEngine {
         }
 
         Thread {
-            try {
-                val cleanUrl = baseUrl.trimEnd('/') + "/chat/completions"
-                val url = URL(cleanUrl)
-                val conn = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = 15000
-                    readTimeout = 30000
-                    doOutput = true
-                    doInput = true
-                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-                    setRequestProperty("Authorization", "Bearer $apiKey")
+            val mediaLabel = mediaType.displayName
+            val prompt = """
+                请分析${mediaLabel}作品《$title》${if (!author.isNullOrBlank()) "（创作者：$author）" else ""}。
+                请严格输出合法的 JSON 对象，格式如下：
+                {
+                  "premise": "一句话核心主旨与故事背景",
+                  "characters": [
+                    {"name": "角色名", "identity": "身份/地位", "description": "性格特征与关键行为动机"}
+                  ],
+                  "outline": [
+                    {"phase": "起/承/转/合 或 序章/第一幕等", "title": "分段标题", "summary": "该阶段核心剧情脉络"}
+                  ]
                 }
+                要求：
+                1. 角色列出 3~6 位核心人物；
+                2. 大纲列出 3~5 个核心阶段；
+                3. 语言优雅、精准、有文学感；
+                4. 只返回 JSON 字符串，不要包含任何 markdown 标记或附加说明。
+            """.trimIndent()
 
-                val mediaLabel = mediaType.displayName
-                val prompt = """
-                    请分析${mediaLabel}作品《$title》${if (!author.isNullOrBlank()) "（创作者：$author）" else ""}。
-                    请严格输出合法的 JSON 对象，格式如下：
-                    {
-                      "premise": "一句话核心主旨与故事背景",
-                      "characters": [
-                        {"name": "角色名", "identity": "身份/地位", "description": "性格特征与关键行为动机"}
-                      ],
-                      "outline": [
-                        {"phase": "起/承/转/合 或 序章/第一幕等", "title": "分段标题", "summary": "该阶段核心剧情脉络"}
-                      ]
-                    }
-                    要求：
-                    1. 角色列出 3~6 位核心人物；
-                    2. 大纲列出 3~5 个核心阶段；
-                    3. 语言优雅、精准、有文学感；
-                    4. 只返回 JSON 字符串，不要包含任何 markdown 标记或附加说明。
-                """.trimIndent()
-
-                val bodyJson = JSONObject().apply {
-                    put("model", model)
-                    put("messages", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", "你是一位精通文学、影视、动漫与叙事艺术的资深策展分析助手。请只输出合法纯 JSON。")
-                        })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", prompt)
-                        })
-                    })
-                    put("temperature", 0.7)
+            val content = AiChatClient.requestChatCompletion(
+                baseUrl = baseUrl,
+                apiKey = apiKey,
+                model = model,
+                systemPrompt = "你是一位精通文学、影视、动漫与叙事艺术的资深策展分析助手。请只输出合法纯 JSON。",
+                userPrompt = prompt,
+                temperature = 0.7,
+            )
+            if (content != null) {
+                val parsed = parseAiOutput(content)
+                if (parsed != null) {
+                    callback(parsed)
+                    return@Thread
                 }
-
-                OutputStreamWriter(conn.outputStream, "UTF-8").use { it.write(bodyJson.toString()) }
-
-                val code = conn.responseCode
-                if (code == 200) {
-                    val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
-                    val respText = reader.readText()
-                    val respJson = JSONObject(respText)
-                    val content = respJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
-                    val parsed = parseAiOutput(content)
-                    if (parsed != null) {
-                        callback(parsed)
-                        return@Thread
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
             // 失败时平滑降级至离线知识库
@@ -313,65 +277,35 @@ object AiAssistantEngine {
         }
 
         Thread {
-            try {
-                val cleanUrl = baseUrl.trimEnd('/') + "/chat/completions"
-                val url = URL(cleanUrl)
-                val conn = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = 12000
-                    readTimeout = 25000
-                    doOutput = true
-                    doInput = true
-                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-                    setRequestProperty("Authorization", "Bearer $apiKey")
+            val prompt = """
+                请根据作品名《$cleanTitle》（媒介类型：${mediaType.displayName}），补全该作品的权威元数据。
+                请严格输出合法的 JSON 对象，格式如下：
+                {
+                  "author": "创作者/原作者/导演/开发商/作曲家",
+                  "category": "主要类型分类（如：奇幻 / 治愈、魔幻现实主义、动作角色扮演、硬核科幻）",
+                  "tags": ["核心标签1", "标签2", "标签3", "标签4"],
+                  "description": "精炼的核心主旨与故事背景介绍（80-120字左右）",
+                  "suggestedRating": 9.2
                 }
+                要求：
+                1. 只输出纯 JSON 对象，不要附加 markdown 或解释说明；
+                2. suggestedRating 为 10 分制评分（0.0 ~ 10.0）。
+            """.trimIndent()
 
-                val prompt = """
-                    请根据作品名《$cleanTitle》（媒介类型：${mediaType.displayName}），补全该作品的权威元数据。
-                    请严格输出合法的 JSON 对象，格式如下：
-                    {
-                      "author": "创作者/原作者/导演/开发商/作曲家",
-                      "category": "主要类型分类（如：奇幻 / 治愈、魔幻现实主义、动作角色扮演、硬核科幻）",
-                      "tags": ["核心标签1", "标签2", "标签3", "标签4"],
-                      "description": "精炼的核心主旨与故事背景介绍（80-120字左右）",
-                      "suggestedRating": 9.2
-                    }
-                    要求：
-                    1. 只输出纯 JSON 对象，不要附加 markdown 或解释说明；
-                    2. suggestedRating 为 10 分制评分（0.0 ~ 10.0）。
-                """.trimIndent()
-
-                val bodyJson = JSONObject().apply {
-                    put("model", model)
-                    put("messages", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", "你是一位精通跨媒介艺术档案的专业策展人，只输出合法的纯 JSON 对象。")
-                        })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", prompt)
-                        })
-                    })
-                    put("temperature", 0.3)
+            val content = AiChatClient.requestChatCompletion(
+                baseUrl = baseUrl,
+                apiKey = apiKey,
+                model = model,
+                systemPrompt = "你是一位精通跨媒介艺术档案的专业策展人，只输出合法的纯 JSON 对象。",
+                userPrompt = prompt,
+                temperature = 0.3,
+            )
+            if (content != null) {
+                val parsed = parseAutoFillJson(content)
+                if (parsed != null) {
+                    callback(parsed)
+                    return@Thread
                 }
-
-                OutputStreamWriter(conn.outputStream, "UTF-8").use { it.write(bodyJson.toString()) }
-
-                val code = conn.responseCode
-                if (code == 200) {
-                    val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
-                    val respText = reader.readText()
-                    val respJson = JSONObject(respText)
-                    val content = respJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
-                    val parsed = parseAutoFillJson(content)
-                    if (parsed != null) {
-                        callback(parsed)
-                        return@Thread
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
             callback(offline)

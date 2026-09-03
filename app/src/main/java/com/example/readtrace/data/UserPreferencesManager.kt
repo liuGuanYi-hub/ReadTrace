@@ -151,6 +151,12 @@ object UserPreferencesManager {
     private const val KEY_AI_BASE_URL = "ai_base_url"
     private const val KEY_AI_MODEL = "ai_model"
 
+    /** 默认接入 B.AI 聚合网关（OpenAI 兼容），任何同协议中转站均可在设置里改填 */
+    const val DEFAULT_AI_BASE_URL = "https://api.b.ai/v1"
+
+    /** 默认模型：实测四个免费模型中唯一一个长耗时流式请求仍能完整回包且史实准确的 */
+    const val DEFAULT_AI_MODEL = "glm-5.3-flash"
+
     fun getAiApiKey(context: Context): String =
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
             .getString(KEY_AI_API_KEY, "").orEmpty()
@@ -162,7 +168,7 @@ object UserPreferencesManager {
 
     fun getAiBaseUrl(context: Context): String =
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
-            .getString(KEY_AI_BASE_URL, "https://api.deepseek.com/v1").orEmpty().ifBlank { "https://api.deepseek.com/v1" }
+            .getString(KEY_AI_BASE_URL, DEFAULT_AI_BASE_URL).orEmpty().ifBlank { DEFAULT_AI_BASE_URL }
 
     fun setAiBaseUrl(context: Context, url: String) {
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
@@ -171,7 +177,7 @@ object UserPreferencesManager {
 
     fun getAiModel(context: Context): String =
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
-            .getString(KEY_AI_MODEL, "deepseek-chat").orEmpty().ifBlank { "deepseek-chat" }
+            .getString(KEY_AI_MODEL, DEFAULT_AI_MODEL).orEmpty().ifBlank { DEFAULT_AI_MODEL }
 
     fun setAiModel(context: Context, model: String) {
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)

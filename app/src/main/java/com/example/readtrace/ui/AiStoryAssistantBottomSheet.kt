@@ -269,7 +269,7 @@ object AiStoryAssistantBottomSheet {
         }
 
         val tvKeyLabel = TextView(activity).apply {
-            text = "API Key (支持 DeepSeek / OpenAI / Kimi 等):"
+            text = "API Key (支持 B.AI / DeepSeek / OpenAI / Kimi 等):"
             textSize = 13f
             setTextColor(activity.getColor(R.color.readtrace_ink))
         }
@@ -282,13 +282,13 @@ object AiStoryAssistantBottomSheet {
         }
 
         val tvUrlLabel = TextView(activity).apply {
-            text = "Base URL (默认 DeepSeek 兼容接口):"
+            text = "Base URL (默认 B.AI 聚合网关，OpenAI 兼容):"
             textSize = 13f
             setTextColor(activity.getColor(R.color.readtrace_ink))
             setPadding(0, dp(12), 0, 0)
         }
         val etUrl = EditText(activity).apply {
-            hint = "https://api.deepseek.com/v1"
+            hint = UserPreferencesManager.DEFAULT_AI_BASE_URL
             setText(UserPreferencesManager.getAiBaseUrl(activity))
             textSize = 13f
             setBackgroundResource(R.drawable.bg_input_glass)
@@ -296,17 +296,26 @@ object AiStoryAssistantBottomSheet {
         }
 
         val tvModelLabel = TextView(activity).apply {
-            text = "Model (如 deepseek-chat / gpt-4o-mini):"
+            text = "Model (如 glm-5.3-flash / deepseek-chat):"
             textSize = 13f
             setTextColor(activity.getColor(R.color.readtrace_ink))
             setPadding(0, dp(12), 0, 0)
         }
         val etModel = EditText(activity).apply {
-            hint = "deepseek-chat"
+            hint = UserPreferencesManager.DEFAULT_AI_MODEL
             setText(UserPreferencesManager.getAiModel(activity))
             textSize = 13f
             setBackgroundResource(R.drawable.bg_input_glass)
             setPadding(dp(12), dp(8), dp(12), dp(8))
+        }
+
+        // Key 只落在本机私有 SharedPreferences，不写入任何代码与仓库，需向用户明示
+        val tvTip = TextView(activity).apply {
+            text = "密钥仅保存在本机，不随备份上传；推理型模型生成较慢，已改用流式请求以避免中途断连。"
+            textSize = 11f
+            setTextColor(activity.getColor(R.color.readtrace_muted))
+            setLineSpacing(0f, 1.3f)
+            setPadding(0, dp(12), 0, 0)
         }
 
         layout.addView(tvKeyLabel)
@@ -315,6 +324,7 @@ object AiStoryAssistantBottomSheet {
         layout.addView(etUrl)
         layout.addView(tvModelLabel)
         layout.addView(etModel)
+        layout.addView(tvTip)
 
         AlertDialog.Builder(activity)
             .setTitle("⚙️ AI 助手模型配置")

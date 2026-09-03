@@ -154,6 +154,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
         if (oldVersion < 11) {
             createFavoritesTable(database)
         }
+        if (oldVersion < 12) {
+            // v12：无表结构变更；新增两款预设游戏（魔兽争霸3：冰封王座 / 虐杀原形），
+            // 并让 rich_content 的章节大纲（outline）参与播种，实际写入在 runPresetSeedsOnce 中完成。
+        }
     }
 
     private fun createNotesTable(database: SQLiteDatabase) {
@@ -531,6 +535,31 @@ class BookDatabaseHelper private constructor(val context: Context) :
                                     put(COLUMN_IS_DELETED, 0)
                                 }
                                 db.insert(TABLE_NOTES, null, cv)
+                            }
+                        }
+                    }
+
+                    // 章节大纲：rich_content 的可选字段，旧条目无此键时自动跳过，保持幂等与向后兼容
+                    val outlineCount = db.query(
+                        TABLE_BOOK_OUTLINES, arrayOf("COUNT(*)"),
+                        "$COLUMN_BOOK_ID = ? AND $COLUMN_IS_DELETED = 0",
+                        arrayOf(bookIds.first().toString()), null, null, null,
+                    ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+                    if (outlineCount == 0) {
+                        val outlines = entry.optJSONArray("outline") ?: JSONArray()
+                        for (oi in 0 until outlines.length()) {
+                            val o = outlines.getJSONObject(oi)
+                            bookIds.forEach { bookId ->
+                                val cv = ContentValues().apply {
+                                    put(COLUMN_BOOK_ID, bookId)
+                                    put(COLUMN_CHAPTER_ORDER, oi + 1)
+                                    put(COLUMN_TITLE, o.optString("title"))
+                                    put(COLUMN_SUMMARY, o.optString("summary"))
+                                    put(COLUMN_KEY_TAKEAWAYS, o.optString("phase"))
+                                    put(COLUMN_CREATED_AT, now)
+                                    put(COLUMN_IS_DELETED, 0)
+                                }
+                                db.insert(TABLE_BOOK_OUTLINES, null, cv)
                             }
                         }
                     }
@@ -1180,6 +1209,9 @@ class BookDatabaseHelper private constructor(val context: Context) :
                 val review: String?,
                 val coverUrl: String,
                 val mindprint: FloatArray? = null, // depth, art, emo, log, diff, heal
+                // 少数作品并非 Steam 发行（如暴雪战网独占），故开放覆盖；默认值保持原有 67 条不变
+                val buyChannel: String = "Steam 平台 · 正版入库",
+                val bindingType: String = "Steam 数字豪华版",
             )
 
             val gameList = listOf(
@@ -1263,6 +1295,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
                 GameEntry("《战地风云 5》", "DICE · EA", "二战战场模拟", "finished", listOf("二战战场", "寒霜引擎", "大战场协同", "破坏物理"), 4.8, "在鹿特丹的断壁残垣与北非沙漠中冲锋，体验二战浩瀚沙场的震撼与残酷。", "寒霜引擎打造的顶级二战战场视听。破坏物理效果与大战场兵种协同作战的极致体验。", "covers/steam_1238840_library_600x900.jpg", floatArrayOf(8.0f, 9.2f, 8.5f, 9.0f, 7.5f, 7.5f)),
                 GameEntry("Apex Legends", "Respawn Entertainment", "战术英雄大逃杀", "finished", listOf("身法射击", "英雄战术", "诸王峡谷", "丝滑滑铲"), 4.8, "滑铲、滑索、身法起飞！捍卫者的荣耀属于默契无间的诸王峡谷三人小队！", "重生工作室打造的高机动性英雄战术射击巅峰。极度丝滑的身法滑铲与快节奏团战。", "covers/steam_1172470_library_600x900.jpg", floatArrayOf(7.8f, 9.0f, 8.8f, 9.4f, 8.8f, 8.0f)),
                 GameEntry("彩虹六号：围攻", "Ubisoft Montreal", "室内战术CQB", "finished", listOf("育碧神作", "战术CQB", "信息博弈", "可破坏环境"), 4.8, "爆破加固墙体，小车侦察点位。毫厘之间的信息战与垂直进攻战术！", "CQB 室内近距离战术射击的绝对王者。完全可破坏的墙体物理与干员技能博弈。", "covers/steam_359550_library_600x900.jpg", floatArrayOf(8.0f, 8.8f, 8.5f, 10.0f, 9.8f, 7.0f)),
+
+                // 8. 史诗即时战略与超能力沙盒
+                GameEntry("魔兽争霸3：冰封王座", "暴雪娱乐 Blizzard Entertainment", "奇幻即时战略", "finished", listOf("即时战略", "黑暗奇幻", "史诗悲剧", "巫妖王", "魔兽宇宙"), 5.0, "他劈开王座，戴上头盔，从此诺森德的寒风里，只剩一个名字——巫妖王。", "《冰封王座》将即时战略的叙事推向巅峰：阿尔萨斯的堕落与加冕、伊利丹的流亡与执念、希尔瓦娜斯的觉醒与复仇，共同织就一部黑暗史诗。它不仅奠定了《魔兽世界》的世界观基石，更以电影化叙事与悲剧美学，定义了一个时代 RTS 的艺术高度。", "covers/wiki_warcraft3_frozen_throne.jpg", floatArrayOf(9.6f, 9.2f, 9.8f, 9.0f, 7.5f, 3.0f), "暴雪战网 · 正版入库", "战网数字典藏版"),
+                GameEntry("虐杀原形", "Radical Entertainment · 动视", "开放世界动作冒险", "finished", listOf("开放世界", "动作冒险", "病毒末日", "变形超能力", "黑暗科幻"), 5.0, "他吞噬整座城市的血肉与记忆，只为拼凑出一段名为「我」的真相。", "2009 年的《虐杀原形》以「吞噬」重构开放世界的力量幻想：玩家即病毒本身，在封锁的曼哈顿变形、掠夺记忆、飞檐走壁。它以黑暗叙事追问身份与人性的边界，血肉淋漓的暴力美学震撼至今，与《声名狼藉》并立，开启超能力沙盒的黄金时代。", "covers/wiki_prototype.png", floatArrayOf(8.5f, 8.8f, 8.5f, 8.0f, 6.5f, 3.5f)),
             )
 
             val now = currentTimestamp()
@@ -1310,9 +1346,9 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_COVER_URL, game.coverUrl)
                         put(COLUMN_START_DATE, "2026-07-15")
                         put(COLUMN_FINISH_DATE, "2026-08-10")
-                        put(COLUMN_BUY_CHANNEL, "Steam 平台 · 正版入库")
+                        put(COLUMN_BUY_CHANNEL, game.buyChannel)
                         put(COLUMN_SHELF_LOCATION, "展厅第5层 · 电子游戏神作馆")
-                        put(COLUMN_BINDING_TYPE, "Steam 数字豪华版")
+                        put(COLUMN_BINDING_TYPE, game.bindingType)
                         put(COLUMN_CREATED_AT, now)
                         put(COLUMN_UPDATED_AT, now)
                         put(COLUMN_IS_DELETED, 0)
@@ -3756,7 +3792,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 11
+        const val DATABASE_VERSION = 12
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

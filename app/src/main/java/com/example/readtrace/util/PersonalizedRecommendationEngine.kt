@@ -6,12 +6,6 @@ import com.example.readtrace.data.UserPreferencesManager
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import org.json.JSONArray
-import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * 🧭 个性化品味画像与跨媒介智能探索推荐引擎 (PersonalizedRecommendationEngine)
@@ -137,71 +131,41 @@ object PersonalizedRecommendationEngine {
         }
 
         Thread {
-            try {
-                val cleanUrl = baseUrl.trimEnd('/') + "/chat/completions"
-                val url = URL(cleanUrl)
-                val conn = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = 15000
-                    readTimeout = 30000
-                    doOutput = true
-                    doInput = true
-                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-                    setRequestProperty("Authorization", "Bearer $apiKey")
+            val prompt = """
+                作为一位高品位的文化策展人，请根据用户的精神品味画像推荐 4 部精选佳作：
+                - 用户核心偏好标签：${taste.topTags.joinToString(", ") { "${it.first}(频次:${it.second})" }.ifBlank { "经典文学与艺术" }}
+                - 优势媒介类型：${taste.dominantMediaType.displayName}
+
+                请输出合法的纯 JSON 数组，格式如下：
+                [
+                  {
+                    "title": "作品名",
+                    "author": "创作者/导演/开发商",
+                    "mediaType": "BOOK 或 ANIME 或 MOVIE 或 GAME 或 MUSIC",
+                    "tags": ["治愈", "日常", "神作"],
+                    "rating": 9.2,
+                    "matchReason": "精准的个性化推荐理由与核心共鸣点（30字以内）"
+                  }
+                ]
+                要求：
+                1. 严禁烂俗流量作品，优先推荐口碑极高、叙事深厚的小众神作或殿堂级经典；
+                2. 只返回纯 JSON 数组，不要附加 markdown 或解释说明。
+            """.trimIndent()
+
+            val content = AiChatClient.requestChatCompletion(
+                baseUrl = baseUrl,
+                apiKey = apiKey,
+                model = model,
+                systemPrompt = "你是一位精通跨媒介艺术的殿堂级策展人，只输出合法 JSON 数组。",
+                userPrompt = prompt,
+                temperature = 0.7,
+            )
+            if (content != null) {
+                val parsed = parseAiRecommendations(content)
+                if (parsed.isNotEmpty()) {
+                    callback(parsed)
+                    return@Thread
                 }
-
-                val prompt = """
-                    作为一位高品位的文化策展人，请根据用户的精神品味画像推荐 4 部精选佳作：
-                    - 用户核心偏好标签：${taste.topTags.joinToString(", ") { "${it.first}(频次:${it.second})" }.ifBlank { "经典文学与艺术" }}
-                    - 优势媒介类型：${taste.dominantMediaType.displayName}
-                    
-                    请输出合法的纯 JSON 数组，格式如下：
-                    [
-                      {
-                        "title": "作品名",
-                        "author": "创作者/导演/开发商",
-                        "mediaType": "BOOK 或 ANIME 或 MOVIE 或 GAME 或 MUSIC",
-                        "tags": ["治愈", "日常", "神作"],
-                        "rating": 9.2,
-                        "matchReason": "精准的个性化推荐理由与核心共鸣点（30字以内）"
-                      }
-                    ]
-                    要求：
-                    1. 严禁烂俗流量作品，优先推荐口碑极高、叙事深厚的小众神作或殿堂级经典；
-                    2. 只返回纯 JSON 数组，不要附加 markdown 或解释说明。
-                """.trimIndent()
-
-                val bodyJson = JSONObject().apply {
-                    put("model", model)
-                    put("messages", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", "你是一位精通跨媒介艺术的殿堂级策展人，只输出合法 JSON 数组。")
-                        })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", prompt)
-                        })
-                    })
-                    put("temperature", 0.7)
-                }
-
-                OutputStreamWriter(conn.outputStream, "UTF-8").use { it.write(bodyJson.toString()) }
-
-                val code = conn.responseCode
-                if (code == 200) {
-                    val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
-                    val respText = reader.readText()
-                    val respJson = JSONObject(respText)
-                    val content = respJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content")
-                    val parsed = parseAiRecommendations(content)
-                    if (parsed.isNotEmpty()) {
-                        callback(parsed)
-                        return@Thread
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
 
             callback(getCuratedRecommendations(context, taste))

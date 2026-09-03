@@ -587,10 +587,10 @@ class HubFragment : Fragment() {
     private fun showImportCsvDialog() {
         val options = listOf(
             "📚  导入预设名著经典 (54 本)",
-            "🌸  导入预设追番史 (70 部)",
+            "🌸  导入预设追番史 (71 部)",
             "🎬  导入预设经典电影 (11 部)",
-            "🎮  导入预设 Steam 游戏 (67 款)",
-            "🌟  一键全量合入 (202 部神作)",
+            "🎮  导入预设游戏神作 (69 款)",
+            "🌟  一键全量合入 (205 部神作)",
             "📂  选择本地 CSV 文件...",
         )
         val actions: List<() -> Unit> = listOf(
