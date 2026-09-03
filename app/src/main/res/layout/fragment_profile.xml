@@ -165,39 +165,6 @@
             android:text="🏛️ 虚拟空间与展览广场"
             android:textSize="16.5sp" />
 
-        <!-- 2.5D 虚拟展厅 -->
-        <LinearLayout
-            android:id="@+id/profileGalleryPanel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_glass_panel"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans"
-                android:text="🏛️ 2.5D 私人虚拟书房展厅"
-                android:textColor="@color/readtrace_ink"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/profileGallerySummary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="sans"
-                android:text="2.5D 空间深度视差标本盒展厅，陀螺仪 + 触控双通道视差漫游精选藏品"
-                android:textColor="@color/readtrace_muted"
-                android:textSize="12.5sp" />
-        </LinearLayout>
-
         <!-- ❤️ 我的最爱 (P28) -->
         <LinearLayout
             android:id="@+id/profileFavoritesPanel"
@@ -480,6 +447,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/profileChangelogVersionBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_status_pill"

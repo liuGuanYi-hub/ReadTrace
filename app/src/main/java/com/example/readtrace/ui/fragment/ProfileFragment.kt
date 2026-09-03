@@ -34,8 +34,6 @@ class ProfileFragment : Fragment() {
     private lateinit var annualPersonaDesc: TextView
     private lateinit var annualMindprintRadar: MindprintRadarView
 
-    private lateinit var profileGalleryPanel: View
-    private lateinit var profileGallerySummary: TextView
     private lateinit var profileCommunityPanel: View
     private lateinit var profileBadgePanel: View
     private lateinit var profileBadgeSummary: TextView
@@ -67,20 +65,19 @@ class ProfileFragment : Fragment() {
         refreshProfileDataAsync()
     }
 
-    /** 个人页聚合查询较重（年度人格跨表聚合 + 画廊精选），移至后台线程，渲染回主线程 */
+    /** 个人页聚合查询较重（年度人格跨表聚合），移至后台线程，渲染回主线程 */
     private fun refreshProfileDataAsync() {
         refreshExecutor.execute {
             val allBooks = databaseHelper.getCachedBooks()
             val persona = databaseHelper.getAnnualMindprintPersona()
-            val featuredCount = databaseHelper.getGalleryFeaturedWorks(24).size
             refreshHandler.post {
                 if (!isAdded || view == null) return@post
-                renderProfileData(allBooks, persona, featuredCount)
+                renderProfileData(allBooks, persona)
             }
         }
     }
 
-    private fun renderProfileData(allBooks: List<com.example.readtrace.model.Book>, persona: com.example.readtrace.model.ReadingPersona?, featuredCount: Int) {
+    private fun renderProfileData(allBooks: List<com.example.readtrace.model.Book>, persona: com.example.readtrace.model.ReadingPersona?) {
         profileSummaryText.text = "已沉淀 ${allBooks.size} 部文化藏品 · 记录心智演化轨迹"
 
         // 渲染策展人通行卡与认证状态
@@ -113,11 +110,6 @@ class ProfileFragment : Fragment() {
         val badges = MilestoneBadgeHelper.calculateBadges(databaseHelper)
         val unlockedCount = badges.count { it.isUnlocked }
         profileBadgeSummary.text = "已解锁 $unlockedCount / ${badges.size} 枚专属精神荣誉勋章"
-        profileGallerySummary.text = if (featuredCount > 0) {
-            "2.5D 空间深度视差标本盒展厅（已精选 $featuredCount 部藏品）"
-        } else {
-            "2.5D 空间深度视差标本盒展厅，陀螺仪 + 触控双通道视差"
-        }
     }
 
     private fun initViews(view: View) {
@@ -133,8 +125,6 @@ class ProfileFragment : Fragment() {
         annualPersonaDesc = view.findViewById(R.id.annualPersonaDesc)
         annualMindprintRadar = view.findViewById(R.id.annualMindprintRadar)
 
-        profileGalleryPanel = view.findViewById(R.id.profileGalleryPanel)
-        profileGallerySummary = view.findViewById(R.id.profileGallerySummary)
         profileCommunityPanel = view.findViewById(R.id.profileCommunityPanel)
         profileBadgePanel = view.findViewById(R.id.profileBadgePanel)
         profileBadgeSummary = view.findViewById(R.id.profileBadgeSummary)
@@ -154,12 +144,15 @@ class ProfileFragment : Fragment() {
     /** v4.2.15：版本信息展示（PackageManager 读取，不依赖 BuildConfig） */
     private fun bindVersionInfo(view: View) {
         val versionText = view.findViewById<TextView>(R.id.profileVersionText)
+        // 版本演进纪要入口徽章：动态读真实 versionName，XML 里的占位文本不作真值
+        val versionBadge = view.findViewById<TextView>(R.id.profileChangelogVersionBadge)
         runCatching {
             val info = requireContext().packageManager
                 .getPackageInfo(requireContext().packageName, 0)
-            "阅痕 ReadTrace v${info.versionName}（versionCode ${info.longVersionCode}）\n纯本地数据掌控 · 封面与条目数据来自 Bangumi / 国内 CDN"
-        }.onSuccess {
-            versionText.text = it
+            "阅痕 ReadTrace v${info.versionName}（versionCode ${info.longVersionCode}）\n纯本地数据掌控 · 封面与条目数据来自 Bangumi / 国内 CDN" to "v${info.versionName}"
+        }.onSuccess { (text, badge) ->
+            versionText.text = text
+            versionBadge?.text = badge
         }.onFailure {
             versionText.text = "阅痕 ReadTrace"
         }
@@ -200,11 +193,6 @@ class ProfileFragment : Fragment() {
             true
         }
 
-        profileGalleryPanel.setOnClickListener {
-            // 2.5D visionOS 空间深度视差展厅（替代经典 3D 展厅入口）
-            startActivity(Intent(requireContext(), com.example.readtrace.SpatialParallaxGalleryActivity::class.java))
-        }
-
         // P28 我的最爱跨媒介心选展厅
         view?.findViewById<View>(R.id.profileFavoritesPanel)?.setOnClickListener {
             com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
@@ -243,7 +231,7 @@ class ProfileFragment : Fragment() {
         }
 
         listOfNotNull<View>(
-            profileGalleryPanel, profileCommunityPanel,
+            profileCommunityPanel,
             profileBadgePanel, profileMigrationPanel, profileBackupPanel, profileTrashPanel,
             profileChangelogPanel
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }

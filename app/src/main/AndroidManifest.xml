@@ -76,9 +76,6 @@
             android:name=".community.ui.CommunityActivity"
             android:exported="false" />
         <activity
-            android:name=".Gallery3DActivity"
-            android:exported="false" />
-        <activity
             android:name=".BackupActivity"
             android:exported="false" />
         <activity
@@ -128,9 +125,6 @@
             android:exported="false" />
         <activity
             android:name=".StandByZenDeskActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SpatialParallaxGalleryActivity"
             android:exported="false" />
         <activity
             android:name=".DiscoverActivity"

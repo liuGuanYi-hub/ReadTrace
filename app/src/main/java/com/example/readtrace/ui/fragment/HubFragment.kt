@@ -97,7 +97,6 @@ class HubFragment : Fragment() {
     private lateinit var capsuleVinylPlayer: View
     private lateinit var capsuleExLibris: View
     private lateinit var capsuleMediaTimeline: View
-    private lateinit var capsule3DGallery: View
     private lateinit var capsuleMindprintTopology: View
 
     // 时光深处的回响
@@ -260,7 +259,6 @@ class HubFragment : Fragment() {
         capsuleVinylPlayer = view.findViewById(R.id.capsuleVinylPlayer)
         capsuleExLibris = view.findViewById(R.id.capsuleExLibris)
         capsuleMediaTimeline = view.findViewById(R.id.capsuleMediaTimeline)
-        capsule3DGallery = view.findViewById(R.id.capsule3DGallery)
         capsuleMindprintTopology = view.findViewById(R.id.capsuleMindprintTopology)
 
         // 📜 羊皮纸便签
@@ -365,10 +363,6 @@ class HubFragment : Fragment() {
         capsuleMediaTimeline.setOnClickListener {
             startActivity(MediaTimelineScrollActivity.createIntent(requireContext()))
         }
-        capsule3DGallery.setOnClickListener {
-            // 2.5D visionOS 空间深度视差展厅（替代经典 3D 展厅入口）
-            startActivity(Intent(requireContext(), com.example.readtrace.SpatialParallaxGalleryActivity::class.java))
-        }
         capsuleMindprintTopology.setOnClickListener {
             startActivity(Intent(requireContext(), MindprintTopologyActivity::class.java))
         }
@@ -378,7 +372,7 @@ class HubFragment : Fragment() {
             addBtn, importPresetBtn, backupBtn, trashBtn, themeToggleButton,
             heroBtnRead, heroBtnDetail,
             capsulePersonalizedDiscovery, capsuleStandByClock, capsuleVinylPlayer,
-            capsuleExLibris, capsuleMediaTimeline, capsule3DGallery, capsuleMindprintTopology,
+            capsuleExLibris, capsuleMediaTimeline, capsuleMindprintTopology,
             btnRefreshParchmentQuote,
         ).forEach {
             ViewAnimationHelper.attachSpringTouch(it)
