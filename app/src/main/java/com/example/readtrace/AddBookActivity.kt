@@ -44,6 +44,7 @@ class AddBookActivity : AppCompatActivity() {
     private var selectedCategory: String? = null
     private lateinit var sectionRecordTitle: TextView
     private lateinit var statusLabel: TextView
+    private lateinit var statusChipScroller: android.widget.HorizontalScrollView
     private lateinit var chipStatusWishlist: TextView
     private lateinit var chipStatusReading: TextView
     private lateinit var chipStatusFinished: TextView
@@ -59,13 +60,6 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var shortCommentInput: EditText
     private lateinit var reviewLabel: TextView
     private lateinit var reviewInput: EditText
-    private lateinit var cardCollection: View
-    private lateinit var sectionCollectionTitle: TextView
-    private lateinit var buyChannelInput: EditText
-    private lateinit var shelfLocationInput: EditText
-    private lateinit var bindingTypeLabel: TextView
-    private lateinit var bindingTypeInput: EditText
-    private lateinit var buyPriceInput: EditText
     private lateinit var startDateLabel: TextView
     private lateinit var startDateInput: TextView
     private lateinit var finishDateLabel: TextView
@@ -215,6 +209,7 @@ class AddBookActivity : AppCompatActivity() {
         categoryChipGroup = findViewById(R.id.categoryChipGroup)
         sectionRecordTitle = findViewById(R.id.sectionRecordTitle)
         statusLabel = findViewById(R.id.statusLabel)
+        statusChipScroller = findViewById(R.id.statusChipScroller)
         chipStatusWishlist = findViewById(R.id.chipStatusWishlist)
         chipStatusReading = findViewById(R.id.chipStatusReading)
         chipStatusFinished = findViewById(R.id.chipStatusFinished)
@@ -248,13 +243,6 @@ class AddBookActivity : AppCompatActivity() {
         shortCommentInput = findViewById(R.id.shortCommentInput)
         reviewLabel = findViewById(R.id.reviewLabel)
         reviewInput = findViewById(R.id.reviewInput)
-        cardCollection = findViewById(R.id.cardCollection)
-        sectionCollectionTitle = findViewById(R.id.sectionCollectionTitle)
-        buyChannelInput = findViewById(R.id.buyChannelInput)
-        shelfLocationInput = findViewById(R.id.shelfLocationInput)
-        bindingTypeLabel = findViewById(R.id.bindingTypeLabel)
-        bindingTypeInput = findViewById(R.id.bindingTypeInput)
-        buyPriceInput = findViewById(R.id.buyPriceInput)
         startDateLabel = findViewById(R.id.startDateLabel)
         startDateInput = findViewById(R.id.startDateInput)
         finishDateLabel = findViewById(R.id.finishDateLabel)
@@ -295,6 +283,11 @@ class AddBookActivity : AppCompatActivity() {
         updateCreatorFields()
         updateStatusChipsText()
         updateStatusSelectionUI()
+        // 音乐只关心曲与感受，无需聆听状态（想听/在听/听完等），整区隐藏
+        val statusVisible = mediaType != MediaType.MUSIC
+        sectionRecordTitle.visibility = if (statusVisible) View.VISIBLE else View.GONE
+        statusLabel.visibility = if (statusVisible) View.VISIBLE else View.GONE
+        statusChipScroller.visibility = if (statusVisible) View.VISIBLE else View.GONE
         setupTagCloud()
     }
 
@@ -421,17 +414,6 @@ class AddBookActivity : AppCompatActivity() {
             MediaType.MUSIC -> "用逗号分隔，如：循环单曲，失眠必听，Live现场"
         }
 
-        // 5. 实体馆藏与藏本印记 (仅在书籍模式下展示)
-        if (selectedMediaType == MediaType.BOOK) {
-            cardCollection.visibility = View.VISIBLE
-            sectionCollectionTitle.text = "💰 实体馆藏与藏本印记 (选填)"
-            bindingTypeLabel.text = "装帧版次"
-            bindingTypeInput.hint = "如：精装锁线 / 平装"
-            shelfLocationInput.hint = "如：书架第 2 层 A 区"
-        } else {
-            cardCollection.visibility = View.GONE
-        }
-
         configureFormMode()
     }
 
@@ -508,10 +490,6 @@ class AddBookActivity : AppCompatActivity() {
         tagsInput.setText(book.tags.joinToString("，"))
         shortCommentInput.setText(book.shortComment.orEmpty())
         reviewInput.setText(book.review.orEmpty())
-        buyChannelInput.setText(book.buyChannel.orEmpty())
-        shelfLocationInput.setText(book.shelfLocation.orEmpty())
-        bindingTypeInput.setText(book.bindingType.orEmpty())
-        buyPriceInput.setText(book.buyPrice?.let { String.format(Locale.getDefault(), "%.2f", it) }.orEmpty())
         startDate = book.startDate?.let { parseDate(it) }
         finishDate = book.finishDate?.let { parseDate(it) }
         startDate?.let { showSelectedDate(startDateInput, it) }
@@ -704,10 +682,6 @@ class AddBookActivity : AppCompatActivity() {
             review = reviewInput.normalizedText(),
             startDate = startDate?.format(DateTimeFormatter.ISO_LOCAL_DATE),
             finishDate = finishDate?.format(DateTimeFormatter.ISO_LOCAL_DATE),
-            buyChannel = buyChannelInput.normalizedText(),
-            shelfLocation = shelfLocationInput.normalizedText(),
-            bindingType = bindingTypeInput.normalizedText(),
-            buyPrice = buyPriceInput.text.toString().trim().toDoubleOrNull(),
         )
 
         saveButton.isEnabled = false
@@ -970,7 +944,6 @@ class AddBookActivity : AppCompatActivity() {
         R.id.tagsLabel, R.id.tagsInput,
         R.id.startDateLabel, R.id.startDateInput, R.id.clearStartDateButton,
         R.id.finishDateLabel, R.id.finishDateInput, R.id.clearFinishDateButton,
-        R.id.cardCollection,
         R.id.shortCommentLabel, R.id.shortCommentInput,
         R.id.reviewLabel, R.id.reviewInput,
     )

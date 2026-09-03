@@ -17,8 +17,8 @@
         android:paddingStart="20dp"
         android:paddingTop="22dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="30dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingBottom="18dp"
+        app:layout_constraintBottom_toTopOf="@+id/saveButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -380,6 +380,7 @@
                     android:text="@string/field_status" />
 
                 <HorizontalScrollView
+                    android:id="@+id/statusChipScroller"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
@@ -649,130 +650,29 @@
                     android:minLines="5" />
             </LinearLayout>
 
-            <!-- 💰 实体馆藏与藏本印记表单卡片 -->
-            <LinearLayout
-                android:id="@+id/cardCollection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_glass_panel_soft"
-                android:elevation="7dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/sectionCollectionTitle"
-                    style="@style/ReadTraceFieldLabel"
-                    android:text="💰 实体馆藏与藏本印记 (选填)"
-                    android:textSize="18sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/ReadTraceFieldLabel"
-                            android:text="购买渠道" />
-
-                        <EditText
-                            android:id="@+id/buyChannelInput"
-                            style="@style/ReadTraceInput"
-                            android:hint="如：多抓鱼 / 京东"
-                            android:inputType="text"
-                            android:maxLines="1" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/ReadTraceFieldLabel"
-                            android:text="物理位置" />
-
-                        <EditText
-                            android:id="@+id/shelfLocationInput"
-                            style="@style/ReadTraceInput"
-                            android:hint="如：书架第 2 层 A 区"
-                            android:inputType="text"
-                            android:maxLines="1" />
-                    </LinearLayout>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/bindingTypeLabel"
-                            style="@style/ReadTraceFieldLabel"
-                            android:text="装帧版次" />
-
-                        <EditText
-                            android:id="@+id/bindingTypeInput"
-                            style="@style/ReadTraceInput"
-                            android:hint="如：精装锁线 / 平装"
-                            android:inputType="text"
-                            android:maxLines="1" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/ReadTraceFieldLabel"
-                            android:text="购入价格 (¥)" />
-
-                        <EditText
-                            android:id="@+id/buyPriceInput"
-                            style="@style/ReadTraceInput"
-                            android:hint="如：49.80"
-                            android:inputType="numberDecimal"
-                            android:maxLines="1" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/saveButton"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="22dp"
-                android:background="@drawable/bg_primary_button"
-                android:clickable="true"
-                android:elevation="7dp"
-                android:focusable="true"
-                android:fontFamily="sans"
-                android:gravity="center"
-                android:text="@string/action_save"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
         </LinearLayout>
     </ScrollView>
+
+    <!-- 吸底保存栏：固定屏幕底部，长表单任意位置都能一键保存 -->
+    <TextView
+        android:id="@+id/saveButton"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="18dp"
+        android:background="@drawable/bg_primary_button"
+        android:clickable="true"
+        android:elevation="12dp"
+        android:focusable="true"
+        android:fontFamily="sans"
+        android:gravity="center"
+        android:text="@string/action_save"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
