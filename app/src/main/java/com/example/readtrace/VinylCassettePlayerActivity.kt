@@ -118,12 +118,24 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         val cloudTrack = preparingCloudTrack
         if (cloudTrack != null) {
             handleCloudPlaybackFailure(cloudTrack, "⏳ 音源准备超时，正在重新取链…")
-        } else {
-            releaseMediaPlayer()
-            isPlaying = false
-            setPlayingUi(false)
-            Toast.makeText(this, "⏳ 音源准备超时，请点击重试", Toast.LENGTH_LONG).show()
+            return@Runnable
         }
+        // 本地曲路径也可能是过期的在线缓存直链（含「完整播放」）：自动删链重取，避免死循环缓冲
+        val staleTrack = currentAudioTracks.getOrNull(currentAudioIndex)
+        if (staleTrack != null && isOnlineCachedTrack(staleTrack)) {
+            databaseHelper.deleteAudioTrack(staleTrack.id)
+            releaseMediaPlayer()
+            val work = playlist.getOrNull(currentIndex)
+            if (work != null) {
+                Toast.makeText(this, "⏳ 直链已过期，正在重新取链…", Toast.LENGTH_SHORT).show()
+                fetchNeteasePreview(work)
+                return@Runnable
+            }
+        }
+        releaseMediaPlayer()
+        isPlaying = false
+        setPlayingUi(false)
+        Toast.makeText(this, "⏳ 音源准备超时，请点击重试", Toast.LENGTH_LONG).show()
     }
 
     // ===== 网易云 15s 试听状态 =====
@@ -161,6 +173,17 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         setContentView(R.layout.activity_vinyl_cassette_player)
+
+        // targetSdk 35+ 默认启用预测性返回，override onBackPressed 不再被调用；
+        // 必须走 OnBackPressedDispatcher 才能拦截返回键实现「退后台保活」
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    minimizeOrFinish()
+                }
+            },
+        )
 
         // 系统栏避让统一由内容层按 WindowInsets 处理；粒子背景保持全屏沉浸。
         // insets 回调会被多次触发（重新 attach / 配置变化），必须以 XML 初始 padding 为基准
@@ -211,7 +234,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnCloudPlaylist = findViewById(R.id.btnCloudPlaylist)
 
 
-        FloatingBack.install(this)
+        FloatingBack.install(this) { minimizeOrFinish() }
     }
 
     private fun initSensors() {
@@ -265,9 +288,29 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setupListeners() {
-        // 选曲歌单列表
+        // 选曲歌单列表：云歌单播放中展示当前队列（▶ 标记当前曲，点击跳转）；否则展示藏库作品选择
         val btnTrackList = findViewById<TextView>(R.id.btnTrackList)
         btnTrackList?.setOnClickListener {
+            if (cloudTracks.isNotEmpty()) {
+                val items = cloudTracks.mapIndexed { i, t ->
+                    CloudMusicPickerBottomSheet.PickerItem(
+                        id = t.id,
+                        title = t.name,
+                        subtitle = "${i + 1}. ${t.artists.ifBlank { "未知歌手" }}",
+                        emoji = if (i == cloudIndex) "▶️" else if (i % 2 == 0) "🎵" else "💿",
+                    )
+                }
+                CloudMusicPickerBottomSheet.show(
+                    fragmentManager = supportFragmentManager,
+                    title = "🎶 当前播放队列（${cloudIndex + 1}/${cloudTracks.size}）",
+                    items = items,
+                    onSelected = { which ->
+                        cloudIndex = which
+                        playCloudTrack()
+                    },
+                )
+                return@setOnClickListener
+            }
             val allMusic = databaseHelper.getBooks().filter { it.mediaType == MediaType.MUSIC }.ifEmpty { databaseHelper.getBooks() }
             com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
                 fragmentManager = supportFragmentManager,
@@ -405,6 +448,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun setPlayingUi(playing: Boolean) {
+        // 全域播放態標記：其他頁面據此顯示「返回唱機」懸浮膠囊
+        isEnginePlaying = playing
         if (playing) {
             tvPlayPauseLabel.text = "⏸ 暂停聆听"
             if (!isCassetteMode) {
@@ -796,6 +841,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         return track.title.endsWith("15s 试听") || track.title.endsWith("30s VIP 试听")
     }
 
+    /** 曲目是否为在线缓存直链（含「完整播放」缓存）：直链现取现用会过期，失效后应删除重取 */
+    private fun isOnlineCachedTrack(track: com.example.readtrace.model.AudioTrackItem): Boolean {
+        return isNeteasePreviewTrack(track) || track.fileUri.startsWith("http")
+    }
+
     /** 曲目是否为会员歌兜底试听（限播 30 秒） */
     private fun isVipPreviewTrack(track: com.example.readtrace.model.AudioTrackItem): Boolean {
         return track.title.endsWith("30s VIP 试听")
@@ -880,8 +930,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 // 否则 isPlaying 会解析到 MediaPlayer 自身的 val 属性导致赋值失败）
                 this@VinylCassettePlayerActivity.isPlaying = false
                 setPlayingUi(false)
-                // 试听外链带时间戳会过期失效：自动移除旧链接并重新联网取试听，避免反复报错
-                if (isNeteasePreviewTrack(track)) {
+                // 在线缓存直链（试听/完整播放）会过期失效：自动移除旧链接并重新联网取链，避免反复报错
+                if (isOnlineCachedTrack(track)) {
                     databaseHelper.deleteAudioTrack(track.id)
                     val work = playlist.getOrNull(currentIndex)
                     if (work != null) fetchNeteasePreview(work)
@@ -896,6 +946,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
 
         isPlaying = true
+        // 取曲/缓冲中也视为「播放会话中」，其他页面的悬浮胶囊即时可见可跳回
+        isEnginePlaying = true
         // 曲目信息联动
         tvTrackArtistInfo.text = "—— 正在播放 ${index + 1}/${currentAudioTracks.size} · ${track.title}"
     }
@@ -1027,6 +1079,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         handler.removeCallbacks(previewStopRunnable)
         releaseMediaPlayer()
         abandonAudioFocus()
+        if (isFinishing) isEnginePlaying = false
+    }
+
+    /**
+     * 播放中返回不销毁页面：把主页带到唱机之上（唱机只 stop 不销毁），
+     * 音乐在 App 内任意页面持续播放，悬浮胶囊（VinylNowPlayingFloat）可随时跳回；
+     * 无任何音源时正常退出。
+     */
+    private fun minimizeOrFinish() {
+        if (isPlaying || mediaPlayer != null || cloudTracks.isNotEmpty()) {
+            startActivity(
+                Intent(this, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+            )
+        } else {
+            finish()
+        }
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -1050,6 +1119,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     companion object {
         const val EXTRA_BOOK_ID = "extra_book_id"
+
+        /** 引擎是否正在出聲（含試聽/緩衝後的播放態）：其他頁面據此顯示「返回唱機」懸浮膠囊 */
+        var isEnginePlaying = false
+            private set
 
         /** 免费曲目试听片段的限播时长（约 15 秒） */
         const val PREVIEW_LIMIT_MS = 15_000L

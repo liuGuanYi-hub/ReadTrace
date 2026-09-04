@@ -107,6 +107,7 @@
         </activity>
         <activity
             android:name=".VinylCassettePlayerActivity"
+            android:launchMode="singleTask"
             android:exported="true" />
         <activity
             android:name=".MindprintTopologyActivity"
