@@ -535,6 +535,36 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (isFetchingPreview) return
         isFetchingPreview = true
         tvPlayPauseLabel.text = "⏳ 取曲中..."
+        // 网易云歌单导入的作品自带曲目 ID：优先按 ID 直取链，跳过搜索与相关性过滤，
+        // 且清洗掉标题尾注（如《One Last Kiss (cover 宇多田ヒカル)》的括号），避免匹配被拒导致永久缓冲
+        if (work.sourceType == "netease" && !work.sourceId.isNullOrBlank()) {
+            val directId = work.sourceId.toLongOrNull() ?: -1L
+            if (directId > 0) {
+                val cleanTitle = work.title.replace(Regex("[（(].*?[)）]"), "").trim()
+                val directTrack = com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack(
+                    id = directId,
+                    name = cleanTitle,
+                    artists = work.author ?: "",
+                    album = "",
+                )
+                com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamResult(this, directTrack) { result ->
+                    isFetchingPreview = false
+                    if (isDestroyed) return@fetchTrackStreamResult
+                    if (result != null && result.streamUrl.isNotBlank()) {
+                        applyFetchedPreview(work, result)
+                        return@fetchTrackStreamResult
+                    }
+                    // 按 ID 直取失败（版权变动/未绑 Cookie）：回退搜索匹配路径
+                    performNeteasePreviewSearch(work)
+                }
+                return
+            }
+        }
+        performNeteasePreviewSearch(work)
+    }
+
+    /** 搜索匹配路径：按「曲名+歌手」搜网易云曲库取可播放源（导入歌 ID 直取失败时的兑底） */
+    private fun performNeteasePreviewSearch(work: Book) {
         Toast.makeText(this, "正在为《${work.title}》联网检索试听片段...", Toast.LENGTH_SHORT).show()
         com.example.readtrace.util.NeteasePreviewHelper.fetchPlayablePreview(this, work.title, work.author) { result ->
             isFetchingPreview = false
@@ -546,23 +576,31 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 setPlayingUi(false)
                 return@fetchPlayablePreview
             }
-            val order = databaseHelper.getAudioTracks(work.id).size
-            val suffix = when {
-                result.isFullSong -> "完整播放"
-                result.isVip -> "30s VIP 试听"
-                else -> "15s 试听"
-            }
-            databaseHelper.insertAudioTrack(
-                com.example.readtrace.model.AudioTrackItem(
-                    bookId = work.id,
-                    trackOrder = order,
-                    title = "${result.songName} · $suffix",
-                    fileUri = result.streamUrl,
-                ),
-            )
-            currentAudioTracks = databaseHelper.getAudioTracks(work.id)
-            playAudioAt(currentAudioTracks.lastIndex)
+            applyFetchedPreview(work, result)
         }
+    }
+
+    /** 取链成功落库并续播：完整播放/30s VIP/15s 试听分类标记，供限播与过期重取识别 */
+    private fun applyFetchedPreview(
+        work: Book,
+        result: com.example.readtrace.util.NeteasePreviewHelper.PreviewResult,
+    ) {
+        val order = databaseHelper.getAudioTracks(work.id).size
+        val suffix = when {
+            result.isFullSong -> "完整播放"
+            result.isVip -> "30s VIP 试听"
+            else -> "15s 试听"
+        }
+        databaseHelper.insertAudioTrack(
+            com.example.readtrace.model.AudioTrackItem(
+                bookId = work.id,
+                trackOrder = order,
+                title = "${result.songName} · $suffix",
+                fileUri = result.streamUrl,
+            ),
+        )
+        currentAudioTracks = databaseHelper.getAudioTracks(work.id)
+        playAudioAt(currentAudioTracks.lastIndex)
     }
 
     // ------------------------------------------------------------ 网易云「我的歌单」播放

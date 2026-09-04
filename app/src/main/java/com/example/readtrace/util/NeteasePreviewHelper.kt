@@ -185,6 +185,29 @@ object NeteasePreviewHelper {
         }.start()
     }
 
+    /**
+     * 按曲目 ID 直取可播放源（返回完整 PreviewResult，含 isFullSong/isVip 试听类型标记）。
+     * 用于网易云歌单导入的作品：跳过搜索，按 sourceId 直取链，秒级出声。
+     * 需绑定会员 Cookie（MUSIC_U）；未绑定时回调 null，由调用方回退搜索路径。
+     */
+    fun fetchTrackStreamResult(context: Context, track: PlaylistTrack, onResult: (PreviewResult?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        val musicU = getMusicUCookie(context) ?: run {
+            handler.post { onResult(null) }
+            return
+        }
+        Thread {
+            val result = runCatching {
+                resolveNeteaseUrls(
+                    listOf(Candidate(track.id, track.name, track.artists, track.album)),
+                    track.name,
+                    musicU,
+                )
+            }.getOrNull()
+            handler.post { onResult(result) }
+        }.start()
+    }
+
     /** 取当前登录用户 uid */
     private fun fetchAccountUid(musicU: String): Long? {
         val json = JSONObject(readUtf8(httpGet(ACCOUNT_URL, referer = "https://music.163.com/", musicU = musicU)))
