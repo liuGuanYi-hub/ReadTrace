@@ -4,7 +4,7 @@
     android:id="@+id/cloudMusicPickerRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_cloud_music_picker_sheet"
+    android:background="@drawable/bg_cloud_music_picker_sheet_dark"
     android:orientation="vertical"
     android:paddingTop="10dp">
 
@@ -13,7 +13,7 @@
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:background="@drawable/bg_sheet_handle" />
+        android:background="@drawable/bg_sheet_handle_dark" />
 
     <!-- 顶栏 -->
     <RelativeLayout
@@ -38,7 +38,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="☁️ 我的歌单"
-                android:textColor="@color/readtrace_ink"
+                android:textColor="@color/player_text_primary"
                 android:textSize="19sp"
                 android:textStyle="bold" />
 
@@ -47,8 +47,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="共 0 首"
-                android:textColor="@color/readtrace_muted"
+                android:text="共 0 项"
+                android:textColor="@color/player_text_muted"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -101,7 +101,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="这里空空如也"
-                android:textColor="@color/readtrace_muted"
+                android:textColor="@color/player_text_muted"
                 android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>

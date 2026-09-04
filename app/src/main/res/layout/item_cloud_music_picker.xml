@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="5dp"
-    android:background="@drawable/bg_cloud_music_picker_item"
+    android:background="@drawable/bg_cloud_music_picker_item_dark"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="14dp">
@@ -19,7 +19,7 @@
         android:background="@drawable/bg_cloud_music_icon_circle"
         android:gravity="center"
         android:text="🎵"
-        android:textColor="@color/readtrace_ink"
+        android:textColor="@color/player_text_primary"
         android:textSize="20sp" />
 
     <LinearLayout
@@ -35,8 +35,8 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="歌单名称"
-            android:textColor="@color/readtrace_ink"
+            android:text="歌单名"
+            android:textColor="@color/player_text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -48,7 +48,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="0 首 · 网易云云村"
-            android:textColor="@color/readtrace_muted"
+            android:textColor="@color/player_text_muted"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:text="›"
-        android:textColor="@color/readtrace_gold_accent"
+        android:textColor="@color/player_gold_start"
         android:textSize="22sp"
         android:textStyle="bold" />
 </LinearLayout>

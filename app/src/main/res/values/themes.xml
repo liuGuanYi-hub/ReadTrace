@@ -29,4 +29,12 @@
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="android:background">@android:color/transparent</item>
     </style>
+
+    <!-- 🎼 黑胶唱机深夜对话框：多选导入等 AlertDialog 与唱机页深夜氛围统一 -->
+    <style name="Theme.ReadTrace.PlayerAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">#F00D1117</item>
+        <item name="android:textColorPrimary">@color/player_text_primary</item>
+        <item name="android:textColorSecondary">@color/player_text_muted</item>
+        <item name="colorPrimary">@color/player_gold_start</item>
+    </style>
 </resources>

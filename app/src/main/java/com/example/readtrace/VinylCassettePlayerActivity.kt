@@ -596,13 +596,18 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 items = items,
                 onSelected = { which ->
                     val pl = playlists[which]
-                    androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("☁️ ${pl.name}")
-                        .setItems(arrayOf("▶ 在唱机播放", "📥 选择曲目导入藏品")) { _, which2 ->
+                    // App 风格深夜选片器替代系统 AlertDialog：与唱机页氛围统一
+                    CloudMusicPickerBottomSheet.show(
+                        fragmentManager = supportFragmentManager,
+                        title = "☁️ ${pl.name} · ${pl.trackCount} 首",
+                        items = listOf(
+                            CloudMusicPickerBottomSheet.PickerItem(id = 0, title = "在唱机播放", subtitle = "加载歌单内全部曲目连续播放", emoji = "▶️"),
+                            CloudMusicPickerBottomSheet.PickerItem(id = 1, title = "选择曲目导入藏品", subtitle = "勾选心仪曲目收藏入藏库", emoji = "📥"),
+                        ),
+                        onSelected = { which2 ->
                             if (which2 == 0) loadCloudTrackList(pl) else importCloudPlaylistToLibrary(pl)
-                        }
-                        .setNegativeButton("取消", null)
-                        .show()
+                        },
+                    )
                 },
             )
         }
@@ -619,7 +624,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             }
             val names = tracks.map { it.name }.toTypedArray()
             val checked = BooleanArray(tracks.size)
-            androidx.appcompat.app.AlertDialog.Builder(this)
+            androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_ReadTrace_PlayerAlertDialog)
                 .setTitle("📥 选择要导入的曲目（共 ${tracks.size} 首）")
                 .setMultiChoiceItems(names, checked) { _, which, isChecked ->
                     checked[which] = isChecked
