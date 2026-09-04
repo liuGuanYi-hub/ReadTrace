@@ -15,9 +15,22 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
+            versionName = "v1.0.8",
+            releaseDate = "2026-09-04",
+            isLatest = true,
+            tagTitle = "📤 全量存档一次导入与账号数据主权 (Sovereign Backup)",
+            highlights = listOf(
+                "📦 全量存档合并包：219 部作品连同角色谱/语录/章节大纲合成一个 JSON，「一个账号 = 一个 JSON」一次导入全部恢复",
+                "🎨 富内容 JSON 应用内本地导入：缺失作品自动建库（媒介按条目标记/文件名推断，支持动漫/书籍/游戏/影视/音乐），全程幂等不覆盖已有内容",
+                "🗑️ 清空账号数据：打字验证「我确定删除账号数据」二次确认，物理清空全部作品与笔记/打卡/角色谱/大纲/心智模型等关联维度，方便从零重导",
+                "🌐 219 部预设作品富内容全量补全：角色谱、语录、章节大纲 100% 覆盖，随 APK assets 自动生效",
+                "🧪 9 个设备端测试全绿：合并包 219/219 全量匹配、幂等性、自动建库、清空后重导闭环均实测通过",
+            ),
+        ),
+        ChangelogVersion(
             versionName = "v1.0.7",
             releaseDate = "2026-09-03",
-            isLatest = true,
+            isLatest = false,
             tagTitle = "📦 APK 减重与安装精简 (Slim Release)",
             highlights = listOf(
                 "⚖️ 移除 ISBN 扫码功能（ML Kit + CameraX）与相机权限，APK 由 44.5MB 减半至 20.9MB，安装更轻盈",
