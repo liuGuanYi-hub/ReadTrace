@@ -15,18 +15,9 @@
         android:paddingHorizontal="16dp">
 
         <TextView
-            android:id="@+id/chronicleBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="←"
-            android:textColor="@color/readtrace_ink"
-            android:textSize="18sp" />
-
-        <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="48dp"
             android:layout_weight="1"
             android:text="🏆 策展人年度精神年鉴"
             android:textColor="@color/readtrace_ink"

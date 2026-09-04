@@ -19,6 +19,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.readtrace.util.FloatingBack
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -111,10 +112,8 @@ class CuratorFavoritesActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        findViewById<View>(R.id.btnFavoritesBack).setOnClickListener {
-            HapticFeedbackEngine.lightClick(this)
-            finish()
-        }
+        // 全站统一悬浮返回球（与广场/勋章页一致）
+        FloatingBack.install(this)
 
         tabFavBook.setOnClickListener { switchCategory(MediaType.BOOK) }
         tabFavAnime.setOnClickListener { switchCategory(MediaType.ANIME) }

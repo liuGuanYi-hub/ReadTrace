@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
 import java.time.LocalDate
 
@@ -43,7 +44,8 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         }
 
         pagesContainer = findViewById(R.id.chroniclePages)
-        findViewById<TextView>(R.id.chronicleBack).setOnClickListener { finish() }
+        // 全站统一悬浮返回球（与广场/勋章页一致）
+        FloatingBack.install(this)
         val tvYearToggle = findViewById<TextView>(R.id.chronicleYearToggle)
         tvYearToggle.text = year.toString()
         tvYearToggle.setOnClickListener {

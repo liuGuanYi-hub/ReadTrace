@@ -15,22 +15,10 @@
         android:orientation="horizontal"
         android:paddingHorizontal="16dp">
 
-        <TextView
-            android:id="@+id/btnFavoritesBack"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:text="←"
-            android:textColor="@color/readtrace_ink"
-            android:textSize="20sp" />
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="48dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
