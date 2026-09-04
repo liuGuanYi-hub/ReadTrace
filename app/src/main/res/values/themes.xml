@@ -32,7 +32,7 @@
 
     <!-- 🎼 黑胶唱机深夜对话框：多选导入等 AlertDialog 与唱机页深夜氛围统一。
          注意 M3 对话框背景取 colorSurfaceContainerHigh（非 colorSurface），需一并覆盖 -->
-    <style name="Theme.ReadTrace.PlayerAlertDialog" parent="ThemeOverlay.Material3.Dark.AlertDialog">
+    <style name="Theme.ReadTrace.PlayerAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="colorSurface">#F00D1117</item>
         <item name="colorSurfaceContainer">#F00D1117</item>
         <item name="colorSurfaceContainerHigh">#F00D1117</item>
