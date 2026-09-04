@@ -676,6 +676,7 @@ if (oldVersion < 13) {
         } finally {
             db.endTransaction()
         }
+        if (matched > 0) invalidateBookCache()
         return matched
     }
 
@@ -2556,6 +2557,7 @@ if (oldVersion < 13) {
         } finally {
             db.endTransaction()
         }
+        if (affectedCount > 0) invalidateBookCache()
         return affectedCount
     }
 
