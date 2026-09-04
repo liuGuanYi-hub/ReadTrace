@@ -75,7 +75,9 @@ object BookCsvParser {
 
     private fun isHeaderLine(parts: List<String>): Boolean {
         val first = parts.getOrNull(0)?.trim()?.lowercase() ?: return false
-        val headerKeywords = listOf("书名", "标题", "作品名", "番剧名", "电影名", "游戏名", "title", "name")
+        // 「媒介」开头为应用自身导出格式（媒介,标题,创作者,...），必须识别为表头；
+        // 否则会误入位置解析导致标题位拿到媒介值（历史 bug：导入导出 CSV 全部串列）
+        val headerKeywords = listOf("媒介", "书名", "标题", "作品名", "番剧名", "电影名", "游戏名", "title", "name")
         return headerKeywords.any { first.contains(it) }
     }
 
@@ -175,6 +177,23 @@ object BookCsvParser {
         parts: List<String>,
         defaultMediaType: MediaType,
     ): ParsedBookRecord? {
+        // 媒介优先回退：无表头但首列是媒介关键词时，按应用导出列序
+        // （媒介,标题,创作者,分类,状态,评分,标签,短评,长评,封面,...）解析，
+        // 避免标题位拿到媒介值（历史 bug：无表头导出格式全部串列）
+        val mediaFirstLabels =
+            setOf("书籍", "图书", "动画", "动漫", "番剧", "影视", "电影", "游戏", "音乐", "播客")
+        if (parts.getOrNull(0)?.trim() in mediaFirstLabels && parts.size >= 10) {
+            return parseRecordWithHeader(
+                parts,
+                mapOf(
+                    "media_type" to 0, "title" to 1, "author" to 2, "category" to 3,
+                    "status" to 4, "rating" to 5, "tags" to 6, "short_comment" to 7,
+                    "review" to 8, "cover_url" to 9,
+                ),
+                defaultMediaType,
+            )
+        }
+
         val title = parts.getOrNull(0)?.trim().orEmpty()
         if (title.isEmpty()) return null
 
