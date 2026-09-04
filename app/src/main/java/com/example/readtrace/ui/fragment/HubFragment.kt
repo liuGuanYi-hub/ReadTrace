@@ -117,6 +117,15 @@ class HubFragment : Fragment() {
         }
     }
 
+    // 富内容 JSON 本地导入入口：与 CSV 导入并列，用于换机/回补角色谱与大纲
+    private val selectRichJsonLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            importRichContentFromUri(uri)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -589,6 +598,7 @@ class HubFragment : Fragment() {
             "🎮  导入预设游戏神作 (69 款)",
             "🌟  一键全量合入 (205 部神作)",
             "📂  选择本地 CSV 文件...",
+            "🎨  选择本地富内容 JSON 文件...",
         )
         val actions: List<() -> Unit> = listOf(
             { importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单") },
@@ -597,6 +607,7 @@ class HubFragment : Fragment() {
             { importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单") },
             { importAllPresetCsvs() },
             { selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv")) },
+            { selectRichJsonLauncher.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
         )
 
         val density = resources.displayMetrics.density
@@ -718,6 +729,48 @@ class HubFragment : Fragment() {
         }
         Toast.makeText(requireContext(), "全量预设导入完成，共新增 $total 部作品！", Toast.LENGTH_LONG).show()
         refreshDashboard()
+    }
+
+    /**
+     * 从本地文件导入富内容 JSON（角色谱/语录/章节大纲），按标题匹配藏库作品；
+     * 缺失的作品按文件名推断媒介自动建最小骨架，实现「导入一次即作品+富内容」。
+     * 文件可达数百 KB 且含批量事务写入，放后台线程避免主线程卡顿。
+     */
+    private fun importRichContentFromUri(uri: Uri) {
+        Thread {
+            val result = runCatching {
+                val fileName = requireContext().contentResolver.query(uri, null, null, null, null)?.use { c ->
+                    val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (idx >= 0 && c.moveToFirst()) c.getString(idx) else null
+                } ?: uri.lastPathSegment
+                requireContext().contentResolver.openInputStream(uri)
+                    ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                    ?.let { text -> databaseHelper.importRichContentJson(text, fileName) }
+                    ?: -1
+            }.getOrElse { -1 }
+            requireActivity().runOnUiThread {
+                when {
+                    result > 0 -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "成功导入 $result 部作品及其富内容（角色谱/语录/大纲）！",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        refreshDashboard()
+                    }
+                    result == 0 -> Toast.makeText(
+                        requireContext(),
+                        "JSON 中没有有效作品条目，请确认选择的是 rich_content_*.json 富内容文件",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    else -> Toast.makeText(
+                        requireContext(),
+                        "导入失败：请确认选择的是 rich_content_*.json 富内容文件",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            }
+        }.start()
     }
 
     private fun importCustomCsv(uri: Uri) {

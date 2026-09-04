@@ -474,7 +474,24 @@ if (oldVersion < 13) {
                 val jsonText = runCatching {
                     context.assets.open(fileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
                 }.getOrNull() ?: return@forEach
-                val entries = JSONArray(jsonText)
+                applyRichContentEntries(db, jsonText)
+            }
+        }
+    }
+
+    /**
+     * 解析一段 rich_content JSON（数组结构，每条含 title/characters/quotes/outline），
+     * 按标题匹配藏库作品补齐角色、语录与章节大纲。
+     * 幂等：仅当该作品尚无角色/笔记/大纲时才写入，不会覆盖用户已有内容。
+     * 返回成功匹配到的作品条数（供导入后 Toast 反馈）。
+     */
+    private fun applyRichContentEntries(
+        db: SQLiteDatabase,
+        jsonText: String,
+        autoCreateMedia: MediaType? = null,
+    ): Int {
+        var matchedCount = 0
+        val entries = JSONArray(jsonText)
                 for (i in 0 until entries.length()) {
                     val entry = entries.getJSONObject(i)
                     val title = entry.optString("title")
@@ -502,7 +519,25 @@ if (oldVersion < 13) {
                             }
                         }
                     }
-                    if (bookIds.isEmpty()) continue
+                    if (bookIds.isEmpty()) {
+                    if (autoCreateMedia == null) continue
+                    // 「导入一次即作品+富内容」：为藏库缺失的作品自动创建最小骨架，
+                    // 媒介由文件名推断，创作者/评分等留空由用户后补
+                    val createdAt = currentTimestamp()
+                    val newId = db.insert(
+                        TABLE_BOOKS, null,
+                        ContentValues().apply {
+                            put(COLUMN_TITLE, title)
+                            put(COLUMN_MEDIA_TYPE, autoCreateMedia.databaseValue)
+                            put(COLUMN_SOURCE_TYPE, "rich_content_import")
+                            put(COLUMN_CREATED_AT, createdAt)
+                            put(COLUMN_UPDATED_AT, createdAt)
+                            put(COLUMN_IS_DELETED, 0)
+                        },
+                    )
+                    bookIds = listOf(newId)
+                }
+                matchedCount++
                     val now = currentTimestamp()
 
                     val charCount = db.query(
@@ -578,7 +613,38 @@ if (oldVersion < 13) {
                         }
                     }
                 }
-            }
+        return matchedCount
+    }
+
+    /**
+     * 手机端手动导入富内容 JSON（「📥 批量导入」弹窗的本地文件入口，与 CSV 导入并列）。
+     * 事务包裹保证批量原子性；返回处理条数（含自动新建），JSON 非法时抛出异常由调用方提示。
+     * @param sourceFileName 导入文件名，用于推断媒介（rich_content_anime→动漫、books→书籍、
+     *   games→游戏、movies_podcasts→电影、music→音乐）；非标准命名默认书籍。
+     *   传入 null 时不自动建库，仅给已有作品补富内容（assets 播种路径语义）。
+     */
+    fun importRichContentJson(jsonText: String, sourceFileName: String? = null): Int {
+        val db = writableDatabase
+        var matched = 0
+        db.beginTransaction()
+        try {
+            matched = applyRichContentEntries(db, jsonText, inferMediaFromFileName(sourceFileName))
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+        return matched
+    }
+
+    /** 按导出命名规范从文件名推断媒介；非标准命名默认书籍（用户约定），拿不到文件名时不建库 */
+    private fun inferMediaFromFileName(fileName: String?): MediaType? {
+        val name = fileName?.lowercase() ?: return null
+        return when {
+            "anime" in name -> MediaType.ANIME
+            "game" in name -> MediaType.GAME
+            "movie" in name || "podcast" in name -> MediaType.MOVIE
+            "music" in name -> MediaType.MUSIC
+            else -> MediaType.BOOK
         }
     }
 
