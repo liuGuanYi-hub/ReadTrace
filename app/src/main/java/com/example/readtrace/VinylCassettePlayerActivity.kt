@@ -553,7 +553,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     val pl = playlists[which]
                     androidx.appcompat.app.AlertDialog.Builder(this)
                         .setTitle("☁️ ${pl.name}")
-                        .setItems(arrayOf("▶ 在唱机播放", "📥 导入全部曲目为藏品")) { _, which2 ->
+                        .setItems(arrayOf("▶ 在唱机播放", "📥 选择曲目导入藏品")) { _, which2 ->
                             if (which2 == 0) loadCloudTrackList(pl) else importCloudPlaylistToLibrary(pl)
                         }
                         .setNegativeButton("取消", null)
@@ -563,7 +563,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    /** 把整个歌单导入为音乐藏品：按网易云曲目 ID 去重，只追加新歌，绝不覆盖已入库条目 */
+    /** 选择歌单曲目导入为音乐藏品：弹出多选清单（默认全不选），只导入勾选曲目；按网易云曲目 ID 去重，只追加新歌，绝不覆盖已入库条目 */
     private fun importCloudPlaylistToLibrary(playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist) {
         Toast.makeText(this, "正在读取《${playlist.name}》曲目...", Toast.LENGTH_SHORT).show()
         com.example.readtrace.util.NeteasePreviewHelper.fetchPlaylistTracks(this, playlist.id) { tracks ->
@@ -572,35 +572,59 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 Toast.makeText(this, "《${playlist.name}》没有可导入的曲目", Toast.LENGTH_LONG).show()
                 return@fetchPlaylistTracks
             }
-            Thread {
-                val fresh = mutableListOf<com.example.readtrace.model.Book>()
-                tracks.forEach { t ->
-                    if (t.name.isNotBlank() &&
-                        databaseHelper.findBookBySource("netease", t.id.toString()) == null
-                    ) {
-                        fresh += com.example.readtrace.model.Book(
-                            title = t.name,
-                            author = t.artists.ifBlank { null },
-                            category = "网易云歌单 · ${playlist.name}",
-                            status = com.example.readtrace.model.BookStatus.FINISHED,
-                            mediaType = com.example.readtrace.model.MediaType.MUSIC,
-                            sourceType = "netease",
-                            sourceId = t.id.toString(),
-                        )
+            val names = tracks.map { it.name }.toTypedArray()
+            val checked = BooleanArray(tracks.size)
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("📥 选择要导入的曲目（共 ${tracks.size} 首）")
+                .setMultiChoiceItems(names, checked) { _, which, isChecked ->
+                    checked[which] = isChecked
+                }
+                .setPositiveButton("导入所选") { _, _ ->
+                    val picked = tracks.filterIndexed { index, _ -> checked[index] }
+                    if (picked.isEmpty()) {
+                        Toast.makeText(this, "未勾选任何曲目", Toast.LENGTH_SHORT).show()
+                    } else {
+                        importPickedTracksToLibrary(playlist, picked)
                     }
                 }
-                val inserted = if (fresh.isEmpty()) 0 else databaseHelper.insertBooksBatch(fresh)
-                runOnUiThread {
-                    if (isDestroyed) return@runOnUiThread
-                    val skipped = tracks.size - fresh.size
-                    Toast.makeText(
-                        this,
-                        "📥 导入完成：新增 $inserted 首" + if (skipped > 0) "（已在藏库，跳过 $skipped 首）" else "",
-                        Toast.LENGTH_LONG,
-                    ).show()
-                }
-            }.start()
+                .setNegativeButton("取消", null)
+                .show()
         }
+    }
+
+    private fun importPickedTracksToLibrary(
+        playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist,
+        picked: List<com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack>,
+    ) {
+        Thread {
+            val fresh = mutableListOf<com.example.readtrace.model.Book>()
+            picked.forEach { t ->
+                if (t.name.isNotBlank() &&
+                    databaseHelper.findBookBySource("netease", t.id.toString()) == null
+                ) {
+                    fresh += com.example.readtrace.model.Book(
+                        title = t.name,
+                        author = t.artists.ifBlank { null },
+                        category = "网易云歌单 · ${playlist.name}",
+                        status = com.example.readtrace.model.BookStatus.FINISHED,
+                        mediaType = com.example.readtrace.model.MediaType.MUSIC,
+                        sourceType = "netease",
+                        sourceId = t.id.toString(),
+                    )
+                }
+            }
+            val inserted = if (fresh.isEmpty()) 0 else databaseHelper.insertBooksBatch(fresh)
+            runOnUiThread {
+                if (isDestroyed) return@runOnUiThread
+                val skipped = picked.size - fresh.size
+                Toast.makeText(
+                    this,
+                    "📥 已导入勾选曲目：新增 $inserted / 勾选 ${picked.size} 首" +
+                        if (skipped > 0) "（已在藏库，跳过 $skipped 首）" else "",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }.start()
     }
 
     private fun loadCloudTrackList(playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist) {
