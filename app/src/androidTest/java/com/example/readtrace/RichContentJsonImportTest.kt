@@ -198,4 +198,45 @@ class RichContentJsonImportTest {
         ).use { if (it.moveToFirst()) it.getString(0) else null }
         assertEquals("music 文件应推断为音乐媒介", "music", mediaType)
     }
+
+    @Test
+    fun 合并包条目内嵌media优先于文件名() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val helper = BookDatabaseHelper.getInstance(context)
+        // 故意用 anime 文件名 + 条目内嵌 media=game，验证内嵌优先
+        val json = """
+            [
+              {
+                "title": "富内容合并包之游戏",
+                "media": "game",
+                "characters": [{"name": "合并包角色", "desc": "内嵌媒介验证"}]
+              }
+            ]
+        """.trimIndent()
+
+        val matched = helper.importRichContentJson(json, "rich_content_anime.json")
+        assertEquals("应处理 1 部", 1, matched)
+        val mediaType = db().rawQuery(
+            "SELECT media_type FROM books WHERE title = ? AND is_deleted = 0",
+            arrayOf("富内容合并包之游戏"),
+        ).use { if (it.moveToFirst()) it.getString(0) else null }
+        assertEquals("内嵌 media 应优先于文件名推断", "game", mediaType)
+        assertEquals(1, countRows("book_characters", "富内容合并包之游戏"))
+    }
+
+    @Test
+    fun 真实合并包一次导入全部到位() {
+        // 需先 adb push readtrace_full_backup.json 到应用外部私有目录；不存在时跳过
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val file = java.io.File(context.getExternalFilesDir(null), "readtrace_full_backup.json")
+        org.junit.Assume.assumeTrue("未推送合并包文件，跳过", file.exists())
+
+        val helper = BookDatabaseHelper.getInstance(context)
+        val before = db().rawQuery("SELECT COUNT(*) FROM books WHERE is_deleted = 0", null).use {
+            if (it.moveToFirst()) it.getInt(0) else 0
+        }
+        val matched = helper.importRichContentJson(file.readText(Charsets.UTF_8), "readtrace_full_backup.json")
+        android.util.Log.i("RichContentImportTest", "合并包处理 $matched 部（导入前藏库 $before 部）")
+        assertEquals("合并包 219 条应全部处理", 219, matched)
+    }
 }

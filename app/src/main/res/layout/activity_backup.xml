@@ -404,5 +404,45 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- 危险区：清空账号数据（需打字二次验证） -->
+        <TextView
+            style="@style/ReadTraceFieldLabel"
+            android:layout_marginTop="28dp"
+            android:text="⚠️ 危险区"
+            android:textSize="16sp"
+            android:textColor="#C62828" />
+
+        <LinearLayout
+            android:id="@+id/wipeDataCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/bg_glass_panel"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans"
+                android:text="🗑️ 清空账号数据"
+                android:textColor="#C62828"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="sans"
+                android:text="物理删除全部作品、笔记、打卡、角色谱、大纲与心智模型，不可恢复。适合换账号或从零重新导入合并包前使用。"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

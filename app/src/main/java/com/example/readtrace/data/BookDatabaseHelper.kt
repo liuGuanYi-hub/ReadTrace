@@ -431,6 +431,41 @@ if (oldVersion < 13) {
         }
     }
 
+    /**
+     * 清空账号全部作品数据（「🗑️ 清空账号数据」入口调用，需打字二次验证后才会触达）。
+     * 物理删除全部作品及关联维度（笔记/打卡/角色谱/大纲/地标/心智模型/黑胶曲目），
+     * 并清理本地封面缓存文件；同数据库版本内不会触发预设重播种，
+     * 清空后可通过导入合并包（readtrace_full_backup.json）一键恢复。
+     * @return Pair(删除作品数, 删除笔记数)
+     */
+    fun wipeAllUserData(): Pair<Int, Int> {
+        val db = writableDatabase
+        db.beginTransaction()
+        var wipedBooks = 0
+        var wipedNotes = 0
+        try {
+            // 先清理全部作品的本地封面缓存（含回收站中的作品）
+            db.query(TABLE_BOOKS, arrayOf(COLUMN_COVER_URL), null, null, null, null, null).use { c ->
+                while (c.moveToNext()) {
+                    c.getString(0)?.let { path -> CoverImageHelper.deleteCoverFile(path) }
+                }
+            }
+            wipedNotes = db.delete(TABLE_NOTES, null, null)
+            db.delete(TABLE_READING_SESSIONS, null, null)
+            db.delete(TABLE_BOOK_CHARACTERS, null, null)
+            db.delete(TABLE_BOOK_OUTLINES, null, null)
+            db.delete(TABLE_BOOK_LOCATIONS, null, null)
+            db.delete(TABLE_BOOK_MINDPRINTS, null, null)
+            db.delete(TABLE_AUDIO_TRACKS, null, null)
+            wipedBooks = db.delete(TABLE_BOOKS, null, null)
+            db.setTransactionSuccessful()
+            invalidateBookCache()
+        } finally {
+            db.endTransaction()
+        }
+        return Pair(wipedBooks, wipedNotes)
+    }
+
     /** 外网封面 → 内网封面文件名映射规则，与 cover_server/covers 打包命名保持一致 */
     private fun assetNameForRemoteUrl(url: String): String? = runCatching {
         val uri = java.net.URI(url.trim())
@@ -520,15 +555,23 @@ if (oldVersion < 13) {
                         }
                     }
                     if (bookIds.isEmpty()) {
-                    if (autoCreateMedia == null) continue
+                    // 合并包（如 readtrace_full_backup.json）的条目内嵌 media 字段优先于文件名推断：
+                    // 单文件混多媒介时逐条准确归档；旧版四分文件无此键，回退文件名推断。
+                    // 播种路径（autoCreateMedia == null）不启用内嵌建库，保持原语义。
+                    val entryMedia: MediaType? = when {
+                        autoCreateMedia == null -> null
+                        else -> entry.optString("media").takeIf { it.isNotBlank() }
+                            ?.let { MediaType.fromDatabaseValue(it) } ?: autoCreateMedia
+                    }
+                    if (entryMedia == null) continue
                     // 「导入一次即作品+富内容」：为藏库缺失的作品自动创建最小骨架，
-                    // 媒介由文件名推断，创作者/评分等留空由用户后补
+                    // 媒介由条目内嵌 media 或文件名推断，创作者/评分等留空由用户后补
                     val createdAt = currentTimestamp()
                     val newId = db.insert(
                         TABLE_BOOKS, null,
                         ContentValues().apply {
                             put(COLUMN_TITLE, title)
-                            put(COLUMN_MEDIA_TYPE, autoCreateMedia.databaseValue)
+                            put(COLUMN_MEDIA_TYPE, entryMedia.databaseValue)
                             put(COLUMN_SOURCE_TYPE, "rich_content_import")
                             put(COLUMN_CREATED_AT, createdAt)
                             put(COLUMN_UPDATED_AT, createdAt)

@@ -98,6 +98,10 @@ class BackupActivity : AppCompatActivity() {
             startActivity(DataMigrationActivity.createIntent(this))
         }
 
+        findViewById<View>(R.id.wipeDataCard).setOnClickListener {
+            showWipeDataDialog()
+        }
+
         refreshStats()
 
         findViewById<View>(R.id.backupContent)
@@ -108,6 +112,121 @@ class BackupActivity : AppCompatActivity() {
         val works = databaseHelper.getBooks()
         val totalNotesCount = databaseHelper.getTotalNotesCount()
         backupStatSummary.text = getString(R.string.backup_stat_summary_format, works.size, totalNotesCount)
+    }
+
+    /**
+     * 清空账号数据：打字二次验证对话框——必须完整输入「我确定删除账号数据」才能执行。
+     * 删除操作在后台线程执行，避免大批量物理删除阻塞主线程。
+     */
+    private fun showWipeDataDialog() {
+        val density = resources.displayMetrics.density
+        fun dp(v: Int) = (v * density).toInt()
+        val confirmPhrase = "我确定删除账号数据"
+
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(dp(22), dp(18), dp(22), dp(20))
+            setBackgroundResource(R.drawable.bg_elegant_dialog)
+        }
+        container.addView(TextView(this).apply {
+            text = "🗑️ 清空账号数据"
+            textSize = 16.5f
+            setTextColor(0xFFC62828.toInt())
+            letterSpacing = 0.02f
+        })
+        container.addView(TextView(this).apply {
+            text = "即将物理删除全部作品、笔记、打卡、角色谱、大纲、心智模型与黑胶曲目，\n操作不可恢复，且不会自动重新播种预设。\n\n如确定继续，请输入下方文字："
+            textSize = 12.5f
+            setTextColor(getColor(R.color.readtrace_ink))
+            setPadding(0, dp(8), 0, dp(10))
+        })
+        container.addView(TextView(this).apply {
+            text = "我确定删除账号数据"
+            textSize = 13f
+            setTextColor(getColor(R.color.readtrace_accent))
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setPadding(0, 0, 0, dp(10))
+        })
+
+        val input = android.widget.EditText(this).apply {
+            hint = "在此输入验证文字"
+            setTextIsSelectable(false)
+            maxLines = 1
+            setSingleLine(true)
+            setTextSize(14f)
+            setTextColor(getColor(R.color.readtrace_ink))
+            setBackgroundResource(R.drawable.bg_form_input)
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+        }
+        container.addView(input)
+
+        val btnConfirm = TextView(this).apply {
+            text = "确认清空（不可恢复）"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            isAllCaps = false
+            setTextColor(getColor(R.color.white))
+            setBackgroundResource(R.drawable.bg_primary_button)
+            isEnabled = false
+            alpha = 0.35f
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(44),
+            ).apply { topMargin = dp(14) }
+        }
+        container.addView(btnConfirm)
+
+        input.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val ok = s?.toString()?.trim() == confirmPhrase
+                btnConfirm.isEnabled = ok
+                btnConfirm.alpha = if (ok) 1f else 0.35f
+            }
+        })
+
+        val btnCancel = TextView(this).apply {
+            text = "取 消"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            isAllCaps = false
+            setTextColor(getColor(R.color.chip_idle_text))
+            setBackgroundResource(R.drawable.bg_chip_picker_idle)
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(44),
+            ).apply { topMargin = dp(10) }
+        }
+        container.addView(btnCancel)
+
+        val dialog = android.app.Dialog(this).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(container)
+            window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setLayout(
+                    (resources.displayMetrics.widthPixels * 0.88f).toInt(),
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
+                setGravity(android.view.Gravity.CENTER)
+            }
+        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        // 确认回调需引用 dialog，故在 dialog 声明之后注册；执行清空前先关掉对话框
+        btnConfirm.setOnClickListener {
+            if (!btnConfirm.isEnabled) return@setOnClickListener
+            dialog.dismiss()
+            Thread {
+                val (books, notes) = databaseHelper.wipeAllUserData()
+                runOnUiThread {
+                    Toast.makeText(this, "已清空 $books 部作品、$notes 条笔记，可通过导入合并包重新恢复", Toast.LENGTH_LONG).show()
+                    refreshStats()
+                }
+            }.start()
+        }
+        dialog.show()
     }
 
     private fun exportDataToFile(uri: Uri, format: String) {
