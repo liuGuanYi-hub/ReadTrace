@@ -672,6 +672,54 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }.start()
     }
 
+    /** 云歌单曲目无本地短评：羊皮纸笺轮换的星空系占位金句 */
+    private val CLOUD_LYRIC_PLACEHOLDERS = listOf(
+        "“把耳朵交给夜色，让星星替我们记住这段旋律。”",
+        "“银河不语，音符自有回声。”",
+        "“在云端的每一拍，都是夜空写给我们的信。”",
+        "“唱针落下，星光亮起。”",
+        "“旋律穿过大气层，落在今夜的窗台。”",
+    )
+
+    private var starfieldCoverCache: android.graphics.Bitmap? = null
+
+    /**
+     * 星空占位封面：深空径向渐变 + 随机星点与光晕，契合唱机页深夜氛围；
+     * 固定随机种子保证同一会话内占位图稳定，单例缓存避免重复绘制。
+     */
+    private fun starfieldCoverBitmap(size: Int = 480): android.graphics.Bitmap {
+        starfieldCoverCache?.let { return it }
+        val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bmp)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        paint.shader = android.graphics.RadialGradient(
+            size / 2f, size / 2f, size / 1.4f,
+            intArrayOf(0xFF1B2A4A.toInt(), 0xFF0B1026.toInt()),
+            floatArrayOf(0f, 1f),
+            android.graphics.Shader.TileMode.CLAMP,
+        )
+        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), paint)
+        paint.shader = null
+        val rnd = java.util.Random(20260904L)
+        repeat(96) {
+            val x = rnd.nextFloat() * size
+            val y = rnd.nextFloat() * size
+            val radius = 0.8f + rnd.nextFloat() * 2.2f
+            paint.color = if (rnd.nextInt(6) == 0) 0xFFFFD98A.toInt() else 0xFFF2F6FF.toInt()
+            paint.alpha = 120 + rnd.nextInt(135)
+            canvas.drawCircle(x, y, radius, paint)
+        }
+        // 主星与光晕
+        paint.color = 0xFF9FC4FF.toInt()
+        paint.alpha = 40
+        canvas.drawCircle(size * 0.5f, size * 0.42f, size * 0.16f, paint)
+        paint.color = 0xFFEAF2FF.toInt()
+        paint.alpha = 255
+        canvas.drawCircle(size * 0.5f, size * 0.42f, size * 0.035f, paint)
+        starfieldCoverCache = bmp
+        return bmp
+    }
+
     private fun loadCloudTrackList(playlist: com.example.readtrace.util.NeteasePreviewHelper.UserPlaylist) {
         Toast.makeText(this, "正在载入《${playlist.name}》...", Toast.LENGTH_SHORT).show()
         com.example.readtrace.util.NeteasePreviewHelper.fetchPlaylistTracks(this, playlist.id) { tracks ->
@@ -710,6 +758,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "歌单曲目已失效，请重新选择", Toast.LENGTH_SHORT).show()
             return
         }
+        // 云歌单曲目无本地短评与封面：切换为星空占位，避免残留上一部本地作品的歌词与封面
+        tvQuoteLyrics.text = CLOUD_LYRIC_PLACEHOLDERS[
+            kotlin.math.abs(track.name.hashCode()) % CLOUD_LYRIC_PLACEHOLDERS.size,
+        ]
+        vinylTurntableView.coverBitmap = starfieldCoverBitmap()
         // 新的一次用户/连播动作重置自动重试额度
         cloudRetryUsed = false
         releaseMediaPlayer()
