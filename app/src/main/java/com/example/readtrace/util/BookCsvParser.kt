@@ -73,6 +73,13 @@ object BookCsvParser {
         return records
     }
 
+    /**
+     * 评分统一归一为 10 分制：历史预设 CSV 与旧版导出混用 5 星制（满分 5.0），
+     * ≤5.5 视为 5 星制 ×2；已是 10 分制的值原样保留（幂等，重复导入不二次放大）。
+     */
+    private fun normalizeRatingToTenScale(raw: Double?): Double? =
+        raw?.let { if (it in 0.01..5.5) it * 2.0 else it }
+
     private fun isHeaderLine(parts: List<String>): Boolean {
         val first = parts.getOrNull(0)?.trim()?.lowercase() ?: return false
         // 「媒介」开头为应用自身导出格式（媒介,标题,创作者,...），必须识别为表头；
@@ -124,7 +131,7 @@ object BookCsvParser {
         val rawStatus = headerMap["status"]?.let { parts.getOrNull(it)?.trim() }
         val status = parseBookStatus(rawStatus)
 
-        val rating = headerMap["rating"]?.let { parts.getOrNull(it)?.trim()?.toDoubleOrNull() }
+        val rating = normalizeRatingToTenScale(headerMap["rating"]?.let { parts.getOrNull(it)?.trim()?.toDoubleOrNull() })
         val tags = headerMap["tags"]?.let { parts.getOrNull(it)?.let { parseTags(it) } } ?: emptyList()
         val shortComment = headerMap["short_comment"]?.let { parts.getOrNull(it)?.trim().takeIf { it?.isNotEmpty() == true } }
         val review = headerMap["review"]?.let { parts.getOrNull(it)?.trim().takeIf { it?.isNotEmpty() == true } }
@@ -219,7 +226,7 @@ object BookCsvParser {
         val mediaType = parseMediaType(parts.getOrNull(2)?.trim(), defaultMediaType)
         val category = parts.getOrNull(3)?.trim().takeIf { it?.isNotEmpty() == true }
         val status = parseBookStatus(parts.getOrNull(4)?.trim())
-        val rating = parts.getOrNull(5)?.trim()?.toDoubleOrNull()
+        val rating = normalizeRatingToTenScale(parts.getOrNull(5)?.trim()?.toDoubleOrNull())
         val tags = parts.getOrNull(6)?.let { parseTags(it) } ?: emptyList()
         val shortComment = parts.getOrNull(7)?.trim().takeIf { it?.isNotEmpty() == true }
         val review = parts.getOrNull(8)?.trim().takeIf { it?.isNotEmpty() == true }
