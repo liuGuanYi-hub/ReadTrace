@@ -624,7 +624,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             }
             val names = tracks.map { it.name }.toTypedArray()
             val checked = BooleanArray(tracks.size)
-            androidx.appcompat.app.AlertDialog.Builder(this, R.style.Theme_ReadTrace_PlayerAlertDialog)
+            // Material 对话框才会读取 M3 colorSurfaceContainer 色牌（AppCompat 版不认，弹白底系统框）
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.Theme_ReadTrace_PlayerAlertDialog)
                 .setTitle("📥 选择要导入的曲目（共 ${tracks.size} 首）")
                 .setMultiChoiceItems(names, checked) { _, which, isChecked ->
                     checked[which] = isChecked
