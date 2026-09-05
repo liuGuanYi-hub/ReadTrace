@@ -39,6 +39,7 @@ class CuratorPassCardView @JvmOverloads constructor(
         strokeWidth = dpToPx(0.8f)
     }
     private val cardBounds = RectF()
+    private val glowPath = Path()
     private val cardCornerRadius = dpToPx(18f)
 
     private val tvHeader: TextView
@@ -261,18 +262,25 @@ class CuratorPassCardView @JvmOverloads constructor(
         strokePaint.color = Color.parseColor(if (theme == CuratorCardTheme.PARCHMENT_WOOD) "#30000000" else "#26FFFFFF")
         canvas.drawRoundRect(cardBounds, cardCornerRadius, cardCornerRadius, strokePaint)
 
-        // 绘制顶部高光微弧线
+        // 绘制顶部高光微弧线：只走顶边与两个上圆角。
+        // 不能用 drawRoundRect 画 24dp 高的矩形——它的底边会横穿 18dp 起绘制的标题文字（P38 回归用户反馈）
         glowPaint.color = accentColor
         glowPaint.alpha = 100
-        canvas.drawRoundRect(
-            cardBounds.left + dpToPx(1f),
-            cardBounds.top + dpToPx(1f),
-            cardBounds.right - dpToPx(1f),
-            cardBounds.top + dpToPx(24f),
-            cardCornerRadius,
-            cardCornerRadius,
-            glowPaint
+        val hlLeft = cardBounds.left + dpToPx(1f)
+        val hlTop = cardBounds.top + dpToPx(1f)
+        val hlRight = cardBounds.right - dpToPx(1f)
+        glowPath.rewind()
+        glowPath.moveTo(hlLeft + cardCornerRadius, hlTop)
+        glowPath.lineTo(hlRight - cardCornerRadius, hlTop)
+        glowPath.arcTo(
+            RectF(hlRight - 2 * cardCornerRadius, hlTop, hlRight, hlTop + 2 * cardCornerRadius),
+            -90f, 90f, false,
         )
+        glowPath.arcTo(
+            RectF(hlLeft, hlTop, hlLeft + 2 * cardCornerRadius, hlTop + 2 * cardCornerRadius),
+            180f, 90f, false,
+        )
+        canvas.drawPath(glowPath, glowPaint)
 
         super.onDraw(canvas)
     }
