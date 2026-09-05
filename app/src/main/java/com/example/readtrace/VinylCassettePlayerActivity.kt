@@ -1,7 +1,9 @@
 package com.example.readtrace
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -25,6 +27,7 @@ import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
@@ -100,6 +103,16 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private var wasPlayingBeforeSeek = false
     private var audioFocusRequest: AudioFocusRequest? = null
     private lateinit var audioManager: AudioManager
+
+    // ===== 音频焦点与拔耳机外放防护 =====
+    /** 瞬时焦点丢失（来电/导航）时是否在焦点恢复后自动续播 */
+    private var focusResumeOnGain = false
+
+    /** 当前是否处于闪避压低音量状态（可闪避焦点丢失） */
+    private var duckedVolume = false
+
+    /** BECOMING_NOISY 接收器是否已注册（随播放态启停，覆盖最小化到后台的全局播放期间） */
+    private var noisyReceiverRegistered = false
 
     // ===== 播放准备态与失败恢复 =====
     /** prepareAsync 进行中；releaseMediaPlayer 与超时兜底据此判断是否存在非法状态调用 */
@@ -479,6 +492,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private fun setPlayingUi(playing: Boolean) {
         // 全域播放態標記：其他頁面據此顯示「返回唱機」懸浮膠囊
         isEnginePlaying = playing
+        // 拔耳机暂停接收器随播放态启停（含最小化到后台的全局播放期间）
+        setNoisyReceiverActive(playing)
         if (playing) {
             tvPlayPauseLabel.text = "⏸ 暂停聆听"
             if (!isCassetteMode) {
@@ -1104,6 +1119,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build(),
             )
+            .setOnAudioFocusChangeListener(audioFocusChangeListener)
             .build()
             .also { audioFocusRequest = it }
         return audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
@@ -1111,6 +1127,98 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     private fun abandonAudioFocus() {
         audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+    }
+
+    /**
+     * 音频焦点变化：来电/导航等瞬时丢失 → 暂停并在焦点恢复后自动续播；
+     * 可闪避丢失（提示音等）→ 压低音量继续；永久丢失（用户转投其他播放器且未返回）→ 停播并释放。
+     */
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                focusResumeOnGain = false
+                duckedVolume = false
+                abandonAudioFocus()
+                stopEngineForFocusLoss()
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                if (isPlaying) {
+                    focusResumeOnGain = true
+                    pausePlaybackForFocus()
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                if (isPlaying) {
+                    duckedVolume = true
+                    mediaPlayer?.setVolume(0.18f, 0.18f)
+                }
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (duckedVolume) {
+                    duckedVolume = false
+                    mediaPlayer?.setVolume(1f, 1f)
+                } else if (focusResumeOnGain) {
+                    focusResumeOnGain = false
+                    resumePlaybackForFocus()
+                }
+            }
+        }
+    }
+
+    /** 与手动暂停同口径：暂停引擎与 UI；Preparing 态调 pause 非法，直接释放复位到可重试态 */
+    private fun pausePlaybackForFocus() {
+        if (isPreparing) {
+            stopEngineForFocusLoss()
+            return
+        }
+        val mp = mediaPlayer ?: return
+        if (mp.isPlaying) mp.pause()
+        isPlaying = false
+        pausePreviewTimer()
+        setPlayingUi(false)
+    }
+
+    private fun resumePlaybackForFocus() {
+        val mp = mediaPlayer ?: return
+        mp.start()
+        isPlaying = true
+        setPlayingUi(true)
+        handler.post(playRunnable)
+        resumePreviewTimerIfAny()
+    }
+
+    /** 焦点永久丢失或缓冲中遭焦点抢占：释放引擎并复位 UI 到可重试态 */
+    private fun stopEngineForFocusLoss() {
+        releaseMediaPlayer()
+        isPlaying = false
+        setPlayingUi(false)
+        tvPlayPauseLabel.text = "▶ 开始放唱"
+        updatePlaybackProgress()
+    }
+
+    /** 拔耳机/断开蓝牙（AUDIO_BECOMING_NOISY）立即暂停，避免音乐突然外放 */
+    private val becomingNoisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY && isPlaying) {
+                focusResumeOnGain = false
+                pausePlaybackForFocus()
+            }
+        }
+    }
+
+    private fun setNoisyReceiverActive(active: Boolean) {
+        if (active && !noisyReceiverRegistered) {
+            ContextCompat.registerReceiver(
+                this,
+                becomingNoisyReceiver,
+                IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY),
+                ContextCompat.RECEIVER_NOT_EXPORTED,
+            )
+            noisyReceiverRegistered = true
+        } else if (!active && noisyReceiverRegistered) {
+            runCatching { unregisterReceiver(becomingNoisyReceiver) }
+            noisyReceiverRegistered = false
+        }
     }
 
     private fun releaseMediaPlayer() {
@@ -1219,6 +1327,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         handler.removeCallbacks(previewStopRunnable)
         releaseMediaPlayer()
         abandonAudioFocus()
+        setNoisyReceiverActive(false)
+        focusResumeOnGain = false
+        duckedVolume = false
         if (isFinishing) isEnginePlaying = false
     }
 

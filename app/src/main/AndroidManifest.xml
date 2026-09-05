@@ -108,6 +108,7 @@
         <activity
             android:name=".VinylCassettePlayerActivity"
             android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:exported="true" />
         <activity
             android:name=".MindprintTopologyActivity"
