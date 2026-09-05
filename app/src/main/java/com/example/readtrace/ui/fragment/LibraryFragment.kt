@@ -312,12 +312,16 @@ class LibraryFragment : Fragment() {
 
     private fun renderDynamicTags(filteredBooks: List<Book>) {
         val tagCounts = mutableMapOf<String, Int>()
+        // 年份类标签（如「2024年」）与「待看清单」（愿望单/想读状态已承载）不入分类筛选
+        val yearTagRegex = Regex("^\\d{4}年?$")
         filteredBooks.forEach { book ->
             book.tags.forEach { tag ->
                 // 番剧分类下的标签按用户偏好白名单过滤，
                 // 只保留「京阿尼 / 麻枝准 / 骨头社 / 催泪神作 / 治愈」
                 if (selectedMediaType == MediaType.ANIME && !ANIME_TAG_WHITELIST.contains(tag)) return@forEach
-                tagCounts[tag] = (tagCounts[tag] ?: 0) + 1
+                val clean = tag.trim()
+                if (clean.isEmpty() || yearTagRegex.matches(clean) || clean == "待看清单") return@forEach
+                tagCounts[clean] = (tagCounts[clean] ?: 0) + 1
             }
         }
         val tagList = tagCounts.filter { it.value > 0 }.toList().sortedByDescending { it.second }

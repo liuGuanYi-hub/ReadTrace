@@ -3062,11 +3062,13 @@ if (oldVersion < 13) {
      */
     fun getAllUniqueTags(): List<Pair<String, Int>> {
         val tagCountMap = mutableMapOf<String, Int>()
+        // 年份类标签（如「2024年」）与「待看清单」（愿望单/想读状态已承载）不入标签统计
+        val yearTagRegex = Regex("^\\d{4}年?$")
         val books = getBooks()
         books.forEach { book ->
             book.tags.forEach { tag ->
                 val clean = tag.trim()
-                if (clean.isNotEmpty()) {
+                if (clean.isNotEmpty() && !yearTagRegex.matches(clean) && clean != "待看清单") {
                     tagCountMap[clean] = (tagCountMap[clean] ?: 0) + 1
                 }
             }
