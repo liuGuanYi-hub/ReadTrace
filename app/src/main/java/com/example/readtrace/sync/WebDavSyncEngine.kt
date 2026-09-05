@@ -105,6 +105,9 @@ object WebDavSyncEngine {
         }
         val clientConfig = toClientConfig(config)
 
+        // 0. 先确保远端目录存在：部分服务器对不存在的父集合直接 PUT 会返回 409（P38-G1）
+        WebDavClient.makeCollection(clientConfig, REMOTE_DIR)
+
         // 1. 拉取远端备份（404 = 首次同步）
         val remote = WebDavClient.getText(clientConfig, REMOTE_BACKUP)
         if (!remote.success) {
@@ -128,15 +131,23 @@ object WebDavSyncEngine {
         val dbHelper = BookDatabaseHelper.getInstance(context)
         val fullBackup = dbHelper.getAllFullWorkBackups()
         val pushJson = BackupHelper.generateJsonBackup(fullBackup)
-        val put = WebDavClient.putText(clientConfig, REMOTE_BACKUP, pushJson)
+        var put = WebDavClient.putText(clientConfig, REMOTE_BACKUP, pushJson)
         if (!put.success) {
-            return SyncResult(false, pulledWorks, pulledNotes, 0, firstSync, "上传失败: ${put.message ?: "HTTP ${put.httpCode}"}")
+            // 上传失败：重建目录后重试一次（覆盖首次同步时序问题与瞬时 5xx，P38-G1）
+            WebDavClient.makeCollection(clientConfig, REMOTE_DIR)
+            put = WebDavClient.putText(clientConfig, REMOTE_BACKUP, pushJson)
+        }
+        if (!put.success) {
+            val message = "上传失败: ${put.message ?: "HTTP ${put.httpCode}"}"
+            UserPreferencesManager.setWebDavLastSyncError(context, message)
+            return SyncResult(false, pulledWorks, pulledNotes, 0, firstSync, message)
         }
 
         // 4. 更新远端清单
         WebDavClient.makeCollection(clientConfig, REMOTE_DIR)
         WebDavClient.putText(clientConfig, REMOTE_MANIFEST, buildManifest(context, fullBackup.size))
         UserPreferencesManager.setWebDavLastSyncAt(context, System.currentTimeMillis())
+        UserPreferencesManager.setWebDavLastSyncError(context, null)
 
         return SyncResult(
             success = true,

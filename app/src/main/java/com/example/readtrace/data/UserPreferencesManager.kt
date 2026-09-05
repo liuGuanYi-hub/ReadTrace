@@ -87,6 +87,7 @@ object UserPreferencesManager {
     private const val KEY_WEBDAV_PASSWORD = "webdav_password"
     private const val KEY_WEBDAV_LAST_SYNC = "webdav_last_sync_at"
     private const val KEY_WEBDAV_AUTO_SYNC = "webdav_auto_sync_enabled"
+    private const val KEY_WEBDAV_LAST_SYNC_ERROR = "webdav_last_sync_error"
 
     fun getWebDavServer(context: Context): String =
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
@@ -123,6 +124,16 @@ object UserPreferencesManager {
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
             .edit().putLong(KEY_WEBDAV_LAST_SYNC, timestamp).apply()
     }
+
+    /** 最近一次自动同步的失败原因（null=上次同步成功）；静默失败从此可追溯（P38-G1） */
+    fun setWebDavLastSyncError(context: Context, message: String?) {
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .edit().putString(KEY_WEBDAV_LAST_SYNC_ERROR, message).apply()
+    }
+
+    fun getWebDavLastSyncError(context: Context): String? =
+        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+            .getString(KEY_WEBDAV_LAST_SYNC_ERROR, null)
 
     fun isWebDavAutoSyncEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
