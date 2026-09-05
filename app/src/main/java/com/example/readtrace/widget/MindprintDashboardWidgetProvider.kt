@@ -22,6 +22,7 @@ import com.example.readtrace.model.BookMindprint
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -52,6 +53,13 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
     )
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        // P38-G12：全量查库、阅读会话统计与雷达位图绘制移交后台线程，主线程仅派发
+        updateExecutor.execute {
+            updateAllWidgets(context.applicationContext, appWidgetManager, appWidgetIds)
+        }
+    }
+
+    private fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         val databaseHelper = BookDatabaseHelper.getInstance(context)
         val allBooks = databaseHelper.getBooks()
 
@@ -410,5 +418,9 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
             val py = cy + r * sin(angle.toDouble()).toFloat()
             canvas.drawCircle(px, py, 4f, dotPaint)
         }
+    }
+
+    companion object {
+        private val updateExecutor = Executors.newSingleThreadExecutor()
     }
 }

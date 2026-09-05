@@ -14,11 +14,15 @@ import com.example.readtrace.R
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.util.CoverImageHelper
+import java.util.concurrent.Executors
 
 class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        updateAllWidgets(context, appWidgetManager, appWidgetIds)
+        // P38-G12：查库与位图解码移交后台线程，主线程仅派发（RemoteViews 更新允许跨线程提交）
+        updateExecutor.execute {
+            updateAllWidgets(context.applicationContext, appWidgetManager, appWidgetIds)
+        }
     }
 
     private fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -122,6 +126,8 @@ class CurrentlyReadingWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        private val updateExecutor = Executors.newSingleThreadExecutor()
+
         fun refreshWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, CurrentlyReadingWidgetProvider::class.java))
