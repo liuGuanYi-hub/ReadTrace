@@ -2874,6 +2874,57 @@ P35 实施后：
 - **涉及**：`GameCartridgePosterActivity.kt`、卡面封面渲染与导出管线。
 - **验收**：调整位置后保存至相册的卡带与预览一致；重启后偏移保留。
 
+---
+
+## 48. P38 第三轮全库扫探：数据安全与性能纵深 (Data-Safety & Performance Deep Sweep)
+
+> 立项时间：2026-09-05。三路并行代码审计（播放器链路 / 全局性能 / 未审计模块），全部证据带行号。P37 六项完成后自动启动修复。
+
+### 48.1 确认缺陷矩阵
+
+| 编号 | 严重度 | 问题 | 位置 |
+| :-: | :-: | :- | :- |
+| G1 | 高·数据 | WebDAV 首次同步 PUT 早于 MKCOL（父集合不存在 PUT 返 409）静默失败无重试；合并为并集、删除永不传播（作品复活） | `WebDavSyncEngine.kt:131/137, 118-134` |
+| G2 | 高·数据 | 备份导出遗漏 sourceType/sourceId/description/remoteRating/isDeleted/deletedAt——恢复后来源/描述/远程评分丢失、回收站状态丢失，并与 G1 叠加成「删除复活」闭环 | `BackupHelper.kt:53-71`（导入端 :2924 已读这些字段） |
+| G3 | 高·稳定 | 备份导出/导入全在主线程（readText + 全量 JSON 拼接 + parse），大库必 ANR/OOM | `BackupActivity.kt:232-258/277` |
+| G4 | 高·数据 | 社区点赞/留言/发布展厅全部纯内存集合，进程死全丢；种子每次冷启动重建；addComment 不递增 commentCount | `CommunityRepository.kt:15-17/43-72` |
+| G5 | 高·播放 | playCloudUrl 创建新 player 前未 release 旧实例：快速切歌产生孤儿音轨双声叠播；孤儿 onPrepared 触发 updatePlaybackProgress 读 Preparing 态 position 有崩溃窗口 | `VinylCassettePlayerActivity.kt:880/936/901/1288` |
+| G6 | 中·播放 | E3 取曲竞态：本地搜索回退期门禁空窗（L597 先置 false 再进搜索）、回调闭包持旧 work 无校验、isFetchingPreview 静默吞新请求——最小修复为云/本地双代际 token | `VinylCassettePlayerActivity.kt:581-626/862-871/1268-1275` |
+| G7 | 中 | 速记弹窗 dismiss 作用在错误视图 tag 上永不关闭（rootView.tag 为 null），连点重复入库；insertQuickWork 无查重 | `QuickLogBottomSheet.kt:455/389` |
+| G8 | 中 | 速记英文名解析截断：「读完 Snow Crash 9分」只入库《Snow》 | `NaturalQuickAddParser.kt:85-89` |
+| G9 | 中 | fetchCoverBitmap 裸 Thread 无池无取消 + 原图整张解码无 inSampleSize（picUrl 可达 3000px） | `NeteasePreviewHelper.kt:182-187` |
+| G10 | 中 | 焦点永久丢失释放后，在途取链回调落地仍自动 playCloudUrl 抢焦点起播 | `VinylCassettePlayerActivity.kt:1268-1275` |
+| G11 | 中 | 备份导入 mindprint 无条件 REPLACE 不比 updatedAt，旧备份覆盖本地新数据 | `BookDatabaseHelper.kt:2993-2995` |
+| G12 | 中 | 小组件 onUpdate 主线程查库 + decodeBitmapFromFile 无下采样 | `CurrentlyReadingWidgetProvider.kt:26/58-64`、`MindprintDashboardWidgetProvider.kt:56/64-67` |
+| G13 | 安全 | WebDAV 密码明文 SharedPreferences | `UserPreferencesManager.kt:109-116` |
+| G14 | 安全 | OTP 用 Random(nanoTime) 可预测，验证期无错误次数限制可暴力试码 | `PhoneAuthManager.kt:174-178/143-157` |
+| G15 | 低 | 非 finishing 销毁（旋转）isEnginePlaying 残留致幽灵胶囊——应无条件复位（E2 补刀） | `VinylCassettePlayerActivity.kt:1334` |
+| G16 | 低 | 云播放销毁时阅读会话误记到本地 currentIndex 作品头上 | `VinylCassettePlayerActivity.kt:1316` |
+| G17 | 低 | 详情页角色谱逐条 insert 无批量事务；DiscoverActivity 批量确认 N+1 主线程查询 | `BookDetailActivity.kt:349-362`、`DiscoverActivity.kt:398-401` |
+
+### 48.2 性能矩阵
+
+| 编号 | 问题 | 位置 |
+| :-: | :- | :- |
+| P-1 | 详情页 onResume 主线程串行 12 次查询（含 3 次重复查询）+ 相似度全表 ×2——每次回详情页整页卡顿 | `BookDetailActivity.kt:206-231`、`BookSimilarityEngine.kt:23/26` |
+| P-2 | 主页 renderFavoriteStrip 按媒介 5 连查 + 首帧前同步重活叠加 | `HubFragment.kt:446/193-199` |
+| P-3 | 常驻底栏 FluidSpotlightNavBar 每帧 new RadialGradient（glow 动画期间 GC 压力最大） | `FluidSpotlightNavBar.kt:336-346` |
+| P-4 | AudioVisualizerParticleView / CassetteDeckView onDraw 每帧 new Shader | `AudioVisualizerParticleView.kt:137-145`、`CassetteDeckView.kt:131-139` |
+| P-5 | TrashActivity/MediaHubActivity 主线程裸查询应走 getCachedBooks | `TrashActivity.kt:107`、`MediaHubActivity.kt:309` |
+
+### 48.3 分阶段路线图
+
+| 阶段 | 任务 | 验收 |
+| :- | :- | :- |
+| **Phase 1 数据安全** | G2+G3（备份字段+后台线程）、G1（MKCOL 先行+重试+墓碑语义）、G4（社区持久化）、G11（mindprint 择新） | 编译+逻辑核验；备份-恢复字段往返一致；删除不再复活 |
+| **Phase 2 播放器正确性** | G5+G6+G9+G10+G15+G16（代际 token 一揽子） | 连点 20 次无叠音/无崩溃/无卡死 |
+| **Phase 3 性能** | P-1→P-5 | 大库详情页 onResume 无卡顿；onDraw 零每帧分配 |
+| **Phase 4 安全加固** | G13（EncryptedSharedPreferences）、G14（SecureRandom+限次）、G12（小组件后台化）、G7+G8（速记） | 密码非明文落盘；OTP 限 5 次 |
+
+### 48.4 审计确认良好项（免重复劳动）
+
+封面管线（LRU+磁盘缓存+镜像轮询+图片校验+内置资产优先）、数据库单例 close 保护、runPresetSeedsOnce 守卫、小组件 PendingIntent FLAG_IMMUTABLE 与空库分支、OTP 计时器生命周期、账号 JSON 迁移兼容、导出位图均一次性触发、Aurora/FilmGrain 纹理预热做法。
+
 ### 47.7 F6 云歌单播放标题/封面错误与星空占位升级
 
 - **现象**：播放「我的歌单」云曲目时，标题与封面仍是内置预设作品的（aa221ac 曾修复过标题联动，疑似存在残留路径或回归）；黑胶中心封面退回程序化星空占位图（f2ad1cc），观感差。
