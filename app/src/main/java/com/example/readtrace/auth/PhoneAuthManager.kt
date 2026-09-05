@@ -3,8 +3,8 @@ package com.example.readtrace.auth
 import android.os.Handler
 import android.os.Looper
 import com.example.readtrace.util.AliyunSmsClient
+import java.security.SecureRandom
 import java.util.concurrent.Executors
-import kotlin.random.Random
 
 /**
  * 手机号 6 位先锋验证码速登管理器
@@ -50,12 +50,16 @@ class PhoneAuthManager private constructor() {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val secureRandom = SecureRandom()
 
     /** 最近一次下发的验证码会话 */
     private var pendingPhone: String = ""
     private var pendingCode: String = ""
     private var pendingExpireAt: Long = 0L
     private var lastRequestAt: Long = 0L
+
+    /** 当前验证码已被输错的次数（P38-G14：超过上限即作废，防暴力试码） */
+    private var pendingFailedAttempts = 0
 
     /**
      * 是否为合法的中国大陆手机号
@@ -107,6 +111,7 @@ class PhoneAuthManager private constructor() {
             pendingCode = code
             pendingExpireAt = now + CODE_VALID_MILLIS
             lastRequestAt = now
+            pendingFailedAttempts = 0
 
             // 正式通道（阿里云短信）已配置时真实下发；否则沙盒明文回传。
             // 正式通道发送失败时自动降级沙盒，保证验证码链路不中断。
@@ -150,7 +155,13 @@ class PhoneAuthManager private constructor() {
             return VerifyResult.Failure("验证码已过期，请重新获取")
         }
         if (!pendingCode.equals(code, ignoreCase = true)) {
-            return VerifyResult.Failure("验证码不正确")
+            // P38-G14：单条验证码最多允许 5 次错误尝试，超限立即作废防暴力试码
+            pendingFailedAttempts++
+            if (pendingFailedAttempts >= MAX_VERIFY_ATTEMPTS) {
+                clearPending()
+                return VerifyResult.Failure("错误次数过多，请重新获取验证码")
+            }
+            return VerifyResult.Failure("验证码不正确（剩余 ${MAX_VERIFY_ATTEMPTS - pendingFailedAttempts} 次机会）")
         }
         clearPending()
         return VerifyResult.Success
@@ -169,12 +180,13 @@ class PhoneAuthManager private constructor() {
         pendingPhone = ""
         pendingCode = ""
         pendingExpireAt = 0L
+        pendingFailedAttempts = 0
     }
 
+    /** P38-G14：SecureRandom 取代 Random(nanoTime)，验证码不可预测 */
     private fun generateCode(): String {
-        val random = Random(System.nanoTime())
         return buildString {
-            repeat(CODE_LENGTH) { append(random.nextInt(10)) }
+            repeat(CODE_LENGTH) { append(secureRandom.nextInt(10)) }
         }
     }
 
@@ -185,6 +197,7 @@ class PhoneAuthManager private constructor() {
         const val COOLDOWN_SECONDS = 60
         private const val CODE_VALID_MILLIS = 5 * 60 * 1000L
         private const val SIMULATED_NETWORK_DELAY_MS = 700L
+        private const val MAX_VERIFY_ATTEMPTS = 5
 
         @Volatile
         private var instance: PhoneAuthManager? = null

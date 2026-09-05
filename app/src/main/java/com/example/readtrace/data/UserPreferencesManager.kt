@@ -85,6 +85,7 @@ object UserPreferencesManager {
     private const val KEY_WEBDAV_SERVER = "webdav_server"
     private const val KEY_WEBDAV_USER = "webdav_user"
     private const val KEY_WEBDAV_PASSWORD = "webdav_password"
+    private const val SECURE_KEY_WEBDAV_PASSWORD = "webdav_password"
     private const val KEY_WEBDAV_LAST_SYNC = "webdav_last_sync_at"
     private const val KEY_WEBDAV_AUTO_SYNC = "webdav_auto_sync_enabled"
     private const val KEY_WEBDAV_LAST_SYNC_ERROR = "webdav_last_sync_error"
@@ -107,13 +108,26 @@ object UserPreferencesManager {
             .edit().putString(KEY_WEBDAV_USER, user).apply()
     }
 
-    fun getWebDavPassword(context: Context): String =
-        context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+    /** P38-G13：密码改走 AndroidKeyStore 加密仓；首次读取时把旧版本明文迁入并抹掉痕迹 */
+    fun getWebDavPassword(context: Context): String {
+        val secure = SecurePrefs.get(context, SECURE_KEY_WEBDAV_PASSWORD)
+        if (secure.isNotEmpty()) return secure
+
+        val legacy = context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
             .getString(KEY_WEBDAV_PASSWORD, "").orEmpty()
+        if (legacy.isNotEmpty()) {
+            SecurePrefs.put(context, SECURE_KEY_WEBDAV_PASSWORD, legacy)
+            context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
+                .edit().remove(KEY_WEBDAV_PASSWORD).apply()
+        }
+        return legacy
+    }
 
     fun setWebDavPassword(context: Context, password: String) {
+        SecurePrefs.put(context, SECURE_KEY_WEBDAV_PASSWORD, password)
+        // 无论如何都清掉旧字段，防加密写入失败时明文残留
         context.getSharedPreferences(PREFS_WEBDAV, Context.MODE_PRIVATE)
-            .edit().putString(KEY_WEBDAV_PASSWORD, password).apply()
+            .edit().remove(KEY_WEBDAV_PASSWORD).apply()
     }
 
     fun getWebDavLastSyncAt(context: Context): Long =
