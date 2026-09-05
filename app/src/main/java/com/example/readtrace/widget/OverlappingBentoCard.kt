@@ -32,7 +32,12 @@ class OverlappingBentoCard @JvmOverloads constructor(
             invalidate()
         }
 
-    var cardBgColor: Int = Color.parseColor("#1C1E26")
+    /** 卡体底色默认跟随日夜色牌（readtrace_glass：日间白玻璃 / 夜间深夜玻璃）。
+     *  之前硬编码 #1C1E26 深色，在模拟器 -gpu host 等渲染层合成异常场景会裸露成整块黑卡 */
+    private val themeGlassColor: Int =
+        androidx.core.content.ContextCompat.getColor(context, com.example.readtrace.R.color.readtrace_glass)
+
+    var cardBgColor: Int = themeGlassColor
         set(value) {
             field = value
             bgPaint.color = value
@@ -53,7 +58,7 @@ class OverlappingBentoCard @JvmOverloads constructor(
 
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.parseColor("#1C1E26")
+        color = themeGlassColor
     }
 
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
