@@ -42,7 +42,7 @@ object BackupHelper {
         val root = JSONObject().apply {
             put("app", "ReadTrace")
             put("version", "3.0")
-            put("schemaVersion", 4)
+            put("schemaVersion", 5)
             put("exportedAt", OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
             put("worksCount", items.size)
             put("notesCount", items.sumOf { it.notes.size })
@@ -69,6 +69,13 @@ object BackupHelper {
                     if (book.buyPrice != null) put("buyPrice", book.buyPrice)
                     put("createdAt", book.createdAt)
                     put("updatedAt", book.updatedAt)
+                    // v5：来源与软删除元数据——恢复来源标注/描述/远程评分，删除语义可跨设备传播（P38-G2）
+                    put("sourceType", book.sourceType.orEmpty())
+                    put("sourceId", book.sourceId.orEmpty())
+                    put("description", book.description.orEmpty())
+                    if (book.remoteRating != null) put("remoteRating", book.remoteRating)
+                    put("isDeleted", book.isDeleted)
+                    put("deletedAt", book.deletedAt.orEmpty())
 
                     val notesArray = JSONArray()
                     work.notes.forEach { note ->
@@ -79,6 +86,8 @@ object BackupHelper {
                             put("chapter", note.chapter.orEmpty())
                             put("createdAt", note.createdAt)
                             put("updatedAt", note.updatedAt)
+                            put("isDeleted", note.isDeleted)
+                            put("deletedAt", note.deletedAt.orEmpty())
                         }
                         notesArray.put(noteObj)
                     }
@@ -219,6 +228,12 @@ object BackupHelper {
             val buyPrice = if (bookObj.has("buyPrice") && !bookObj.isNull("buyPrice")) bookObj.getDouble("buyPrice") else null
             val createdAt = bookObj.optString("createdAt")
             val updatedAt = bookObj.optString("updatedAt")
+            val isDeleted = bookObj.optBoolean("isDeleted", false)
+            val deletedAt = bookObj.optString("deletedAt").trim().takeIf { it.isNotEmpty() }
+            val sourceType = bookObj.optString("sourceType").trim().takeIf { it.isNotEmpty() }
+            val sourceId = bookObj.optString("sourceId").trim().takeIf { it.isNotEmpty() }
+            val remoteRating = if (bookObj.has("remoteRating") && !bookObj.isNull("remoteRating")) bookObj.getDouble("remoteRating") else null
+            val description = bookObj.optString("description").trim().takeIf { it.isNotEmpty() }
 
             val book = Book(
                 id = 0,
@@ -240,6 +255,12 @@ object BackupHelper {
                 buyPrice = buyPrice,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
+                isDeleted = isDeleted,
+                deletedAt = deletedAt,
+                sourceType = sourceType,
+                sourceId = sourceId,
+                remoteRating = remoteRating,
+                description = description,
             )
 
             val notesList = mutableListOf<Note>()
@@ -266,6 +287,8 @@ object BackupHelper {
                             chapter = chapter,
                             createdAt = noteCreatedAt,
                             updatedAt = noteUpdatedAt,
+                            isDeleted = noteObj.optBoolean("isDeleted", false),
+                            deletedAt = noteObj.optString("deletedAt").trim().takeIf { it.isNotEmpty() },
                         ),
                     )
                 }

@@ -2916,6 +2916,19 @@ if (oldVersion < 13) {
                 // 1. 查找是否存在同名且同作者/创作者的作品
                 val existingBookId = findBookId(db, book.title, book.author)
                 val targetBookId = if (existingBookId != null) {
+                    // 软删除墓碑传播：备份标记已删除时，把本地仍存活的同名作品一并软删，
+                    // 使 WebDAV/备份恢复场景下删除语义可跨设备生效，不再「删除复活」（P38-G1/G2）
+                    if (book.isDeleted) {
+                        db.update(
+                            TABLE_BOOKS,
+                            ContentValues().apply {
+                                put(COLUMN_IS_DELETED, 1)
+                                putNullable(COLUMN_DELETED_AT, book.deletedAt ?: currentTimestamp())
+                            },
+                            "$COLUMN_ID = ?",
+                            arrayOf(existingBookId.toString()),
+                        )
+                    }
                     existingBookId
                 } else {
                     val values = book.toContentValues().apply {
@@ -2989,9 +3002,15 @@ if (oldVersion < 13) {
                         }
                     }
 
-                    // 7. 六维心智模型（仅当备份中显式包含时覆盖，UNIQUE(book_id) + REPLACE 天然幂等）
+                    // 7. 六维心智模型：仅当备份版本比本地新（或本地没有）时覆盖，
+                    // 防止导入旧备份把本地较新的六维评分抹掉（P38-G11）
                     work.mindprint?.let { mindprint ->
-                        saveMindprint(mindprint.copy(bookId = targetBookId))
+                        val incoming = mindprint.copy(bookId = targetBookId)
+                        val existingMindprint = getMindprint(targetBookId)
+                        val localUpdatedAt = existingMindprint?.updatedAt.orEmpty()
+                        val shouldReplace = existingMindprint == null ||
+                            (incoming.updatedAt.isNotBlank() && incoming.updatedAt > localUpdatedAt)
+                        if (shouldReplace) saveMindprint(incoming)
                     }
 
                     // 8. 黑胶关联曲目（按 标题 + 序号 去重；跨机恢复时 content:// 指向的本地文件可能失效，播放层已兜底）

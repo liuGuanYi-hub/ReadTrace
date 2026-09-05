@@ -250,16 +250,24 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun importDataFromFile(uri: Uri) {
-        runCatching {
-            val jsonString = contentResolver.openInputStream(uri)?.use { inputStream ->
-                inputStream.bufferedReader(Charsets.UTF_8).readText()
-            } ?: return
-
-            val (items, exportedAt) = BackupHelper.parseJsonBackup(jsonString)
-            if (items.isEmpty()) {
-                Toast.makeText(this, R.string.backup_import_empty, Toast.LENGTH_SHORT).show()
-                return
-            }
+        // P38-G3：读取/解析全量 JSON 是重活，移入后台线程；确认弹窗回主线程
+        Thread {
+            val parseResult = runCatching {
+                val jsonString = contentResolver.openInputStream(uri)?.use { inputStream ->
+                    inputStream.bufferedReader(Charsets.UTF_8).readText()
+                }
+                jsonString?.let { BackupHelper.parseJsonBackup(it) }
+            }.getOrNull()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                val (items, exportedAt) = parseResult ?: run {
+                    Toast.makeText(this, R.string.backup_import_failed, Toast.LENGTH_LONG).show()
+                    return@runOnUiThread
+                }
+                if (items.isEmpty()) {
+                    Toast.makeText(this, R.string.backup_import_empty, Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
 
             val highOrderCount = items.sumOf {
                 it.sessions.size + it.characters.size + it.outlines.size + it.locations.size + it.audioTracks.size +
@@ -274,21 +282,25 @@ class BackupActivity : AppCompatActivity() {
                 confirmText = "立即合入",
                 isDanger = false,
                 onConfirm = {
-                    val (importedWorks, importedNotes) = databaseHelper.importFullBackup(items)
-                    refreshStats()
-                    ElegantConfirmDialog.show(
-                        activity = this,
-                        title = "🎉 恢复完成",
-                        message = getString(R.string.backup_import_success_format, importedWorks, importedNotes),
-                        confirmText = "我知道了",
-                        showCancel = false,
-                        onConfirm = {},
-                    )
+                    Thread {
+                        val (importedWorks, importedNotes) = databaseHelper.importFullBackup(items)
+                        runOnUiThread {
+                            if (isFinishing || isDestroyed) return@runOnUiThread
+                            refreshStats()
+                            ElegantConfirmDialog.show(
+                                activity = this,
+                                title = "🎉 恢复完成",
+                                message = getString(R.string.backup_import_success_format, importedWorks, importedNotes),
+                                confirmText = "我知道了",
+                                showCancel = false,
+                                onConfirm = {},
+                            )
+                        }
+                    }.start()
                 },
             )
-        }.onFailure {
-            Toast.makeText(this, R.string.backup_import_failed, Toast.LENGTH_LONG).show()
         }
+    }.start()
     }
 
     private fun importCsvFromFile(uri: Uri) {
