@@ -2,6 +2,8 @@ package com.example.readtrace.util
 
 import android.content.Context
 import android.os.Handler
+
+import java.util.concurrent.Executors
 import android.os.Looper
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -173,21 +175,29 @@ object NeteasePreviewHelper {
         }.start()
     }
 
-    /** 拉取专辑封面位图（带 Referer/UA，回调主线程；失败回调 null） */
+    private val coverExecutor = Executors.newFixedThreadPool(2)
+
+    /** 拉取专辑封面位图（带 Referer/UA，共享线程池 + 按宽降采样防 OOM，回调主线程；失败回调 null） */
     fun fetchCoverBitmap(url: String, onResult: (android.graphics.Bitmap?) -> Unit) {
         val handler = Handler(Looper.getMainLooper())
         if (url.isBlank()) {
             handler.post { onResult(null) }
             return
         }
-        Thread {
+        coverExecutor.execute {
             val bmp = runCatching {
-                httpGet(url, referer = "https://music.163.com/").inputStream.use {
-                    android.graphics.BitmapFactory.decodeStream(it)
-                }
+                val bytes = httpGet(url, referer = "https://music.163.com/").inputStream.use { it.readBytes() }
+                val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                if (bounds.outWidth <= 0) return@runCatching null
+                // 长边压到 720px 内，防 3000px 原图整张解码
+                var sample = 1
+                while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 720) sample *= 2
+                val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
             }.getOrNull()
             handler.post { onResult(bmp) }
-        }.start()
+        }
     }
 
     /** 按曲目 id 取可播放直链（会员 Cookie 下为完整曲目） */

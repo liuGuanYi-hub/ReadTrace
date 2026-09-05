@@ -113,6 +113,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     /** BECOMING_NOISY 接收器是否已注册（随播放态启停，覆盖最小化到后台的全局播放期间） */
     private var noisyReceiverRegistered = false
 
+    /** 云歌单操作代际：切歌/暂停/停机自增，过期异步回调据此自我作废（P38-G5/G6/G10） */
+    private var cloudOpSeq = 0
+
+    /** 本地作品取曲代际：切换作品/暂停/停机自增，防止旧作品回调覆盖新作品（P38-G6） */
+    private var workOpSeq = 0
+
     // ===== 播放准备态与失败恢复 =====
     /** prepareAsync 进行中；releaseMediaPlayer 与超时兜底据此判断是否存在非法状态调用 */
     private var isPreparing = false
@@ -129,7 +135,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         isPreparing = false
         val cloudTrack = preparingCloudTrack
         if (cloudTrack != null) {
-            handleCloudPlaybackFailure(cloudTrack, "⏳ 音源准备超时，正在重新取链…")
+            handleCloudPlaybackFailure(cloudTrack, "⏳ 音源准备超时，正在重新取链…", cloudOpSeq)
             return@Runnable
         }
         // 本地曲路径也可能是过期的在线缓存直链（含「完整播放」）：自动删链重取，避免死循环缓冲
@@ -525,6 +531,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             isPlaying = if (mp.isPlaying) {
                 mp.pause()
                 pausePreviewTimer()
+                // 手动暂停同样作废在途回调（P38-G10）
+                cloudOpSeq++
+                workOpSeq++
                 false
             } else {
                 mp.start()
@@ -578,6 +587,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底；绑定会员 Cookie 后 VIP 曲可完整播放） */
     private fun fetchNeteasePreview(work: Book) {
+        val seq = ++workOpSeq
         if (isFetchingPreview) return
         isFetchingPreview = true
         tvPlayPauseLabel.text = "⏳ 取曲中..."
@@ -594,25 +604,32 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     album = "",
                 )
                 com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamResult(this, directTrack) { result ->
-                    isFetchingPreview = false
-                    if (isDestroyed) return@fetchTrackStreamResult
+                    if (seq != workOpSeq || isDestroyed) {
+                        // 代际过期：本次回调作废，门禁复位交给当前代
+                        if (!isDestroyed) isFetchingPreview = workOpSeq == seq
+                        return@fetchTrackStreamResult
+                    }
                     if (result != null && result.streamUrl.isNotBlank()) {
                         applyFetchedPreview(work, result)
                         return@fetchTrackStreamResult
                     }
-                    // 按 ID 直取失败（版权变动/未绑 Cookie）：回退搜索匹配路径
-                    performNeteasePreviewSearch(work)
+                    // 按 ID 直取失败（版权变动/未绑 Cookie）：回退搜索匹配路径（门禁保持关闭到搜索结束）
+                    performNeteasePreviewSearch(work, seq)
                 }
                 return
             }
         }
-        performNeteasePreviewSearch(work)
+        performNeteasePreviewSearch(work, seq)
     }
 
     /** 搜索匹配路径：按「曲名+歌手」搜网易云曲库取可播放源（导入歌 ID 直取失败时的兑底） */
-    private fun performNeteasePreviewSearch(work: Book) {
+    private fun performNeteasePreviewSearch(work: Book, seq: Int) {
         Toast.makeText(this, "正在为《${work.title}》联网检索试听片段...", Toast.LENGTH_SHORT).show()
         com.example.readtrace.util.NeteasePreviewHelper.fetchPlayablePreview(this, work.title, work.author) { result ->
+            if (seq != workOpSeq || isDestroyed) {
+                isFetchingPreview = false
+                return@fetchPlayablePreview
+            }
             isFetchingPreview = false
             if (isDestroyed) return@fetchPlayablePreview
             if (result == null) {
@@ -631,6 +648,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         work: Book,
         result: com.example.readtrace.util.NeteasePreviewHelper.PreviewResult,
     ) {
+        // 作品货币性校验：切歌后旧作品的取链回调到此作废，防止旧曲目覆盖新作品并起播（P38-G6）
+        if (playlist.getOrNull(currentIndex)?.id != work.id) return
         val order = databaseHelper.getAudioTracks(work.id).size
         val suffix = when {
             result.isFullSong -> "完整播放"
@@ -828,6 +847,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(this, "歌单曲目已失效，请重新选择", Toast.LENGTH_SHORT).show()
             return
         }
+        // 新的一次切歌动作使所有在途云回调过期（P38-G5/G6）
+        val seq = ++cloudOpSeq
         // 云歌单曲目无本地短评与封面：切换为星空占位，避免残留上一部本地作品的歌词与封面
         tvQuoteLyrics.text = CLOUD_LYRIC_PLACEHOLDERS[
             kotlin.math.abs(track.name.hashCode()) % CLOUD_LYRIC_PLACEHOLDERS.size,
@@ -860,18 +881,21 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         tvPlayerSubtitle.text = "《${track.name}》· $artist"
         tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}${if (track.artists.isNotBlank()) " - ${track.artists}" else ""}"
         com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
-            if (isDestroyed) return@fetchTrackStreamUrl
+            if (isDestroyed || seq != cloudOpSeq) return@fetchTrackStreamUrl
             if (url.isNullOrBlank()) {
                 Toast.makeText(this, "《${track.name}》暂无可播放源", Toast.LENGTH_SHORT).show()
                 tvPlayPauseLabel.text = "▶ 开始放唱"
                 setPlayingUi(false)
                 return@fetchTrackStreamUrl
             }
-            playCloudUrl(url, track)
+            playCloudUrl(url, track, seq)
         }
     }
 
-    private fun playCloudUrl(url: String, track: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack) {
+    private fun playCloudUrl(url: String, track: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack, seq: Int) {
+        // 入口先释放上一实例：快速切歌时旧 player 若仍在 prepare/播放会成为孤儿音轨双声叠播（P38-G5）
+        releaseMediaPlayer()
+        if (seq != cloudOpSeq) return
         if (!requestAudioFocus()) {
             Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
         }
@@ -891,7 +915,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }.isSuccess
         if (!dataSourceOk) {
             runCatching { player.release() }
-            handleCloudPlaybackFailure(track, "播放源无法访问，已尝试重新取链")
+            handleCloudPlaybackFailure(track, "播放源无法访问，已尝试重新取链", seq)
             return
         }
         isPreparing = true
@@ -899,6 +923,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         handler.removeCallbacks(prepareTimeoutRunnable)
         handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
         player.setOnPreparedListener { mp ->
+            if (seq != cloudOpSeq || mediaPlayer !== player) {
+                // 过期实例：静默释放，不触碰当前会话状态（P38-G5 崩溃窗口修复）
+                runCatching { mp.release() }
+                return@setOnPreparedListener
+            }
             isPreparing = false
             preparingCloudTrack = null
             handler.removeCallbacks(prepareTimeoutRunnable)
@@ -930,7 +959,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             if (isPreparing) tvPlayPauseLabel.text = "⏳ 缓冲中 $percent%"
         }
         player.setOnErrorListener { _, what, extra ->
-            handleCloudPlaybackFailure(track, "播放出错 (code $what/$extra)，正在尝试恢复…")
+            if (seq != cloudOpSeq || mediaPlayer !== player) return@setOnErrorListener true
+            handleCloudPlaybackFailure(track, "播放出错 (code $what/$extra)，正在尝试恢复…", seq)
             true
         }
         mediaPlayer = player
@@ -1174,6 +1204,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (mp.isPlaying) mp.pause()
         isPlaying = false
         pausePreviewTimer()
+        // 暂停即作废在途取链/重试回调：焦点恢复后不再自动抢播（P38-G10）
+        cloudOpSeq++
+        workOpSeq++
         setPlayingUi(false)
     }
 
@@ -1190,6 +1223,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     /** 焦点永久丢失或缓冲中遭焦点抢占：释放引擎并复位 UI 到可重试态 */
     private fun stopEngineForFocusLoss() {
+        cloudOpSeq++
+        workOpSeq++
         releaseMediaPlayer()
         isPlaying = false
         setPlayingUi(false)
@@ -1255,7 +1290,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private fun handleCloudPlaybackFailure(
         track: com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack,
         toastMsg: String?,
+        seq: Int,
     ) {
+        if (seq != cloudOpSeq) return
         releaseMediaPlayer()
         isPlaying = false
         setPlayingUi(false)
@@ -1266,11 +1303,11 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             cloudRetryUsed = true
             tvPlayPauseLabel.text = "⏳ 重新取链..."
             com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
-                if (isDestroyed) return@fetchTrackStreamUrl
+                if (isDestroyed || seq != cloudOpSeq) return@fetchTrackStreamUrl
                 if (url.isNullOrBlank()) {
                     tvPlayPauseLabel.text = "▶ 开始放唱"
                 } else {
-                    playCloudUrl(url, track)
+                    playCloudUrl(url, track, seq)
                 }
             }
         } else {
@@ -1313,7 +1350,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         val elapsedMinutes = ((SystemClock.elapsedRealtime() - sessionStartTimeMs) / 60000L).toInt()
-        val currentBook = playlist.getOrNull(currentIndex)
+        // 云歌单播放时归属其导入作品（按 netease+sourceId 反查），查不到不计入错误作品（P38-G16）
+        val cloudTrack = cloudTracks.getOrNull(cloudIndex)
+        val currentBook = if (cloudTrack != null) {
+            databaseHelper.findBookBySource("netease", cloudTrack.id.toString())?.let {
+                databaseHelper.getBook(it.id)
+            }
+        } else {
+            playlist.getOrNull(currentIndex)
+        }
         if (elapsedMinutes >= 1 && currentBook != null) {
             databaseHelper.insertReadingSession(
                 com.example.readtrace.model.ReadingSession(
@@ -1331,7 +1376,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         setNoisyReceiverActive(false)
         focusResumeOnGain = false
         duckedVolume = false
-        if (isFinishing) isEnginePlaying = false
+        // 引擎随实例销毁而终止：无条件复位，避免旋转/系统回收后残留幽灵胶囊（P38-G15）
+        isEnginePlaying = false
     }
 
     /**
