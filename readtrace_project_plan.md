@@ -2919,7 +2919,7 @@ P35 实施后：
 | **Phase 1 数据安全** | G2+G3（备份字段+后台线程）、G1（MKCOL 先行+重试+墓碑语义）、G4（社区持久化）、G11（mindprint 择新） | 编译+逻辑核验；备份-恢复字段往返一致；删除不再复活 |
 | **Phase 2 播放器正确性** | G5+G6+G9+G10+G15+G16（代际 token 一揽子） | 连点 20 次无叠音/无崩溃/无卡死 |
 | **Phase 3 性能** | P-1→P-5 | 大库详情页 onResume 无卡顿；onDraw 零每帧分配 |
-| **Phase 4 安全加固** | G13（EncryptedSharedPreferences）、G14（SecureRandom+限次）、G12（小组件后台化）、G7+G8（速记） | 密码非明文落盘；OTP 限 5 次 |
+| **Phase 4 安全加固** | G13（AndroidKeyStore AES-256-GCM 加密落盘+旧明文首读自动迁移——实现取舍：security-crypto 已被 Google 废弃，改为零依赖手写加密仓达成同一验收）、G14（SecureRandom+单码限 5 次错误尝试）、G12（小组件查库与位图解码后台化）、G7（速记行宿主 Dialog 修复+入库双查重）、G8（书名整段解析） | ✅ 已完成（2026-09-05）：密码非明文落盘；OTP 限 5 次；解析器 7 项单测全绿 |
 
 ### 48.4 审计确认良好项（免重复劳动）
 
