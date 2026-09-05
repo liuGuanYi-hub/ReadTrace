@@ -36,6 +36,8 @@ class GameCartridgePosterActivity : AppCompatActivity() {
 
     private lateinit var databaseHelper: BookDatabaseHelper
     private lateinit var gameCartridgePosterView: GameCartridgePosterView
+
+    private val offsetPrefs by lazy { getSharedPreferences("cartridge_cover_offset", MODE_PRIVATE) }
     private lateinit var layoutCartridgeThemeChips: LinearLayout
     private lateinit var tvCartridgeSummary: TextView
 
@@ -87,6 +89,13 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         gameCartridgePosterView.onCartridgeClickListener = {
             HapticFeedbackEngine.cartridgeSnap(this)
             SpatialAudioEngine.playCartridgeSnap()
+        }
+
+        // 封面取景偏移按作品持久化（P37-F5：拖拽调整，导出同偏移）
+        gameCartridgePosterView.onCoverOffsetChanged = { focalX, focalY ->
+            currentGame?.let { g ->
+                offsetPrefs.edit().putString("focal_${g.id}", "$focalX,$focalY").apply()
+            }
         }
 
         listOfNotNull<View>(
@@ -142,6 +151,11 @@ class GameCartridgePosterActivity : AppCompatActivity() {
 
         currentMindprint = databaseHelper.getMindprint(gameId)
         gameCartridgePosterView.setData(currentGame!!, currentMindprint, gameCartridgePosterView.getTheme())
+        // 恢复该作品上次保存的封面取景偏移
+        offsetPrefs.getString("focal_${currentGame!!.id}", null)?.split(",")?.mapNotNull { it.toFloatOrNull() }?.let { f ->
+            gameCartridgePosterView.coverFocalX = f.getOrNull(0) ?: 0.5f
+            gameCartridgePosterView.coverFocalY = f.getOrNull(1) ?: 0.5f
+        }
         tvCartridgeSummary.text = "🕹️ 《${currentGame!!.title}》· 白金全息通关卡带"
     }
 

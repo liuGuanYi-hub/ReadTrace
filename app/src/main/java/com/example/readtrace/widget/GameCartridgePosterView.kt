@@ -16,6 +16,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.view.View
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
@@ -93,6 +94,23 @@ class GameCartridgePosterView @JvmOverloads constructor(
     private var game: Book? = null
     private var mindprint: BookMindprint? = null
     private var gameCoverBitmap: Bitmap? = null
+
+    /** 封面取景焦点（0=贴左/上，1=贴右/下，0.5=居中）：拖拽调整，按作品持久化，导出同偏移渲染 */
+    var coverFocalX: Float = 0.5f
+        set(value) { field = value.coerceIn(0f, 1f); invalidate() }
+    var coverFocalY: Float = 0.5f
+        set(value) { field = value.coerceIn(0f, 1f); invalidate() }
+
+    /** 取景变化回调（拖拽结束/双击复位时触发）：Activity 据此按作品 id 持久化 */
+    var onCoverOffsetChanged: ((focalX: Float, focalY: Float) -> Unit)? = null
+
+    private val lastCoverRect = RectF()
+    private var draggingCover = false
+    private var lastTouchX = 0f
+    private var lastTouchY = 0f
+    private var downX = 0f
+    private var downY = 0f
+    private var lastTapTime = 0L
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -231,6 +249,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
         val coverH = boxH * 0.42f
         val coverLeft = boxLeft + (boxW - coverW) * 0.5f
         val coverRect = RectF(coverLeft, coverTop, coverLeft + coverW, coverTop + coverH)
+        lastCoverRect.set(coverRect)
 
         if (gameCoverBitmap != null && !gameCoverBitmap!!.isRecycled) {
             canvas.save()
@@ -247,11 +266,11 @@ class GameCartridgePosterView @JvmOverloads constructor(
 
             val srcRect = if (bmpRatio > targetRatio) {
                 val cropW = bmpH * targetRatio
-                val left = (bmpW - cropW) * 0.5f
+                val left = (bmpW - cropW) * coverFocalX.coerceIn(0f, 1f)
                 Rect(left.toInt(), 0, (left + cropW).toInt(), bmpH.toInt())
             } else {
                 val cropH = bmpW / targetRatio
-                val top = (bmpH - cropH) * 0.5f
+                val top = (bmpH - cropH) * coverFocalY.coerceIn(0f, 1f)
                 Rect(0, top.toInt(), bmpW.toInt(), (top + cropH).toInt())
             }
             canvas.drawBitmap(bmp, srcRect, coverRect, bitmapPaint)
@@ -444,11 +463,63 @@ class GameCartridgePosterView @JvmOverloads constructor(
     var onCartridgeClickListener: (() -> Unit)? = null
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            onCartridgeClickListener?.invoke()
-            return true
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                lastTouchX = event.x
+                lastTouchY = event.y
+                downX = event.x
+                downY = event.y
+                draggingCover = lastCoverRect.contains(event.x, event.y) && gameCoverBitmap != null
+            }
+            MotionEvent.ACTION_MOVE -> if (draggingCover) {
+                val dx = event.x - lastTouchX
+                val dy = event.y - lastTouchY
+                lastTouchX = event.x
+                lastTouchY = event.y
+                panCoverBy(dx, dy)
+            }
+            MotionEvent.ACTION_UP -> {
+                val moved = kotlin.math.abs(event.x - downX) > ViewConfiguration.get(context).scaledTouchSlop ||
+                    kotlin.math.abs(event.y - downY) > ViewConfiguration.get(context).scaledTouchSlop
+                if (draggingCover && !moved) {
+                    // 封面区双击：复位取景焦点
+                    val now = System.currentTimeMillis()
+                    if (now - lastTapTime < 300) {
+                        coverFocalX = 0.5f
+                        coverFocalY = 0.5f
+                        onCoverOffsetChanged?.invoke(coverFocalX, coverFocalY)
+                        lastTapTime = 0L
+                    } else {
+                        lastTapTime = now
+                    }
+                }
+                if (draggingCover && moved) {
+                    onCoverOffsetChanged?.invoke(coverFocalX, coverFocalY)
+                }
+                if (!moved) {
+                    // 轻点任意区域保持原有卡带点击反馈
+                    onCartridgeClickListener?.invoke()
+                }
+                draggingCover = false
+            }
         }
-        return super.onTouchEvent(event)
+        return true
+    }
+
+    /** 手指拖动换算为取景焦点位移：屏幕位移 ÷ 源图可视余量对应的屏幕像素 */
+    private fun panCoverBy(dx: Float, dy: Float) {
+        val bmp = gameCoverBitmap ?: return
+        val r = lastCoverRect
+        if (r.width() <= 0f || r.height() <= 0f) return
+        val bmpRatio = bmp.width.toFloat() / bmp.height.toFloat()
+        val targetRatio = r.width() / r.height()
+        if (bmpRatio > targetRatio) {
+            val screenSlackX = r.width() * (1f - targetRatio / bmpRatio)
+            if (screenSlackX > 1f) coverFocalX -= dx / screenSlackX
+        } else {
+            val screenSlackY = r.height() * (1f - bmpRatio / targetRatio)
+            if (screenSlackY > 1f) coverFocalY -= dy / screenSlackY
+        }
     }
 
     fun create1080pPosterBitmap(): Bitmap {
