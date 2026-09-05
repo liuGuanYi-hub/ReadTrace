@@ -87,7 +87,6 @@ class GameCartridgePosterActivity : AppCompatActivity() {
         gameCartridgePosterView.onCartridgeClickListener = {
             HapticFeedbackEngine.cartridgeSnap(this)
             SpatialAudioEngine.playCartridgeSnap()
-            Toast.makeText(this, "🕹️ 触发白金卡带插槽物理反馈", Toast.LENGTH_SHORT).show()
         }
 
         listOfNotNull<View>(

@@ -128,7 +128,6 @@ class ResonancePosterActivity : AppCompatActivity() {
                 com.example.readtrace.util.HapticFeedbackEngine.celestialResonancePulse(this)
                 com.example.readtrace.util.SpatialAudioEngine.playCelestialTone()
                 loadData()
-                Toast.makeText(this, "已生成《${workA.title}》与《${workB.title}》的双生共鸣", Toast.LENGTH_SHORT).show()
             },
         )
     }

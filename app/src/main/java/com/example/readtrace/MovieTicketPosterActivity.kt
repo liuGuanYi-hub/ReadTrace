@@ -95,12 +95,10 @@ class MovieTicketPosterActivity : AppCompatActivity() {
                 HapticFeedbackEngine.ticketTearRipped(this)
                 SpatialAudioEngine.playTicketTear()
                 btnToggleTicketTear.text = "✨ 磁吸复原票根"
-                Toast.makeText(this, "🎟️ 已完成撕票入场 · 齿轮顿挫反馈", Toast.LENGTH_SHORT).show()
             } else {
                 HapticFeedbackEngine.cartridgeSnap(this)
                 SpatialAudioEngine.playCartridgeSnap()
                 btnToggleTicketTear.text = "🎟️ 模拟撕票入场"
-                Toast.makeText(this, "✨ 票根已磁吸复原完整", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -131,7 +129,6 @@ class MovieTicketPosterActivity : AppCompatActivity() {
                     HapticFeedbackEngine.ticketTearRipped(this)
                     SpatialAudioEngine.playCartridgeSnap()
                     loadData()
-                    Toast.makeText(this, "已切换为《${selected.title}》", Toast.LENGTH_SHORT).show()
                 }
             },
         )
