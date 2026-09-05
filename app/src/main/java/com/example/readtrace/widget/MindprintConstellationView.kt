@@ -413,7 +413,7 @@ class MindprintConstellationView @JvmOverloads constructor(
         if (matchesPair(listOf("晴る", "アポリア", "斜陽", "アルジャーノン", "月光浴"), listOf("葬送的芙莉莲", "关于地球的运动", "我心里危险的东西", "紫罗兰永恒花园", "小王子"))) {
             return Pair("物哀音律 · 跨次元共鸣", 99)
         }
-        if (matchesPair(listOf("嘘じゃない", "花一匁", "沈香学", "残機", "海馬成長痛"), listOf("电锯人", "我的鬼女孩", "胆大党", "孤独摇滚", "女神异闻录5", "黑神话：悟空"))) {
+        if (matchesPair(listOf("嘘じゃない", "花一匁", "残機", "不法侵入"), listOf("电锯人", "我的鬼女孩", "胆大党", "孤独摇滚", "女神异闻录5", "黑神话：悟空"))) {
             return Pair("夜行放克 · 疾走觉醒", 98)
         }
         return null
