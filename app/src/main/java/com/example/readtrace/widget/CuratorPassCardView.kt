@@ -41,6 +41,7 @@ class CuratorPassCardView @JvmOverloads constructor(
     private val cardBounds = RectF()
     private val cardCornerRadius = dpToPx(18f)
 
+    private val tvHeader: TextView
     private val tvAvatar: TextView
     private val tvNickname: TextView
     private val tvTitle: TextView
@@ -70,7 +71,7 @@ class CuratorPassCardView @JvmOverloads constructor(
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        val tvHeader = TextView(context).apply {
+        tvHeader = TextView(context).apply {
             text = "CURATOR PASS ✦ 策展人通行证"
             textSize = 10f
             letterSpacing = 0.15f
@@ -186,6 +187,7 @@ class CuratorPassCardView @JvmOverloads constructor(
     fun bind(account: CuratorAccount, status: AuthStatus) {
         currentAccount = account
         currentAuthStatus = status
+        applyTextPalette(account.cardTheme)
 
         tvAvatar.text = account.displayAvatarEmoji()
         tvNickname.text = account.nickname
@@ -212,6 +214,29 @@ class CuratorPassCardView @JvmOverloads constructor(
         tvSyncStatus.setTextColor(syncColor)
 
         invalidate()
+    }
+
+    /**
+     * 按卡面主题明暗套用文字色板：羊皮纸（PARCHMENT_WOOD）浅底配墨色系文字，
+     * 其余深底卡面保持白色系历史观感。修复日间浅底白字混淆不可读。
+     */
+    private fun applyTextPalette(theme: CuratorCardTheme) {
+        val light = theme == CuratorCardTheme.PARCHMENT_WOOD
+        val ink = { alpha: String -> Color.parseColor("#${alpha}1A1C19") }
+        tvHeader.setTextColor(if (light) ink("99") else Color.parseColor("#80FFFFFF"))
+        tvPassId.setTextColor(if (light) ink("C0") else Color.parseColor("#C0FFFFFF"))
+        tvNickname.setTextColor(if (light) Color.parseColor("#FF1A1C19") else Color.WHITE)
+        tvTitle.setTextColor(if (light) Color.parseColor("#CC8A6D3B") else Color.parseColor("#E0C9A050"))
+        tvBindingBadge.setTextColor(if (light) ink("99") else Color.parseColor("#99FFFFFF"))
+        tvBio.setTextColor(if (light) ink("B0") else Color.parseColor("#B0FFFFFF"))
+        tvJoinedDate.setTextColor(if (light) ink("70") else Color.parseColor("#70FFFFFF"))
+        // 头像圆片底与描边同步反色
+        val avatarBg = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(Color.parseColor(if (light) "#1F000000" else "#20FFFFFF"))
+            setStroke(dpToPx(1f).toInt(), Color.parseColor(if (light) "#40000000" else "#40FFFFFF"))
+        }
+        tvAvatar.background = avatarBg
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
