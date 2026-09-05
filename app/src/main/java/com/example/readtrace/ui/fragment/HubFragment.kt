@@ -410,7 +410,7 @@ class HubFragment : Fragment() {
         animateStatCountUp(statReadingValue, reading, 1)
         animateStatCountUp(statFinishedValue, finished, 2)
         animateStatCountUp(statWishlistValue, wishlist, 3)
-        statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average() / 2.0)}"
+        statAverageValue.text = if (rated.isEmpty()) "均分 ★ -" else "均分 ★ ${RATING_FORMAT.format(rated.average())}"
 
         // 🗂️ P35 记录台五媒介藏品计数（正方形腹地的精神领土一览）
         if (::arcCountBook.isInitialized) {
@@ -513,7 +513,7 @@ class HubFragment : Fragment() {
             }
 
             val rating = featuredBook.rating
-            heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating / 2.0)} · 精神典藏" else "✦ 重点策展推荐"
+            heroBookRating.text = if (rating != null && rating > 0) "★ ${RATING_FORMAT.format(rating)} · 精神典藏" else "✦ 重点策展推荐"
 
             // P35：长随想（heroBookQuote）已整段移除——首屏只保留封面/标题/评分/操作，长文本留在详情页
             if (!featuredBook.coverUrl.isNullOrBlank()) {

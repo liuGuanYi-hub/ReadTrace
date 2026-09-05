@@ -132,7 +132,7 @@ class CommunityGalleryActivity : AppCompatActivity() {
 
         if (book.rating != null) {
             focusRating.visibility = View.VISIBLE
-            focusRating.text = "★ ${String.format("%.1f", book.rating / 2.0)}"
+            focusRating.text = "★ ${String.format("%.1f", book.rating)}"
         } else {
             focusRating.visibility = View.GONE
         }

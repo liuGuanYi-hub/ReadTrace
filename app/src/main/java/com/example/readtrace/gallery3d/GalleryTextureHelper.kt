@@ -173,7 +173,7 @@ object GalleryTextureHelper {
                 textAlign = Paint.Align.CENTER
                 isAntiAlias = true
             }
-            canvas.drawText("★ ${String.format("%.1f", book.rating / 2.0)}", width / 2f, 578f, ratingTextPaint)
+            canvas.drawText("★ ${String.format("%.1f", book.rating)}", width / 2f, 578f, ratingTextPaint)
         }
 
         // 底部状态胶囊
