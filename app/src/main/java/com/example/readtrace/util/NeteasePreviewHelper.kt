@@ -38,7 +38,7 @@ object NeteasePreviewHelper {
     data class UserPlaylist(val id: Long, val name: String, val trackCount: Int)
 
     /** 歌单内曲目（未取链，播放时再按 id 取直链，避免链接过期） */
-    data class PlaylistTrack(val id: Long, val name: String, val artists: String, val album: String)
+    data class PlaylistTrack(val id: Long, val name: String, val artists: String, val album: String, val picUrl: String = "")
 
     private const val SEARCH_URL = "https://music.163.com/api/cloudsearch/pc"
     private const val PLAYER_URL_API = "https://music.163.com/api/song/enhance/player/url"
@@ -159,10 +159,34 @@ object NeteasePreviewHelper {
                             ar.optJSONObject(j)?.optString("name")?.takeIf { it.isNotBlank() }
                         }.joinToString("/")
                     } ?: ""
-                    PlaylistTrack(id, t.optString("name"), artists, t.optJSONObject("album")?.optString("name") ?: "")
+                    val albumObj = t.optJSONObject("album")
+                    PlaylistTrack(
+                        id,
+                        t.optString("name"),
+                        artists,
+                        albumObj?.optString("name") ?: "",
+                        albumObj?.optString("picUrl") ?: "",
+                    )
                 }
             }.getOrNull()
             handler.post { onResult(result) }
+        }.start()
+    }
+
+    /** 拉取专辑封面位图（带 Referer/UA，回调主线程；失败回调 null） */
+    fun fetchCoverBitmap(url: String, onResult: (android.graphics.Bitmap?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        if (url.isBlank()) {
+            handler.post { onResult(null) }
+            return
+        }
+        Thread {
+            val bmp = runCatching {
+                httpGet(url, referer = "https://music.163.com/").inputStream.use {
+                    android.graphics.BitmapFactory.decodeStream(it)
+                }
+            }.getOrNull()
+            handler.post { onResult(bmp) }
         }.start()
     }
 

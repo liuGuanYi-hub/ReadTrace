@@ -298,6 +298,18 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun renderCurrentTrack() {
+        // 云歌单接管期间（模式切换/重进页面重渲染）：卡面与副标题一律跟随云曲，
+        // 避免被本地藏库作品的标题/封面覆盖回内置内容；封面由 playCloudTrack 管理，此处不动
+        cloudTracks.getOrNull(cloudIndex)?.let { ct ->
+            val cArtist = ct.artists.ifBlank { "未知歌手" }
+            tvPlayerSubtitle.text = "《${ct.name}》· $cArtist"
+            tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${ct.name}${if (ct.artists.isNotBlank()) " - ${ct.artists}" else ""}"
+            vinylTurntableView.trackTitle = ct.name
+            vinylTurntableView.artistName = cArtist
+            cassetteDeckView.trackTitle = ct.name
+            cassetteDeckView.artistName = cArtist
+            return
+        }
         if (playlist.isEmpty()) return
         val track = playlist[currentIndex]
 
@@ -765,35 +777,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
      * 星空占位封面：深空径向渐变 + 随机星点与光晕，契合唱机页深夜氛围；
      * 固定随机种子保证同一会话内占位图稳定，单例缓存避免重复绘制。
      */
+    /** 高级星空占位封面：解码内置 WebP 素材（深空渐变 + 银河带 + 双星云 + 三层星点 + 亮主星光晕） */
     private fun starfieldCoverBitmap(size: Int = 480): android.graphics.Bitmap {
         starfieldCoverCache?.let { return it }
         val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
         val canvas = android.graphics.Canvas(bmp)
-        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-        paint.shader = android.graphics.RadialGradient(
-            size / 2f, size / 2f, size / 1.4f,
-            intArrayOf(0xFF1B2A4A.toInt(), 0xFF0B1026.toInt()),
-            floatArrayOf(0f, 1f),
-            android.graphics.Shader.TileMode.CLAMP,
-        )
-        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), paint)
-        paint.shader = null
-        val rnd = java.util.Random(20260904L)
-        repeat(96) {
-            val x = rnd.nextFloat() * size
-            val y = rnd.nextFloat() * size
-            val radius = 0.8f + rnd.nextFloat() * 2.2f
-            paint.color = if (rnd.nextInt(6) == 0) 0xFFFFD98A.toInt() else 0xFFF2F6FF.toInt()
-            paint.alpha = 120 + rnd.nextInt(135)
-            canvas.drawCircle(x, y, radius, paint)
+        androidx.core.content.ContextCompat.getDrawable(this, R.drawable.cover_starfield_premium)?.let { d ->
+            d.setBounds(0, 0, size, size)
+            d.draw(canvas)
         }
-        // 主星与光晕
-        paint.color = 0xFF9FC4FF.toInt()
-        paint.alpha = 40
-        canvas.drawCircle(size * 0.5f, size * 0.42f, size * 0.16f, paint)
-        paint.color = 0xFFEAF2FF.toInt()
-        paint.alpha = 255
-        canvas.drawCircle(size * 0.5f, size * 0.42f, size * 0.035f, paint)
         starfieldCoverCache = bmp
         return bmp
     }
@@ -841,6 +833,19 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             kotlin.math.abs(track.name.hashCode()) % CLOUD_LYRIC_PLACEHOLDERS.size,
         ]
         vinylTurntableView.coverBitmap = starfieldCoverBitmap()
+        // 云曲真实专辑封面：歌单接口自带 picUrl，异步拉取后仅当仍在播该曲时上屏
+        if (track.picUrl.isNotBlank()) {
+            val requestTrackId = track.id
+            com.example.readtrace.util.NeteasePreviewHelper.fetchCoverBitmap(track.picUrl) { bmp ->
+                if (isDestroyed) return@fetchCoverBitmap
+                val stillCurrent = cloudTracks.getOrNull(cloudIndex)?.id == requestTrackId
+                if (stillCurrent && bmp != null) {
+                    vinylTurntableView.coverBitmap = bmp
+                } else if (stillCurrent && bmp == null) {
+                    vinylTurntableView.coverBitmap = starfieldCoverBitmap()
+                }
+            }
+        }
         // 新的一次用户/连播动作重置自动重试额度
         cloudRetryUsed = false
         releaseMediaPlayer()
