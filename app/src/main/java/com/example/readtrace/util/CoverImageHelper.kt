@@ -40,6 +40,21 @@ object CoverImageHelper {
         return path != null && path.trim().startsWith(LAN_COVER_KEY_PREFIX, ignoreCase = true)
     }
 
+    /** APK 内置兜底封面文件名集合（assets/covers，首次访问惰性加载一次） */
+    @Volatile
+    private var bundledCoverNames: Set<String>? = null
+
+    /** 该封面键是否已有 APK 内置兜底文件：有则离线优先直接解码，不排队走网络 */
+    private fun hasBundledCover(context: Context?, key: String): Boolean {
+        if (context == null || !isLanCoverKey(key)) return false
+        val names = bundledCoverNames ?: synchronized(this) {
+            bundledCoverNames ?: runCatching {
+                context.applicationContext.assets.list("covers")?.toSet() ?: emptySet()
+            }.getOrDefault(emptySet()).also { bundledCoverNames = it }
+        }
+        return names.contains(key.substring(LAN_COVER_KEY_PREFIX.length))
+    }
+
     // 键 → 国内图源 URL 映射（首次访问从 assets 惰性加载，与数据库解耦，换图源只需更新映射文件）
     @Volatile
     private var cdnMap: Map<String, String>? = null
@@ -381,10 +396,15 @@ object CoverImageHelper {
             if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
                 bitmap = downloadRemoteCover(ctx, trimmed, reqWidth, reqHeight)
             } else if (isLanCoverKey(trimmed) && ctx != null) {
-                bitmap = when (val resolved = resolveLanCoverUrl(ctx, trimmed)) {
-                    null -> decodeSampledBitmapFromAsset(ctx, BUNDLED_ASSET_PREFIX + trimmed, reqWidth, reqHeight)
-                    else -> downloadRemoteCover(ctx, resolved, reqWidth, reqHeight, cacheKeyFor = trimmed)
-                }
+                // 内置资产优先：已捆绑的键（全部预置番剧等）离线/弱网立即出图，不进网络队列；
+                // hasBundledCover 守卫避免未捆绑键的解码异常触发 memoryCache.evictAll() 清空全缓存
+                bitmap = if (hasBundledCover(ctx, trimmed)) {
+                    decodeSampledBitmapFromAsset(ctx, BUNDLED_ASSET_PREFIX + trimmed, reqWidth, reqHeight)
+                } else null
+                    ?: when (val resolved = resolveLanCoverUrl(ctx, trimmed)) {
+                        null -> null
+                        else -> downloadRemoteCover(ctx, resolved, reqWidth, reqHeight, cacheKeyFor = trimmed)
+                    }
             } else if (trimmed.startsWith("content://", ignoreCase = true) && ctx != null) {
                 runCatching {
                     ctx.contentResolver.openInputStream(Uri.parse(trimmed))?.use { stream ->
