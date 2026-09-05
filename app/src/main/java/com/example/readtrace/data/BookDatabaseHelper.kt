@@ -159,16 +159,38 @@ class BookDatabaseHelper private constructor(val context: Context) :
             // 并让 rich_content 的章节大纲（outline）参与播种，实际写入在 runPresetSeedsOnce 中完成。
         }
 if (oldVersion < 13) {
-            // v13：移除两部会因搜索三级匹配播错歌的预设单曲（TAIKUTSU/沈香学 专辑条目），
-            // 同步清理其曲目试听记录，防止孤儿行残留。
+            // v13：移除两部会因搜索三级匹配播错歌的预设单曲（TAIKUTSU/沈香学 专辑条目）。
+            // 仅限预置/手动条目（source_type 为空）：网易云歌单导入的同名曲目（source_type='netease'）不得误删；
+            // 删除作品前先级联清理各子表，避免 notes/打卡/心智/足迹/角色谱/大纲/收藏留下指向已删 bookId 的孤儿行。
             val removedTitles = arrayOf("TAIKUTSU (退屈)", "沈香学 (Jin Kou Gaku 专辑)")
+            val presetMusicWhere = "$COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music' " +
+                "AND ($COLUMN_SOURCE_TYPE IS NULL OR $COLUMN_SOURCE_TYPE = '')"
             database.execSQL(
                 "DELETE FROM $TABLE_AUDIO_TRACKS WHERE $COLUMN_AUDIO_BOOK_ID IN " +
-                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music')",
+                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
+                removedTitles,
+            )
+            listOf(
+                TABLE_NOTES,
+                TABLE_READING_SESSIONS,
+                TABLE_BOOK_LOCATIONS,
+                TABLE_BOOK_MINDPRINTS,
+                TABLE_BOOK_CHARACTERS,
+                TABLE_BOOK_OUTLINES,
+            ).forEach { table ->
+                database.execSQL(
+                    "DELETE FROM $table WHERE $COLUMN_BOOK_ID IN " +
+                        "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
+                    removedTitles,
+                )
+            }
+            database.execSQL(
+                "DELETE FROM $TABLE_FAVORITES WHERE $COLUMN_FAVORITE_BOOK_ID IN " +
+                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
                 removedTitles,
             )
             database.execSQL(
-                "DELETE FROM $TABLE_BOOKS WHERE $COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music'",
+                "DELETE FROM $TABLE_BOOKS WHERE $presetMusicWhere",
                 removedTitles,
             )
         }
@@ -360,7 +382,8 @@ if (oldVersion < 13) {
         synchronized(seedLock) {
             if (seedChecked) return
             val prefs = context.applicationContext.getSharedPreferences(SEED_PREF, Context.MODE_PRIVATE)
-            if (prefs.getInt(KEY_SEED_VERSION, 0) != DATABASE_VERSION) {
+            val previousSeedVersion = prefs.getInt(KEY_SEED_VERSION, 0)
+            if (previousSeedVersion != DATABASE_VERSION) {
                 populatePresetBookRichData(db)
                 populatePresetRichContent(db)
                 seedUserAnimeList(db)
@@ -369,8 +392,13 @@ if (oldVersion < 13) {
                 seedUserMusicList(db)
                 seedCuratedBookCovers(db)
                 migrateCoversToLanKeys(db)
-                // 预置作品评分统一 4 星基准（8.0 分）
-                db.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
+                // 预置作品评分统一 4 星基准（8.0 分）。
+                // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时执行：
+                // 升版重播种若再全量改写，会把用户手填的评分一并清成 8.0（数据破坏）。
+                // 新增预置条目请直接在种子数据中使用 10 分制评分。
+                if (previousSeedVersion == 0) {
+                    db.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
+                }
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
             seedChecked = true
@@ -1059,7 +1087,7 @@ if (oldVersion < 13) {
                         put(COLUMN_CATEGORY, anime.category)
                         put(COLUMN_STATUS, anime.status)
                         put(COLUMN_MEDIA_TYPE, "anime")
-                        put(COLUMN_RATING, anime.rating)
+                        put(COLUMN_RATING, anime.rating ?: 8.0)
                         put(COLUMN_TAGS, JSONArray(anime.tags).toString())
                         put(COLUMN_SHORT_COMMENT, anime.shortComment)
                         put(COLUMN_REVIEW, if (anime.status == "finished") "已完成追番 · 留存在《阅痕》的珍贵青春印记" else "加入个人待看追番清单")
@@ -1286,7 +1314,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "movie")
                         put(COLUMN_SHORT_COMMENT, movie.shortComment)
                         put(COLUMN_REVIEW, movie.review)
-                        put(COLUMN_RATING, movie.rating ?: 5.0)
+                        put(COLUMN_RATING, movie.rating ?: 8.0)
                         put(COLUMN_TAGS, JSONArray(movie.tags).toString())
                         put(COLUMN_COVER_URL, movie.coverUrl)
                         put(COLUMN_START_DATE, "2026-07-01")
@@ -1465,7 +1493,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "game")
                         put(COLUMN_SHORT_COMMENT, game.shortComment)
                         put(COLUMN_REVIEW, game.review)
-                        put(COLUMN_RATING, game.rating ?: 5.0)
+                        put(COLUMN_RATING, game.rating ?: 8.0)
                         put(COLUMN_TAGS, JSONArray(game.tags).toString())
                         put(COLUMN_COVER_URL, game.coverUrl)
                         put(COLUMN_START_DATE, "2026-07-15")
@@ -1740,7 +1768,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "music")
                         put(COLUMN_SHORT_COMMENT, item.shortComment)
                         put(COLUMN_REVIEW, item.review)
-                        put(COLUMN_RATING, item.rating ?: 5.0)
+                        put(COLUMN_RATING, item.rating ?: 8.0)
                         put(COLUMN_TAGS, JSONArray(item.tags).toString())
                         put(COLUMN_COVER_URL, item.coverUrl)
                         put(COLUMN_START_DATE, "${item.year}-01-01")

@@ -213,6 +213,31 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         setupListeners()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // launchMode=singleTask 复用存活实例时，外部「去唱机」点的新作品经此投递（onCreate 不会重走），
+        // 不接住会被静默忽略、旧实例继续播原曲；主页悬浮胶囊的跳回 intent 不带 extra，直接忽略。
+        val bookId = intent.getLongExtra(EXTRA_BOOK_ID, -1L)
+        if (bookId == -1L) return
+        val allBooks = databaseHelper.getBooks()
+        val newPlaylist = allBooks.filter { it.mediaType == MediaType.MUSIC }.ifEmpty { allBooks }
+        val idx = newPlaylist.indexOfFirst { it.id == bookId }
+        if (idx == -1 || newPlaylist.getOrNull(currentIndex)?.id == bookId) return
+        // 明确切到本地藏库作品：退出云队列接管，上一曲/下一曲与播放键恢复本地语义
+        cloudTracks = emptyList()
+        cloudIndex = -1
+        cloudRetryUsed = false
+        playlist = newPlaylist
+        currentIndex = idx
+        renderCurrentTrack()
+        val keepPlaying = isPlaying
+        switchWork(keepPlaying)
+        newPlaylist.getOrNull(idx)?.let {
+            Toast.makeText(this, "正在播放: 《${it.title}》", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun initViews() {
         particleBackgroundView = findViewById(R.id.particleBackgroundView)
         vinylTurntableView = findViewById(R.id.vinylTurntableView)
@@ -417,10 +442,14 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                // Preparing 态下调 pause()/seekTo() 是非法状态调用（IllegalStateException），
+                // 缓冲未完成或实例已释放时忽略本次拖动
+                if (isPreparing || mediaPlayer == null) return
                 wasPlayingBeforeSeek = mediaPlayer?.isPlaying == true
                 mediaPlayer?.pause()
             }
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                if (isPreparing || mediaPlayer == null) return
                 if (totalSecondsMs > 0) {
                     val targetMs = (totalSecondsMs * (seekBar?.progress ?: 0) / 100f).toLong()
                     mediaPlayer?.seekTo(targetMs.toInt())
@@ -995,7 +1024,18 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build(),
             )
-            setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
+            // 在线缓存直链（网易云 CDN）重放必须带 Referer/UA（及可选 MUSIC_U）请求头，
+            // 与 playCloudUrl 同口径，否则 CDN 校验拒绝 → onError → 删链重取，
+            // 缓存命中路径形同虚设；本地文件 URI 不需要请求头
+            if (track.fileUri.startsWith("http")) {
+                setDataSource(
+                    this@VinylCassettePlayerActivity,
+                    Uri.parse(track.fileUri),
+                    com.example.readtrace.util.NeteasePreviewHelper.buildPlaybackHeaders(this@VinylCassettePlayerActivity),
+                )
+            } else {
+                setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
+            }
             setOnPreparedListener { mp ->
                 isPreparing = false
                 handler.removeCallbacks(prepareTimeoutRunnable)
@@ -1089,6 +1129,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         mediaPlayer = null
         isPreparing = false
         preparingCloudTrack = null
+        // 清零时长：避免切歌间隙进度条沿用上一曲的总时长
+        totalSecondsMs = 0L
+        wasPlayingBeforeSeek = false
         handler.removeCallbacks(playRunnable)
         handler.removeCallbacks(previewStopRunnable)
         handler.removeCallbacks(prepareTimeoutRunnable)
