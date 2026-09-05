@@ -2205,6 +2205,35 @@ if (oldVersion < 13) {
             if (cursor.moveToFirst()) cursor.toBook() else null
         }
 
+    /** 速记入库查重（P38-G7）：同来源精确命中，或同媒介同名（忽略 ASCII 大小写）的未删除作品；回收站作品不拦截重录 */
+    fun findQuickLogDuplicate(
+        title: String,
+        mediaType: MediaType,
+        sourceType: String?,
+        sourceId: String?,
+    ): Book? {
+        if (!sourceType.isNullOrBlank() && !sourceId.isNullOrBlank()) {
+            readableDatabase.query(
+                TABLE_BOOKS,
+                null,
+                "$COLUMN_IS_DELETED = ? AND $COLUMN_SOURCE_TYPE = ? AND $COLUMN_SOURCE_ID = ?",
+                arrayOf("0", sourceType, sourceId),
+                null, null, null, "1",
+            ).use { cursor ->
+                if (cursor.moveToFirst()) return cursor.toBook()
+            }
+        }
+        return readableDatabase.query(
+            TABLE_BOOKS,
+            null,
+            "$COLUMN_IS_DELETED = ? AND $COLUMN_MEDIA_TYPE = ? AND UPPER($COLUMN_TITLE) = ?",
+            arrayOf("0", mediaType.databaseValue, title.trim().uppercase()),
+            null, null, null, "1",
+        ).use { cursor ->
+            if (cursor.moveToFirst()) cursor.toBook() else null
+        }
+    }
+
     /** 外部导入第二层模糊查重：标题近似 + 同一媒介类型的手动录入作品，命中时提示「可能已存在」 */
     fun findBooksByTitleLike(title: String, mediaType: MediaType): List<Book> {
         val trimmed = title.trim()

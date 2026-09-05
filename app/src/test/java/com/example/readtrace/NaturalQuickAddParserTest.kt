@@ -54,6 +54,15 @@ class NaturalQuickAddParserTest {
     }
 
     @Test
+    fun `多词英文书名不被空格截断`() {
+        val parsed = NaturalQuickAddParser.parse("读完 Snow Crash 9分")
+
+        assertEquals("Snow Crash", parsed!!.title)
+        assertEquals(BookStatus.FINISHED, parsed.status)
+        assertEquals(9.0, parsed.rating!!, 0.001)
+    }
+
+    @Test
     fun `信号判定区分普通搜索词与速记句`() {
         assertFalse(NaturalQuickAddParser.looksLikeQuickLog("三体"))
         assertFalse(NaturalQuickAddParser.looksLikeQuickLog("https://book.douban.com/subject/123/"))

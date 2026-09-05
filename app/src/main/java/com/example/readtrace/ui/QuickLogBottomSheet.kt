@@ -97,7 +97,7 @@ object QuickLogBottomSheet {
                     searchInput.setText("")
                     resultList.removeAllViews()
                     resultScroll.visibility = View.GONE
-                    triggerSearch(activity, searchInput.text.toString(), resultScroll, resultList, confirmSection)
+                    triggerSearch(activity, searchInput.text.toString(), resultScroll, resultList, confirmSection, dialog)
                 }
             }
             mediaChips.add(chip)
@@ -112,7 +112,7 @@ object QuickLogBottomSheet {
             override fun afterTextChanged(s: android.text.Editable?) {
                 searchRunnable?.let(mainHandler::removeCallbacks)
                 searchRunnable = Runnable {
-                    triggerSearch(activity, s.toString().trim(), resultScroll, resultList, confirmSection)
+                    triggerSearch(activity, s.toString().trim(), resultScroll, resultList, confirmSection, dialog)
                 }
                 mainHandler.postDelayed(searchRunnable!!, SEARCH_DEBOUNCE_MS)
             }
@@ -195,6 +195,7 @@ object QuickLogBottomSheet {
         resultScroll: ScrollView,
         resultList: LinearLayout,
         confirmSection: LinearLayout,
+        hostDialog: Dialog,
     ) {
         resultList.removeAllViews()
         if (keyword.isEmpty()) {
@@ -207,7 +208,7 @@ object QuickLogBottomSheet {
             if (parsed != null) {
                 resultScroll.visibility = View.VISIBLE
                 resultList.addView(
-                    makeNaturalQuickRow(context, parsed, resultScroll, confirmSection),
+                    makeNaturalQuickRow(context, parsed, resultScroll, confirmSection, hostDialog),
                 )
             }
         }
@@ -366,6 +367,22 @@ object QuickLogBottomSheet {
         explicitSourceType: String? = subject.source,
         explicitSourceId: String? = subject.id.takeIf { it > 0 }?.toString(),
     ) {
+        // P38-G7：入库前查重，同来源/同媒介同名已收录时直接拦截，杜绝连点与重复速记产生重复条目
+        val duplicate = databaseHelper.findQuickLogDuplicate(
+            title = subject.displayTitle,
+            mediaType = currentMedia,
+            sourceType = explicitSourceType,
+            sourceId = explicitSourceId,
+        )
+        if (duplicate != null) {
+            Toast.makeText(
+                context,
+                "《${duplicate.title}》已在藏库，不重复收录",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
         val today = LocalDate.now().toString()
         val book = Book(
             title = subject.displayTitle,
@@ -404,6 +421,7 @@ object QuickLogBottomSheet {
         parsed: com.example.readtrace.util.NaturalQuickAddParser.ParsedQuickLog,
         resultScroll: ScrollView,
         confirmSection: LinearLayout,
+        hostDialog: Dialog,
     ): View {
         val statusLabel = parsed.status?.getDisplayName(currentMedia) ?: currentMedia.defaultQuickStatus().getDisplayName(currentMedia)
         val ratingLabel = parsed.rating?.let { " · ⭐$it" }.orEmpty()
@@ -451,8 +469,9 @@ object QuickLogBottomSheet {
                     explicitSourceType = null,
                     explicitSourceId = null,
                 )
-                // 关闭弹窗：通过根 view tag 定位宿主 dialog
-                (rootView.tag as? Dialog)?.dismiss()
+                // P38-G7：行视图的 rootView 是 Dialog 装饰层（tag 恒为 null），
+                // 必须直接持有宿主 Dialog 引用关闭，否则弹窗永不收起、连点重复入库
+                hostDialog.dismiss()
             }
         }
     }

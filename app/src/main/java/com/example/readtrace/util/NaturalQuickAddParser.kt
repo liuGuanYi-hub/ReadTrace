@@ -81,11 +81,12 @@ object NaturalQuickAddParser {
             }
         }
 
-        // 4. 书名 = 剩余文本（去掉书名号包裹后取首段）
+        // 4. 书名 = 状态/评分/标签剔除后的全部剩余文本（P38-G8：整段保留，
+        //    多词英文书名如 "Snow Crash" 不再被空格截成首词；书名号已抹平）
         val title = text.replace("《", " ").replace("》", " ")
-            .split(Regex("\\s+"))
-            .map { it.trim() }
-            .firstOrNull { it.isNotEmpty() }
+            .trim()
+            .replace(Regex("\\s+"), " ")
+            .takeIf { it.isNotEmpty() }
             ?: return null
 
         return ParsedQuickLog(
