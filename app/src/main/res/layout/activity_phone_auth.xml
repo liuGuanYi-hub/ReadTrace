@@ -107,14 +107,13 @@
                         android:textSize="15sp" />
                 </LinearLayout>
 
-                <!-- 验证码发送与输入区 -->
+                <!-- 验证码发送与输入区（发送按钮必须常驻可见；获取后仅展开下方 layoutCodeSection 输入区） -->
                 <LinearLayout
                     android:id="@+id/otpSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:orientation="vertical"
-                    android:visibility="gone">
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
