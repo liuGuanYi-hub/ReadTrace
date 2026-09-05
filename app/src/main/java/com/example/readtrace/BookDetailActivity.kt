@@ -77,37 +77,6 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<View>(R.id.detailEditButton).setOnClickListener {
             startActivity(AddBookActivity.createEditIntent(this, bookId))
         }
-        // 🌐 P14 可交互式 Web 微卡导出（自包含 HTML + 深链二维码）
-        findViewById<View>(R.id.detailWebCardButton).setOnClickListener {
-            com.example.readtrace.util.HapticFeedbackEngine.cartridgeSnap(this)
-            Toast.makeText(this, "正在生成 Web 微卡…", Toast.LENGTH_SHORT).show()
-            val bookIdLocal = bookId
-            Thread {
-                runCatching {
-                    val book = databaseHelper.getBook(bookIdLocal) ?: return@Thread
-                    val mp = databaseHelper.getMindprint(bookIdLocal)
-                    val file = com.example.readtrace.util.InteractiveWebCardExporter.generate(this, book, mp)
-                    val qr = com.example.readtrace.util.InteractiveWebCardExporter.generateDeepLinkQr(bookIdLocal)
-                    // 二维码以独立 PNG 一并保存，方便贴到海报角落
-                    val qrFile = java.io.File(file.parentFile, "qr_${bookIdLocal}.png")
-                    java.io.FileOutputStream(qrFile).use { out -> qr.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) }
-                    qr.recycle()
-                    mainHandler.post {
-                        if (isFinishing || isDestroyed) return@post
-                        ElegantConfirmDialog.show(
-                            activity = this,
-                            title = "🌐 Web 微卡已生成",
-                            message = "自包含 2.5D 视差微卡与深链二维码已就绪，可分享给好友用浏览器打开体验。",
-                            confirmText = "🔗 分享",
-                            isDanger = false,
-                            onConfirm = { shareWebCard(file) },
-                        )
-                    }
-                }.onFailure {
-                    mainHandler.post { Toast.makeText(this, "生成失败: ${it.message}", Toast.LENGTH_SHORT).show() }
-                }
-            }.start()
-        }
         findViewById<View>(R.id.detailArchiveButton).setOnClickListener {
             confirmArchive()
         }
@@ -1155,21 +1124,6 @@ class BookDetailActivity : AppCompatActivity() {
             pendingTimelineBitmap?.recycle()
         }
         pendingTimelineBitmap = null
-    }
-
-    private fun shareWebCard(file: java.io.File) {
-        try {
-            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "*/*"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "《${currentBook?.title}》· 阅痕 Web 微卡")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(intent, "分享 Web 微卡"))
-        } catch (e: Exception) {
-            Toast.makeText(this, "分享失败: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private var pendingTimelineBitmap: android.graphics.Bitmap? = null

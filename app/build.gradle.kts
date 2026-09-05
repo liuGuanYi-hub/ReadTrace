@@ -101,7 +101,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     // P14 Web 微卡二维码生成（纯 JVM 核心，无额外传递依赖）
-    implementation("com.google.zxing:core:3.5.3")
     testImplementation(libs.junit)
     // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
     testImplementation("org.json:json:20240303")
