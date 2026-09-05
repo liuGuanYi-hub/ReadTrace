@@ -258,8 +258,15 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
 
                 // 标签与状态
                 txtCategory.text = book.category ?: "典藏"
-                txtScore.text = "⭐ ${String.format(java.util.Locale.US, "%.1f", (book.rating ?: 0.0) / 2.0)}"
-                txtStatus.text = book.status.displayName
+                // 评分统一十分制口径：直接展示，不再折半
+                txtScore.text = "⭐ ${String.format(java.util.Locale.US, "%.1f", book.rating ?: 0.0)}"
+                // 音乐作品没有阅读状态语义：不显示「已读」状态签
+                if (book.mediaType == MediaType.MUSIC) {
+                    txtStatus.visibility = View.GONE
+                } else {
+                    txtStatus.text = book.status.displayName
+                    txtStatus.visibility = View.VISIBLE
+                }
 
                 // 选中态高光切换
                 if (isSelected) {

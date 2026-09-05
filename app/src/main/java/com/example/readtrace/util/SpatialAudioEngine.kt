@@ -44,7 +44,7 @@ object SpatialAudioEngine {
                 val t = i.toDouble() / SAMPLE_RATE
                 val decay = Math.exp(-t * 28.0)
                 val freq = 110.0 - 50.0 * (i.toDouble() / numSamples)
-                val sampleVal = (sin(2.0 * Math.PI * freq * t) * decay * 28000).toInt()
+                val sampleVal = (sin(2.0 * Math.PI * freq * t) * decay * 14000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()
@@ -71,7 +71,7 @@ object SpatialAudioEngine {
                 val decay = Math.exp(-t * 35.0)
                 val noise = (Math.random() * 2.0 - 1.0)
                 val click = sin(2.0 * Math.PI * 2400.0 * t) * 0.6 + noise * 0.4
-                val sampleVal = (click * decay * 24000).toInt()
+                val sampleVal = (click * decay * 12000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()
@@ -97,7 +97,7 @@ object SpatialAudioEngine {
                 val t = i.toDouble() / SAMPLE_RATE
                 val envelope = sin(Math.PI * (i.toDouble() / numSamples))
                 val noise = (Math.random() * 2.0 - 1.0) * envelope
-                val sampleVal = (noise * 14000).toInt()
+                val sampleVal = (noise * 9000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()
@@ -123,7 +123,7 @@ object SpatialAudioEngine {
                 val t = i.toDouble() / SAMPLE_RATE
                 val decay = Math.exp(-t * 50.0)
                 val tone = sin(2.0 * Math.PI * 480.0 * t) * 0.4 + (Math.random() * 2.0 - 1.0) * 0.6
-                val sampleVal = (tone * decay * 20000).toInt()
+                val sampleVal = (tone * decay * 9000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()
@@ -149,7 +149,7 @@ object SpatialAudioEngine {
                 val t = i.toDouble() / SAMPLE_RATE
                 val decay = Math.exp(-t * 40.0)
                 val snapTone = sin(2.0 * Math.PI * 1800.0 * t) * 0.7 + sin(2.0 * Math.PI * 900.0 * t) * 0.3
-                val sampleVal = (snapTone * decay * 26000).toInt()
+                val sampleVal = (snapTone * decay * 13000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()
@@ -177,7 +177,7 @@ object SpatialAudioEngine {
                 val decay = Math.exp(-t * 8.0)
                 val chime = sin(2.0 * Math.PI * frequencyHz * t) * 0.6 +
                     sin(2.0 * Math.PI * frequencyHz * 2.0 * t) * 0.4
-                val sampleVal = (chime * decay * 22000).toInt()
+                val sampleVal = (chime * decay * 11000).toInt()
                 val shortVal = sampleVal.coerceIn(-32768, 32767).toShort()
 
                 buffer[i * 2] = (shortVal * leftGain).toInt().toShort()

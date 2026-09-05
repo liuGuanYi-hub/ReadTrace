@@ -233,10 +233,29 @@ object NeteasePreviewHelper {
         }.start()
     }
 
-    private fun searchPlayablePreview(context: Context?, title: String, artist: String?): PreviewResult? {
-        // 与外部跳转网易云搜索保持一致：去掉括号注音后拼接歌手，命中率更高
+    /**
+     * 构造网易云搜索词：曲名去括号注音后只拼接第一主歌手名。
+     * 完整 author 字段含括号别名与附属创作者（如"ヨルシカ (Yorushika) · n-buna / suis"），
+     * 整串拼进搜索会显著劣化结果，导致曲名匹配落空、掉进歌手级兜底而放错歌。
+     */
+    fun buildNeteaseSearchQuery(title: String, artist: String?): String {
         val cleanTitle = title.replace(Regex("[（(].*?[)）]"), "").trim()
-        val query = if (artist.isNullOrBlank()) cleanTitle else "$cleanTitle $artist"
+        val primary = primaryArtistName(artist)
+        return if (primary.isNullOrBlank()) cleanTitle else "$cleanTitle $primary"
+    }
+
+    /** 取歌手字段的第一主歌手：去括号别名后，截断 ·/、& 等分隔符之后的附属创作者 */
+    private fun primaryArtistName(artist: String?): String? {
+        val cleaned = artist?.replace(Regex("[（(].*?[)）]"), "")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: return null
+        val primary = cleaned.split("·", "/", "、", "&")[0].trim()
+        return primary.takeIf { it.isNotEmpty() }
+    }
+
+    private fun searchPlayablePreview(context: Context?, title: String, artist: String?): PreviewResult? {
+        // 与外部跳转网易云搜索保持一致：去掉括号注音后只拼第一主歌手，命中率更高
+        val cleanTitle = title.replace(Regex("[（(].*?[)）]"), "").trim()
+        val query = buildNeteaseSearchQuery(title, artist)
         val musicU = getMusicUCookie(context)
         val all = searchSongCandidates(query, musicU)
         // 三级匹配兜底（防错别字/专辑无名曲等场景，宁可宽一格也不放无关歌）：

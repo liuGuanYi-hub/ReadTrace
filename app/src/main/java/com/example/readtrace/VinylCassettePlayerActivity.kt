@@ -77,7 +77,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var tvPlayPauseLabel: TextView
     private lateinit var btnPrevTrack: ImageButton
     private lateinit var btnNextTrack: ImageButton
-    private lateinit var btnSpeedToggle: TextView
     private lateinit var btnOpenNetease: TextView
     private lateinit var btnCloudPlaylist: TextView
 
@@ -267,7 +266,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         tvPlayPauseLabel = findViewById(R.id.tvPlayPauseLabel)
         btnPrevTrack = findViewById(R.id.btnPrevTrack)
         btnNextTrack = findViewById(R.id.btnNextTrack)
-        btnSpeedToggle = findViewById(R.id.btnSpeedToggle)
         btnOpenNetease = findViewById(R.id.btnOpenNetease)
         btnCloudPlaylist = findViewById(R.id.btnCloudPlaylist)
 
@@ -421,14 +419,6 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             switchWork(isPlaying)
         }
 
-        // 33 RPM / 45 RPM 转速切换
-        btnSpeedToggle.setOnClickListener {
-            triggerHapticClick()
-            val is33 = btnSpeedToggle.text.contains("33")
-            btnSpeedToggle.text = if (is33) "45" else "33"
-            Toast.makeText(this, if (is33) "切换至 45 RPM 典藏高保真转速" else "切换至 33 1/3 RPM 标准密纹转速", Toast.LENGTH_SHORT).show()
-        }
-
         // 我的歌单：绑定会员 Cookie 后直接播自己歌单里的完整曲目
         btnCloudPlaylist.setOnClickListener {
             triggerHapticClick()
@@ -478,9 +468,9 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             return
         }
         val track = playlist[currentIndex]
-        // 去除括号注音（如 晴る (Haru) → 晴る）后拼接歌手作为搜索词，命中率更高
+        // 去除括号注音（如 晴る (Haru) → 晴る）后只拼第一主歌手作为搜索词，命中率更高
         val cleanTitle = track.title.replace(Regex("[（(].*?[)）]"), "").trim()
-        val query = if (track.author.isNullOrBlank()) cleanTitle else "$cleanTitle ${track.author}"
+        val query = com.example.readtrace.util.NeteasePreviewHelper.buildNeteaseSearchQuery(track.title, track.author)
         val searchUrl = "https://music.163.com/#/search/s/?s=${java.net.URLEncoder.encode(query, "UTF-8")}&type=1"
         runCatching {
             startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(searchUrl)))

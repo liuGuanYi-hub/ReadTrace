@@ -190,7 +190,13 @@ object WorkPickerDialog {
                 holder.rating.visibility = View.GONE
             }
 
-            holder.status.text = book.status.displayName
+            // 音乐作品没有阅读状态语义：不显示「已读」状态签
+            if (book.mediaType == MediaType.MUSIC) {
+                holder.status.visibility = View.GONE
+            } else {
+                holder.status.text = book.status.displayName
+                holder.status.visibility = View.VISIBLE
+            }
             CoverImageHelper.loadCover(holder.cover, book.coverUrl)
 
             holder.itemView.setOnClickListener {
