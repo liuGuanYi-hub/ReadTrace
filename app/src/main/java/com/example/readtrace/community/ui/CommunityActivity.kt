@@ -162,7 +162,7 @@ class CommunityActivity : AppCompatActivity() {
             val likeBtn = item.findViewById<TextView>(R.id.exhibitionLikeBtn)
             likeBtn.text = if (exhibition.isLiked) "❤️ ${exhibition.likeCount}" else "🤍 ${exhibition.likeCount}"
             likeBtn.setOnClickListener {
-                CommunityRepository.toggleLike(exhibition.id)
+                CommunityRepository.toggleLike(exhibition.id, this)
                 likeBtn.text = if (exhibition.isLiked) "❤️ ${exhibition.likeCount}" else "🤍 ${exhibition.likeCount}"
             }
 

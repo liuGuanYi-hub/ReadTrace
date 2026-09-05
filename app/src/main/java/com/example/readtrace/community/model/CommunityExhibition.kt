@@ -13,7 +13,7 @@ data class CommunityExhibition(
     val tags: List<String> = emptyList(),
     var likeCount: Int = 0,
     var isLiked: Boolean = false,
-    val commentCount: Int = 0,
+    var commentCount: Int = 0,
     val createdAt: String,
     val featuredTheme: String = "星空漫想",
 )

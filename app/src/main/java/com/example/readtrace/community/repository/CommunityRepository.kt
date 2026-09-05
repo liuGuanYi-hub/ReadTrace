@@ -7,6 +7,8 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
+import org.json.JSONArray
+import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -15,6 +17,19 @@ object CommunityRepository {
     private val memoryExhibitions = mutableListOf<CommunityExhibition>()
     private val memoryComments = mutableMapOf<String, MutableList<CommunityComment>>()
     private var isInitialized = false
+
+    // ===== 用户行为持久化（P38-G4）：点赞/留言/发布展厅落 SharedPreferences，进程重启不再丢失 =====
+    private const val PREFS_NAME = "readtrace_community_user"
+    private const val KEY_LIKED = "liked_exhibition_ids"
+    private const val KEY_COMMENTS = "user_comments"
+    private const val KEY_PUBLISHED = "published_exhibitions"
+    private const val USER_EXHIBITION_PREFIX = "user-"
+
+    private var appContext: Context? = null
+
+    private fun userPrefs(context: Context? = null): android.content.SharedPreferences? =
+        (appContext ?: context?.applicationContext?.also { appContext = it })
+            ?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun getExhibitions(category: String = "全部", query: String = ""): List<CommunityExhibition> {
         ensureSeedData()
@@ -40,7 +55,7 @@ object CommunityRepository {
         return memoryExhibitions.firstOrNull { it.id == id }
     }
 
-    fun toggleLike(id: String): Boolean {
+    fun toggleLike(id: String, context: Context? = null): Boolean {
         val exhibition = getExhibitionById(id) ?: return false
         if (exhibition.isLiked) {
             exhibition.likeCount = (exhibition.likeCount - 1).coerceAtLeast(0)
@@ -49,6 +64,7 @@ object CommunityRepository {
             exhibition.likeCount += 1
             exhibition.isLiked = true
         }
+        persistLikes(context)
         return exhibition.isLiked
     }
 
@@ -57,7 +73,7 @@ object CommunityRepository {
         return memoryComments[exhibitionId] ?: emptyList()
     }
 
-    fun addComment(exhibitionId: String, userName: String, content: String): CommunityComment {
+    fun addComment(exhibitionId: String, userName: String, content: String, context: Context? = null): CommunityComment {
         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         val comment = CommunityComment(
             id = UUID.randomUUID().toString(),
@@ -68,6 +84,9 @@ object CommunityRepository {
             createdAt = now,
         )
         memoryComments.getOrPut(exhibitionId) { mutableListOf() }.add(0, comment)
+        // 同步递增展厅留言计数（此前恒为种子值，P38-G4 顺带修复）
+        getExhibitionById(exhibitionId)?.let { it.commentCount += 1 }
+        persistComments(context)
         return comment
     }
 
@@ -79,10 +98,11 @@ object CommunityRepository {
         books: List<Book>,
         tags: List<String>,
         featuredTheme: String,
+        context: Context? = null,
     ): CommunityExhibition {
         val now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         val exhibition = CommunityExhibition(
-            id = UUID.randomUUID().toString(),
+            id = USER_EXHIBITION_PREFIX + UUID.randomUUID().toString(),
             authorName = authorName.ifBlank { "深居漫步者" },
             authorAvatar = authorAvatar.ifBlank { "🦉" },
             title = title,
@@ -96,6 +116,7 @@ object CommunityRepository {
             featuredTheme = featuredTheme,
         )
         memoryExhibitions.add(0, exhibition)
+        persistPublished(context)
         return exhibition
     }
 
@@ -215,6 +236,151 @@ object CommunityRepository {
         )
         memoryComments["ex-003"] = mutableListOf(
             CommunityComment("c-3", "ex-003", "夜行船", "🌙", "白夜行的短评写得太戳心了，“我的天空里没有太阳，但并不暗”。", "2026-08-22 11:05"),
+        )
+
+        restoreUserData()
+    }
+
+    // ===== 持久化实现 =====
+
+    private fun restoreUserData() {
+        val prefs = userPrefs(null) ?: return
+        // 1. 点赞状态回放
+        val liked = prefs.getStringSet(KEY_LIKED, emptySet()) ?: emptySet()
+        if (liked.isNotEmpty()) {
+            memoryExhibitions.forEach { ex ->
+                if (ex.id in liked && !ex.isLiked) {
+                    ex.isLiked = true
+                    ex.likeCount += 1
+                }
+            }
+        }
+        // 2. 用户发布的展厅回放（user- 前缀）
+        prefs.getString(KEY_PUBLISHED, null)?.let { json ->
+            runCatching {
+                val arr = JSONArray(json)
+                for (i in 0 until arr.length()) {
+                    runCatching { memoryExhibitions.add(0, parseExhibition(arr.getJSONObject(i))) }
+                }
+            }
+        }
+        // 3. 用户留言回放
+        prefs.getString(KEY_COMMENTS, null)?.let { json ->
+            runCatching {
+                val arr = JSONArray(json)
+                for (i in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(i)
+                    memoryComments.getOrPut(obj.optString("exhibitionId")) { mutableListOf() }.add(
+                        CommunityComment(
+                            id = obj.optString("id"),
+                            exhibitionId = obj.optString("exhibitionId"),
+                            userName = obj.optString("userName"),
+                            userAvatar = obj.optString("userAvatar"),
+                            content = obj.optString("content"),
+                            createdAt = obj.optString("createdAt"),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun persistLikes(context: Context? = null) {
+        val prefs = userPrefs(context) ?: return
+        prefs.edit().putStringSet(KEY_LIKED, memoryExhibitions.filter { it.isLiked }.map { it.id }.toSet()).apply()
+    }
+
+    private fun persistComments(context: Context? = null) {
+        val prefs = userPrefs(context) ?: return
+        val arr = JSONArray()
+        memoryComments.values.forEach { list -> list.forEach { c -> arr.put(commentToJson(c)) } }
+        prefs.edit().putString(KEY_COMMENTS, arr.toString()).apply()
+    }
+
+    private fun persistPublished(context: Context? = null) {
+        val prefs = userPrefs(context) ?: return
+        val arr = JSONArray()
+        memoryExhibitions.filter { it.id.startsWith(USER_EXHIBITION_PREFIX) }.forEach { arr.put(exhibitionToJson(it)) }
+        prefs.edit().putString(KEY_PUBLISHED, arr.toString()).apply()
+    }
+
+    private fun commentToJson(c: CommunityComment) = JSONObject().apply {
+        put("id", c.id)
+        put("exhibitionId", c.exhibitionId)
+        put("userName", c.userName)
+        put("userAvatar", c.userAvatar)
+        put("content", c.content)
+        put("createdAt", c.createdAt)
+    }
+
+    private fun exhibitionToJson(e: CommunityExhibition) = JSONObject().apply {
+        put("id", e.id)
+        put("authorName", e.authorName)
+        put("authorAvatar", e.authorAvatar)
+        put("title", e.title)
+        put("themeDescription", e.themeDescription)
+        put("tags", JSONArray(e.tags))
+        put("likeCount", e.likeCount)
+        put("isLiked", e.isLiked)
+        put("commentCount", e.commentCount)
+        put("createdAt", e.createdAt)
+        put("featuredTheme", e.featuredTheme)
+        val booksArr = JSONArray()
+        e.curatedBooks.forEach { b ->
+            booksArr.put(JSONObject().apply {
+                put("id", b.id)
+                put("title", b.title)
+                put("author", b.author.orEmpty())
+                put("category", b.category.orEmpty())
+                if (b.rating != null) put("rating", b.rating)
+                put("status", b.status.databaseValue)
+                put("mediaType", b.mediaType.databaseValue)
+                put("shortComment", b.shortComment.orEmpty())
+                put("review", b.review.orEmpty())
+            })
+        }
+        put("curatedBooks", booksArr)
+    }
+
+    private fun parseExhibition(obj: JSONObject): CommunityExhibition {
+        val books = mutableListOf<Book>()
+        obj.optJSONArray("curatedBooks")?.let { arr ->
+            for (i in 0 until arr.length()) {
+                val b = arr.getJSONObject(i)
+                runCatching {
+                    books.add(
+                        Book(
+                            id = b.optLong("id"),
+                            title = b.optString("title"),
+                            author = b.optString("author").takeIf { it.isNotEmpty() },
+                            category = b.optString("category").takeIf { it.isNotEmpty() },
+                            rating = if (b.has("rating") && !b.isNull("rating")) b.getDouble("rating") else null,
+                            status = BookStatus.fromDatabaseValue(b.optString("status")),
+                            mediaType = MediaType.fromDatabaseValue(b.optString("mediaType")),
+                            shortComment = b.optString("shortComment").takeIf { it.isNotEmpty() },
+                            review = b.optString("review").takeIf { it.isNotEmpty() },
+                        ),
+                    )
+                }
+            }
+        }
+        val tags = mutableListOf<String>()
+        obj.optJSONArray("tags")?.let { arr ->
+            for (i in 0 until arr.length()) tags.add(arr.optString(i))
+        }
+        return CommunityExhibition(
+            id = obj.optString("id"),
+            authorName = obj.optString("authorName"),
+            authorAvatar = obj.optString("authorAvatar"),
+            title = obj.optString("title"),
+            themeDescription = obj.optString("themeDescription"),
+            curatedBooks = books,
+            tags = tags,
+            likeCount = obj.optInt("likeCount", 1),
+            isLiked = obj.optBoolean("isLiked", true),
+            commentCount = obj.optInt("commentCount", 0),
+            createdAt = obj.optString("createdAt"),
+            featuredTheme = obj.optString("featuredTheme"),
         )
     }
 }

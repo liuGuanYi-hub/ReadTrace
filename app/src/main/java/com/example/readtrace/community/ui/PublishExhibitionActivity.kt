@@ -167,6 +167,7 @@ class PublishExhibitionActivity : AppCompatActivity() {
             books = selectedBooks.toList(),
             tags = tags,
             featuredTheme = "星空漫想",
+            context = this,
         )
 
         Toast.makeText(this, "🎉 展厅发布成功！已在阅痕广场展示", Toast.LENGTH_LONG).show()

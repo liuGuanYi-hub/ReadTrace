@@ -77,7 +77,7 @@ class ExhibitionDetailActivity : AppCompatActivity() {
         }
 
         detailLikeBtn.setOnClickListener {
-            CommunityRepository.toggleLike(exhibition!!.id)
+            CommunityRepository.toggleLike(exhibition!!.id, this)
             detailLikeBtn.text = if (exhibition!!.isLiked) "❤️ ${exhibition!!.likeCount} 共鸣" else "🤍 ${exhibition!!.likeCount} 共鸣"
         }
 
@@ -87,7 +87,7 @@ class ExhibitionDetailActivity : AppCompatActivity() {
                 Toast.makeText(this, "请输入评论内容", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            CommunityRepository.addComment(exhibition!!.id, "漫游读者", content)
+            CommunityRepository.addComment(exhibition!!.id, "漫游读者", content, this)
             commentInput.setText("")
             Toast.makeText(this, "共鸣已留下", Toast.LENGTH_SHORT).show()
             renderComments()
