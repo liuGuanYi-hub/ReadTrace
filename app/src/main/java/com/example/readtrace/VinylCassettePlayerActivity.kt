@@ -879,6 +879,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build(),
         )
+        // 起播音量强制复位：防止焦点闪避(duck)等遗留的低音量状态带进新会话
+        player.setVolume(1f, 1f)
         val dataSourceOk = runCatching {
             player.setDataSource(this@VinylCassettePlayerActivity, Uri.parse(url), headers)
         }.isSuccess
@@ -1029,6 +1031,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build(),
             )
+            // 起播音量强制复位：防止焦点闪避(duck)等遗留的低音量状态带进新会话
+            setVolume(1f, 1f)
             // 在线缓存直链（网易云 CDN）重放必须带 Referer/UA（及可选 MUSIC_U）请求头，
             // 与 playCloudUrl 同口径，否则 CDN 校验拒绝 → onError → 删链重取，
             // 缓存命中路径形同虚设；本地文件 URI 不需要请求头
@@ -1170,6 +1174,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     private fun resumePlaybackForFocus() {
         val mp = mediaPlayer ?: return
+        // 复位音量后起播：防 duck 低音量状态残留
+        mp.setVolume(1f, 1f)
         mp.start()
         isPlaying = true
         setPlayingUi(true)
