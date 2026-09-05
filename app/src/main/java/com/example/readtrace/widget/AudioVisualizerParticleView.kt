@@ -25,6 +25,8 @@ class AudioVisualizerParticleView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
+    private var glowShader: Shader? = null
+    private var cachedGlowRadius = -1f
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -123,21 +125,28 @@ class AudioVisualizerParticleView @JvmOverloads constructor(
         val cx = w * 0.5f
         val cy = h * 0.44f
 
-        // 1. 绘制背景呼吸声波光晕
+        // 1. 绘制背景呼吸声波光晕：渐变按基准半径缓存，呼吸用 canvas 缩放实现，每帧零分配（P38-P4）
         if (isPlaying) {
             val pulseScale = 1.0f + 0.08f * kotlin.math.sin(pulsePhase)
-            val glowRadius = w * 0.48f * pulseScale
-            glowPaint.shader = RadialGradient(
-                cx, cy, glowRadius,
-                intArrayOf(
-                    Color.argb(38, 116, 238, 21),
-                    Color.argb(22, 77, 238, 234),
-                    Color.TRANSPARENT,
-                ),
-                floatArrayOf(0f, 0.6f, 1f),
-                Shader.TileMode.CLAMP,
-            )
-            canvas.drawCircle(cx, cy, glowRadius, glowPaint)
+            val baseRadius = w * 0.48f
+            if (baseRadius != cachedGlowRadius) {
+                cachedGlowRadius = baseRadius
+                glowShader = RadialGradient(
+                    cx, cy, baseRadius,
+                    intArrayOf(
+                        Color.argb(38, 116, 238, 21),
+                        Color.argb(22, 77, 238, 234),
+                        Color.TRANSPARENT,
+                    ),
+                    floatArrayOf(0f, 0.6f, 1f),
+                    Shader.TileMode.CLAMP,
+                )
+            }
+            glowPaint.shader = glowShader
+            canvas.save()
+            canvas.scale(pulseScale, pulseScale, cx, cy)
+            canvas.drawCircle(cx, cy, baseRadius, glowPaint)
+            canvas.restore()
         }
 
         // 2. 绘制漂浮粒子

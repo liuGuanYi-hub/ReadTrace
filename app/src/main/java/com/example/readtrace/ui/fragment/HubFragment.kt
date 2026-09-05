@@ -195,8 +195,12 @@ class HubFragment : Fragment() {
         auroraBackgroundView.startAnimation()
         homeSubtitle.text = com.example.readtrace.util.CircadianLightingEngine.getCircadianSummary()
         updateThemeToggleIcon()
-        refreshDashboard()
-        refreshMemoryFlashback()
+        // 首帧后再执行仪表盘重活，冷启动首帧不被全表查询阻塞（P38-P2）
+        view?.post {
+            if (!isAdded || isDetached) return@post
+            refreshDashboard()
+            refreshMemoryFlashback()
+        }
     }
 
     override fun onPause() {
@@ -443,7 +447,7 @@ class HubFragment : Fragment() {
     /** 💖 P28→P35：主页第二页「我的最爱 · 心选展厅」横滑带（无收藏时整块隐藏） */
     private fun renderFavoriteStrip() {
         if (!::favStripContainer.isInitialized) return
-        val items = MediaType.values().flatMap { databaseHelper.getFavoritesByMediaType(it) }
+        val items = databaseHelper.getFavorites()
             .sortedWith(compareBy({ it.mediaType.ordinal }, { it.rankOrder }, { it.id }))
         if (items.isEmpty()) {
             favShowcaseSection.visibility = View.GONE

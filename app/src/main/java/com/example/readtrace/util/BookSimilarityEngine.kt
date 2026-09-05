@@ -20,7 +20,7 @@ object BookSimilarityEngine {
         databaseHelper: BookDatabaseHelper,
         limit: Int = 2,
     ): List<SimilarBookRecommendation> {
-        val allBooks = databaseHelper.getBooks().filter { it.id != targetBook.id }
+        val allBooks = databaseHelper.getCachedBooks().filter { it.id != targetBook.id }
         if (allBooks.isEmpty()) return emptyList()
 
         val allMindprints = databaseHelper.getAllMindprints()

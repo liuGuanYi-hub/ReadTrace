@@ -126,17 +126,24 @@ class CassetteDeckView @JvmOverloads constructor(
         drawMagneticHeadArea(canvas, bodyRect)
     }
 
+    /** 外壳渐变随尺寸缓存，播放态每帧零分配（P38-P4） */
+    private val cachedBodyRect = RectF()
+    private var bodyShader: LinearGradient? = null
+
     private fun drawCassetteBody(canvas: Canvas, r: RectF) {
-        // 外壳深灰透明材质
-        bodyPaint.shader = LinearGradient(
-            r.left, r.top, r.left, r.bottom,
-            intArrayOf(
-                Color.parseColor("#1C2028"),
-                Color.parseColor("#11141A"),
-                Color.parseColor("#0C0E12"),
-            ),
-            null, Shader.TileMode.CLAMP,
-        )
+        if (cachedBodyRect != r || bodyShader == null) {
+            cachedBodyRect.set(r)
+            bodyShader = LinearGradient(
+                r.left, r.top, r.left, r.bottom,
+                intArrayOf(
+                    Color.parseColor("#1C2028"),
+                    Color.parseColor("#11141A"),
+                    Color.parseColor("#0C0E12"),
+                ),
+                null, Shader.TileMode.CLAMP,
+            )
+        }
+        bodyPaint.shader = bodyShader
         canvas.drawRoundRect(r, 20f, 20f, bodyPaint)
 
         // 外圈高光边框

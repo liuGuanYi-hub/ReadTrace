@@ -203,30 +203,44 @@ class BookDetailActivity : AppCompatActivity() {
             .startAnimation(AnimationUtils.loadAnimation(this, R.anim.home_enter))
     }
 
+    /** 详情页数据加载代际：快速进出/切书时过期回调自我作废（P38-P1） */
+    private var detailLoadSeq = 0
+
     override fun onResume() {
         super.onResume()
         if (bookId == NO_BOOK_ID) return
-        val book = databaseHelper.getBook(bookId)
-        if (book == null) {
-            showMissingBookAndClose()
-            return
-        }
-        currentBook = book
-        renderBook(book)
-        renderCollection(book)
-        renderNotes(databaseHelper.getNotes(bookId))
-        renderCharacters(databaseHelper.getCharacters(bookId))
-        renderOutlines(databaseHelper.getOutlines(bookId))
-        renderMindprint(databaseHelper.getMindprint(bookId))
-        renderLocations(databaseHelper.getLocations(bookId))
-        renderTimeline(
-            book,
-            databaseHelper.getReadingSessions(bookId),
-            databaseHelper.getNotes(bookId),
-            databaseHelper.getLocations(bookId),
-            databaseHelper.getOutlines(bookId),
-        )
-        renderSimilarBooks(book)
+        val seq = ++detailLoadSeq
+        // P38-P1：原主线程 12 连查全部后台化；notes/locations/outlines 只查一次复用
+        Thread {
+            val book = databaseHelper.getBook(bookId)
+            if (book == null) {
+                runOnUiThread {
+                    if (seq != detailLoadSeq || isFinishing || isDestroyed) return@runOnUiThread
+                    showMissingBookAndClose()
+                }
+                return@Thread
+            }
+            val notes = databaseHelper.getNotes(bookId)
+            val characters = databaseHelper.getCharacters(bookId)
+            val outlines = databaseHelper.getOutlines(bookId)
+            val mindprint = databaseHelper.getMindprint(bookId)
+            val locations = databaseHelper.getLocations(bookId)
+            val sessions = databaseHelper.getReadingSessions(bookId)
+            val similar = com.example.readtrace.util.BookSimilarityEngine.findSimilarBooks(book, databaseHelper, limit = 2)
+            runOnUiThread {
+                if (seq != detailLoadSeq || isFinishing || isDestroyed) return@runOnUiThread
+                currentBook = book
+                renderBook(book)
+                renderCollection(book)
+                renderNotes(notes)
+                renderCharacters(characters)
+                renderOutlines(outlines)
+                renderMindprint(mindprint)
+                renderLocations(locations)
+                renderTimeline(book, sessions, notes, locations, outlines)
+                renderSimilarBooks(similar)
+            }
+        }.start()
     }
 
     private fun renderCollection(book: Book) {
@@ -792,12 +806,10 @@ class BookDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderSimilarBooks(book: Book) {
+    private fun renderSimilarBooks(recommendations: List<com.example.readtrace.util.SimilarBookRecommendation>) {
         val container = findViewById<LinearLayout>(R.id.detailSimilarContainer) ?: return
         val emptyView = findViewById<TextView>(R.id.detailSimilarEmpty) ?: return
         container.removeAllViews()
-
-        val recommendations = com.example.readtrace.util.BookSimilarityEngine.findSimilarBooks(book, databaseHelper, limit = 2)
 
         if (recommendations.isEmpty()) {
             emptyView.visibility = View.VISIBLE

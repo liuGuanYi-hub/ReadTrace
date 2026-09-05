@@ -306,7 +306,7 @@ class MediaHubActivity : AppCompatActivity() {
     }
 
     private fun refreshData() {
-        val allTargetBooks = databaseHelper.getBooks().filter { it.mediaType == targetMediaType }
+        val allTargetBooks = databaseHelper.getCachedBooks().filter { it.mediaType == targetMediaType }
         val total = allTargetBooks.size
         val finished = allTargetBooks.count { it.status == BookStatus.FINISHED }
         val reading = allTargetBooks.count { it.status == BookStatus.READING }

@@ -102,7 +102,17 @@ class TrashActivity : AppCompatActivity() {
         notesContainer.visibility = View.GONE
         booksContainer.removeAllViews()
 
-        val books = databaseHelper.getArchivedBooks()
+        // 回收站查询挪后台（P38-P5），渲染回主线程
+        Thread {
+            val books = databaseHelper.getArchivedBooks()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                renderArchivedBooksList(books)
+            }
+        }.start()
+    }
+
+    private fun renderArchivedBooksList(books: List<com.example.readtrace.model.Book>) {
         if (books.isEmpty()) {
             emptyText.visibility = View.VISIBLE
             emptyText.setText(R.string.trash_empty_books)
@@ -132,7 +142,17 @@ class TrashActivity : AppCompatActivity() {
         notesContainer.visibility = View.VISIBLE
         notesContainer.removeAllViews()
 
-        val archivedNotes = databaseHelper.getArchivedNotes()
+        // 回收站查询挪后台（P38-P5）
+        Thread {
+            val archivedNotes = databaseHelper.getArchivedNotes()
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                renderArchivedNotesList(archivedNotes)
+            }
+        }.start()
+    }
+
+    private fun renderArchivedNotesList(archivedNotes: List<com.example.readtrace.model.ArchivedNoteItem>) {
         if (archivedNotes.isEmpty()) {
             emptyText.visibility = View.VISIBLE
             emptyText.setText(R.string.trash_empty_notes)

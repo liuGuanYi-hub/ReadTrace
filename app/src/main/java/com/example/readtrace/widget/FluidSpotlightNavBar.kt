@@ -61,6 +61,9 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
     private val clipPath = Path()
     private val clipRect = RectF()
 
+    private var cachedSpotlightGradient: RadialGradient? = null
+    private var cachedSpotlightRadius = -1f
+    private val spotlightMatrix = android.graphics.Matrix()
     private val spotlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         isDither = true
     }
@@ -328,25 +331,24 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             canvas.save()
             canvas.clipPath(clipPath)
 
-            // 1. 动态径向高光探针
-            val coreAlpha = (110 * glowAlpha).toInt().coerceIn(0, 255)
-            val jadeAlpha = (65 * glowAlpha).toInt().coerceIn(0, 255)
-            val outerAlpha = 0
-
-            val gradient = RadialGradient(
-                spotlightX,
-                spotlightY,
-                spotlightRadius,
-                intArrayOf(
-                    Color.argb(coreAlpha, 255, 255, 255),
-                    Color.argb(jadeAlpha, 90, 168, 118),
-                    Color.argb(outerAlpha, 58, 99, 72)
-                ),
-                floatArrayOf(0f, 0.55f, 1f),
-                Shader.TileMode.CLAMP
-            )
-
-            spotlightPaint.shader = gradient
+            // 1. 动态径向高光探针：渐变按半径缓存 + 局部矩阵平移 + paint.alpha 调制强度，每帧零分配（P38-P3）
+            if (spotlightRadius != cachedSpotlightRadius) {
+                cachedSpotlightRadius = spotlightRadius
+                cachedSpotlightGradient = RadialGradient(
+                    0f, 0f, spotlightRadius,
+                    intArrayOf(
+                        Color.argb(110, 255, 255, 255),
+                        Color.argb(65, 90, 168, 118),
+                        Color.argb(0, 58, 99, 72)
+                    ),
+                    floatArrayOf(0f, 0.55f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            }
+            spotlightMatrix.setTranslate(spotlightX - spotlightRadius, spotlightY - spotlightRadius)
+            cachedSpotlightGradient?.setLocalMatrix(spotlightMatrix)
+            spotlightPaint.shader = cachedSpotlightGradient
+            spotlightPaint.alpha = (255 * glowAlpha).toInt().coerceIn(0, 255)
             canvas.drawCircle(spotlightX, spotlightY, spotlightRadius, spotlightPaint)
 
             // 2. 绘制流动微光粒子

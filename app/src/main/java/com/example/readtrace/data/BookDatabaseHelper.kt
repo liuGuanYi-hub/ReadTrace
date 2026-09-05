@@ -3864,7 +3864,8 @@ if (oldVersion < 13) {
         }
     }
 
-    fun getFavoritesByMediaType(mediaType: MediaType): List<CuratorFavoriteItem> {
+    /** 一次取全部收藏（P38-P2：主页原本按媒介 5 连查合并为 1 次，调用方内存分组） */
+    fun getFavorites(): List<CuratorFavoriteItem> {
         val result = mutableListOf<CuratorFavoriteItem>()
         val db = readableDatabase
         val query = """
@@ -3873,17 +3874,18 @@ if (oldVersion < 13) {
                    f.$COLUMN_CREATED_AT as fav_created_at, b.*
             FROM $TABLE_FAVORITES f
             INNER JOIN $TABLE_BOOKS b ON f.$COLUMN_FAVORITE_BOOK_ID = b.$COLUMN_ID
-            WHERE f.$COLUMN_FAVORITE_MEDIA_TYPE = ? AND b.$COLUMN_IS_DELETED = 0
+            WHERE b.$COLUMN_IS_DELETED = 0
             ORDER BY f.$COLUMN_FAVORITE_RANK_ORDER ASC, f.$COLUMN_ID ASC
         """.trimIndent()
 
-        val cursor = db.rawQuery(query, arrayOf(mediaType.name.lowercase()))
+        val cursor = db.rawQuery(query, null)
         while (cursor.moveToNext()) {
             val favId = cursor.getLong(cursor.getColumnIndexOrThrow("fav_id"))
             val rank = cursor.getInt(cursor.getColumnIndexOrThrow("fav_rank"))
             val tagline = cursor.getString(cursor.getColumnIndexOrThrow("fav_tagline"))
             val favCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow("fav_created_at"))
             val book = cursor.toBook()
+            val mediaType = book.mediaType
             result.add(
                 CuratorFavoriteItem(
                     id = favId,
@@ -3898,6 +3900,9 @@ if (oldVersion < 13) {
         cursor.close()
         return result
     }
+
+    fun getFavoritesByMediaType(mediaType: MediaType): List<CuratorFavoriteItem> =
+        getFavorites().filter { it.mediaType == mediaType }
 
     fun getFavoriteCount(): Int {
         val cursor = readableDatabase.rawQuery("SELECT COUNT(*) FROM $TABLE_FAVORITES", null)

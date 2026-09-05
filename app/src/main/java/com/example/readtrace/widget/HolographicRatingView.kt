@@ -226,18 +226,27 @@ class HolographicRatingView @JvmOverloads constructor(
         canvas.drawText("/ 10.0", currentX + scoreTextWidth + 8f, centerY + h * 0.16f, subTextPaint)
     }
 
-    private fun drawSingleStar(canvas: Canvas, cx: Float, cy: Float, radius: Float, isFull: Boolean, isHalf: Boolean) {
-        val path = Path()
-        val innerR = radius * 0.42f
+    /** 星形 Path 按半径缓存（原点系），绘制时 translate 到目标位置，评分动画每帧零分配（P38-P4） */
+    private var cachedStarRadius = -1f
+    private val cachedStarPath = Path()
 
-        for (i in 0 until 10) {
-            val r = if (i % 2 == 0) radius else innerR
-            val angle = (i * 36 - 90) * Math.PI / 180.0
-            val x = (cx + r * cos(angle)).toFloat()
-            val y = (cy + r * sin(angle)).toFloat()
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    private fun drawSingleStar(canvas: Canvas, cx: Float, cy: Float, radius: Float, isFull: Boolean, isHalf: Boolean) {
+        if (radius != cachedStarRadius) {
+            cachedStarRadius = radius
+            cachedStarPath.reset()
+            val innerR = radius * 0.42f
+            for (i in 0 until 10) {
+                val r = if (i % 2 == 0) radius else innerR
+                val angle = (i * 36 - 90) * Math.PI / 180.0
+                val x = (r * cos(angle)).toFloat()
+                val y = (r * sin(angle)).toFloat()
+                if (i == 0) cachedStarPath.moveTo(x, y) else cachedStarPath.lineTo(x, y)
+            }
+            cachedStarPath.close()
         }
-        path.close()
+        val path = cachedStarPath
+        canvas.save()
+        canvas.translate(cx, cy)
 
         if (isFull) {
             starPaint.color = Color.parseColor("#FFE700") // 金曜黄
@@ -251,17 +260,17 @@ class HolographicRatingView @JvmOverloads constructor(
             starPaint.alpha = 140
             canvas.drawPath(path, starPaint)
         } else if (isHalf) {
-            // 半星
+            // 半星（原点系 clipRect）
             starPaint.color = Color.parseColor("#FFE700")
             starPaint.style = Paint.Style.FILL
             canvas.save()
-            canvas.clipRect(cx - radius, cy - radius, cx, cy + radius)
+            canvas.clipRect(-radius, -radius, 0f, radius)
             canvas.drawPath(path, starPaint)
             canvas.restore()
 
             starPaint.color = Color.parseColor("#44FFE700")
             canvas.save()
-            canvas.clipRect(cx, cy - radius, cx + radius, cy + radius)
+            canvas.clipRect(0f, -radius, radius, radius)
             canvas.drawPath(path, starPaint)
             canvas.restore()
         } else {
@@ -269,6 +278,7 @@ class HolographicRatingView @JvmOverloads constructor(
             starPaint.style = Paint.Style.FILL
             canvas.drawPath(path, starPaint)
         }
+        canvas.restore()
     }
 
     override fun onDetachedFromWindow() {
