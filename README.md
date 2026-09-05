@@ -1,4 +1,4 @@
-# 阅痕 ReadTrace v1.0.8 — 个人精神文化印记与先锋美学策展空间
+# 阅痕 ReadTrace v1.0.8 — 个人精神文化印记与美学策展空间
 
 > **Android 原生开发 · 3D 情绪等高线拓扑 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 年鉴画册与云端展览社区 · 桌面小组件 · 纯本地数据掌控**
 
@@ -10,13 +10,13 @@
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与先锋美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
+《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
 
 > 📢 **v1.0.8 正式版本**：📦 全量存档一次导入与账号数据主权（Sovereign Backup）、🎨 富内容 JSON 应用内本地导入（缺失作品自动建库）、🗑️ 账号数据物理清空、🌐 219 部预设作品富内容全量补全（角色谱 / 语录 / 章节大纲随 APK assets 自动生效）。详见 [v1.0.8 官方发布说明](docs/RELEASE_NOTES_v1.0.8.md) 与 [系统架构交互全景图](docs/readtrace-architecture.html)。
 
 ---
 
-## ✨ 核心先锋特性矩阵
+## ✨ 核心特性矩阵
 
 ### 1. 🏛️ 策展级记录台与五媒介藏库
 - **杂志封面式记录台首屏**：PERSONAL ARCHIVE 眉标、五媒介统计网格、一键添加 / 导入 / 备份 / 回收站，探索内容自然下沉第二页，首屏永远清爽。
@@ -40,7 +40,7 @@
 
 ### 4. 🗺️ 3D 情绪拓扑与等高线心智地形图系统
 - **多峰复合高斯势能地形算法 (`MindprintTopologyView`)**：\(h(x, y) = \sum A_i \cdot e^{-\frac{(x - x_i)^2 + (y - y_i)^2}{2\sigma^2}}\)，将全量作品的心智五维雷达转化为 26x26 精神海拔起伏地貌。
-- **三大先锋渲染模式**：3D 发光等高线 (`CONTOUR`)、空间立体线框 (`WIREFRAME`)、能量引力热力场 (`HEATMAP`)。
+- **三大渲染模式**：3D 发光等高线 (`CONTOUR`)、空间立体线框 (`WIREFRAME`)、能量引力热力场 (`HEATMAP`)。
 - **精神海拔等高切片推杆 (Elevation Slicer)**：0m ~ 8848m 实时地貌剖面切片分析。
 - **巅峰水晶方尖碑信标与 1080P Ultra-HD 图谱海报**：高光山峰树立自发光信标，支持从任意作品详情一键「🗺️ 3D 地形」直达聚焦，并一键生成 1080x1440 典藏拓扑图谱海报分享。
 
@@ -56,7 +56,7 @@
 - **🖼️ 金句印记海报与共鸣海报 (`QuotePosterActivity` & `ResonancePosterActivity`)**：一键把作品金句与双生共鸣铸成可分享的艺术海报。
 - **🕰️ 那年今日与时光印记**：时光深处的记忆自动回访，让每一条记录都拥有重见天日的仪式感。
 
-### 7. ✨ 先锋动效与微交互大一统体系
+### 7. ✨ 动效与微交互大一统体系
 - **极光流光边框环绕 (`BorderBeamFrameLayout`)**：硬件加速角位移插值计算，精准环绕卡片边缘游走发光。
 - **黑客矩阵字符解密过渡 (`ScrambleTextView`)**：动态字符池洗牌递进收敛，带来仪式感爆棚的解密动画。
 - **物理弹簧阻尼数字滚轮 (`RollingNumberTextView`)**：百位/十位/个位独立立柱物理阻尼平滑上滚。
@@ -161,15 +161,15 @@ graph LR
 
 ---
 
-## 🗺️ 先锋创意开发路线图全量竣工回顾 (Roadmap)
+## 🗺️ 创意开发路线图全量竣工回顾 (Roadmap)
 
-| 优先级 | 核心先锋模块 | 视觉震撼度 | 状态 | 核心价值与交互体验 |
+| 优先级 | 核心模块 | 视觉震撼度 | 状态 | 核心价值与交互体验 |
 |:---:|:---|:---:|:---:|:---|
 | **P1** | **💽 3D 黑胶唱机与磁带卡座播放器** | 🌟🌟🌟🌟🌟 | ✅ **已完成** | **补齐播客与声音影视的极致拟真媒介体验**<br>· 3D 唱针 23° 物理落针/抬针与黑胶唱片同心圆各向异性反光<br>· 复古透明磁带 A/B 面翻转与齿轮转动动效<br>· 音轨波形与歌词金句同步流淌 |
 | **P2** | **🎧 触觉马达振动引擎与空间音频联动** | 🌟🌟🌟🌟 | ✅ **已完成** | **赋予每次撕票、盖章灵魂般的触感**<br>· 盖印章时重沉打击感 + 线性马达高频微颤 (`HapticFeedbackEngine`)<br>· 撕开电影票打孔处的清脆齿轮顿挫反馈<br>· 陀螺仪自适应双耳立体空间声场 (`SpatialAudioEngine`) |
 | **P4** | **🗺️ 3D 情绪拓扑与等高线心智地形图** | 🌟🌟🌟🌟 | ✅ **已完成** | **知识库与数据分析维度的降维打击**<br>· 基于多维心智复合高斯势能的 3D 地貌 (`MindprintTopologyView`)<br>· 3D 等高线 / 立体线框网格 / 能量热力图三维渲染<br>· 单指/双指 3D 俯仰旋转、海拔等高切片与巅峰信标聚焦 (`MindprintTopologyActivity`) |
-| **P5** | **✨ 先锋动效与微交互体系 (21st.dev / Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **全面拉齐世界顶尖 Web / App 先锋微交互标准**<br>· `BorderBeam` 极光流光边框环绕脉冲<br>· `RollingNumberTextView` 物理弹簧阻尼数字滚轮<br>· `HolographicRatingView` 评分全息流光与数字解密控件<br>· `ScrambleTextView` 全息黑客字符流光解密过渡<br>· `CulturalPassportView` 盖印激荡微粒彩屑与墨迹冲击波<br>· `MovieTicketPosterView` 电影票打孔撕票物理裂变动效<br>· `SpotlightTiltCardView` 3D 磁吸聚光灯微倾角卡片<br>· `InfiniteMarqueeView` 60fps 丝滑平滑跑马灯流<br>· `ConfettiBurstHelper` 真实重力微粒礼花炸裂引擎 |
-| **P6** | **🏛️ 殿堂级先锋美学与策展体验系统 (Awwwards / Siteinspire)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **世界顶尖美术馆与数字策展级美学大成**<br>· `DropCapTextView` 典藏手稿首字下沉 + `EditorialBadgeView` 极客等宽防伪标签<br>· `FilmGrainOverlayView` 35mm 胶片感光微噪点 + `PrismaticChromaticView` 0.6px 棱镜色散<br>· `CircadianLightingEngine` 24h 昼夜四时自适应自然光色温系统<br>· `HapticTickSlider` 磁吸刻度感物理阻尼推杆 |
+| **P5** | **✨ 动效与微交互体系 (21st.dev / Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **全面拉齐世界顶尖 Web / App 微交互标准**<br>· `BorderBeam` 极光流光边框环绕脉冲<br>· `RollingNumberTextView` 物理弹簧阻尼数字滚轮<br>· `HolographicRatingView` 评分全息流光与数字解密控件<br>· `ScrambleTextView` 全息黑客字符流光解密过渡<br>· `CulturalPassportView` 盖印激荡微粒彩屑与墨迹冲击波<br>· `MovieTicketPosterView` 电影票打孔撕票物理裂变动效<br>· `SpotlightTiltCardView` 3D 磁吸聚光灯微倾角卡片<br>· `InfiniteMarqueeView` 60fps 丝滑平滑跑马灯流<br>· `ConfettiBurstHelper` 真实重力微粒礼花炸裂引擎 |
+| **P6** | **🏛️ 殿堂级美学与策展体验系统 (Awwwards / Siteinspire)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **世界顶尖美术馆与数字策展级美学大成**<br>· `DropCapTextView` 典藏手稿首字下沉 + `EditorialBadgeView` 极客等宽防伪标签<br>· `FilmGrainOverlayView` 35mm 胶片感光微噪点 + `PrismaticChromaticView` 0.6px 棱镜色散<br>· `CircadianLightingEngine` 24h 昼夜四时自适应自然光色温系统<br>· `HapticTickSlider` 磁吸刻度感物理阻尼推杆 |
 | **P7** | **🔮 空间立体标本盒与折射透镜 (visionOS / Awwwards)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **彻底拉开与所有扁平竞品的距离，带来 visionOS 级空间质感**<br>· 4 层 2.5D 深度视差悬浮立体标本盒 (`DioramaBoxView`)<br>· 真实光学折射率透镜与边缘光线弯曲 (`GlassRefractionOverlay`) |
 | **P8** | **🔊 声光反应式脉冲与 ASMR 拟音 (Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **与 P1 黑胶唱机/夜鹿曲目形成绝妙化合反应，手感天花板**<br>· 网易云级经典大黑胶与顶部 23° 金属机械唱臂精准落针/抬针<br>· 音频低频反应式极光光斑脉冲 + 全场景羊皮纸/火漆印 ASMR 拟音 (`SonicHapticMatrix`) |
 | **P9** | **🪐 跨媒介认知引力星系 (Cosmos.so / Siteinspire)** | 🌟🌟🌟🌟 | ✅ **全量竣工** | **将零散记录升维为浩瀚心智宇宙，极具极客与学者气质**<br>· 音乐/番剧/文学引力星轨弹性力导向图 (`CosmicGravityGraphView` & `CosmicGalaxyActivity`) |

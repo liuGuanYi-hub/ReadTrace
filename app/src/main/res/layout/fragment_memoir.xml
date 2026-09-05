@@ -47,7 +47,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- 🌟 先锋创新：🌌 3D 时空穿梭隧道与心智流光胶囊 -->
+        <!-- 🌟 创新模块：🌌 3D 时空穿梭隧道与心智流光胶囊 -->
 
         <TextView
             style="@style/ReadTraceFieldLabel"

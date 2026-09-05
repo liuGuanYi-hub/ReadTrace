@@ -371,7 +371,7 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- 🌊 0. 【先锋无限流光跑马灯】(60fps Infinite Marquee Stream) — P35 起下沉至第二页 -->
+        <!-- 🌊 0. 【无限流光跑马灯】(60fps Infinite Marquee Stream) — P35 起下沉至第二页 -->
         <com.example.readtrace.widget.InfiniteMarqueeView
             android:id="@+id/hubInfiniteMarquee"
             android:layout_width="match_parent"
