@@ -28,14 +28,14 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
     protected lateinit var scrollMainTitle: TextView
     protected lateinit var scrollSubTitle: TextView
 
-    private lateinit var chipAll: TextView
     private lateinit var chipBook: TextView
     private lateinit var chipAnime: TextView
     private lateinit var chipMovie: TextView
     private lateinit var chipGame: TextView
     private lateinit var chipMusic: TextView
 
-    protected var selectedMediaType: MediaType? = null
+    /** 当前画卷媒介；仅保留五个单独分类，默认书籍（P38 后用户决策：移除「全部全景」） */
+    protected var selectedMediaType: MediaType = MediaType.BOOK
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +46,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         scrollMainTitle = findViewById(R.id.scrollMainTitle)
         scrollSubTitle = findViewById(R.id.scrollSubTitle)
 
-        chipAll = findViewById(R.id.chipMediaAll)
         chipBook = findViewById(R.id.chipMediaBook)
         chipAnime = findViewById(R.id.chipMediaAnime)
         chipMovie = findViewById(R.id.chipMediaMovie)
@@ -59,7 +58,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         listOf(
             btnToggleScrollTheme,
             btnShareScroll,
-            chipAll,
             chipBook,
             chipAnime,
             chipMovie,
@@ -69,9 +67,9 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
 
         FloatingBack.install(this)
 
-        // 解析传入的目标媒介类型
+        // 解析传入的目标媒介类型；未指定时默认书籍
         val initialMediaVal = intent.getStringExtra(EXTRA_MEDIA_TYPE)
-        selectedMediaType = initialMediaVal?.let { MediaType.fromDatabaseValue(it) }
+        selectedMediaType = initialMediaVal?.let { MediaType.fromDatabaseValue(it) } ?: MediaType.BOOK
 
         // 同步暗黑模式
         timelineScrollView.isDarkMode = ThemeHelper.isDarkMode(this)
@@ -103,13 +101,12 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val newMediaVal = intent.getStringExtra(EXTRA_MEDIA_TYPE)
-        selectedMediaType = newMediaVal?.let { MediaType.fromDatabaseValue(it) }
+        selectedMediaType = newMediaVal?.let { MediaType.fromDatabaseValue(it) } ?: MediaType.BOOK
         updateChipSelectionUI()
         loadTimelineData()
     }
 
     private fun setupMediaChips() {
-        chipAll.setOnClickListener { selectMediaType(null) }
         chipBook.setOnClickListener { selectMediaType(MediaType.BOOK) }
         chipAnime.setOnClickListener { selectMediaType(MediaType.ANIME) }
         chipMovie.setOnClickListener { selectMediaType(MediaType.MOVIE) }
@@ -117,7 +114,7 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         chipMusic.setOnClickListener { selectMediaType(MediaType.MUSIC) }
     }
 
-    private fun selectMediaType(mediaType: MediaType?) {
+    private fun selectMediaType(mediaType: MediaType) {
         if (selectedMediaType == mediaType) return
         selectedMediaType = mediaType
         updateChipSelectionUI()
@@ -126,7 +123,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
 
     private fun updateChipSelectionUI() {
         val chipPairs = listOf(
-            chipAll to (selectedMediaType == null),
             chipBook to (selectedMediaType == MediaType.BOOK),
             chipAnime to (selectedMediaType == MediaType.ANIME),
             chipMovie to (selectedMediaType == MediaType.MOVIE),
@@ -141,12 +137,7 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
     }
 
     private fun loadTimelineData() {
-        val allBooks = databaseHelper.getBooks()
-        val filteredBooks = if (selectedMediaType != null) {
-            allBooks.filter { it.mediaType == selectedMediaType }
-        } else {
-            allBooks
-        }
+        val filteredBooks = databaseHelper.getBooks().filter { it.mediaType == selectedMediaType }
 
         // 更新顶部标题
         scrollMainTitle.text = when (selectedMediaType) {
@@ -155,7 +146,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
             MediaType.MOVIE -> "📜 光影编年史 · 影画长卷"
             MediaType.GAME -> "📜 游戏编年史 · 征程画卷"
             MediaType.MUSIC -> "📜 乐音编年史 · 旋律画卷"
-            null -> "📜 全景编年史 · 阅痕长卷"
         }
 
         // 计算年份跨度
@@ -169,7 +159,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
             MediaType.GAME -> "款神作"
             MediaType.MUSIC -> "首曲目"
             MediaType.ANIME -> "部番剧"
-            null -> "座精神坐标"
         }
 
         val timeSpanStr = if (minYear != null && maxYear != null) {
@@ -183,14 +172,14 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
     }
 
     private fun exportAndShareScroll() {
-        val mediaName = selectedMediaType?.displayName ?: "全景"
+        val mediaName = selectedMediaType.displayName
         Toast.makeText(this, "正在离屏渲染 1080P 超清${mediaName}画卷...", Toast.LENGTH_SHORT).show()
 
         Thread {
             runCatching {
                 val bitmap = timelineScrollView.exportUltraHdBitmap()
                 val cacheDir = File(cacheDir, "scrolls").apply { if (!exists()) mkdirs() }
-                val mediaTag = selectedMediaType?.databaseValue ?: "panoramic"
+                val mediaTag = selectedMediaType.databaseValue
                 val file = File(cacheDir, "readtrace_${mediaTag}_timeline_${System.currentTimeMillis()}.png")
 
                 FileOutputStream(file).use { out ->
@@ -220,7 +209,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
                     MediaType.MOVIE -> "光影视听长卷"
                     MediaType.GAME -> "游戏征程卷轴"
                     MediaType.MUSIC -> "音乐旋律长卷"
-                    null -> "全景心智画卷"
                 }
 
                 runOnUiThread {
@@ -250,11 +238,9 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_MEDIA_TYPE = "extra_media_type"
 
-        fun createIntent(context: Context, mediaType: MediaType? = null): Intent {
+        fun createIntent(context: Context, mediaType: MediaType = MediaType.BOOK): Intent {
             return Intent(context, MediaTimelineScrollActivity::class.java).apply {
-                if (mediaType != null) {
-                    putExtra(EXTRA_MEDIA_TYPE, mediaType.databaseValue)
-                }
+                putExtra(EXTRA_MEDIA_TYPE, mediaType.databaseValue)
             }
         }
     }

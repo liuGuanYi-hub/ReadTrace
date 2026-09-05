@@ -112,7 +112,7 @@ class MemoirFragment : Fragment() {
         }
 
         cardAnimeTimeline?.setOnClickListener {
-            startActivity(MediaTimelineScrollActivity.createIntent(requireContext(), null))
+            startActivity(MediaTimelineScrollActivity.createIntent(requireContext(), MediaType.ANIME))
         }
 
         cardCoverGallery?.setOnClickListener {
