@@ -30,6 +30,7 @@ import com.example.readtrace.util.ElegantConfirmDialog
 import com.example.readtrace.util.ElegantFormDialog
 import com.example.readtrace.util.FloatingBack
 import java.text.DecimalFormat
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -1494,12 +1495,22 @@ class BookDetailActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<TextView>(R.id.detailHeroMeta).text = buildHeroMeta(book)
+        val heroMetaView = findViewById<TextView>(R.id.detailHeroMeta)
+        heroMetaView.text = buildHeroMeta(book)
+        ViewAnimationHelper.attachSpringTouch(heroMetaView)
+        heroMetaView.setOnClickListener {
+            currentBook?.let { showChangeStatusDialog(it) }
+        }
         findViewById<TextView>(R.id.detailCategory).text = valueOrFallback(book.category)
         renderRemoteRatingAdopt(book)
         findViewById<TextView>(R.id.detailCoverUrl).text =
             if (CoverImageHelper.isLanCoverKey(book.coverUrl)) "国内图源封面（联网自动加载）" else valueOrFallback(book.coverUrl)
-        findViewById<TextView>(R.id.detailStatus).text = book.status.getDisplayName(book.mediaType)
+        val statusView = findViewById<TextView>(R.id.detailStatus)
+        statusView.text = "${book.status.getDisplayName(book.mediaType)} ▾"
+        ViewAnimationHelper.attachSpringTouch(statusView)
+        statusView.setOnClickListener {
+            currentBook?.let { showChangeStatusDialog(it) }
+        }
         findViewById<TextView>(R.id.detailRating).text = book.rating?.let {
             val stars = (it / 2.0)
             val full = stars.toInt()
@@ -2012,11 +2023,114 @@ class BookDetailActivity : AppCompatActivity() {
         val ratingLabel = book.rating?.let {
             "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it) + " 分"
         } ?: getString(R.string.not_recorded)
+        val statusDisplay = "${book.status.getDisplayName(book.mediaType)} ▾"
         return listOfNotNull(
-            book.status.getDisplayName(book.mediaType),
+            statusDisplay,
             ratingLabel,
             book.category?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
+    }
+
+    private fun showChangeStatusDialog(book: Book) {
+        val statuses = listOf(
+            BookStatus.READING,
+            BookStatus.FINISHED,
+            BookStatus.WISHLIST,
+            BookStatus.PAUSED,
+            BookStatus.DROPPED,
+        )
+        val mediaType = book.mediaType
+        val choices = statuses.map { status ->
+            val label = status.getDisplayName(mediaType)
+            val (emoji, subtitle) = when (status) {
+                BookStatus.READING -> Pair(
+                    when (mediaType) {
+                        MediaType.ANIME -> "🌸"
+                        MediaType.MOVIE -> "🎬"
+                        MediaType.GAME -> "🎮"
+                        MediaType.MUSIC -> "💿"
+                        else -> "📖"
+                    },
+                    when (mediaType) {
+                        MediaType.ANIME -> "正在追看连载，沉浸其中"
+                        MediaType.MOVIE -> "正在品味光影故事"
+                        MediaType.GAME -> "正在探索关卡与剧情"
+                        MediaType.MUSIC -> "正在细细聆听旋律"
+                        else -> "正在品味书页里的精彩世界"
+                    }
+                )
+                BookStatus.FINISHED -> Pair("🏆", when (mediaType) {
+                    MediaType.ANIME -> "已全剧补完，意犹未尽"
+                    MediaType.MOVIE -> "已观影完毕，余味悠长"
+                    MediaType.GAME -> "已通关全篇，达成壮举"
+                    MediaType.MUSIC -> "已完整聆听，余音绕梁"
+                    else -> "已全本读毕，收获新知与感动"
+                })
+                BookStatus.WISHLIST -> Pair("🌟", when (mediaType) {
+                    MediaType.ANIME -> "加入待追番单，静候空闲"
+                    MediaType.MOVIE -> "加入待看片单，安排观影"
+                    MediaType.GAME -> "加入心愿单，择期开坑"
+                    MediaType.MUSIC -> "收藏至待听，稍后品鉴"
+                    else -> "加入书单待读，静待翻启"
+                })
+                BookStatus.PAUSED -> Pair("⏸️", "暂时搁置，稍后再续")
+                BookStatus.DROPPED -> Pair("🍂", "暂不合心意，停止记录")
+            }
+            ElegantChoiceDialog.Choice(
+                label = label,
+                subtitle = subtitle,
+                leadingEmoji = emoji,
+            )
+        }
+
+        val selectedIndex = statuses.indexOf(book.status).takeIf { it >= 0 } ?: 0
+
+        ElegantChoiceDialog.show(
+            activity = this,
+            title = "🏷️ 更改作品状态 · 《${book.title}》",
+            choices = choices,
+            selectedIndex = selectedIndex,
+        ) { which ->
+            val newStatus = statuses.getOrNull(which) ?: return@show
+            if (newStatus == book.status) return@show
+
+            val now = LocalDate.now().toString()
+            val updated = when {
+                newStatus == BookStatus.FINISHED && book.finishDate.isNullOrBlank() ->
+                    book.copy(status = newStatus, finishDate = now)
+                newStatus == BookStatus.READING && book.startDate.isNullOrBlank() ->
+                    book.copy(status = newStatus, startDate = now)
+                else ->
+                    book.copy(status = newStatus)
+            }
+
+            databaseHelper.updateBook(updated)
+            currentBook = databaseHelper.getBook(book.id) ?: updated
+
+            currentBook?.let { reloaded ->
+                val heroMetaView = findViewById<TextView>(R.id.detailHeroMeta)
+                heroMetaView?.text = buildHeroMeta(reloaded)
+                ViewAnimationHelper.playCardBounce(heroMetaView)
+
+                val statusView = findViewById<TextView>(R.id.detailStatus)
+                statusView?.text = "${reloaded.status.getDisplayName(reloaded.mediaType)} ▾"
+                ViewAnimationHelper.playCardBounce(statusView)
+
+                findViewById<TextView>(R.id.detailStartDate)?.text = valueOrFallback(reloaded.startDate)
+                findViewById<TextView>(R.id.detailFinishDate)?.text = valueOrFallback(reloaded.finishDate)
+
+                refreshTimelineOnly(reloaded)
+            }
+
+            com.example.readtrace.util.HapticFeedbackEngine.stampImpact(this)
+            Toast.makeText(
+                this,
+                "✨ 已将《${book.title}》状态变更为【${newStatus.getDisplayName(mediaType)}】",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            setResult(RESULT_OK)
+        }
     }
 
     private fun formatTimestamp(value: String): String =

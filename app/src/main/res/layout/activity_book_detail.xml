@@ -183,6 +183,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/bg_status_pill"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
                         android:paddingStart="14dp"
@@ -190,7 +192,7 @@
                         android:textColor="@color/readtrace_accent"
                         android:textSize="13sp"
                         android:textStyle="bold"
-                        tools:text="在读 · 8.5 / 10 · 小说" />
+                        tools:text="在读 ▾ · ★ 8.5 / 10 · 小说" />
 
                     <TextView
                         android:id="@+id/detailRead3DButton"
@@ -488,7 +490,9 @@
                 <TextView
                     android:id="@+id/detailStatus"
                     style="@style/ReadTraceDetailValue"
-                    tools:text="在读" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    tools:text="在读 ▾" />
 
                 <TextView
                     style="@style/ReadTraceDetailLabel"
