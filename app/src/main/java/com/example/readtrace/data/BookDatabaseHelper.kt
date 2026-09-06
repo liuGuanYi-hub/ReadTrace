@@ -129,10 +129,8 @@ class BookDatabaseHelper private constructor(val context: Context) :
             }
         }
         if (oldVersion < 9) {
-            // v9：新增本地音频曲目表（黑胶音乐馆真实播放）；
-            // 全库评分统一为 4 星（8.0 分）基准
+            // v9：新增本地音频曲目表（黑胶音乐馆真实播放）
             createAudioTracksTable(database)
-            database.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
         }
         if (oldVersion < 7) {
             // v7：无表结构变更；预置封面由外网链接/打包资产统一改写为内网封面键，
@@ -392,12 +390,28 @@ if (oldVersion < 13) {
                 seedUserMusicList(db)
                 seedCuratedBookCovers(db)
                 migrateCoversToLanKeys(db)
-                // 预置作品评分统一 4 星基准（8.0 分）。
-                // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时执行：
-                // 升版重播种若再全量改写，会把用户手填的评分一并清成 8.0（数据破坏）。
-                // 新增预置条目请直接在种子数据中使用 10 分制评分。
+                // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时赋予初始评分，
+                // 升版重播种一律不改写评分，避免覆盖用户手填数据（数据破坏）。
+                // 初始评分按作品差异化（取消历史上的「统一 8.0」）：
+                // - 有六维心智档案的作品取六维均值（含难度），与全息雷达自洽；
+                // - 无档案的作品把种子源里的 5 分制评分线性散射回 10 分制 7.0~8.0 区间。
                 if (previousSeedVersion == 0) {
-                    db.execSQL("UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 8.0")
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(" +
+                            "(SELECT (m.$COLUMN_DEPTH_SCORE + m.$COLUMN_ARTISTRY_SCORE + m.$COLUMN_EMOTION_SCORE + " +
+                            "m.$COLUMN_LOGIC_SCORE + m.$COLUMN_DIFFICULTY_SCORE + m.$COLUMN_HEALING_SCORE) / 6.0 " +
+                            "FROM $TABLE_BOOK_MINDPRINTS m WHERE m.$COLUMN_BOOK_ID = $TABLE_BOOKS.$COLUMN_ID), 1) " +
+                            "WHERE $COLUMN_ID IN (SELECT $COLUMN_BOOK_ID FROM $TABLE_BOOK_MINDPRINTS)",
+                    )
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + ($COLUMN_RATING - 4.5) * 2 " +
+                            "WHERE $COLUMN_RATING BETWEEN 4.0 AND 5.0",
+                    )
+                    // 富内容骨架书（无评分、无心智档案）：在 7.0~8.0 内逐部散布，避免整架同分
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + (abs(random()) % 11) * 0.1 " +
+                            "WHERE $COLUMN_RATING IS NULL",
+                    )
                 }
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
