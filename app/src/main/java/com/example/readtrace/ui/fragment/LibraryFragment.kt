@@ -30,9 +30,12 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.ElegantChoiceDialog
+import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 import java.text.DecimalFormat
+import java.time.LocalDate
 import kotlin.math.roundToInt
 
 class LibraryFragment : Fragment() {
@@ -589,7 +592,13 @@ class LibraryFragment : Fragment() {
         card.findViewById<TextView>(R.id.bookCardMeta).visibility = View.GONE
         card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
         card.findViewById<TextView>(R.id.bookCardMediaBadge).text = book.mediaType.emoji
-        card.findViewById<TextView>(R.id.bookCardStatusPill).text = book.status.getDisplayName(book.mediaType)
+        val statusPill = card.findViewById<TextView>(R.id.bookCardStatusPill)
+        statusPill.text = book.status.getDisplayName(book.mediaType)
+        statusPill.setOnClickListener {
+            showChangeStatusDialog(book)
+        }
+        ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
+
         card.findViewById<TextView>(R.id.bookCardRating).text = ratingLabel
         card.findViewById<TextView>(R.id.bookCardCategory).apply {
             val category = book.category?.trim()
@@ -622,7 +631,7 @@ class LibraryFragment : Fragment() {
             startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
         card.setOnLongClickListener {
-            showRadialQuickMenu(book)
+            showChangeStatusDialog(book)
             true
         }
         ViewAnimationHelper.attachSpringTouch(card, 0.97f)
@@ -674,7 +683,12 @@ class LibraryFragment : Fragment() {
         CoverImageHelper.loadCover(coverImg, book.coverUrl)
 
         card.findViewById<TextView>(R.id.bookGridMediaBadge).text = book.mediaType.emoji
-        card.findViewById<TextView>(R.id.bookGridStatusPill).text = book.status.getDisplayName(book.mediaType)
+        val statusPill = card.findViewById<TextView>(R.id.bookGridStatusPill)
+        statusPill.text = book.status.getDisplayName(book.mediaType)
+        statusPill.setOnClickListener {
+            showChangeStatusDialog(book)
+        }
+        ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
         card.findViewById<TextView>(R.id.bookGridTitle).text = book.title
         card.findViewById<TextView>(R.id.bookGridAuthor).text = book.author ?: getString(R.string.unknown_author)
 
@@ -699,7 +713,7 @@ class LibraryFragment : Fragment() {
             startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
         card.setOnLongClickListener {
-            showRadialQuickMenu(book)
+            showChangeStatusDialog(book)
             true
         }
         ViewAnimationHelper.attachSpringTouch(card, 0.96f)
@@ -707,86 +721,87 @@ class LibraryFragment : Fragment() {
     }
 
     /**
-     * 🎛️ P14 长按径向快捷操作环：0.2 秒盲操标记状态 / 预览 / 回收站
+     * 🏷️ 高质感作品状态切换对话框：自适应 5 大媒介类型，磨砂暗夜和纸质感，支持即时撤销
      */
-    private fun showRadialQuickMenu(book: Book) {
-        com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
-        com.example.readtrace.util.RadialQuickActionMenu.show(
-            activity = requireActivity(),
-            book = book,
-            actions = listOf(
-                com.example.readtrace.util.RadialQuickActionMenu.Action("👁️", "全息预览") {
-                    showHologramPeekDialog(book)
-                },
-                com.example.readtrace.util.RadialQuickActionMenu.Action("📖", "标记在读") {
-                    updateAndUndoStatus(book, BookStatus.READING)
-                },
-                com.example.readtrace.util.RadialQuickActionMenu.Action("🏆", "标记读完") {
-                    val oldStatus = book.status
-                    databaseHelper.updateBook(
-                        book.copy(status = BookStatus.FINISHED, finishDate = java.time.LocalDate.now().toString()),
-                    )
-                    refreshLibrary(forceDbReload = true)
-                    view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
-                        ?.showCapsule(message = "已标记《${book.title}》为已读完", onUndo = {
-                            databaseHelper.updateBook(book.copy(status = oldStatus))
-                            refreshLibrary(forceDbReload = true)
-                        })
-                },
-                com.example.readtrace.util.RadialQuickActionMenu.Action("🗑️", "移入回收站") {
-                    handleQuickTrash(book)
-                },
-            ),
+    private fun showChangeStatusDialog(book: Book) {
+        val statuses = listOf(
+            BookStatus.WISHLIST,
+            BookStatus.READING,
+            BookStatus.FINISHED,
+            BookStatus.PAUSED,
+            BookStatus.DROPPED,
         )
-    }
 
-    private fun updateAndUndoStatus(book: Book, newStatus: BookStatus) {
-        val oldStatus = book.status
-        databaseHelper.updateBook(book.copy(status = newStatus))
-        refreshLibrary(forceDbReload = true)
-        view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
-            ?.showCapsule(
-                message = "已标记《${book.title}》为${newStatus.getDisplayName(book.mediaType)}",
-                onUndo = {
-                    databaseHelper.updateBook(book.copy(status = oldStatus))
-                    refreshLibrary(forceDbReload = true)
-                },
+        val choices = statuses.map { status ->
+            val label = status.getDisplayName(book.mediaType)
+            val (emoji, subtitle) = when (status) {
+                BookStatus.READING -> Pair("📖", when (book.mediaType) {
+                    MediaType.ANIME -> "正在热烈追更中"
+                    MediaType.MOVIE -> "正在品味播放中"
+                    MediaType.GAME -> "正在探索攻关中"
+                    MediaType.MUSIC -> "正在单曲循环中"
+                    else -> "正在用心翻阅中"
+                })
+                BookStatus.FINISHED -> Pair("🏆", when (book.mediaType) {
+                    MediaType.ANIME -> "已追完，全篇大圆满"
+                    MediaType.MOVIE -> "已看毕，留下深刻印记"
+                    MediaType.GAME -> "已通关，征服全成就"
+                    MediaType.MUSIC -> "已赏毕，余音绕梁"
+                    else -> "已读毕，收获满篇心迹"
+                })
+                BookStatus.WISHLIST -> Pair("⏳", when (book.mediaType) {
+                    MediaType.ANIME -> "加入待追番单，静候空闲"
+                    MediaType.MOVIE -> "加入待看片单，安排观影"
+                    MediaType.GAME -> "加入心愿单，择期开坑"
+                    MediaType.MUSIC -> "收藏至待听，稍后品鉴"
+                    else -> "加入书单待读，静待翻启"
+                })
+                BookStatus.PAUSED -> Pair("⏸️", "暂时搁置，稍后再续")
+                BookStatus.DROPPED -> Pair("🍂", "暂不合心意，停止记录")
+            }
+            ElegantChoiceDialog.Choice(
+                label = label,
+                subtitle = subtitle,
+                leadingEmoji = emoji,
             )
-    }
-
-    private fun showHologramPeekDialog(book: Book) {
-        val dialog = Dialog(requireContext())
-        val view = layoutInflater.inflate(R.layout.dialog_book_hologram_peek, null)
-        dialog.setContentView(view)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.90).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
-
-        val coverImage = view.findViewById<ImageView>(R.id.peekCoverImage)
-        val titleText = view.findViewById<TextView>(R.id.peekBookTitle)
-        val authorText = view.findViewById<TextView>(R.id.peekBookAuthor)
-        val mediaBadge = view.findViewById<TextView>(R.id.peekMediaBadge)
-        val statusBadge = view.findViewById<TextView>(R.id.peekStatusBadge)
-        val ratingText = view.findViewById<TextView>(R.id.peekRating)
-        val radarView = view.findViewById<MindprintRadarView>(R.id.peekMindprintRadar)
-        val btnDetail = view.findViewById<View>(R.id.peekActionDetail)
-
-        CoverImageHelper.loadCover(coverImage, book.coverUrl)
-        mediaBadge.text = book.mediaType.emoji
-        titleText.text = book.title
-        authorText.text = "${book.category.orEmpty()} · ${book.author.orEmpty()}"
-        statusBadge.text = book.status.getDisplayName(book.mediaType)
-        ratingText.text = "★ ${book.rating?.div(2.0) ?: 2.5}"
-
-        val mp = databaseHelper.getMindprint(book.id)
-        radarView.setMindprint(mp, animate = false)
-
-        btnDetail.setOnClickListener {
-            dialog.dismiss()
-            startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
         }
-        view.findViewById<View>(R.id.peekActionPoster).setOnClickListener { dialog.dismiss() }
 
-        dialog.show()
+        val selectedIndex = statuses.indexOf(book.status).takeIf { it >= 0 } ?: 0
+
+        ElegantChoiceDialog.show(
+            activity = requireActivity(),
+            title = "🏷️ 更改作品状态 · 《${book.title}》",
+            choices = choices,
+            selectedIndex = selectedIndex,
+        ) { which ->
+            val newStatus = statuses.getOrNull(which) ?: return@show
+            if (newStatus == book.status) return@show
+
+            HapticFeedbackEngine.stampImpact(requireContext())
+
+            val now = LocalDate.now().toString()
+            val oldBook = book
+            val updated = when {
+                newStatus == BookStatus.FINISHED && book.finishDate.isNullOrBlank() ->
+                    book.copy(status = newStatus, finishDate = now)
+                newStatus == BookStatus.READING && book.startDate.isNullOrBlank() ->
+                    book.copy(status = newStatus, startDate = now)
+                else ->
+                    book.copy(status = newStatus)
+            }
+
+            databaseHelper.updateBook(updated)
+            refreshLibrary(forceDbReload = true)
+
+            view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+                ?.showCapsule(
+                    message = "已将《${book.title}》标记为【${newStatus.getDisplayName(book.mediaType)}】",
+                    onUndo = {
+                        databaseHelper.updateBook(oldBook)
+                        refreshLibrary(forceDbReload = true)
+                    },
+                )
+        }
     }
 
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
