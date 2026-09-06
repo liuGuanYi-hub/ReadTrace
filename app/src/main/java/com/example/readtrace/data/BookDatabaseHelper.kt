@@ -383,11 +383,11 @@ if (oldVersion < 13) {
             val previousSeedVersion = prefs.getInt(KEY_SEED_VERSION, 0)
             if (previousSeedVersion != DATABASE_VERSION) {
                 populatePresetBookRichData(db)
-                populatePresetRichContent(db)
                 seedUserAnimeList(db)
                 seedUserMovieList(db)
                 seedUserGameList(db)
                 seedUserMusicList(db)
+                populatePresetRichContent(db)
                 seedCuratedBookCovers(db)
                 migrateCoversToLanKeys(db)
                 // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时赋予初始评分，
@@ -415,6 +415,8 @@ if (oldVersion < 13) {
                 }
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
+            // 自动自愈补齐：针对历史版本遗漏角色谱与大纲的藏本，幂等增量补齐
+            ensureRichContentSeededIfNeeded(db)
             seedChecked = true
         }
     }
@@ -547,11 +549,34 @@ if (oldVersion < 13) {
                 "rich_content_games.json",
                 "rich_content_movies_podcasts.json",
             )
-            assetFiles.forEach { fileName ->
-                val jsonText = runCatching {
-                    context.assets.open(fileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
-                }.getOrNull() ?: return@forEach
-                applyRichContentEntries(db, jsonText)
+            db.beginTransaction()
+            try {
+                assetFiles.forEach { fileName ->
+                    val jsonText = runCatching {
+                        context.assets.open(fileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    }.getOrNull() ?: return@forEach
+                    applyRichContentEntries(db, jsonText)
+                }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+        }
+    }
+
+    /**
+     * 自愈检查：若发现已有作品中缺失角色谱与大纲的条数较多（历史版本因播种顺序缺陷漏掉），
+     * 自动在开库时幂等执行一次 rich_content 补齐。
+     */
+    private fun ensureRichContentSeededIfNeeded(db: SQLiteDatabase) {
+        runCatching {
+            val missingCount = db.rawQuery(
+                "SELECT COUNT(*) FROM $TABLE_BOOKS WHERE $COLUMN_IS_DELETED = 0 AND " +
+                    "$COLUMN_ID NOT IN (SELECT DISTINCT $COLUMN_BOOK_ID FROM $TABLE_BOOK_CHARACTERS WHERE $COLUMN_IS_DELETED = 0)",
+                null,
+            ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+            if (missingCount > 10) {
+                populatePresetRichContent(db)
             }
         }
     }
@@ -597,6 +622,23 @@ if (oldVersion < 13) {
                         }
                     }
                     if (bookIds.isEmpty()) {
+                        // 去除副标题括号（如 EVA (新世纪福音战士) ↔ 新世纪福音战士）进行双向模糊匹配
+                        val clean = title.split('(', '（').firstOrNull()?.trim().orEmpty()
+                        if (clean.length >= 2) {
+                            bookIds = db.query(
+                                TABLE_BOOKS, arrayOf(COLUMN_ID, COLUMN_TITLE),
+                                "($COLUMN_TITLE LIKE ? OR $COLUMN_TITLE LIKE ?) AND $COLUMN_IS_DELETED = 0",
+                                arrayOf("$clean%", "%$clean%"), null, null, null,
+                            ).use { c ->
+                                buildList {
+                                    while (c.moveToNext()) {
+                                        if (c.getString(1).length <= title.length + 10) add(c.getLong(0))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (bookIds.isEmpty()) {
                     // 合并包（如 readtrace_full_backup.json）的条目内嵌 media 字段优先于文件名推断：
                     // 单文件混多媒介时逐条准确归档；旧版四分文件无此键，回退文件名推断。
                     // 播种路径（autoCreateMedia == null）不启用内嵌建库，保持原语义。
@@ -634,13 +676,16 @@ if (oldVersion < 13) {
                         val chars = entry.optJSONArray("characters") ?: JSONArray()
                         for (ci in 0 until chars.length()) {
                             val ch = chars.getJSONObject(ci)
+                            val roleTitle = ch.optString("role").ifBlank { ch.optString("identity") }
+                            val desc = ch.optString("desc").ifBlank { ch.optString("description") }
+                            val avatarEmoji = ch.optString("emoji").ifBlank { "👤" }
                             bookIds.forEach { bookId ->
                                 val cv = ContentValues().apply {
                                     put(COLUMN_BOOK_ID, bookId)
                                     put(COLUMN_NAME, ch.optString("name"))
-                                    put(COLUMN_ROLE_TITLE, ch.optString("role"))
-                                    put(COLUMN_AVATAR_EMOJI, ch.optString("emoji", "👤"))
-                                    put(COLUMN_DESCRIPTION, ch.optString("desc"))
+                                    put(COLUMN_ROLE_TITLE, roleTitle)
+                                    put(COLUMN_AVATAR_EMOJI, avatarEmoji)
+                                    put(COLUMN_DESCRIPTION, desc)
                                     put(COLUMN_CREATED_AT, now)
                                     put(COLUMN_IS_DELETED, 0)
                                 }

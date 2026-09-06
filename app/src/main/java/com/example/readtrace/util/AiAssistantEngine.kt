@@ -58,7 +58,7 @@ object AiAssistantEngine {
 
         // 未配置 API Key 则直接使用离线高精知识库
         if (apiKey.isBlank()) {
-            val offline = getOfflineAnalysis(title, author, mediaType, existingSummary)
+            val offline = getOfflineAnalysis(title, author, mediaType, existingSummary, context)
             callback(offline)
             return
         }
@@ -101,7 +101,7 @@ object AiAssistantEngine {
             }
 
             // 失败时平滑降级至离线知识库
-            val fallback = getOfflineAnalysis(title, author, mediaType, existingSummary)
+            val fallback = getOfflineAnalysis(title, author, mediaType, existingSummary, context)
             callback(fallback)
         }.start()
     }
@@ -153,8 +153,15 @@ object AiAssistantEngine {
         author: String?,
         mediaType: MediaType,
         existingSummary: String?,
+        context: Context? = null,
     ): AiStoryAnalysis {
         val t = title.trim()
+
+        // 1. 优先从本地 rich_content_*.json 高精策展库检索
+        if (context != null) {
+            findInRichContentAssets(context, t)?.let { return it }
+        }
+
         val offlineMap = mapOf(
             "三体" to AiStoryAnalysis(
                 premise = "文化大革命中受挫的叶文洁向宇宙发出文明信号，引来四光年外的三体舰队，人类文明面临前所未有的生存危机与宇宙黑暗森林法则考验。",
@@ -242,6 +249,71 @@ object AiAssistantEngine {
             ),
             isFromOffline = true,
         )
+    }
+
+    private fun findInRichContentAssets(context: Context, title: String): AiStoryAnalysis? {
+        val t = title.trim()
+        val clean = t.split('(', '（').firstOrNull()?.trim().orEmpty()
+        val assetFiles = listOf(
+            "rich_content_anime.json",
+            "rich_content_books.json",
+            "rich_content_games.json",
+            "rich_content_movies_podcasts.json",
+        )
+        for (fileName in assetFiles) {
+            val jsonText = runCatching {
+                context.assets.open(fileName).bufferedReader(Charsets.UTF_8).use { it.readText() }
+            }.getOrNull() ?: continue
+            val entries = runCatching { org.json.JSONArray(jsonText) }.getOrNull() ?: continue
+            for (i in 0 until entries.length()) {
+                val entry = entries.optJSONObject(i) ?: continue
+                val entryTitle = entry.optString("title").trim()
+                val isMatch = entryTitle.equals(t, ignoreCase = true) ||
+                    (clean.length >= 2 && entryTitle.contains(clean, ignoreCase = true)) ||
+                    (clean.length >= 2 && clean.contains(entryTitle, ignoreCase = true))
+                if (isMatch) {
+                    val chars = mutableListOf<CharacterItem>()
+                    val charsArr = entry.optJSONArray("characters")
+                    if (charsArr != null) {
+                        for (ci in 0 until charsArr.length()) {
+                            val c = charsArr.optJSONObject(ci) ?: continue
+                            val name = c.optString("name").trim()
+                            val role = c.optString("role").ifBlank { c.optString("identity") }.trim()
+                            val desc = c.optString("desc").ifBlank { c.optString("description") }.trim()
+                            if (name.isNotBlank()) {
+                                chars.add(CharacterItem(name, role, desc))
+                            }
+                        }
+                    }
+
+                    val outline = mutableListOf<OutlineChapter>()
+                    val outlineArr = entry.optJSONArray("outline")
+                    if (outlineArr != null) {
+                        for (oi in 0 until outlineArr.length()) {
+                            val o = outlineArr.optJSONObject(oi) ?: continue
+                            val phase = o.optString("phase").ifBlank { "阶段 ${oi + 1}" }.trim()
+                            val chapterTitle = o.optString("title").trim()
+                            val summary = o.optString("summary").trim()
+                            if (chapterTitle.isNotBlank() && summary.isNotBlank()) {
+                                outline.add(OutlineChapter(phase, chapterTitle, summary))
+                            }
+                        }
+                    }
+
+                    if (chars.isNotEmpty() || outline.isNotEmpty()) {
+                        val premise = entry.optString("description").takeIf { it.isNotBlank() }
+                            ?: "《$entryTitle》的核心叙事与人物命运编织。"
+                        return AiStoryAnalysis(
+                            premise = premise,
+                            characters = chars,
+                            outline = outline,
+                            isFromOffline = true,
+                        )
+                    }
+                }
+            }
+        }
+        return null
     }
 
     /**
