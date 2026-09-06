@@ -1527,6 +1527,44 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailUpdatedAt).text = formatTimestamp(book.updatedAt)
         renderDescription(book)
         renderThoughtsHint(book)
+
+        // 🖋️ P25 文心雕龙：AI 读后感大师润色与金句提炼工坊
+        val btnThoughtPolisher = findViewById<View>(R.id.btnDetailThoughtPolisher)
+        btnThoughtPolisher?.let { btn ->
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btn)
+            btn.setOnClickListener {
+                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+                val draft = listOfNotNull(
+                    book.shortComment?.takeIf { it.isNotBlank() },
+                    book.review?.takeIf { it.isNotBlank() }
+                ).joinToString("\n\n")
+
+                com.example.readtrace.ui.bottomsheet.ThoughtPolisherBottomSheet.show(
+                    activity = this,
+                    bookTitle = book.title,
+                    author = book.author.takeIf { !it.isNullOrBlank() },
+                    mediaType = book.mediaType,
+                    bookCoverUrl = book.coverUrl,
+                    bookId = book.id,
+                    currentDraft = draft,
+                ) { polishedText, isAppend ->
+                    val updatedReview = if (isAppend && !book.review.isNullOrBlank()) {
+                        "${book.review}\n\n$polishedText"
+                    } else {
+                        polishedText
+                    }
+                    val updatedBook = book.copy(
+                        review = updatedReview,
+                        updatedAt = formatNowTimestamp()
+                    )
+                    databaseHelper.updateBook(updatedBook)
+                    currentBook = updatedBook
+                    renderBook(updatedBook)
+                    Toast.makeText(this, "✓ 读后感已保存入库", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         renderConceptWeb(book)
     }
 

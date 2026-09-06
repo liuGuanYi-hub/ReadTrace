@@ -127,13 +127,15 @@ class ExLibrisStudioActivity : AppCompatActivity() {
             databaseHelper.getBooks().firstOrNull()
         }
 
+        val customQuote = intent.getStringExtra("extra_custom_quote")
         currentBook?.let { book ->
             exLibrisStampView.bookTitle = book.title
             exLibrisStampView.authorName = book.author ?: "未知创作者"
             exLibrisStampView.serialNumber = "#EXL-${System.currentTimeMillis() % 100000} // NO.${book.id}"
-            if (!book.shortComment.isNullOrBlank()) {
-                exLibrisStampView.quoteText = book.shortComment
-                etCustomQuote.setText(book.shortComment)
+            val quoteToUse = customQuote?.takeIf { it.isNotBlank() } ?: book.shortComment
+            if (!quoteToUse.isNullOrBlank()) {
+                exLibrisStampView.quoteText = quoteToUse
+                etCustomQuote.setText(quoteToUse)
             }
             CoverImageHelper.loadCoverBitmap(this, book.coverUrl) { bmp ->
                 exLibrisStampView.coverBitmap = bmp

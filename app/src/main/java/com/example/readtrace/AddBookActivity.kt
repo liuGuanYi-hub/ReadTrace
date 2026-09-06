@@ -243,6 +243,47 @@ class AddBookActivity : AppCompatActivity() {
         shortCommentInput = findViewById(R.id.shortCommentInput)
         reviewLabel = findViewById(R.id.reviewLabel)
         reviewInput = findViewById(R.id.reviewInput)
+
+        val btnAiPolish = findViewById<View>(R.id.btnAiPolishThoughts)
+        btnAiPolish?.let { btn ->
+            com.example.readtrace.util.ViewAnimationHelper.attachSpringTouch(btn)
+            btn.setOnClickListener {
+                val title = titleInput.text.toString().trim()
+                if (title.isBlank()) {
+                    android.widget.Toast.makeText(this, "请先输入作品名称", android.widget.Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val draft = if (reviewInput.text.isNotBlank() && !shortCommentInput.hasFocus()) {
+                    reviewInput.text.toString().trim()
+                } else {
+                    shortCommentInput.text.toString().trim()
+                }
+                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+                com.example.readtrace.ui.bottomsheet.ThoughtPolisherBottomSheet.show(
+                    activity = this,
+                    bookTitle = title,
+                    author = authorInput.text.toString().trim().takeIf { it.isNotBlank() },
+                    mediaType = selectedMediaType,
+                    bookCoverUrl = currentCoverPath,
+                    bookId = editingBookId.takeIf { it != NO_BOOK_ID } ?: 0L,
+                    currentDraft = draft,
+                ) { polishedText, isAppend ->
+                    if (reviewInput.text.isNotBlank() && !shortCommentInput.hasFocus()) {
+                        if (isAppend) {
+                            reviewInput.append("\n\n$polishedText")
+                        } else {
+                            reviewInput.setText(polishedText)
+                        }
+                    } else {
+                        if (isAppend && shortCommentInput.text.isNotBlank()) {
+                            shortCommentInput.append(" $polishedText")
+                        } else {
+                            shortCommentInput.setText(polishedText)
+                        }
+                    }
+                }
+            }
+        }
         startDateLabel = findViewById(R.id.startDateLabel)
         startDateInput = findViewById(R.id.startDateInput)
         finishDateLabel = findViewById(R.id.finishDateLabel)

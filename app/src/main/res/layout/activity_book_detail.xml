@@ -560,11 +560,32 @@
                 android:elevation="7dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/detailSectionThoughtsTitle"
-                    style="@style/ReadTraceFieldLabel"
-                    android:text="@string/detail_section_thoughts"
-                    android:textSize="18sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/detailSectionThoughtsTitle"
+                        style="@style/ReadTraceFieldLabel"
+                        android:text="@string/detail_section_thoughts"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/btnDetailThoughtPolisher"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/bg_gold_badge"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="✨ 文心雕龙"
+                        android:textColor="#92400E"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/detailThoughtsEmptyHint"
