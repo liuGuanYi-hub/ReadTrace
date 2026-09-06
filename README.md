@@ -16,12 +16,38 @@
 
 ---
 
+## 📸 美学实机画廊 (Visual Showcase)
+
+<div align="center">
+
+| 🏛️ 策展级记录台首屏 | 📚 藏库书架 (状态/标签/评分) | 💿 音乐藏库 (纯净流无冗余胶囊) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/36_curatorial_hub.png" width="240" alt="策展记录台首屏"/> | <img src="docs/screenshots/32_library_books.png" width="240" alt="藏库书架"/> | <img src="docs/screenshots/31_library_music.png" width="240" alt="音乐纯净流"/> |
+
+| 🏷️ 详情页状态切换二级弹窗 | 👆 藏库长按极速修改状态 | 💽 3D 拟真黑胶唱机 (23°机械落针) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/34_status_dialog_modal.png" width="240" alt="状态切换二级弹窗"/> | <img src="docs/screenshots/35_library_longpress_status.png" width="240" alt="藏库长按修改状态"/> | <img src="docs/screenshots/38_vinyl_turntable.png" width="240" alt="3D拟真黑胶唱机"/> |
+
+| 📼 80s 复古磁带卡座 | 🛂 精神巡礼护照盖章簿 | 🎟️ 电影票根 (3D撕票裂变) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/39_cassette_deck.png" width="240" alt="复古磁带卡座"/> | <img src="docs/screenshots/40_cultural_passport.png" width="240" alt="精神巡礼护照"/> | <img src="docs/screenshots/41_movie_ticket.png" width="240" alt="电影透光票根"/> |
+
+| 🕹️ 游戏白金全息实体卡带 | 🪐 跨媒介心智引力星系 | 📦 数据主权备份与全量恢复 |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/42_game_cartridge.png" width="240" alt="游戏白金全息卡带"/> | <img src="docs/screenshots/43_galaxy_constellation.png" width="240" alt="跨媒介心智星系"/> | <img src="docs/screenshots/10_backup_center.png" width="240" alt="数据主权备份中心"/> |
+
+</div>
+
+---
+
 ## ✨ 核心特性矩阵
 
 ### 1. 🏛️ 策展级记录台与五媒介藏库
 - **杂志封面式记录台首屏**：PERSONAL ARCHIVE 眉标、五媒介统计网格、一键添加 / 导入 / 备份 / 回收站，探索内容自然下沉第二页，首屏永远清爽。
 - **第二页探索长廊**：StandBy 禅意桌面、番剧 / 全媒介时间轴、灵感翻页便签（`FlipNotesActivity`）等探索模块自然下探，随滚动渐次进场。
 - **精神藏库多维筛选流**：书籍 / 番剧 / 影视 / 游戏 / 音乐五媒介分表，全文拼音首字母模糊秒搜（`PinyinSearchHelper`），状态分段 + 动态标签白名单过滤，双列长卷与导出长卷一键切换。
+- **🏷️ 高质感状态切换与二级弹窗**：在详情页轻触状态胶囊或在藏库列表中长按任意卡片，即刻唤起与 App 视觉规范高度一致的高质感暗调毛玻璃状态选择弹窗（在看/看完/想看/暂停/弃看），操作链路极大缩短。
+- **💿 音乐媒介纯净沉浸模式**：针对音乐无需按“听完/弃听”打卡的特殊媒介心理，切换至音乐分类时状态栏自动简化为唯美的单「全部」按钮，作品卡片自动隐去状态胶囊，呈现黑胶与唱片封面本身的纯粹艺术感。
 - **策展主位与羊皮纸金句**：主页自动推举镇馆之作，跑马灯流光播报、灵感随想羊皮纸笺即时换签。
 
 ### 2. 💽 3D 拟真黑胶唱机与复古磁带卡座系统
@@ -85,7 +111,7 @@
 
 ## 📦 数据资产：导入即恢复，一个账号 = 一份存档
 
-- **全量存档合并包 (Sovereign Backup)**：219 部作品连同角色谱/语录/章节大纲合成一个 JSON，「一个账号 = 一个 JSON」一次导入全部恢复，全程幂等不覆盖已有内容。
+- **全量存档合并包 (Sovereign Backup)**：220 部作品全量状态、评分、长短评、阅读起止日期、标签白名单连同角色谱/语录/章节大纲合成一个 JSON，「一个账号 = 一个 JSON」一次导入全部恢复；针对新机预设已有数据与空白新库均做到底层字段全覆盖同步更新，100% 完美复刻历史印记。
 - **富内容 JSON 本地导入**：缺失作品按条目内嵌媒介标记 / 文件名自动建库（动漫/书籍/游戏/影视/音乐），导入一次即作品 + 富内容。
 - **多源资产搬家中心**：0 门槛导入豆瓣书影音 CSV/文本、Bangumi 收藏、Steam 游戏库与杉果热门榜单，并智能生成六维心智模型。
 - **批量精神清单**：内置书籍 / 追番 / 电影 / 游戏四类预设 CSV，支持「一键全量合入」或自选本地 CSV。

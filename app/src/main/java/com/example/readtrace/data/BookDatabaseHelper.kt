@@ -3004,19 +3004,18 @@ if (oldVersion < 13) {
                 // 1. 查找是否存在同名且同作者/创作者的作品
                 val existingBookId = findBookId(db, book.title, book.author)
                 val targetBookId = if (existingBookId != null) {
-                    // 软删除墓碑传播：备份标记已删除时，把本地仍存活的同名作品一并软删，
-                    // 使 WebDAV/备份恢复场景下删除语义可跨设备生效，不再「删除复活」（P38-G1/G2）
-                    if (book.isDeleted) {
-                        db.update(
-                            TABLE_BOOKS,
-                            ContentValues().apply {
-                                put(COLUMN_IS_DELETED, 1)
-                                putNullable(COLUMN_DELETED_AT, book.deletedAt ?: currentTimestamp())
-                            },
-                            "$COLUMN_ID = ?",
-                            arrayOf(existingBookId.toString()),
-                        )
+                    // 全量同步备份中作品的状态与全部详情（状态、评分、长评、短评、标签、起止日期、软删除等）
+                    val updateValues = book.toContentValues().apply {
+                        if (book.updatedAt.isNotBlank()) put(COLUMN_UPDATED_AT, book.updatedAt)
+                        put(COLUMN_IS_DELETED, if (book.isDeleted) 1 else 0)
+                        putNullable(COLUMN_DELETED_AT, book.deletedAt ?: if (book.isDeleted) currentTimestamp() else null)
                     }
+                    db.update(
+                        TABLE_BOOKS,
+                        updateValues,
+                        "$COLUMN_ID = ?",
+                        arrayOf(existingBookId.toString()),
+                    )
                     existingBookId
                 } else {
                     val values = book.toContentValues().apply {

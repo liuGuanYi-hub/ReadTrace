@@ -226,6 +226,9 @@ class LibraryFragment : Fragment() {
     private fun selectMediaType(type: MediaType?) {
         if (selectedMediaType == type) return
         selectedMediaType = type
+        if (type == MediaType.MUSIC) {
+            selectedStatus = null
+        }
         currentDisplayLimit = 24
         updateMediaChips()
         updateStatusChips()
@@ -249,14 +252,40 @@ class LibraryFragment : Fragment() {
     }
 
     private fun selectStatus(status: BookStatus?) {
-        if (selectedStatus == status) return
-        selectedStatus = status
+        if (selectedMediaType == MediaType.MUSIC) {
+            if (selectedStatus == null) return
+            selectedStatus = null
+        } else {
+            if (selectedStatus == status) return
+            selectedStatus = status
+        }
         currentDisplayLimit = 24
         updateStatusChips()
         refreshLibrary(forceDbReload = false)
     }
 
     private fun updateStatusChips() {
+        val ctx = context ?: return
+        if (selectedMediaType == MediaType.MUSIC) {
+            // 🎵 音乐分类：无需在听/听完/想听状态筛选，仅保留「全部」按钮
+            statusChipReading.visibility = View.GONE
+            statusChipFinished.visibility = View.GONE
+            statusChipWishlist.visibility = View.GONE
+
+            statusChipAll.visibility = View.VISIBLE
+            statusChipAll.text = "全部"
+            statusChipAll.setBackgroundResource(R.drawable.bg_segmented_item_selected)
+            statusChipAll.setTextColor(ContextCompat.getColor(ctx, R.color.white))
+            statusChipAll.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            return
+        }
+
+        // 其他分类：恢复状态筛选
+        statusChipReading.visibility = View.VISIBLE
+        statusChipFinished.visibility = View.VISIBLE
+        statusChipWishlist.visibility = View.VISIBLE
+        statusChipAll.visibility = View.VISIBLE
+
         val (readingText, finishedText, wishlistText) = when (selectedMediaType) {
             MediaType.BOOK -> Triple("在读", "已读", "想读")
             MediaType.ANIME -> Triple("追番中", "补完", "想追")
@@ -276,7 +305,6 @@ class LibraryFragment : Fragment() {
             statusChipFinished to (selectedStatus == BookStatus.FINISHED),
             statusChipWishlist to (selectedStatus == BookStatus.WISHLIST),
         )
-        val ctx = context ?: return
         chips.forEach { (chip, isSelected) ->
             if (isSelected) {
                 chip.setBackgroundResource(R.drawable.bg_segmented_item_selected)
@@ -593,11 +621,16 @@ class LibraryFragment : Fragment() {
         card.findViewById<View>(R.id.bookCardSummaryRow).visibility = View.VISIBLE
         card.findViewById<TextView>(R.id.bookCardMediaBadge).text = book.mediaType.emoji
         val statusPill = card.findViewById<TextView>(R.id.bookCardStatusPill)
-        statusPill.text = book.status.getDisplayName(book.mediaType)
-        statusPill.setOnClickListener {
-            showChangeStatusDialog(book)
+        if (book.mediaType == MediaType.MUSIC) {
+            statusPill.visibility = View.GONE
+        } else {
+            statusPill.visibility = View.VISIBLE
+            statusPill.text = book.status.getDisplayName(book.mediaType)
+            statusPill.setOnClickListener {
+                showChangeStatusDialog(book)
+            }
+            ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
         }
-        ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
 
         card.findViewById<TextView>(R.id.bookCardRating).text = ratingLabel
         card.findViewById<TextView>(R.id.bookCardCategory).apply {
@@ -684,11 +717,16 @@ class LibraryFragment : Fragment() {
 
         card.findViewById<TextView>(R.id.bookGridMediaBadge).text = book.mediaType.emoji
         val statusPill = card.findViewById<TextView>(R.id.bookGridStatusPill)
-        statusPill.text = book.status.getDisplayName(book.mediaType)
-        statusPill.setOnClickListener {
-            showChangeStatusDialog(book)
+        if (book.mediaType == MediaType.MUSIC) {
+            statusPill.visibility = View.GONE
+        } else {
+            statusPill.visibility = View.VISIBLE
+            statusPill.text = book.status.getDisplayName(book.mediaType)
+            statusPill.setOnClickListener {
+                showChangeStatusDialog(book)
+            }
+            ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
         }
-        ViewAnimationHelper.attachSpringTouch(statusPill, 0.92f)
         card.findViewById<TextView>(R.id.bookGridTitle).text = book.title
         card.findViewById<TextView>(R.id.bookGridAuthor).text = book.author ?: getString(R.string.unknown_author)
 
