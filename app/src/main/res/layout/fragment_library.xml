@@ -256,6 +256,75 @@
                         android:textSize="11.5sp" />
                 </LinearLayout>
 
+                <!-- 评分区间筛选条：全部评分 / 7.0~7.5 / 7.5~8.0 / 8.0以上 -->
+                <LinearLayout
+                    android:id="@+id/ratingFilterBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_segmented_container"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
+
+                    <TextView
+                        android:id="@+id/ratingChipAll"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_segmented_item_selected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:singleLine="true"
+                        android:text="全部评分"
+                        android:textColor="@color/white"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ratingChip7075"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:singleLine="true"
+                        android:text="7.0~7.5"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/ratingChip7580"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:singleLine="true"
+                        android:text="7.5~8.0"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/ratingChip80Plus"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:singleLine="true"
+                        android:text="8.0以上"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
                 <!-- 三级：动态标签流（轻量描边标签） -->
                 <HorizontalScrollView
                     android:id="@+id/libraryTagScroller"

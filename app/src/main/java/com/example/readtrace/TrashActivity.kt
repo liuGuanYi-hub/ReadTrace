@@ -188,12 +188,14 @@ class TrashActivity : AppCompatActivity() {
     }
 
     private fun restoreBook(bookId: Long) {
+        val targetBook = databaseHelper.getBook(bookId)
+        val mediaName = targetBook?.mediaType?.displayName ?: "作品"
         val success = databaseHelper.restoreBook(bookId)
         if (success) {
-            Toast.makeText(this, R.string.restore_book_success, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${mediaName}已恢复到藏库", Toast.LENGTH_SHORT).show()
             renderArchivedBooks()
         } else {
-            Toast.makeText(this, R.string.restore_book_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${mediaName}恢复失败", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -208,19 +210,20 @@ class TrashActivity : AppCompatActivity() {
     }
 
     private fun confirmHardDeleteBook(book: Book) {
+        val mediaName = book.mediaType.displayName
         ElegantConfirmDialog.show(
             activity = this,
-            title = "⚠️ " + getString(R.string.hard_delete_confirm_title),
-            message = getString(R.string.hard_delete_confirm_message),
+            title = "⚠️ 彻底删除${mediaName}？",
+            message = "此操作不可恢复！该${mediaName}及其所有关联笔记、本地封面将永久从设备中清除。",
             confirmText = getString(R.string.action_hard_delete),
             isDanger = true,
             onConfirm = {
                 val deleted = databaseHelper.hardDeleteBook(book.id)
                 if (deleted) {
-                    Toast.makeText(this, R.string.hard_delete_book_success, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "已彻底删除${mediaName}", Toast.LENGTH_SHORT).show()
                     renderArchivedBooks()
                 } else {
-                    Toast.makeText(this, R.string.hard_delete_book_failed, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "彻底删除${mediaName}失败", Toast.LENGTH_SHORT).show()
                 }
             },
         )

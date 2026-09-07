@@ -114,9 +114,9 @@ class CommunityGalleryActivity : AppCompatActivity() {
             currentFocusedBook?.let { book ->
                 val saved = CommunityRepository.saveBookToLocalShelf(this, book)
                 if (saved) {
-                    Toast.makeText(this, "✦ 已将《${book.title}》收入你的本地书架！", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "✦ 已将《${book.title}》收入你的本地藏库！", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "已在你的书架中或转存失败", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "已在你的藏库中或转存失败", Toast.LENGTH_SHORT).show()
                 }
             }
         }

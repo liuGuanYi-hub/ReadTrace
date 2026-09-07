@@ -19,11 +19,16 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.text.InputType
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -79,6 +84,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var btnNextTrack: ImageButton
     private lateinit var btnOpenNetease: TextView
     private lateinit var btnCloudPlaylist: TextView
+
+    // ===== 沉浸式歌词滚动与点击切换 =====
+    private lateinit var lyricsContainer: FrameLayout
+    private lateinit var rvLyrics: RecyclerView
+    private lateinit var tvLyricsState: TextView
+    private var isLyricsViewShowing = false
+    private var currentLyrics: List<com.example.readtrace.util.LyricEntry> = emptyList()
+    private var currentLyricHighlightIndex = -1
+    private var lyricsOpSeq = 0L
 
     // 网易云我的歌单播放态（有值时上一曲/下一曲/连播都在歌单内进行）
     private var cloudTracks: List<com.example.readtrace.util.NeteasePreviewHelper.PlaylistTrack> = emptyList()
@@ -274,6 +288,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         btnOpenNetease = findViewById(R.id.btnOpenNetease)
         btnCloudPlaylist = findViewById(R.id.btnCloudPlaylist)
 
+        lyricsContainer = findViewById(R.id.lyricsContainer)
+        rvLyrics = findViewById(R.id.rvLyrics)
+        tvLyricsState = findViewById(R.id.tvLyricsState)
+        rvLyrics.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
 
         FloatingBack.install(this) { minimizeOrFinish() }
     }
@@ -424,9 +442,24 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             ViewAnimationHelper.attachSpringTouch(btnTrackList)
         }
 
+        // 点击黑胶唱机展示沉浸式歌词，点击歌词切回黑胶唱机
+        vinylTurntableView.setOnClickListener {
+            triggerHapticClick()
+            showLyricsView()
+        }
+        lyricsContainer.setOnClickListener {
+            triggerHapticClick()
+            hideLyricsView()
+        }
+        tvLyricsState.setOnClickListener {
+            triggerHapticClick()
+            hideLyricsView()
+        }
+
         // 模式切换：黑胶 vs 磁带
         btnToggleMode.setOnClickListener {
             triggerHapticClick()
+            hideLyricsView()
             isCassetteMode = !isCassetteMode
             if (isCassetteMode) {
                 btnToggleMode.text = "💽 切换黑胶"
@@ -622,6 +655,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         playerSeekBar.progress = 0
         cassetteDeckView.progress = 0f
         if (autoPlay) startPlaybackOfCurrentWork(0)
+        fetchAndSyncLyrics()
     }
 
     /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底；绑定会员 Cookie 后 VIP 曲可完整播放） */
@@ -935,6 +969,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         vinylTurntableView.artistName = artist
         tvPlayerSubtitle.text = "《${track.name}》· $artist"
         tvTrackArtistInfo.text = "—— 正在播放 ${cloudIndex + 1}/${cloudTracks.size} · ${track.name}${if (track.artists.isNotBlank()) " - ${track.artists}" else ""}"
+        fetchAndSyncLyrics()
         com.example.readtrace.util.NeteasePreviewHelper.fetchTrackStreamUrl(this, track) { url ->
             if (isDestroyed || seq != cloudOpSeq) return@fetchTrackStreamUrl
             if (url.isNullOrBlank()) {
@@ -1385,10 +1420,153 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         val prog = (curMs * 100f / totalMs).toInt().coerceIn(0, 100)
         playerSeekBar.progress = prog
         cassetteDeckView.progress = prog / 100f
+        syncLyricsHighlight(curMs)
     }
 
     private fun triggerHapticClick() {
         com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
+    }
+
+    // ===== 歌词渲染与同步交互实现 =====
+    private fun showLyricsView() {
+        if (isCassetteMode) return
+        isLyricsViewShowing = true
+        vinylTurntableView.visibility = View.GONE
+        lyricsContainer.visibility = View.VISIBLE
+        if (currentLyrics.isNotEmpty() && currentLyricHighlightIndex in currentLyrics.indices) {
+            val lm = rvLyrics.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+            val offset = (rvLyrics.height / 2).coerceAtLeast(100) - 40
+            lm?.scrollToPositionWithOffset(currentLyricHighlightIndex, offset)
+        }
+    }
+
+    private fun hideLyricsView() {
+        isLyricsViewShowing = false
+        lyricsContainer.visibility = View.GONE
+        if (!isCassetteMode) {
+            vinylTurntableView.visibility = View.VISIBLE
+        }
+    }
+
+    private fun fetchAndSyncLyrics() {
+        val op = ++lyricsOpSeq
+        currentLyrics = emptyList()
+        currentLyricHighlightIndex = -1
+        rvLyrics.adapter = null
+        tvLyricsState.visibility = View.VISIBLE
+        tvLyricsState.text = "⏳ 正在同步云端原声歌词..."
+
+        val cloudTrack = cloudTracks.getOrNull(cloudIndex)
+        if (cloudTrack != null) {
+            com.example.readtrace.util.NeteasePreviewHelper.fetchSongLyric(cloudTrack.id) { lrcText ->
+                if (lyricsOpSeq == op && !isDestroyed) {
+                    handleLoadedLyric(lrcText, cloudTrack.name, op)
+                }
+            }
+            return
+        }
+
+        val track = playlist.getOrNull(currentIndex) ?: return
+        val songId = if (track.sourceType == "netease") track.sourceId?.toLongOrNull() else null
+        if (songId != null && songId > 0) {
+            com.example.readtrace.util.NeteasePreviewHelper.fetchSongLyric(songId) { lrcText ->
+                if (lyricsOpSeq == op && !isDestroyed) {
+                    handleLoadedLyric(lrcText, track.title, op)
+                }
+            }
+        } else {
+            val cleanTitle = track.title.replace(Regex("[（(].*?[)）]"), "").trim()
+            com.example.readtrace.util.NeteasePreviewHelper.fetchSongLyricBySearch(cleanTitle, track.author) { lrcText ->
+                if (lyricsOpSeq == op && !isDestroyed) {
+                    handleLoadedLyric(lrcText, track.title, op)
+                }
+            }
+        }
+    }
+
+    private fun handleLoadedLyric(lrcText: String?, trackTitle: String, op: Long) {
+        if (lyricsOpSeq != op || isDestroyed) return
+        val parsed = com.example.readtrace.util.LrcParser.parse(lrcText)
+        if (parsed.isNotEmpty()) {
+            currentLyrics = parsed
+            tvLyricsState.visibility = View.GONE
+            rvLyrics.adapter = VinylLyricsAdapter(parsed, -1) {
+                hideLyricsView()
+            }
+            syncLyricsHighlight((mediaPlayer?.currentPosition ?: 0).toLong())
+        } else {
+            currentLyrics = emptyList()
+            tvLyricsState.visibility = View.VISIBLE
+            val quote = playlist.getOrNull(currentIndex)?.shortComment
+            tvLyricsState.text = if (!quote.isNullOrBlank()) {
+                "“$quote”\n\n(纯音乐或暂无同步滚动歌词)\n轻触任意处返回唱机"
+            } else {
+                "《$trackTitle》\n\n(纯音乐或暂无同步滚动歌词)\n轻触任意处返回唱机"
+            }
+        }
+    }
+
+    private fun syncLyricsHighlight(currentPosMs: Long) {
+        if (currentLyrics.isEmpty()) return
+        var targetIndex = -1
+        for (i in currentLyrics.indices) {
+            if (currentLyrics[i].timeMs <= currentPosMs) {
+                targetIndex = i
+            } else {
+                break
+            }
+        }
+        if (targetIndex != currentLyricHighlightIndex && targetIndex >= 0) {
+            val oldIdx = currentLyricHighlightIndex
+            currentLyricHighlightIndex = targetIndex
+            val adapter = rvLyrics.adapter as? VinylLyricsAdapter
+            if (adapter != null) {
+                adapter.highlightIndex = targetIndex
+                if (oldIdx in currentLyrics.indices) adapter.notifyItemChanged(oldIdx)
+                adapter.notifyItemChanged(targetIndex)
+                if (isLyricsViewShowing) {
+                    val lm = rvLyrics.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+                    val offset = (rvLyrics.height / 2).coerceAtLeast(100) - 40
+                    lm?.scrollToPositionWithOffset(targetIndex, offset)
+                }
+            }
+            tvQuoteLyrics.text = "“${currentLyrics[targetIndex].text}”"
+        }
+    }
+
+    inner class VinylLyricsAdapter(
+        private val items: List<com.example.readtrace.util.LyricEntry>,
+        var highlightIndex: Int = -1,
+        private val onItemClick: () -> Unit,
+    ) : RecyclerView.Adapter<VinylLyricsAdapter.ViewHolder>() {
+
+        inner class ViewHolder(val tv: TextView) : RecyclerView.ViewHolder(tv)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val tv = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_vinyl_lyric_line, parent, false) as TextView
+            return ViewHolder(tv)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = items[position]
+            holder.tv.text = item.text
+            val isHighlighted = position == highlightIndex
+            if (isHighlighted) {
+                holder.tv.setTextColor(Color.parseColor("#FFF4D0"))
+                holder.tv.textSize = 16.5f
+                holder.tv.typeface = android.graphics.Typeface.DEFAULT_BOLD
+                holder.tv.alpha = 1.0f
+            } else {
+                holder.tv.setTextColor(Color.parseColor("#80C0A87A"))
+                holder.tv.textSize = 14f
+                holder.tv.typeface = android.graphics.Typeface.DEFAULT
+                holder.tv.alpha = 0.65f
+            }
+            holder.itemView.setOnClickListener { onItemClick() }
+        }
+
+        override fun getItemCount(): Int = items.size
     }
 
     override fun onResume() {

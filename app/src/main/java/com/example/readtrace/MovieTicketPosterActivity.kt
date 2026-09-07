@@ -114,7 +114,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
     private fun showMoviePickerDialog() {
         val movies = databaseHelper.getBooks().filter { it.mediaType == com.example.readtrace.model.MediaType.MOVIE }
         if (movies.isEmpty()) {
-            Toast.makeText(this, "书库中暂无已录入的电影作品", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "藏库中暂无已录入的电影作品", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -140,7 +140,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             if (fallbackMovie != null) {
                 movieId = fallbackMovie.id
             } else {
-                Toast.makeText(this, "未找到电影数据，请先在书库添加电影", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "未找到电影数据，请先在藏库添加影视", Toast.LENGTH_SHORT).show()
                 finish()
                 return
             }

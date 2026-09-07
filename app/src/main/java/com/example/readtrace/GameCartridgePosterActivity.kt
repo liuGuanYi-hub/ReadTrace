@@ -109,7 +109,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
     private fun showGamePickerDialog() {
         val games = databaseHelper.getBooks().filter { it.mediaType == com.example.readtrace.model.MediaType.GAME }
         if (games.isEmpty()) {
-            Toast.makeText(this, "书库中暂无已录入的游戏作品", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "藏库中暂无已录入的游戏作品", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -136,7 +136,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             if (fallbackGame != null) {
                 gameId = fallbackGame.id
             } else {
-                Toast.makeText(this, "未找到游戏数据，请先在书库添加游戏", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "未找到游戏数据，请先在藏库添加游戏", Toast.LENGTH_SHORT).show()
                 finish()
                 return
             }

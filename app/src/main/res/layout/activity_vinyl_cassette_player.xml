@@ -99,7 +99,56 @@
                 android:id="@+id/vinylTurntableView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
                 android:visibility="visible" />
+
+            <!-- 沉浸式滚动歌词视图 -->
+            <FrameLayout
+                android:id="@+id/lyricsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvLyrics"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:paddingTop="110dp"
+                    android:paddingBottom="110dp"
+                    android:paddingHorizontal="24dp" />
+
+                <TextView
+                    android:id="@+id/tvLyricsState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:fontFamily="serif"
+                    android:lineSpacingMultiplier="1.3"
+                    android:paddingHorizontal="32dp"
+                    android:textColor="#C0A87A"
+                    android:textSize="14sp"
+                    android:textStyle="italic"
+                    android:visibility="gone" />
+
+                <!-- 顶部轻微提示微胶囊 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_player_chip"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="📜 轻触任意处返回唱机"
+                    android:textColor="@color/player_text_muted"
+                    android:textSize="10.5sp" />
+            </FrameLayout>
 
             <!-- 复古磁带卡座视图 -->
             <com.example.readtrace.widget.CassetteDeckView

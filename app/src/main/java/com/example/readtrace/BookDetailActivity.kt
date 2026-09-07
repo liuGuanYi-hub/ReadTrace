@@ -710,7 +710,7 @@ class BookDetailActivity : AppCompatActivity() {
     private fun showCompareMindprintDialog() {
         val allBooks = databaseHelper.getBooks().filter { it.id != bookId }
         if (allBooks.isEmpty()) {
-            Toast.makeText(this, "书架中暂无其他作品可用于对比", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "藏库中暂无其他作品可用于对比", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -741,7 +741,7 @@ class BookDetailActivity : AppCompatActivity() {
                     targetMindprint,
                     animate = true,
                 )
-                Toast.makeText(this, "已开启《$currentTitle》与《${targetBook.title}》双书心智对照", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "已开启《$currentTitle》与《${targetBook.title}》双作品心智对照", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1207,7 +1207,7 @@ class BookDetailActivity : AppCompatActivity() {
                         ElegantConfirmDialog.show(
                             activity = this,
                             title = "🎉 时间轴长图已生成",
-                            message = "全息心路长图已成功保存至系统相册！是否立即分享给书友？",
+                            message = "全息心路长图已成功保存至系统相册！是否立即分享？",
                             confirmText = "🔗 立即分享",
                             cancelText = "稍后再说",
                             isDanger = false,
@@ -1571,7 +1571,14 @@ class BookDetailActivity : AppCompatActivity() {
                     databaseHelper.updateBook(updatedBook)
                     currentBook = updatedBook
                     renderBook(updatedBook)
-                    Toast.makeText(this, "✓ 读后感已保存入库", Toast.LENGTH_SHORT).show()
+                    val perceptionName = when (book.mediaType) {
+                        MediaType.GAME -> "游玩心得"
+                        MediaType.MUSIC -> "听感短评"
+                        MediaType.MOVIE -> "影评感悟"
+                        MediaType.ANIME -> "漫评心得"
+                        else -> "读后感"
+                    }
+                    Toast.makeText(this, "✓ ${perceptionName}已保存入库", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -1649,7 +1656,7 @@ class BookDetailActivity : AppCompatActivity() {
     private fun showColliderPicker(current: Book) {
         val candidates = databaseHelper.getBooks().filter { it.id != current.id }
         if (candidates.isEmpty()) {
-            Toast.makeText(this, "书库中还没有其它作品可以碰撞", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "藏库中还没有其它作品可以碰撞", Toast.LENGTH_SHORT).show()
             return
         }
         com.example.readtrace.util.ElegantChoiceDialog.show(
@@ -1985,11 +1992,12 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun archiveBook(id: Long) {
         val archived = runCatching { databaseHelper.archiveBook(id) }.getOrDefault(false)
+        val mediaName = currentBook?.mediaType?.displayName ?: "作品"
         if (archived) {
-            Toast.makeText(this, R.string.archive_success, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${mediaName}已归档", Toast.LENGTH_SHORT).show()
             finish()
         } else {
-            Toast.makeText(this, R.string.archive_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${mediaName}归档失败", Toast.LENGTH_SHORT).show()
         }
     }
 

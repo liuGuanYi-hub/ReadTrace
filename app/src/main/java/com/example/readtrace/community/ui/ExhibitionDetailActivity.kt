@@ -182,9 +182,9 @@ class ExhibitionDetailActivity : AppCompatActivity() {
                 setOnClickListener {
                     val saved = CommunityRepository.saveBookToLocalShelf(this@ExhibitionDetailActivity, book)
                     if (saved) {
-                        Toast.makeText(this@ExhibitionDetailActivity, "✦ 已将《${book.title}》收入你的书架！", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ExhibitionDetailActivity, "✦ 已将《${book.title}》收入你的藏库！", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(this@ExhibitionDetailActivity, "已在书架中或转存失败", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ExhibitionDetailActivity, "已在藏库中或转存失败", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

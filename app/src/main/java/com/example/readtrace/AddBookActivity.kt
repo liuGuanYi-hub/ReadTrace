@@ -755,27 +755,21 @@ class AddBookActivity : AppCompatActivity() {
                 }
 
                 setResult(RESULT_OK)
-                Toast.makeText(
-                    this,
-                    if (isEditing) R.string.book_updated else R.string.book_saved,
-                    Toast.LENGTH_SHORT,
-                ).show()
+                val mediaName = selectedMediaType.displayName
+                val successMsg = if (isEditing) "${mediaName}已更新" else "${mediaName}已放入藏库"
+                Toast.makeText(this, successMsg, Toast.LENGTH_SHORT).show()
                 finish()
             } else {
                 restoreSaveButton()
-                Toast.makeText(
-                    this,
-                    if (isEditing) R.string.book_update_failed else R.string.book_save_failed,
-                    Toast.LENGTH_SHORT,
-                ).show()
+                val mediaName = selectedMediaType.displayName
+                val failMsg = if (isEditing) "${mediaName}更新失败" else "${mediaName}保存失败"
+                Toast.makeText(this, failMsg, Toast.LENGTH_SHORT).show()
             }
         }.onFailure {
             restoreSaveButton()
-            Toast.makeText(
-                this,
-                if (isEditing) R.string.book_update_failed else R.string.book_save_failed,
-                Toast.LENGTH_SHORT,
-            ).show()
+            val mediaName = selectedMediaType.displayName
+            val failMsg = if (isEditing) "${mediaName}更新失败" else "${mediaName}保存失败"
+            Toast.makeText(this, failMsg, Toast.LENGTH_SHORT).show()
         }
     }
 

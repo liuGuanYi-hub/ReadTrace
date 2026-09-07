@@ -63,6 +63,28 @@ class LibraryFragment : Fragment() {
     private lateinit var libraryTagScroller: HorizontalScrollView
     private lateinit var libraryTagGroup: LinearLayout
 
+    private lateinit var ratingFilterBar: LinearLayout
+    private lateinit var ratingChipAll: TextView
+    private lateinit var ratingChip7075: TextView
+    private lateinit var ratingChip7580: TextView
+    private lateinit var ratingChip80Plus: TextView
+
+    enum class RatingRange(val label: String) {
+        RANGE_70_75("7.0~7.5"),
+        RANGE_75_80("7.5~8.0"),
+        RANGE_80_PLUS("8.0以上");
+
+        fun matches(rating: Double?): Boolean {
+            if (rating == null) return false
+            return when (this) {
+                RANGE_70_75 -> rating in 7.0..7.5
+                RANGE_75_80 -> rating in 7.5..8.0
+                RANGE_80_PLUS -> rating >= 8.0
+            }
+        }
+    }
+    private var selectedRatingRange: RatingRange? = null
+
     private lateinit var libraryCountText: TextView
     private lateinit var btnLibraryToggleView: TextView
     private lateinit var btnLibraryExportScroll: TextView
@@ -130,6 +152,12 @@ class LibraryFragment : Fragment() {
         statusChipReading = view.findViewById(R.id.statusChipReading)
         statusChipFinished = view.findViewById(R.id.statusChipFinished)
         statusChipWishlist = view.findViewById(R.id.statusChipWishlist)
+        ratingFilterBar = view.findViewById(R.id.ratingFilterBar)
+        ratingChipAll = view.findViewById(R.id.ratingChipAll)
+        ratingChip7075 = view.findViewById(R.id.ratingChip7075)
+        ratingChip7580 = view.findViewById(R.id.ratingChip7580)
+        ratingChip80Plus = view.findViewById(R.id.ratingChip80Plus)
+
         libraryTagScroller = view.findViewById(R.id.libraryTagScroller)
         libraryTagGroup = view.findViewById(R.id.libraryTagGroup)
 
@@ -143,6 +171,7 @@ class LibraryFragment : Fragment() {
 
         updateMediaChips()
         updateStatusChips()
+        updateRatingChips()
         updateViewModeButton()
     }
 
@@ -175,6 +204,23 @@ class LibraryFragment : Fragment() {
         statusChipReading.setOnClickListener { selectStatus(BookStatus.READING) }
         statusChipFinished.setOnClickListener { selectStatus(BookStatus.FINISHED) }
         statusChipWishlist.setOnClickListener { selectStatus(BookStatus.WISHLIST) }
+
+        ratingChipAll.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            selectRatingRange(null)
+        }
+        ratingChip7075.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            selectRatingRange(RatingRange.RANGE_70_75)
+        }
+        ratingChip7580.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            selectRatingRange(RatingRange.RANGE_75_80)
+        }
+        ratingChip80Plus.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            selectRatingRange(RatingRange.RANGE_80_PLUS)
+        }
 
         librarySearchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -318,6 +364,35 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    private fun selectRatingRange(range: RatingRange?) {
+        if (selectedRatingRange == range) return
+        selectedRatingRange = range
+        currentDisplayLimit = 24
+        updateRatingChips()
+        refreshLibrary(forceDbReload = false)
+    }
+
+    private fun updateRatingChips() {
+        val ctx = context ?: return
+        val chips = listOf(
+            ratingChipAll to (selectedRatingRange == null),
+            ratingChip7075 to (selectedRatingRange == RatingRange.RANGE_70_75),
+            ratingChip7580 to (selectedRatingRange == RatingRange.RANGE_75_80),
+            ratingChip80Plus to (selectedRatingRange == RatingRange.RANGE_80_PLUS),
+        )
+        chips.forEach { (chip, isSelected) ->
+            if (isSelected) {
+                chip.setBackgroundResource(R.drawable.bg_segmented_item_selected)
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.white))
+                chip.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            } else {
+                chip.setBackgroundResource(0)
+                chip.setTextColor(ContextCompat.getColor(ctx, R.color.readtrace_muted))
+                chip.typeface = android.graphics.Typeface.DEFAULT
+            }
+        }
+    }
+
     private fun selectTag(tag: String?) {
         if (selectedTag == tag) return
         selectedTag = tag
@@ -333,9 +408,10 @@ class LibraryFragment : Fragment() {
         val baseFilteredBooks = cachedAllBooks.filter { book ->
             val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
             val matchesStatus = selectedStatus == null || book.status == selectedStatus
+            val matchesRating = selectedRatingRange == null || selectedRatingRange!!.matches(book.rating)
             val matchesKeyword = searchKeyword.isEmpty() ||
                 com.example.readtrace.util.PinyinSearchHelper.matchesBook(book, searchKeyword)
-            matchesMedia && matchesStatus && matchesKeyword
+            matchesMedia && matchesStatus && matchesRating && matchesKeyword
         }
         renderDynamicTags(baseFilteredBooks)
         refreshShelfOnly(baseFilteredBooks)
@@ -415,9 +491,10 @@ class LibraryFragment : Fragment() {
             allBooks.filter { book ->
                 val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
                 val matchesStatus = selectedStatus == null || book.status == selectedStatus
+                val matchesRating = selectedRatingRange == null || selectedRatingRange!!.matches(book.rating)
                 val matchesKeyword = searchKeyword.isEmpty() ||
                     com.example.readtrace.util.PinyinSearchHelper.matchesBook(book, searchKeyword)
-                matchesMedia && matchesStatus && matchesKeyword
+                matchesMedia && matchesStatus && matchesRating && matchesKeyword
             }
         }
 

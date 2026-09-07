@@ -258,6 +258,41 @@ object NeteasePreviewHelper {
         }.start()
     }
 
+    /** 异步拉取单曲 LRC 歌词（用于黑胶唱机歌词自愈与同步滚动展示） */
+    fun fetchSongLyric(songId: Long, onResult: (String?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        Thread {
+            val lyric = runCatching {
+                val url = "https://music.163.com/api/song/lyric?id=$songId&lv=1&kv=1&tv=-1"
+                val json = JSONObject(readUtf8(httpGet(url, referer = "https://music.163.com/")))
+                val lrc = json.optJSONObject("lrc")
+                lrc?.optString("lyric")?.takeIf { it.isNotBlank() }
+            }.getOrNull()
+            handler.post { onResult(lyric) }
+        }.start()
+    }
+
+    /** 针对非直接携带 songId 的曲目，通过歌曲标题与艺术家名称检索并拉取 LRC 歌词 */
+    fun fetchSongLyricBySearch(title: String, artist: String?, onResult: (String?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        Thread {
+            val lyric = runCatching {
+                val query = if (artist.isNullOrBlank()) title else "$title $artist"
+                val encoded = java.net.URLEncoder.encode(query, "UTF-8")
+                val searchUrl = "$SEARCH_URL?s=$encoded&type=1&offset=0&limit=3"
+                val json = JSONObject(readUtf8(httpGet(searchUrl, referer = "https://music.163.com/")))
+                val songs = json.optJSONObject("result")?.optJSONArray("songs") ?: return@runCatching null
+                val firstSong = songs.optJSONObject(0) ?: return@runCatching null
+                val songId = firstSong.optLong("id")
+                if (songId <= 0) return@runCatching null
+                val lyricUrl = "https://music.163.com/api/song/lyric?id=$songId&lv=1&kv=1&tv=-1"
+                val lyricJson = JSONObject(readUtf8(httpGet(lyricUrl, referer = "https://music.163.com/")))
+                lyricJson.optJSONObject("lrc")?.optString("lyric")?.takeIf { it.isNotBlank() }
+            }.getOrNull()
+            handler.post { onResult(lyric) }
+        }.start()
+    }
+
     /** 取当前登录用户 uid */
     private fun fetchAccountUid(musicU: String): Long? {
         val json = JSONObject(readUtf8(httpGet(ACCOUNT_URL, referer = "https://music.163.com/", musicU = musicU)))
