@@ -192,6 +192,39 @@ if (oldVersion < 13) {
                 removedTitles,
             )
         }
+        if (oldVersion < 14) {
+            // v14：级联移除《451 (华氏451)》与《Blues in the Closet》两部音乐作品
+            val removedTitles = arrayOf("451 (华氏451)", "Blues in the Closet")
+            val presetMusicWhere = "$COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music'"
+            database.execSQL(
+                "DELETE FROM $TABLE_AUDIO_TRACKS WHERE $COLUMN_AUDIO_BOOK_ID IN " +
+                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
+                removedTitles,
+            )
+            listOf(
+                TABLE_NOTES,
+                TABLE_READING_SESSIONS,
+                TABLE_BOOK_LOCATIONS,
+                TABLE_BOOK_MINDPRINTS,
+                TABLE_BOOK_CHARACTERS,
+                TABLE_BOOK_OUTLINES,
+            ).forEach { table ->
+                database.execSQL(
+                    "DELETE FROM $table WHERE $COLUMN_BOOK_ID IN " +
+                        "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
+                    removedTitles,
+                )
+            }
+            database.execSQL(
+                "DELETE FROM $TABLE_FAVORITES WHERE $COLUMN_FAVORITE_BOOK_ID IN " +
+                    "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
+                removedTitles,
+            )
+            database.execSQL(
+                "DELETE FROM $TABLE_BOOKS WHERE $presetMusicWhere",
+                removedTitles,
+            )
+        }
     }
 
     private fun createNotesTable(database: SQLiteDatabase) {
@@ -417,7 +450,46 @@ if (oldVersion < 13) {
             }
             // 自动自愈补齐：针对历史版本遗漏角色谱与大纲的藏本，幂等增量补齐
             ensureRichContentSeededIfNeeded(db)
+            repairMissingNeteaseCovers(db)
             seedChecked = true
+        }
+    }
+
+    /** 自动自愈：针对网易云歌单导入但缺失封面的曲目，异步联网拉取专辑封面并回填 */
+    private fun repairMissingNeteaseCovers(db: SQLiteDatabase) {
+        runCatching {
+            val targets = mutableListOf<Pair<Long, Long>>() // id, sourceId
+            db.query(
+                TABLE_BOOKS,
+                arrayOf(COLUMN_ID, COLUMN_SOURCE_ID),
+                "$COLUMN_IS_DELETED = 0 AND $COLUMN_MEDIA_TYPE = 'music' AND $COLUMN_SOURCE_TYPE = 'netease' " +
+                    "AND ($COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '') AND $COLUMN_SOURCE_ID IS NOT NULL",
+                null,
+                null,
+                null,
+                null,
+            ).use { c ->
+                while (c.moveToNext()) {
+                    val bId = c.getLong(0)
+                    val sId = c.getString(1)?.toLongOrNull()
+                    if (sId != null && sId > 0) targets.add(bId to sId)
+                }
+            }
+            if (targets.isEmpty()) return
+            Thread {
+                targets.forEach { (bId, sId) ->
+                    com.example.readtrace.util.NeteasePreviewHelper.fetchSongPicUrl(sId) { picUrl ->
+                        if (!picUrl.isNullOrBlank()) {
+                            runCatching {
+                                writableDatabase.execSQL(
+                                    "UPDATE $TABLE_BOOKS SET $COLUMN_COVER_URL = ? WHERE $COLUMN_ID = ?",
+                                    arrayOf(picUrl, bId.toString()),
+                                )
+                            }
+                        }
+                    }
+                }
+            }.start()
         }
     }
 
@@ -1683,19 +1755,6 @@ if (oldVersion < 13) {
                     mindprint = floatArrayOf(9.6f, 9.8f, 10.0f, 9.0f, 3.0f, 10.0f),
                 ),
                 MusicEntry(
-                    title = "451 (华氏451)",
-                    artist = "ヨルシカ (Yorushika) · n-buna / suis",
-                    category = "硬派反乌托邦摇滚",
-                    status = "finished",
-                    year = "2023",
-                    tags = listOf("2023年", "画集幻燈", "华氏451", "硬派摇滚", "思想火种"),
-                    rating = 4.9,
-                    shortComment = "书页在华氏451度燃烧，但思想的火种永远不会在灰烬中熄灭。",
-                    review = "画集专辑《幻燈》核心收录曲。致敬科幻大师雷·布拉德伯里的经典反乌托邦巨著，重型吉他 Riff 与极具张力的演唱。",
-                    coverUrl = "covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
-                    mindprint = floatArrayOf(9.6f, 9.5f, 9.2f, 9.6f, 5.0f, 7.0f),
-                ),
-                MusicEntry(
                     title = "月光浴 (Moonlight Bath)",
                     artist = "ヨルシカ (Yorushika) · n-buna / suis",
                     category = "唯美抒情 / 静谧夜色",
@@ -1722,19 +1781,6 @@ if (oldVersion < 13) {
                     review = "动画电影《我的鬼女孩 (My Oni Girl)》主题曲。ACAね 标志性的高速吉他切音与炸裂的 Slap Bass，在疾走感中诉说着少年少女笨拙却炽热的真心。",
                     coverUrl = "covers/netease_eevP8WLVve9lX0Vq-4TowQ___109951169618099511.jpg",
                     mindprint = floatArrayOf(9.4f, 9.8f, 9.8f, 9.2f, 4.0f, 9.0f),
-                ),
-                MusicEntry(
-                    title = "Blues in the Closet",
-                    artist = "ずっと真夜中でいいのに。 (ZUTOMAYO) · ACAね",
-                    category = "夜光放克 / 都会律动",
-                    status = "finished",
-                    year = "2024",
-                    tags = listOf("2024年", "真夜中放克", "秘密衣橱", "都会孤独", "ACAね"),
-                    rating = 4.9,
-                    shortComment = "把所有的不安塞进衣橱深处，戴上耳机，在蓝调的重低音里独自起舞。",
-                    review = "ACAね 极具辨识度的真假音转换与复杂的爵士和弦走向，将都市年轻人在暗夜中的敏感孤独转化为摇摆律动。",
-                    coverUrl = "covers/netease_cAtkQLQDmAOdYOAVuomBVg___109951169661368682.jpg",
-                    mindprint = floatArrayOf(9.0f, 9.8f, 9.4f, 9.5f, 4.5f, 8.8f),
                 ),
                 MusicEntry(
                     title = "花一匁 (Hanaichimonme)",
@@ -4019,7 +4065,7 @@ if (oldVersion < 13) {
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 13
+        const val DATABASE_VERSION = 14
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

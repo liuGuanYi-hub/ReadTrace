@@ -437,15 +437,40 @@
                     </LinearLayout>
                 </HorizontalScrollView>
 
-                <TextView
-                    style="@style/ReadTraceFieldLabel"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/field_rating" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/ReadTraceFieldLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/field_rating" />
+
+                    <TextView
+                        android:id="@+id/btnOpenDimensionalScoring"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_dark_chip_selected"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="📐 多维细分"
+                        android:textColor="@android:color/white"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/starRatingRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
@@ -477,24 +502,14 @@
                         android:id="@+id/starHint"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
                         android:text="8.0 分 · 扎实良作"
                         android:textColor="@color/readtrace_accent"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/btnOpenDimensionalScoring"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_dark_chip_selected"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="4dp"
-                        android:text="📐 多维细分"
-                        android:textColor="@android:color/white"
-                        android:textSize="11.5sp"
+                        android:textSize="13.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 

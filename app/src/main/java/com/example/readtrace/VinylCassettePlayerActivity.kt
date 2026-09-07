@@ -241,7 +241,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         val allBooks = databaseHelper.getBooks()
         val newPlaylist = allBooks.filter { it.mediaType == MediaType.MUSIC }.ifEmpty { allBooks }
         val idx = newPlaylist.indexOfFirst { it.id == bookId }
-        if (idx == -1 || newPlaylist.getOrNull(currentIndex)?.id == bookId) return
+        if (idx == -1) return
         // 明确切到本地藏库作品：退出云队列接管，上一曲/下一曲与播放键恢复本地语义
         cloudTracks = emptyList()
         cloudIndex = -1
@@ -249,8 +249,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         playlist = newPlaylist
         currentIndex = idx
         renderCurrentTrack()
-        val keepPlaying = isPlaying
-        switchWork(keepPlaying)
+        switchWork(autoPlay = true)
         newPlaylist.getOrNull(idx)?.let {
             Toast.makeText(this, "正在播放: 《${it.title}》", Toast.LENGTH_SHORT).show()
         }
@@ -298,9 +297,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             if (foundIdx != -1) {
                 currentIndex = foundIdx
             }
+            renderCurrentTrack()
+            // 外部显式指定作品跳转进唱机（如详情页「💽 3D 拟真黑胶唱机」），自动开机放唱
+            switchWork(autoPlay = true)
+        } else {
+            renderCurrentTrack()
         }
-
-        renderCurrentTrack()
     }
 
     private fun renderCurrentTrack() {
@@ -336,8 +338,38 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         cassetteDeckView.artistName = track.author ?: "声音宇宙"
 
         // 使用 CoverImageHelper 异步加载专辑封面到黑胶唱片中心
-        CoverImageHelper.loadCoverBitmap(this, track.coverUrl) { bmp ->
-            vinylTurntableView.coverBitmap = bmp
+        if (!track.coverUrl.isNullOrBlank()) {
+            CoverImageHelper.loadCoverBitmap(this, track.coverUrl) { bmp ->
+                if (playlist.getOrNull(currentIndex)?.id == track.id) {
+                    vinylTurntableView.coverBitmap = bmp
+                }
+            }
+        } else if (track.sourceType == "netease" && !track.sourceId.isNullOrBlank()) {
+            val sId = track.sourceId.toLongOrNull() ?: -1L
+            if (sId > 0) {
+                com.example.readtrace.util.NeteasePreviewHelper.fetchSongPicUrl(sId) { picUrl ->
+                    if (!picUrl.isNullOrBlank() && !isDestroyed) {
+                        if (playlist.getOrNull(currentIndex)?.id == track.id) {
+                            CoverImageHelper.loadCoverBitmap(this@VinylCassettePlayerActivity, picUrl) { bmp ->
+                                if (playlist.getOrNull(currentIndex)?.id == track.id) {
+                                    vinylTurntableView.coverBitmap = bmp
+                                }
+                            }
+                        }
+                        Thread {
+                            databaseHelper.getBook(track.id)?.let { b ->
+                                if (b.coverUrl.isNullOrBlank()) {
+                                    databaseHelper.updateBook(b.copy(coverUrl = picUrl))
+                                }
+                            }
+                        }.start()
+                    }
+                }
+            } else {
+                vinylTurntableView.coverBitmap = starfieldCoverBitmap()
+            }
+        } else {
+            vinylTurntableView.coverBitmap = starfieldCoverBitmap()
         }
     }
 
@@ -649,7 +681,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         result: com.example.readtrace.util.NeteasePreviewHelper.PreviewResult,
     ) {
         // 作品货币性校验：切歌后旧作品的取链回调到此作废，防止旧曲目覆盖新作品并起播（P38-G6）
-        if (playlist.getOrNull(currentIndex)?.id != work.id) return
+        if (playlist.getOrNull(currentIndex)?.id != work.id) {
+            isFetchingPreview = false
+            return
+        }
         val order = databaseHelper.getAudioTracks(work.id).size
         val suffix = when {
             result.isFullSong -> "完整播放"
@@ -665,6 +700,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             ),
         )
         currentAudioTracks = databaseHelper.getAudioTracks(work.id)
+        isFetchingPreview = false
+        isPlaying = true
         playAudioAt(currentAudioTracks.lastIndex)
     }
 
@@ -759,6 +796,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                     fresh += com.example.readtrace.model.Book(
                         title = t.name,
                         author = t.artists.ifBlank { null },
+                        coverUrl = t.picUrl.ifBlank { null },
                         category = "网易云歌单 · ${playlist.name}",
                         status = com.example.readtrace.model.BookStatus.FINISHED,
                         mediaType = com.example.readtrace.model.MediaType.MUSIC,
@@ -770,6 +808,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             val inserted = if (fresh.isEmpty()) 0 else databaseHelper.insertBooksBatch(fresh)
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
+                loadPlaylist()
                 val skipped = picked.size - fresh.size
                 Toast.makeText(
                     this,
@@ -1106,16 +1145,17 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             setOnErrorListener { _, what, extra ->
                 isPreparing = false
                 handler.removeCallbacks(prepareTimeoutRunnable)
-                Toast.makeText(this@VinylCassettePlayerActivity, "播放出错 (code $what/$extra)，文件可能已失效", Toast.LENGTH_LONG).show()
-                // 复位播放态与按钮文案，避免 UI 死锁在「缓冲中」无法重试（须显式限定 Activity 字段，
-                // 否则 isPlaying 会解析到 MediaPlayer 自身的 val 属性导致赋值失败）
+                Toast.makeText(this@VinylCassettePlayerActivity, "音源准备中 (code $what/$extra)，正在自动获取最新直链…", Toast.LENGTH_SHORT).show()
                 this@VinylCassettePlayerActivity.isPlaying = false
                 setPlayingUi(false)
                 // 在线缓存直链（试听/完整播放）会过期失效：自动移除旧链接并重新联网取链，避免反复报错
                 if (isOnlineCachedTrack(track)) {
                     databaseHelper.deleteAudioTrack(track.id)
                     val work = playlist.getOrNull(currentIndex)
-                    if (work != null) fetchNeteasePreview(work)
+                    if (work != null) {
+                        this@VinylCassettePlayerActivity.isPlaying = true
+                        fetchNeteasePreview(work)
+                    }
                 }
                 true
             }

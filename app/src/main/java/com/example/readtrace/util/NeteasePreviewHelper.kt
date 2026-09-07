@@ -242,6 +242,22 @@ object NeteasePreviewHelper {
         }.start()
     }
 
+    /** 异步拉取单曲专辑封面 URL（用于缺失封面的已导入网易云作品自动自愈） */
+    fun fetchSongPicUrl(songId: Long, onResult: (String?) -> Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        Thread {
+            val picUrl = runCatching {
+                val url = "https://music.163.com/api/song/detail/?id=$songId&ids=%5B$songId%5D"
+                val json = JSONObject(readUtf8(httpGet(url, referer = "https://music.163.com/")))
+                val songs = json.optJSONArray("songs") ?: return@runCatching null
+                val song = songs.optJSONObject(0) ?: return@runCatching null
+                val album = song.optJSONObject("album") ?: song.optJSONObject("al")
+                album?.optString("picUrl")?.takeIf { it.isNotBlank() }
+            }.getOrNull()
+            handler.post { onResult(picUrl) }
+        }.start()
+    }
+
     /** 取当前登录用户 uid */
     private fun fetchAccountUid(musicU: String): Long? {
         val json = JSONObject(readUtf8(httpGet(ACCOUNT_URL, referer = "https://music.163.com/", musicU = musicU)))
