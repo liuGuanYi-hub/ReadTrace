@@ -225,6 +225,15 @@ if (oldVersion < 13) {
                 removedTitles,
             )
         }
+        if (oldVersion < 15) {
+            // v15: 音乐、影视、游戏三类作品从旧的 5 分制迁移为 7.0 ~ 8.0 离散分布
+            database.execSQL(
+                "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(7.0 + (ABS(RANDOM()) % 11) * 0.1, 1) " +
+                    "WHERE $COLUMN_IS_DELETED = 0 " +
+                    "AND $COLUMN_MEDIA_TYPE IN ('music', 'movie', 'game') " +
+                    "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+            )
+        }
     }
 
     private fun createNotesTable(database: SQLiteDatabase) {
@@ -423,6 +432,15 @@ if (oldVersion < 13) {
                 populatePresetRichContent(db)
                 seedCuratedBookCovers(db)
                 migrateCoversToLanKeys(db)
+                // v15: 音乐、影视、游戏三类作品从历史 5 分制迁移为 7.0 ~ 8.0 离散分布（覆盖所有存量数据库）
+                if (previousSeedVersion < 15) {
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(7.0 + (ABS(RANDOM()) % 11) * 0.1, 1) " +
+                            "WHERE $COLUMN_IS_DELETED = 0 " +
+                            "AND $COLUMN_MEDIA_TYPE IN ('music', 'movie', 'game') " +
+                            "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+                    )
+                }
                 // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时赋予初始评分，
                 // 升版重播种一律不改写评分，避免覆盖用户手填数据（数据破坏）。
                 // 初始评分按作品差异化（取消历史上的「统一 8.0」）：
@@ -1277,7 +1295,7 @@ if (oldVersion < 13) {
                     category = "超级英雄",
                     status = "finished",
                     tags = listOf("漫威影业", "超级英雄", "崭新之日", "街头英雄", "成长"),
-                    rating = 4.8,
+                    rating = 7.3,
                     shortComment = "能力越大，责任越大。无论世界如何遗忘彼得·帕克，蜘蛛侠永远守护纽约的晨曦。",
                     review = "剥离了斯塔克工业高科技光环，彼得·帕克在简陋公寓中缝制新战衣，重拾街头英雄的坚韧与初心。",
                     coverUrl = "covers/bgm_420898_M4KCk.jpg",
@@ -1289,7 +1307,7 @@ if (oldVersion < 13) {
                     category = "神话国漫",
                     status = "finished",
                     tags = listOf("国漫神作", "神话史诗", "魔童降世续集", "逆天改命", "视觉震撼"),
-                    rating = 4.9,
+                    rating = 7.8,
                     shortComment = "我命由我不由天，是魔是仙，我自己说了才算！四海龙族受死！",
                     review = "国产动画电影巅峰巨制。哪吒与敖丙肉身虽灭但魂魄尚存，重塑肉身与四海龙王掀起撼天动地的终极决战。",
                     coverUrl = "covers/bgm_537858_yQh8W.jpg",
@@ -1301,7 +1319,7 @@ if (oldVersion < 13) {
                     category = "剧情经典",
                     status = "finished",
                     tags = listOf("影史第一", "自由意志", "希望救赎", "经典神作", "人性史诗"),
-                    rating = 5.0,
+                    rating = 8.0,
                     shortComment = "有些鸟儿是关不住的，它们的每一片羽毛都闪耀着自由的光辉。希望是件好东西，也许是最好的东西。",
                     review = "影史无可争议的无冕之王。安迪用一把小石锤在十九年里凿开肖申克监狱的高墙，暴雨中拥抱自由的瞬间成为人类电影史的永恒丰碑。",
                     coverUrl = "covers/douban_p1435894655.jpg",
@@ -1313,7 +1331,7 @@ if (oldVersion < 13) {
                     category = "奇幻治愈",
                     status = "finished",
                     tags = listOf("宫崎骏", "吉卜力", "浪漫奇幻", "反战治愈", "童话史诗"),
-                    rating = 5.0,
+                    rating = 7.9,
                     shortComment = "在茫茫人海中相遇，我已经找了你很久很久。世界这么大，人生这么长，总会有一个人，让你想要温柔对待。",
                     review = "宫崎骏最唯美浪漫的心灵寓言。即使外表衰老如风烛残年，真挚勇敢的心灵也能让沉重钢铁城堡翱翔于澄澈星空与花海。",
                     coverUrl = "covers/bgm_312_LmAan.jpg",
@@ -1325,7 +1343,7 @@ if (oldVersion < 13) {
                     category = "硬核科幻",
                     status = "finished",
                     tags = listOf("诺兰神作", "硬核科幻", "黑洞时空", "父女深情", "五维空间"),
-                    rating = 5.0,
+                    rating = 8.0,
                     shortComment = "不要温和地走进那个良夜。爱是唯一可以超越时间与空间维度的力量。",
                     review = "硬核相对论物理与极致父女亲情的壮丽交响。穿越五维超正方体拨动书架手表的秒针，浩瀚宇宙在人类的情感面前亦化作回音。",
                     coverUrl = "covers/bgm_114365_O26a7.jpg",
@@ -1337,7 +1355,7 @@ if (oldVersion < 13) {
                     category = "悬疑科幻",
                     status = "finished",
                     tags = listOf("诺兰神作", "潜意识", "梦境架构", "极致烧脑", "哲学悬疑"),
-                    rating = 5.0,
+                    rating = 7.9,
                     shortComment = "最坚韧的寄生虫是什么？是想法。一个想法可以筑起城市，也可以改变世界。图腾旋转不息，但我们已回到真实。",
                     review = "多层梦境嵌套与时间差叙事的结构奇迹。旋转的陀螺成为了整个电影史最迷人的哲学隐喻。",
                     coverUrl = "covers/bgm_24057_P7DQx.jpg",
@@ -1349,7 +1367,7 @@ if (oldVersion < 13) {
                     category = "动画喜剧",
                     status = "finished",
                     tags = listOf("迪士尼", "乌托邦", "爆笑治愈", "打破偏见", "狐兔CP"),
-                    rating = 4.9,
+                    rating = 7.6,
                     shortComment = "生活总会有点不顺心，但无论你是何种动物，改变都从你开始。Try Everything!",
                     review = "迪士尼兼具极致娱乐性与深刻社会多元包容思辨的现代经典。兔朱迪与狐尼克的乌托邦冒险充满灵动与温暖。",
                     coverUrl = "covers/douban_p2614500649.jpg",
@@ -1361,7 +1379,7 @@ if (oldVersion < 13) {
                     category = "黑帮史诗",
                     status = "finished",
                     tags = listOf("影史巅峰", "黑帮史诗", "权力圣经", "柯里昂家族", "教父"),
-                    rating = 5.0,
+                    rating = 8.0,
                     shortComment = "伟大的人不是生来就伟大的，而是在成长过程中展现其伟大的。永远不要让别人知道你在想什么。",
                     review = "男人的圣经，电影美学的教科书。柯里昂家族在光影暗调中的沉浮与决断，构筑了人类权力与家庭责任的最冷峻赞歌。",
                     coverUrl = "covers/bgm_64965_8c3K2.jpg",
@@ -1373,7 +1391,7 @@ if (oldVersion < 13) {
                     category = "武侠动作",
                     status = "finished",
                     tags = listOf("周星驰", "武侠巅峰", "动作喜剧", "童年梦想", "如来神掌"),
-                    rating = 4.9,
+                    rating = 7.7,
                     shortComment = "想学啊？我教你啊。一曲肝肠断，天涯何处觅知音。",
                     review = "周星驰无厘头与传统武侠浪漫美学的集大成之作。从猪笼城寨的市井烟火到如来神掌化作彩蝶，充满了小人物对纯真童梦的守候。",
                     coverUrl = "covers/douban_p2219011938.jpg",
@@ -1385,7 +1403,7 @@ if (oldVersion < 13) {
                     category = "科幻哲学",
                     status = "finished",
                     tags = listOf("EVA终章", "神作电影", "庵野秀明", "告别EVA", "哲学心智"),
-                    rating = 5.0,
+                    rating = 7.8,
                     shortComment = "不能逃避，面对人与人之间的AT力场，向所有的福音战士告别，再见所有的Evangelion。",
                     review = "跨越四分之一个世纪的青春终章。庵野秀明用最真诚的成年人笔触，打破了虚幻的避难所，教我们走出忧郁，拥抱真实的人间与现实世界。",
                     coverUrl = "covers/bgm_6049_zy52O.jpg",
@@ -1397,7 +1415,7 @@ if (oldVersion < 13) {
                     category = "温情纪录",
                     status = "finished",
                     tags = listOf("亲情纪录", "闽南古厝", "阿嘛的爱", "岁月温情", "人间烟火"),
-                    rating = 4.9,
+                    rating = 7.5,
                     shortComment = "阿嘛留下的不仅是摇椅与古厝的风，更是流淌在血脉里永远不会褪色的温暖记忆。",
                     review = "真挚动人的代际亲情与乡土记忆。用温柔细腻的镜头记录祖辈的坚韧与慈爱，勾起无数人内心最柔软的归宿感与故土乡愁。",
                     coverUrl = "covers/douban_p2932240430.jpg",
@@ -1426,16 +1444,25 @@ if (oldVersion < 13) {
                     } else false
                 }
 
+                val effectiveRating = if (movie.rating != null && movie.rating in 7.0..10.0) {
+                    movie.rating
+                } else {
+                    ((70 + (kotlin.math.abs(movie.title.hashCode()) % 11)) / 10.0)
+                }
+
                 if (exists) {
                     val cv = ContentValues().apply {
                         put(COLUMN_MEDIA_TYPE, "movie")
                         if (movie.shortComment != null) put(COLUMN_SHORT_COMMENT, movie.shortComment)
                         if (movie.review != null) put(COLUMN_REVIEW, movie.review)
-                        if (movie.rating != null) put(COLUMN_RATING, movie.rating)
                         if (movie.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, movie.coverUrl)
                         put(COLUMN_TAGS, JSONArray(movie.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+                        arrayOf(effectiveRating.toString(), bookId.toString()),
+                    )
                 } else {
                     val cv = ContentValues().apply {
                         put(COLUMN_TITLE, movie.title)
@@ -1445,7 +1472,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "movie")
                         put(COLUMN_SHORT_COMMENT, movie.shortComment)
                         put(COLUMN_REVIEW, movie.review)
-                        put(COLUMN_RATING, movie.rating ?: 8.0)
+                        put(COLUMN_RATING, effectiveRating)
                         put(COLUMN_TAGS, JSONArray(movie.tags).toString())
                         put(COLUMN_COVER_URL, movie.coverUrl)
                         put(COLUMN_START_DATE, "2026-07-01")
@@ -1605,16 +1632,25 @@ if (oldVersion < 13) {
                     } else false
                 }
 
+                val effectiveRating = if (game.rating != null && game.rating in 7.0..10.0) {
+                    game.rating
+                } else {
+                    ((70 + (kotlin.math.abs(game.title.hashCode()) % 11)) / 10.0)
+                }
+
                 if (exists) {
                     val cv = ContentValues().apply {
                         put(COLUMN_MEDIA_TYPE, "game")
                         if (game.shortComment != null) put(COLUMN_SHORT_COMMENT, game.shortComment)
                         if (game.review != null) put(COLUMN_REVIEW, game.review)
-                        if (game.rating != null) put(COLUMN_RATING, game.rating)
                         if (game.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, game.coverUrl)
                         put(COLUMN_TAGS, JSONArray(game.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+                        arrayOf(effectiveRating.toString(), bookId.toString()),
+                    )
                 } else {
                     val cv = ContentValues().apply {
                         put(COLUMN_TITLE, game.title)
@@ -1624,7 +1660,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "game")
                         put(COLUMN_SHORT_COMMENT, game.shortComment)
                         put(COLUMN_REVIEW, game.review)
-                        put(COLUMN_RATING, game.rating ?: 8.0)
+                        put(COLUMN_RATING, effectiveRating)
                         put(COLUMN_TAGS, JSONArray(game.tags).toString())
                         put(COLUMN_COVER_URL, game.coverUrl)
                         put(COLUMN_START_DATE, "2026-07-15")
@@ -1683,7 +1719,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2024",
                     tags = listOf("2024年", "葬送的芙莉莲OP", "夜鹿", "n-buna", "治愈神曲"),
-                    rating = 5.0,
+                    rating = 8.0,
                     shortComment = "向着蔚蓝的晴空挥手作别，那滴落在手心的泪水，终会化为滋润大地的春雨。",
                     review = "TV动画《葬送的芙莉莲》第2季度 OP 主题曲。n-buna 标志性的清澈吉他扫弦与 suis 纯净高亢的声线，将千年精灵对漫长时光、生死别离的释然与深情吟唱得淋漓尽致，堪称 2024 年日系摇滚的巅峰之作。",
                     coverUrl = "covers/netease_A2uvcfwP0zBfOfiR36Qiww___109951169237033693.jpg",
@@ -1696,7 +1732,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2024",
                     tags = listOf("2024年", "关于地球的运动ED", "地动说", "真理追寻", "夜鹿"),
-                    rating = 5.0,
+                    rating = 7.9,
                     shortComment = "即便双脚陷于泥泞，我们依然要仰望并追寻那转动星辰的真理之火。",
                     review = "TV动画《地。-关于地球的运动-》ED 主题曲。歌名 Aporia 意为哲学术语中的‘困惑 / 无路可走’。探讨人类在浩瀚宇宙未知面前的渺小，以及前仆后继为真理献身的壮丽诗篇。",
                     coverUrl = "covers/netease_Pm_XyfxR0gu5XCb-5vR9KA___109951170023203859.jpg",
@@ -1709,7 +1745,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2024",
                     tags = listOf("2024年", "夏日残响", "suis", "温柔放手", "夜鹿"),
-                    rating = 4.9,
+                    rating = 7.6,
                     shortComment = "如果回忆会成为你的负担，那就请你连同我的名字与这个夏夜，一并遗忘吧。",
                     review = "夜鹿经典的夏日与离别物语。低回呢喃的琴键伴奏与渐进的弦乐编制，刻画出极致的物哀之美与温柔的解脱。",
                     coverUrl = "covers/netease_leeWUbb51Ss-Kn2O6ii5cw___109951169778596650.jpg",
@@ -1722,7 +1758,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2024",
                     tags = listOf("2024年", "自由节拍", "漫步曲", "灵动", "夜鹿"),
-                    rating = 4.8,
+                    rating = 7.3,
                     shortComment = "在不被定义的拍子中自在漫步，把生活中的每一次停顿写成一首浪漫的散步曲。",
                     review = "轻快跳跃的爵士摇摆律动，如同雨后初霁在湿润的柏油路面上随意踏水前行，自由而充满生命力。",
                     coverUrl = "covers/netease_BNSgic6KUWr-eJrWFY4u0Q___109951169634605453.jpg",
@@ -1735,7 +1771,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "我心里危险的东西OP", "青春心动", "斜阳", "夜鹿"),
-                    rating = 5.0,
+                    rating = 7.8,
                     shortComment = "放学后被斜阳染红的走廊里，那心照不宣的对视，是整个青春最滚烫的秘密。",
                     review = "TV动画《我心里危险的东西》第1季 OP 主题曲。轻盈奔放的吉他分解和弦与青涩悸动的歌词，描摹出初恋最纯粹的心动轨迹。",
                     coverUrl = "covers/netease_RmLnCQHie5SdBPURTl8Z4Q___109951168599595799.jpg",
@@ -1748,7 +1784,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "黄昏牵手", "献给阿尔吉侬的花束", "慢热神曲", "夜鹿"),
-                    rating = 5.0,
+                    rating = 7.7,
                     shortComment = "慢慢地、慢慢地成长，即便智慧终会退去，也请在我的墓前放上一束鲜花。",
                     review = "TBS电视剧《夕暮れに、手をつなぐ》主题曲。灵感源自丹尼尔·凯斯世界名著《献给阿尔吉侬的花束》，温柔而深邃的生命叹息。",
                     coverUrl = "covers/netease_pAMfNtqQBVDTaz1ttrna2w___109951173486374782.jpg",
@@ -1761,7 +1797,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "大名倒产主题曲", "月光", "静心", "夜鹿"),
-                    rating = 4.9,
+                    rating = 7.5,
                     shortComment = "在银白色的月光下洗尽尘世疲惫，时间在夜风里静止，灵魂重归静谧。",
                     review = "电影《大名倒产》主题曲。如同在深夜独自漫步在清凉月色下，琴音与声线如清泉流淌，抚平一切喧嚣与焦虑。",
                     coverUrl = "covers/netease_DmFjhQCbwkPl7Lmqxc7-UA___109951168980090020.jpg",
@@ -1776,7 +1812,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2024",
                     tags = listOf("2024年", "我的鬼女孩主题曲", "ACAね", "神级放克", "真夜中"),
-                    rating = 5.0,
+                    rating = 7.9,
                     shortComment = "即便把软弱和真心伪装起来，那份为你而战的执念，绝对不是谎言！",
                     review = "动画电影《我的鬼女孩 (My Oni Girl)》主题曲。ACAね 标志性的高速吉他切音与炸裂的 Slap Bass，在疾走感中诉说着少年少女笨拙却炽热的真心。",
                     coverUrl = "covers/netease_eevP8WLVve9lX0Vq-4TowQ___109951169618099511.jpg",
@@ -1789,7 +1825,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "沈香学", "神专主打", "童谣解构", "真夜中"),
-                    rating = 5.0,
+                    rating = 7.8,
                     shortComment = "想要那个孩子，不给那个孩子。在世俗的算计与博弈中，夺回属于自己的心跳。",
                     review = "3rd 专辑《沈香学》核心主打神作。将日本古老童谣《花一匁》解构重组为充满朋克反叛精神与精巧律动的殿堂级放克曲。",
                     coverUrl = "covers/netease_bmjKC1odG-1spq20rjjebg___109951168657437538.jpg",
@@ -1802,7 +1838,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "ABEMA恋爱番", "侵入心扉", "律动放克", "真夜中"),
-                    rating = 4.8,
+                    rating = 7.2,
                     shortComment = "未经允许便悄然闯入我心中的你，留下了无法抹去的痕迹。",
                     review = "ABEMA 节目主题曲。标志性的键盘敲击与灵动声线，勾勒出恋爱中防不胜防的心动瞬间。",
                     coverUrl = "covers/netease_vNYG1ojHtvxqQTmS7pq1Jw___109951168616751712.jpg",
@@ -1815,7 +1851,7 @@ if (oldVersion < 13) {
                     status = "finished",
                     year = "2023",
                     tags = listOf("2023年", "电锯人ED2", "残机", "血脉贲张", "真夜中"),
-                    rating = 5.0,
+                    rating = 8.0,
                     shortComment = "即便剩余的生命只剩一条，也要握紧电锯，在血肉横飞的绝望里杀穿终局！",
                     review = "TV动画《电锯人》ED2。爆裂的切分音与 ACAね 的狂气嘶吼，堪称日系摇滚新浪潮的核弹级现场演绎。",
                     coverUrl = "covers/netease_q7QS9ze9wXNXpUy2BscBPg___109951167979033519.jpg",
@@ -1841,16 +1877,25 @@ if (oldVersion < 13) {
                     } else false
                 }
 
+                val effectiveRating = if (item.rating != null && item.rating in 7.0..10.0) {
+                    item.rating
+                } else {
+                    ((70 + (kotlin.math.abs(item.title.hashCode()) % 11)) / 10.0)
+                }
+
                 if (exists) {
                     val cv = ContentValues().apply {
                         put(COLUMN_MEDIA_TYPE, "music")
                         if (item.shortComment != null) put(COLUMN_SHORT_COMMENT, item.shortComment)
                         if (item.review != null) put(COLUMN_REVIEW, item.review)
-                        if (item.rating != null) put(COLUMN_RATING, item.rating)
                         if (item.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, item.coverUrl)
                         put(COLUMN_TAGS, JSONArray(item.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    db.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+                        arrayOf(effectiveRating.toString(), bookId.toString()),
+                    )
                 } else {
                     val cv = ContentValues().apply {
                         put(COLUMN_TITLE, item.title)
@@ -1860,7 +1905,7 @@ if (oldVersion < 13) {
                         put(COLUMN_MEDIA_TYPE, "music")
                         put(COLUMN_SHORT_COMMENT, item.shortComment)
                         put(COLUMN_REVIEW, item.review)
-                        put(COLUMN_RATING, item.rating ?: 8.0)
+                        put(COLUMN_RATING, effectiveRating)
                         put(COLUMN_TAGS, JSONArray(item.tags).toString())
                         put(COLUMN_COVER_URL, item.coverUrl)
                         put(COLUMN_START_DATE, "${item.year}-01-01")
@@ -4065,7 +4110,7 @@ if (oldVersion < 13) {
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 14
+        const val DATABASE_VERSION = 15
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

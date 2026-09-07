@@ -284,8 +284,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
-    private fun loadPlaylist() {
-        val initialBookId = intent.getLongExtra(EXTRA_BOOK_ID, -1L)
+    private fun loadPlaylist(targetBookId: Long? = null, autoPlay: Boolean = false) {
+        val initialBookId = targetBookId ?: intent.getLongExtra(EXTRA_BOOK_ID, -1L)
         val allBooks = databaseHelper.getBooks()
         playlist = allBooks.filter { it.mediaType == MediaType.MUSIC }
         if (playlist.isEmpty()) {
@@ -298,10 +298,14 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 currentIndex = foundIdx
             }
             renderCurrentTrack()
-            // 外部显式指定作品跳转进唱机（如详情页「💽 3D 拟真黑胶唱机」），自动开机放唱
-            switchWork(autoPlay = true)
+            // 外部显式指定作品跳转进唱机（如详情页「💽 3D 拟真黑胶唱机」）或导入新曲，自动开机放唱
+            switchWork(autoPlay = autoPlay || intent.hasExtra(EXTRA_BOOK_ID))
+            intent.removeExtra(EXTRA_BOOK_ID)
         } else {
             renderCurrentTrack()
+            if (autoPlay) {
+                switchWork(autoPlay = true)
+            }
         }
     }
 
@@ -603,13 +607,16 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
      * 若切歌前处于播放状态，则自动开始检索播放新作品。
      */
     private fun switchWork(autoPlay: Boolean) {
+        workOpSeq++
+        cloudOpSeq++
+        isFetchingPreview = false
         releaseMediaPlayer()
         currentAudioTracks = emptyList()
         currentAudioIndex = 0
         totalSecondsMs = 0L
         isPlaying = autoPlay
         setPlayingUi(false)
-        tvPlayPauseLabel.text = "▶ 开始放唱"
+        tvPlayPauseLabel.text = if (autoPlay) "⏳ 取曲中..." else "▶ 开始放唱"
         tvCurrentTime.text = formatMs(0)
         tvTotalTime.text = formatMs(0)
         playerSeekBar.progress = 0
@@ -793,6 +800,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 if (t.name.isNotBlank() &&
                     databaseHelper.findBookBySource("netease", t.id.toString()) == null
                 ) {
+                    val discreteRating = ((70 + (kotlin.math.abs(t.name.hashCode()) % 11)) / 10.0)
                     fresh += com.example.readtrace.model.Book(
                         title = t.name,
                         author = t.artists.ifBlank { null },
@@ -800,15 +808,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                         category = "网易云歌单 · ${playlist.name}",
                         status = com.example.readtrace.model.BookStatus.FINISHED,
                         mediaType = com.example.readtrace.model.MediaType.MUSIC,
+                        rating = discreteRating,
                         sourceType = "netease",
                         sourceId = t.id.toString(),
                     )
                 }
             }
             val inserted = if (fresh.isEmpty()) 0 else databaseHelper.insertBooksBatch(fresh)
+            val targetBook = picked.firstOrNull()?.let { firstPicked ->
+                databaseHelper.findBookBySource("netease", firstPicked.id.toString())
+            }
             runOnUiThread {
                 if (isDestroyed) return@runOnUiThread
-                loadPlaylist()
+                cloudTracks = emptyList()
+                cloudIndex = -1
+                cloudRetryUsed = false
+                preparingCloudTrack = null
+                loadPlaylist(targetBookId = targetBook?.id, autoPlay = true)
                 val skipped = picked.size - fresh.size
                 Toast.makeText(
                     this,
