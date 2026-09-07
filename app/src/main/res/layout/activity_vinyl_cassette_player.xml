@@ -138,16 +138,19 @@
 
                 <!-- 顶部轻微提示微胶囊 -->
                 <TextView
+                    android:id="@+id/btnReturnVinylPill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/bg_player_chip"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="3dp"
-                    android:text="📜 轻触任意处返回唱机"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:text="📜 点词即播 · 点击此处返回唱机"
                     android:textColor="@color/player_text_muted"
-                    android:textSize="10.5sp" />
+                    android:textSize="11sp" />
             </FrameLayout>
 
             <!-- 复古磁带卡座视图 -->

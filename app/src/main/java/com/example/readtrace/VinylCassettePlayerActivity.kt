@@ -133,6 +133,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     /** 本地作品取曲代际：切换作品/暂停/停机自增，防止旧作品回调覆盖新作品（P38-G6） */
     private var workOpSeq = 0
 
+    /** 全局播放实例严格代际号：每次起播/释放递增，彻底杜绝异步旧实例双轨叠播与 AudioFlinger 通道泄露 */
+    private var playbackSeq = 0L
+
+    /** 本地在线缓存直链重试计数器，限制单曲最多自动重试 1 次，避免死循环重连 */
+    private var localRetryCount = 0
+
+    /** 歌词点击时若尚未起播，记录待跳转的目标毫秒数，待 prepare 完成后自动 seek */
+    private var pendingLyricSeekMs: Long = -1L
+
     // ===== 播放准备态与失败恢复 =====
     /** prepareAsync 进行中；releaseMediaPlayer 与超时兜底据此判断是否存在非法状态调用 */
     private var isPreparing = false
@@ -152,9 +161,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             handleCloudPlaybackFailure(cloudTrack, "⏳ 音源准备超时，正在重新取链…", cloudOpSeq)
             return@Runnable
         }
-        // 本地曲路径也可能是过期的在线缓存直链（含「完整播放」）：自动删链重取，避免死循环缓冲
+        // 本地曲路径也可能是过期的在线缓存直链（含「完整播放」）：自动删链重取，限制重试次数避免死循环缓冲
         val staleTrack = currentAudioTracks.getOrNull(currentAudioIndex)
-        if (staleTrack != null && isOnlineCachedTrack(staleTrack)) {
+        if (staleTrack != null && isOnlineCachedTrack(staleTrack) && localRetryCount < 1) {
+            localRetryCount++
             databaseHelper.deleteAudioTrack(staleTrack.id)
             releaseMediaPlayer()
             val work = playlist.getOrNull(currentIndex)
@@ -164,6 +174,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 return@Runnable
             }
         }
+        localRetryCount = 0
         releaseMediaPlayer()
         isPlaying = false
         setPlayingUi(false)
@@ -323,6 +334,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             renderCurrentTrack()
             if (autoPlay) {
                 switchWork(autoPlay = true)
+            } else {
+                fetchAndSyncLyrics()
             }
         }
     }
@@ -452,6 +465,10 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             hideLyricsView()
         }
         tvLyricsState.setOnClickListener {
+            triggerHapticClick()
+            hideLyricsView()
+        }
+        findViewById<View>(R.id.btnReturnVinylPill)?.setOnClickListener {
             triggerHapticClick()
             hideLyricsView()
         }
@@ -595,17 +612,23 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun togglePlayState() {
-        if (mediaPlayer != null && currentAudioTracks.isNotEmpty()) {
-            val mp = mediaPlayer!!
-            isPlaying = if (mp.isPlaying) {
-                mp.pause()
+        if (isPreparing) {
+            Toast.makeText(this, "⏳ 音源缓冲中，请稍候…", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val mp = mediaPlayer
+        if (mp != null) {
+            val currentlyPlaying = runCatching { mp.isPlaying }.getOrDefault(false)
+            isPlaying = if (currentlyPlaying) {
+                runCatching { mp.pause() }
                 pausePreviewTimer()
                 // 手动暂停同样作废在途回调（P38-G10）
                 cloudOpSeq++
                 workOpSeq++
+                playbackSeq++
                 false
             } else {
-                mp.start()
+                runCatching { mp.start() }
                 requestAudioFocus()
                 handler.post(playRunnable)
                 resumePreviewTimerIfAny()
@@ -642,6 +665,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     private fun switchWork(autoPlay: Boolean) {
         workOpSeq++
         cloudOpSeq++
+        playbackSeq++
+        localRetryCount = 0
         isFetchingPreview = false
         releaseMediaPlayer()
         currentAudioTracks = emptyList()
@@ -660,8 +685,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
 
     /** 自动联网检索对应歌曲的可播放试听源（网易云，会员歌自动转酷狗兜底；绑定会员 Cookie 后 VIP 曲可完整播放） */
     private fun fetchNeteasePreview(work: Book) {
-        val seq = ++workOpSeq
         if (isFetchingPreview) return
+        val seq = ++workOpSeq
         isFetchingPreview = true
         tvPlayPauseLabel.text = "⏳ 取曲中..."
         // 网易云歌单导入的作品自带曲目 ID：优先按 ID 直取链，跳过搜索与相关性过滤，
@@ -725,6 +750,12 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (playlist.getOrNull(currentIndex)?.id != work.id) {
             isFetchingPreview = false
             return
+        }
+        // 清理当前作品之前失效的在线试听/缓存直链，保持曲库纯净不堆叠
+        databaseHelper.getAudioTracks(work.id).forEach { old ->
+            if (isOnlineCachedTrack(old)) {
+                databaseHelper.deleteAudioTrack(old.id)
+            }
         }
         val order = databaseHelper.getAudioTracks(work.id).size
         val suffix = when {
@@ -986,6 +1017,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         // 入口先释放上一实例：快速切歌时旧 player 若仍在 prepare/播放会成为孤儿音轨双声叠播（P38-G5）
         releaseMediaPlayer()
         if (seq != cloudOpSeq) return
+        val playSeq = ++playbackSeq
         if (!requestAudioFocus()) {
             Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
         }
@@ -1004,7 +1036,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             player.setDataSource(this@VinylCassettePlayerActivity, Uri.parse(url), headers)
         }.isSuccess
         if (!dataSourceOk) {
-            runCatching { player.release() }
+            Thread { runCatching { player.release() } }.start()
             handleCloudPlaybackFailure(track, "播放源无法访问，已尝试重新取链", seq)
             return
         }
@@ -1013,9 +1045,13 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         handler.removeCallbacks(prepareTimeoutRunnable)
         handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
         player.setOnPreparedListener { mp ->
-            if (seq != cloudOpSeq || mediaPlayer !== player) {
-                // 过期实例：静默释放，不触碰当前会话状态（P38-G5 崩溃窗口修复）
-                runCatching { mp.release() }
+            if (seq != cloudOpSeq || playSeq != playbackSeq || mediaPlayer !== player) {
+                // 过期实例：在子线程静默安全释放，不触碰当前会话状态（P38-G5 崩溃窗口修复）
+                Thread {
+                    runCatching { mp.stop() }
+                    runCatching { mp.reset() }
+                    runCatching { mp.release() }
+                }.start()
                 return@setOnPreparedListener
             }
             isPreparing = false
@@ -1025,11 +1061,17 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             updatePlaybackProgress()
             // isPlaying 在 prepared 确认后才置真：prepare 失败时不再残留「假播放」状态误导 UI
             isPlaying = true
+            if (pendingLyricSeekMs >= 0L) {
+                val seekTarget = pendingLyricSeekMs.coerceIn(0L, totalSecondsMs.coerceAtLeast(1L)).toInt()
+                pendingLyricSeekMs = -1L
+                mp.seekTo(seekTarget)
+            }
             mp.start()
             setPlayingUi(true)
             handler.post(playRunnable)
         }
         player.setOnCompletionListener {
+            if (seq != cloudOpSeq || playSeq != playbackSeq || mediaPlayer !== player) return@setOnCompletionListener
             // 云歌单内自动连播下一首
             if (cloudTracks.isNotEmpty()) {
                 cloudIndex = (cloudIndex + 1) % cloudTracks.size
@@ -1049,7 +1091,8 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
             if (isPreparing) tvPlayPauseLabel.text = "⏳ 缓冲中 $percent%"
         }
         player.setOnErrorListener { _, what, extra ->
-            if (seq != cloudOpSeq || mediaPlayer !== player) return@setOnErrorListener true
+            if (seq != cloudOpSeq || playSeq != playbackSeq || mediaPlayer !== player) return@setOnErrorListener true
+            releaseMediaPlayer()
             handleCloudPlaybackFailure(track, "播放出错 (code $what/$extra)，正在尝试恢复…", seq)
             true
         }
@@ -1144,84 +1187,117 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         val track = currentAudioTracks.getOrNull(index) ?: return
         currentAudioIndex = index
         releaseMediaPlayer()
+        val playSeq = ++playbackSeq
 
         if (!requestAudioFocus()) {
             Toast.makeText(this, "未能获取音频焦点，可能有其他应用正在播放", Toast.LENGTH_SHORT).show()
         }
 
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build(),
-            )
-            // 起播音量强制复位：防止焦点闪避(duck)等遗留的低音量状态带进新会话
-            setVolume(1f, 1f)
-            // 在线缓存直链（网易云 CDN）重放必须带 Referer/UA（及可选 MUSIC_U）请求头，
-            // 与 playCloudUrl 同口径，否则 CDN 校验拒绝 → onError → 删链重取，
-            // 缓存命中路径形同虚设；本地文件 URI 不需要请求头
+        val player = MediaPlayer()
+        player.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build(),
+        )
+        // 起播音量强制复位：防止焦点闪避(duck)等遗留的低音量状态带进新会话
+        player.setVolume(1f, 1f)
+        val dataSourceOk = runCatching {
             if (track.fileUri.startsWith("http")) {
-                setDataSource(
+                player.setDataSource(
                     this@VinylCassettePlayerActivity,
                     Uri.parse(track.fileUri),
                     com.example.readtrace.util.NeteasePreviewHelper.buildPlaybackHeaders(this@VinylCassettePlayerActivity),
                 )
             } else {
-                setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
+                player.setDataSource(this@VinylCassettePlayerActivity, Uri.parse(track.fileUri))
             }
-            setOnPreparedListener { mp ->
-                isPreparing = false
-                handler.removeCallbacks(prepareTimeoutRunnable)
-                totalSecondsMs = mp.duration.toLong()
-                if (track.durationMs <= 0) {
-                    databaseHelper.updateAudioTrackDuration(track.id, totalSecondsMs)
-                }
-                updatePlaybackProgress()
-                if (this@VinylCassettePlayerActivity.isPlaying) {
-                    mp.start()
-                    setPlayingUi(true)
-                    handler.post(playRunnable)
-                    if (isNeteasePreviewTrack(track)) {
-                        previewElapsedMs = 0L
-                        startPreviewTimer()
-                    }
-                } else {
-                    setPlayingUi(false)
-                }
+        }.isSuccess
+
+        if (!dataSourceOk) {
+            Thread { runCatching { player.release() } }.start()
+            if (playSeq == playbackSeq) {
+                handleLocalPlaybackFailure(track, "音源无法访问，正在尝试重新获取…")
             }
-            setOnCompletionListener {
-                playNextAuto()
-            }
-            setOnErrorListener { _, what, extra ->
-                isPreparing = false
-                handler.removeCallbacks(prepareTimeoutRunnable)
-                Toast.makeText(this@VinylCassettePlayerActivity, "音源准备中 (code $what/$extra)，正在自动获取最新直链…", Toast.LENGTH_SHORT).show()
-                this@VinylCassettePlayerActivity.isPlaying = false
-                setPlayingUi(false)
-                // 在线缓存直链（试听/完整播放）会过期失效：自动移除旧链接并重新联网取链，避免反复报错
-                if (isOnlineCachedTrack(track)) {
-                    databaseHelper.deleteAudioTrack(track.id)
-                    val work = playlist.getOrNull(currentIndex)
-                    if (work != null) {
-                        this@VinylCassettePlayerActivity.isPlaying = true
-                        fetchNeteasePreview(work)
-                    }
-                }
-                true
-            }
-            isPreparing = true
-            handler.removeCallbacks(prepareTimeoutRunnable)
-            handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
-            prepareAsync()
-            tvPlayPauseLabel.text = "⏳ 缓冲中..."
+            return
         }
+
+        player.setOnPreparedListener { mp ->
+            if (playSeq != playbackSeq || mediaPlayer !== player) {
+                // 过期或非当前实例：异步彻底停杀释放，绝不产生双声叠播与通道泄露
+                Thread {
+                    runCatching { mp.stop() }
+                    runCatching { mp.reset() }
+                    runCatching { mp.release() }
+                }.start()
+                return@setOnPreparedListener
+            }
+            isPreparing = false
+            handler.removeCallbacks(prepareTimeoutRunnable)
+            totalSecondsMs = mp.duration.toLong()
+            if (track.durationMs <= 0) {
+                databaseHelper.updateAudioTrackDuration(track.id, totalSecondsMs)
+            }
+            updatePlaybackProgress()
+            if (this@VinylCassettePlayerActivity.isPlaying) {
+                if (pendingLyricSeekMs >= 0L) {
+                    val seekTarget = pendingLyricSeekMs.coerceIn(0L, totalSecondsMs.coerceAtLeast(1L)).toInt()
+                    pendingLyricSeekMs = -1L
+                    mp.seekTo(seekTarget)
+                }
+                mp.start()
+                setPlayingUi(true)
+                handler.post(playRunnable)
+                if (isNeteasePreviewTrack(track)) {
+                    previewElapsedMs = 0L
+                    startPreviewTimer()
+                }
+            } else {
+                setPlayingUi(false)
+            }
+        }
+        player.setOnCompletionListener {
+            if (playSeq != playbackSeq || mediaPlayer !== player) return@setOnCompletionListener
+            playNextAuto()
+        }
+        player.setOnErrorListener { _, what, extra ->
+            if (playSeq != playbackSeq || mediaPlayer !== player) return@setOnErrorListener true
+            releaseMediaPlayer()
+            handleLocalPlaybackFailure(track, "音源准备异常 (code $what/$extra)，正在自动重试…")
+            true
+        }
+
+        mediaPlayer = player
+        isPreparing = true
+        handler.removeCallbacks(prepareTimeoutRunnable)
+        handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
+        player.prepareAsync()
+        tvPlayPauseLabel.text = "⏳ 缓冲中..."
 
         isPlaying = true
         // 取曲/缓冲中也视为「播放会话中」，其他页面的悬浮胶囊即时可见可跳回
         isEnginePlaying = true
         // 曲目信息联动
         tvTrackArtistInfo.text = "—— 正在播放 ${index + 1}/${currentAudioTracks.size} · ${track.title}"
+    }
+
+    private fun handleLocalPlaybackFailure(track: com.example.readtrace.model.AudioTrackItem, toastMsg: String) {
+        releaseMediaPlayer()
+        isPlaying = false
+        setPlayingUi(false)
+        Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
+        if (isOnlineCachedTrack(track) && localRetryCount < 1) {
+            localRetryCount++
+            databaseHelper.deleteAudioTrack(track.id)
+            val work = playlist.getOrNull(currentIndex)
+            if (work != null) {
+                this.isPlaying = true
+                fetchNeteasePreview(work)
+            }
+        } else {
+            localRetryCount = 0
+            tvPlayPauseLabel.text = "▶ 开始放唱"
+        }
     }
 
     /** 单部作品曲目播完：自动切下一部音乐作品并续播 */
@@ -1349,19 +1425,26 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun releaseMediaPlayer() {
-        mediaPlayer?.run {
-            // 先解绑回调：旧实例的 onError/onPrepared 若异步打到新会话上，会出现「新曲缓冲却弹播放出错」
-            runCatching { setOnErrorListener(null) }
-            runCatching { setOnPreparedListener(null) }
-            runCatching { setOnCompletionListener(null) }
-            runCatching { setOnInfoListener(null) }
-            runCatching { setOnBufferingUpdateListener(null) }
-            // stop() 仅在 Prepared/Started/Paused/Stopped/Completed 合法；实例常仍在 Preparing 态，
-            // 会触发 native -38。reset() 在任意状态合法，用它替代。
-            runCatching { reset() }
-            runCatching { release() }
-        }
+        playbackSeq++
+        val oldPlayer = mediaPlayer
         mediaPlayer = null
+        if (oldPlayer != null) {
+            // 同步立即解绑全部回调：确保旧实例后续任何原生状态通知绝对不会分发到本 Activity
+            runCatching { oldPlayer.setOnPreparedListener(null) }
+            runCatching { oldPlayer.setOnErrorListener(null) }
+            runCatching { oldPlayer.setOnCompletionListener(null) }
+            runCatching { oldPlayer.setOnInfoListener(null) }
+            runCatching { oldPlayer.setOnBufferingUpdateListener(null) }
+            runCatching { oldPlayer.setOnSeekCompleteListener(null) }
+            // 异步后台彻底释放底层 AudioTrack 与解码管线，避免主线程 IPC 阻塞与 AudioFlinger 槽位泄露
+            Thread {
+                runCatching {
+                    if (oldPlayer.isPlaying) oldPlayer.stop()
+                }
+                runCatching { oldPlayer.reset() }
+                runCatching { oldPlayer.release() }
+            }.start()
+        }
         isPreparing = false
         preparingCloudTrack = null
         // 清零时长：避免切歌间隙进度条沿用上一曲的总时长
@@ -1433,10 +1516,16 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         isLyricsViewShowing = true
         vinylTurntableView.visibility = View.GONE
         lyricsContainer.visibility = View.VISIBLE
-        if (currentLyrics.isNotEmpty() && currentLyricHighlightIndex in currentLyrics.indices) {
-            val lm = rvLyrics.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
-            val offset = (rvLyrics.height / 2).coerceAtLeast(100) - 40
-            lm?.scrollToPositionWithOffset(currentLyricHighlightIndex, offset)
+        if (currentLyrics.isEmpty()) {
+            fetchAndSyncLyrics()
+        } else {
+            tvLyricsState.visibility = View.GONE
+            rvLyrics.visibility = View.VISIBLE
+            if (currentLyricHighlightIndex in currentLyrics.indices) {
+                val lm = rvLyrics.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+                val offset = (rvLyrics.height / 2).coerceAtLeast(100) - 40
+                lm?.scrollToPositionWithOffset(currentLyricHighlightIndex, offset)
+            }
         }
     }
 
@@ -1453,6 +1542,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         currentLyrics = emptyList()
         currentLyricHighlightIndex = -1
         rvLyrics.adapter = null
+        rvLyrics.visibility = View.GONE
         tvLyricsState.visibility = View.VISIBLE
         tvLyricsState.text = "⏳ 正在同步云端原声歌词..."
 
@@ -1471,7 +1561,16 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (songId != null && songId > 0) {
             com.example.readtrace.util.NeteasePreviewHelper.fetchSongLyric(songId) { lrcText ->
                 if (lyricsOpSeq == op && !isDestroyed) {
-                    handleLoadedLyric(lrcText, track.title, op)
+                    if (!lrcText.isNullOrBlank()) {
+                        handleLoadedLyric(lrcText, track.title, op)
+                    } else {
+                        val cleanTitle = track.title.replace(Regex("[（(].*?[)）]"), "").trim()
+                        com.example.readtrace.util.NeteasePreviewHelper.fetchSongLyricBySearch(cleanTitle, track.author) { searchLrc ->
+                            if (lyricsOpSeq == op && !isDestroyed) {
+                                handleLoadedLyric(searchLrc, track.title, op)
+                            }
+                        }
+                    }
                 }
             }
         } else {
@@ -1490,13 +1589,15 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (parsed.isNotEmpty()) {
             currentLyrics = parsed
             tvLyricsState.visibility = View.GONE
-            rvLyrics.adapter = VinylLyricsAdapter(parsed, -1) {
-                hideLyricsView()
+            rvLyrics.visibility = View.VISIBLE
+            rvLyrics.adapter = VinylLyricsAdapter(parsed, -1) { entry, position ->
+                seekToLyric(entry, position)
             }
             syncLyricsHighlight((mediaPlayer?.currentPosition ?: 0).toLong())
         } else {
             currentLyrics = emptyList()
             tvLyricsState.visibility = View.VISIBLE
+            rvLyrics.visibility = View.GONE
             val quote = playlist.getOrNull(currentIndex)?.shortComment
             tvLyricsState.text = if (!quote.isNullOrBlank()) {
                 "“$quote”\n\n(纯音乐或暂无同步滚动歌词)\n轻触任意处返回唱机"
@@ -1504,6 +1605,64 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 "《$trackTitle》\n\n(纯音乐或暂无同步滚动歌词)\n轻触任意处返回唱机"
             }
         }
+    }
+
+    /** 🎯 歌词单句点击定位播放 (Seek on Tap) */
+    private fun seekToLyric(entry: com.example.readtrace.util.LyricEntry, index: Int) {
+        triggerHapticClick()
+        if (isPreparing) {
+            Toast.makeText(this, "音源缓冲中，请稍候…", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val mp = mediaPlayer
+        if (mp != null) {
+            try {
+                val targetMs = if (totalSecondsMs > 0) {
+                    entry.timeMs.coerceIn(0L, totalSecondsMs).toInt()
+                } else {
+                    entry.timeMs.coerceAtLeast(0L).toInt()
+                }
+                mp.seekTo(targetMs)
+                if (!mp.isPlaying) {
+                    mp.start()
+                    requestAudioFocus()
+                    handler.post(playRunnable)
+                    resumePreviewTimerIfAny()
+                    isPlaying = true
+                    setPlayingUi(true)
+                }
+                if (totalSecondsMs > 0) {
+                    playerSeekBar.progress = ((targetMs.toFloat() / totalSecondsMs) * 100).toInt().coerceIn(0, 100)
+                    tvCurrentTime.text = formatMs(targetMs.toLong())
+                }
+                Toast.makeText(this, "▶ 定位至 ${formatMs(entry.timeMs)}", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            // 播放器尚未起播：先触发当前曲目起播，并在起播后 seek 到目标位置
+            pendingLyricSeekMs = entry.timeMs
+            isPlaying = true
+            if (cloudTracks.isNotEmpty()) {
+                playCloudTrack()
+            } else {
+                startPlaybackOfCurrentWork(0)
+            }
+            Toast.makeText(this, "▶ 起播并定位至 ${formatMs(entry.timeMs)}", Toast.LENGTH_SHORT).show()
+        }
+
+        val oldIdx = currentLyricHighlightIndex
+        currentLyricHighlightIndex = index
+        val adapter = rvLyrics.adapter as? VinylLyricsAdapter
+        if (adapter != null) {
+            adapter.highlightIndex = index
+            if (oldIdx in currentLyrics.indices) adapter.notifyItemChanged(oldIdx)
+            adapter.notifyItemChanged(index)
+            val lm = rvLyrics.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager
+            val offset = (rvLyrics.height / 2).coerceAtLeast(100) - 40
+            lm?.scrollToPositionWithOffset(index, offset)
+        }
+        tvQuoteLyrics.text = "“${entry.text}”"
     }
 
     private fun syncLyricsHighlight(currentPosMs: Long) {
@@ -1537,7 +1696,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
     inner class VinylLyricsAdapter(
         private val items: List<com.example.readtrace.util.LyricEntry>,
         var highlightIndex: Int = -1,
-        private val onItemClick: () -> Unit,
+        private val onItemClick: (com.example.readtrace.util.LyricEntry, Int) -> Unit,
     ) : RecyclerView.Adapter<VinylLyricsAdapter.ViewHolder>() {
 
         inner class ViewHolder(val tv: TextView) : RecyclerView.ViewHolder(tv)
@@ -1563,7 +1722,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
                 holder.tv.typeface = android.graphics.Typeface.DEFAULT
                 holder.tv.alpha = 0.65f
             }
-            holder.itemView.setOnClickListener { onItemClick() }
+            holder.itemView.setOnClickListener { onItemClick(item, position) }
         }
 
         override fun getItemCount(): Int = items.size

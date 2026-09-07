@@ -187,6 +187,36 @@ object SpatialAudioEngine {
         }
     }
 
+    private val activeTracks = java.util.Collections.synchronizedList(mutableListOf<AudioTrack>())
+
+    private fun registerAndCleanTracks(newTrack: AudioTrack) {
+        synchronized(activeTracks) {
+            while (activeTracks.size >= 2) {
+                val old = activeTracks.removeAt(0)
+                runCatching {
+                    if (old.state != AudioTrack.STATE_UNINITIALIZED) {
+                        old.stop()
+                        old.release()
+                    }
+                }
+            }
+            activeTracks.add(newTrack)
+        }
+    }
+
+    private fun unregisterTrack(track: AudioTrack?) {
+        if (track == null) return
+        synchronized(activeTracks) {
+            activeTracks.remove(track)
+        }
+        runCatching {
+            if (track.state != AudioTrack.STATE_UNINITIALIZED) {
+                track.stop()
+                track.release()
+            }
+        }
+    }
+
     private fun playPcmStereo(pcmBuffer: ShortArray) {
         runCatching {
             val audioTrack = AudioTrack.Builder()
@@ -207,28 +237,23 @@ object SpatialAudioEngine {
                 .setTransferMode(AudioTrack.MODE_STATIC)
                 .build()
 
+            registerAndCleanTracks(audioTrack)
             audioTrack.write(pcmBuffer, 0, pcmBuffer.size)
             audioTrack.play()
             audioTrack.setNotificationMarkerPosition(pcmBuffer.size / 2)
             audioTrack.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
                 override fun onMarkerReached(track: AudioTrack?) {
-                    track?.stop()
-                    track?.release()
+                    unregisterTrack(track)
                 }
                 override fun onPeriodicNotification(track: AudioTrack?) {}
             })
 
-            // 兜底释放：部分设备 onMarkerReached 可能不回调，按音频时长 + 500ms 延迟兜底 release，
+            // 兜底释放：部分设备 onMarkerReached 可能不回调，按音频时长 + 300ms 延迟兜底 release，
             // 防止高频交互下 AudioTrack 句柄累积耗尽系统上限（32 个）
             val durationMs = pcmBuffer.size / 2 * 1000L / SAMPLE_RATE
             mainHandler.postDelayed({
-                runCatching {
-                    if (audioTrack.state != AudioTrack.STATE_UNINITIALIZED) {
-                        audioTrack.stop()
-                        audioTrack.release()
-                    }
-                }
-            }, durationMs + 500L)
+                unregisterTrack(audioTrack)
+            }, durationMs + 300L)
         }
     }
 }
