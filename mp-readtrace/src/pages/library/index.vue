@@ -59,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { onLoad, onShow } from '@dcloudio/uni-app';
 import { computed, ref, watch } from 'vue';
 import type { Book, BookStatus, MediaType } from '../../utils/models';
 import { MEDIA_LABEL, STATUS_LABEL } from '../../utils/models';
@@ -72,14 +73,12 @@ const works = ref<Book[]>([]);
 watch(mediaFilter, (val) => uni.setStorageSync('rt_mp_media_filter', val));
 watch(statusFilter, (val) => uni.setStorageSync('rt_mp_status_filter', val));
 
-// @ts-expect-error uni-app 页面参数获取与生命周期
 onLoad((options: any) => {
   if (options?.media) mediaFilter.value = options.media;
   if (options?.status) statusFilter.value = options.status;
 });
 
 // onShow 时刷新本地缓存（Local-First，离线可用）
-// @ts-expect-error uni-app 生命周期
 onShow(() => { works.value = loadLocalWorks(); });
 
 const filtered = computed(() =>
