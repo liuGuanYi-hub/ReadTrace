@@ -237,6 +237,7 @@ class BookDetailActivity : AppCompatActivity() {
                 renderCharacters(characters)
                 renderOutlines(outlines)
                 renderMindprint(mindprint)
+                renderVibeChips(book)
                 renderLocations(locations)
                 renderTimeline(book, sessions, notes, locations, outlines)
                 renderSimilarBooks(similar)
@@ -582,6 +583,79 @@ class BookDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.detailScoreLogic).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.logicScore)
         findViewById<TextView>(R.id.detailScoreDifficulty).text = String.format(Locale.getDefault(), "%.1f / 10 (门槛)", mindprint.difficultyScore)
         findViewById<TextView>(R.id.detailScoreHealing).text = String.format(Locale.getDefault(), "%.1f / 10", mindprint.healingScore)
+    }
+
+    /** 🔮 渲染美学情绪胶囊并支持与六维雷达实时联动 (P39 Phase 3) */
+    private fun renderVibeChips(book: Book) {
+        val container = findViewById<com.example.readtrace.widget.FlowLayout>(R.id.detailVibeChipsGroup) ?: return
+        container.removeAllViews()
+
+        val chips = com.example.readtrace.util.VibeChipEngine.getVibeChips(book.mediaType)
+        val density = resources.displayMetrics.density
+        fun px(v: Int) = (v * density).toInt()
+
+        chips.forEach { vibe ->
+            val isSelected = book.tags.any {
+                com.example.readtrace.util.VibeChipEngine.normalizeTag(it).equals(
+                    com.example.readtrace.util.VibeChipEngine.normalizeTag(vibe.tag),
+                    ignoreCase = true,
+                )
+            }
+
+            val chipView = TextView(this).apply {
+                text = vibe.chipText
+                textSize = 12f
+                setPadding(px(12), px(6), px(12), px(6))
+                setBackgroundResource(
+                    if (isSelected) R.drawable.bg_chip_picker_selected
+                    else R.drawable.bg_chip_picker_idle,
+                )
+                setTextColor(
+                    if (isSelected) getColor(R.color.chip_selected_text)
+                    else getColor(R.color.chip_idle_text),
+                )
+                setTypeface(typeface, if (isSelected) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+            }
+            ViewAnimationHelper.attachSpringTouch(chipView)
+
+            chipView.setOnClickListener {
+                com.example.readtrace.util.HapticFeedbackEngine.dockBrushRatchetTick(this)
+                val targetSelected = !isSelected
+                val currentMindprint = databaseHelper.getMindprint(book.id)
+                val newMindprint = com.example.readtrace.util.VibeChipEngine.applyChipStep(
+                    current = currentMindprint,
+                    chipTag = vibe.tag,
+                    isAdd = targetSelected,
+                    mediaType = book.mediaType,
+                )
+                databaseHelper.saveMindprint(newMindprint)
+
+                val updatedTags = book.tags.toMutableList()
+                val norm = com.example.readtrace.util.VibeChipEngine.normalizeTag(vibe.tag)
+                if (targetSelected) {
+                    if (!updatedTags.any { com.example.readtrace.util.VibeChipEngine.normalizeTag(it).equals(norm, ignoreCase = true) }) {
+                        updatedTags.add(vibe.displayTag)
+                    }
+                } else {
+                    updatedTags.removeAll { com.example.readtrace.util.VibeChipEngine.normalizeTag(it).equals(norm, ignoreCase = true) }
+                }
+
+                val updatedBook = book.copy(tags = updatedTags)
+                databaseHelper.updateBook(updatedBook)
+                currentBook = updatedBook
+
+                renderMindprint(newMindprint)
+                renderVibeChips(updatedBook)
+                findViewById<TextView>(R.id.detailTags)?.text =
+                    if (updatedBook.tags.isEmpty()) getString(R.string.not_recorded)
+                    else updatedBook.tags.joinToString(" · ")
+
+                val actionTip = if (targetSelected) "注入" else "卸载"
+                Toast.makeText(this, "✨ 已${actionTip}「${vibe.displayTag}」心智权重", Toast.LENGTH_SHORT).show()
+            }
+
+            container.addView(chipView)
+        }
     }
 
     private fun showEditMindprintDialog() {

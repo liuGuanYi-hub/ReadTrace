@@ -50,11 +50,15 @@ object QuickLogBottomSheet {
     private var currentMedia = MediaType.BOOK
     private var pickedSubject: BangumiSubject? = null
     private val pickedTags = mutableSetOf<String>()
+    private val pickedVibeChips = mutableSetOf<String>()
 
     private fun MediaType.defaultQuickStatus(): com.example.readtrace.model.BookStatus =
         com.example.readtrace.model.BookStatus.WISHLIST
 
     fun show(activity: Activity, prefillTitle: String? = null) {
+        pickedSubject = null
+        pickedTags.clear()
+        pickedVibeChips.clear()
         val dialog = Dialog(activity)
         val view = LayoutInflater.from(activity).inflate(R.layout.layout_dialog_quick_log, null)
         dialog.setContentView(view)
@@ -91,6 +95,8 @@ object QuickLogBottomSheet {
                     currentMedia = media
                     refreshMediaChips(mediaChips)
                     pickedSubject = null
+                    pickedTags.clear()
+                    pickedVibeChips.clear()
                     confirmSection.visibility = View.GONE
                     searchInput.setText("")
                     resultList.removeAllViews()
@@ -134,14 +140,15 @@ object QuickLogBottomSheet {
                     val subject = pickedSubject ?: return@setOnClickListener
                     HapticFeedbackEngine.stampImpact(activity)
                     val selectedTags = tagGroup.checkedChipIds
-                        .mapNotNull { tagGroup.findViewById<Chip>(it).text.toString() }
+                        .mapNotNull { tagGroup.findViewById<Chip>(it)?.text?.toString() }
                         .ifEmpty { pickedTags.toList() }
+                    val finalTags = (selectedTags + pickedVibeChips).distinct()
                     insertQuickWork(
                         activity,
                         databaseHelper,
                         subject,
                         status,
-                        selectedTags,
+                        finalTags,
                         ratingSwipeBar.rating.takeIf { it > 0.0 },
                     )
                     dialog.dismiss()
@@ -350,6 +357,30 @@ object QuickLogBottomSheet {
             }
             tagGroup.addView(chip)
         }
+
+        // 🔮 预设美学情绪胶囊横滑流 (P39 Phase 3)
+        pickedVibeChips.clear()
+        val vibeGroup = confirmSection.findViewById<ChipGroup>(R.id.quickLogVibeGroup)
+        vibeGroup?.removeAllViews()
+        val vibes = com.example.readtrace.util.VibeChipEngine.getVibeChips(currentMedia)
+        vibes.forEach { vibe ->
+            val chip = Chip(context).apply {
+                text = vibe.chipText
+                isCheckable = true
+                isChecked = false
+                setChipBackgroundColorResource(R.color.chip_quick_log_bg)
+                setTextColor(Color.WHITE)
+                chipStrokeWidth = 1f
+                setChipStrokeColorResource(R.color.chip_quick_log_stroke)
+                chipCornerRadius = 20f * context.resources.displayMetrics.density
+                textSize = 11.5f
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) pickedVibeChips.add(vibe.displayTag) else pickedVibeChips.remove(vibe.displayTag)
+                    com.example.readtrace.util.HapticFeedbackEngine.dockBrushRatchetTick(context)
+                }
+            }
+            vibeGroup?.addView(chip)
+        }
     }
 
     /** 一键落库：状态 + 标签 + 评分 → insertBook */
@@ -401,6 +432,16 @@ object QuickLogBottomSheet {
         )
         val newId = databaseHelper.insertBook(book)
         if (newId > 0) {
+            val vibeTags = tags.filter { com.example.readtrace.util.VibeChipEngine.isVibeChip(it) }
+            if (vibeTags.isNotEmpty()) {
+                val initialMindprint = com.example.readtrace.util.VibeChipEngine.createInitialMindprint(
+                    bookId = newId,
+                    activeChips = vibeTags,
+                    mediaType = currentMedia,
+                    baseRating = rating,
+                )
+                databaseHelper.saveMindprint(initialMindprint)
+            }
             Toast.makeText(
                 context,
                 "⚡ 已入库《${subject.displayTitle}》· ${status.getDisplayName(currentMedia)}",

@@ -108,6 +108,32 @@
             app:chipSpacingHorizontal="8dp"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
 
+        <!-- 🔮 美学情绪胶囊横滑流 (P39 Phase 3) -->
+        <TextView
+            android:id="@+id/quickLogVibeLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="🔮 美学情绪胶囊 · 点击注入初始心智"
+            android:textColor="#CCFFFFFF"
+            android:textSize="11.5sp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/quickLogVibeGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="6dp"
+                app:singleLine="true"
+                xmlns:app="http://schemas.android.com/apk/res-auto" />
+        </HorizontalScrollView>
+
         <!-- 触觉滑动手势打分组件 -->
         <com.example.readtrace.widget.HapticSwipeRatingBar
             android:id="@+id/quickLogRatingSwipeBar"

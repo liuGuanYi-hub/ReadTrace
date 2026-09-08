@@ -1293,6 +1293,30 @@
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
+
+                <!-- 🔮 美学情绪胶囊互动区 (P39 Phase 3) -->
+                <LinearLayout
+                    android:id="@+id/detailVibeSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/ReadTraceDetailLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔮 美学情绪胶囊 · 点击动态注入雷达"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold" />
+
+                    <com.example.readtrace.widget.FlowLayout
+                        android:id="@+id/detailVibeChipsGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- 🗺️ 空间叙事足迹卡片 -->
