@@ -256,7 +256,7 @@
                         android:textSize="11.5sp" />
                 </LinearLayout>
 
-                <!-- 评分区间筛选条：全部评分 / 7.0~7.5 / 7.5~8.0 / 8.0以上 -->
+                <!-- 评分区间筛选条：全部 / 7.0~7.5 / 7.5~8.0 / 8.0~9.0 / 9.0以上 -->
                 <LinearLayout
                     android:id="@+id/ratingFilterBar"
                     android:layout_width="match_parent"
@@ -277,7 +277,7 @@
                         android:fontFamily="sans"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="全部评分"
+                        android:text="全部"
                         android:textColor="@color/white"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -311,7 +311,7 @@
                         android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/ratingChip80Plus"
+                        android:id="@+id/ratingChip8090"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -320,7 +320,21 @@
                         android:fontFamily="sans"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text="8.0以上"
+                        android:text="8.0~9.0"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/ratingChip90Plus"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans"
+                        android:gravity="center"
+                        android:singleLine="true"
+                        android:text="9.0以上"
                         android:textColor="@color/readtrace_muted"
                         android:textSize="11sp" />
                 </LinearLayout>

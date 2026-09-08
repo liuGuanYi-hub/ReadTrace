@@ -67,19 +67,22 @@ class LibraryFragment : Fragment() {
     private lateinit var ratingChipAll: TextView
     private lateinit var ratingChip7075: TextView
     private lateinit var ratingChip7580: TextView
-    private lateinit var ratingChip80Plus: TextView
+    private lateinit var ratingChip8090: TextView
+    private lateinit var ratingChip90Plus: TextView
 
     enum class RatingRange(val label: String) {
         RANGE_70_75("7.0~7.5"),
         RANGE_75_80("7.5~8.0"),
-        RANGE_80_PLUS("8.0以上");
+        RANGE_80_90("8.0~9.0"),
+        RANGE_90_PLUS("9.0以上");
 
         fun matches(rating: Double?): Boolean {
             if (rating == null) return false
             return when (this) {
                 RANGE_70_75 -> rating in 7.0..7.5
                 RANGE_75_80 -> rating in 7.5..8.0
-                RANGE_80_PLUS -> rating >= 8.0
+                RANGE_80_90 -> rating >= 8.0 && rating < 9.0
+                RANGE_90_PLUS -> rating >= 9.0
             }
         }
     }
@@ -156,7 +159,8 @@ class LibraryFragment : Fragment() {
         ratingChipAll = view.findViewById(R.id.ratingChipAll)
         ratingChip7075 = view.findViewById(R.id.ratingChip7075)
         ratingChip7580 = view.findViewById(R.id.ratingChip7580)
-        ratingChip80Plus = view.findViewById(R.id.ratingChip80Plus)
+        ratingChip8090 = view.findViewById(R.id.ratingChip8090)
+        ratingChip90Plus = view.findViewById(R.id.ratingChip90Plus)
 
         libraryTagScroller = view.findViewById(R.id.libraryTagScroller)
         libraryTagGroup = view.findViewById(R.id.libraryTagGroup)
@@ -217,9 +221,13 @@ class LibraryFragment : Fragment() {
             HapticFeedbackEngine.lightClick(requireContext())
             selectRatingRange(RatingRange.RANGE_75_80)
         }
-        ratingChip80Plus.setOnClickListener {
+        ratingChip8090.setOnClickListener {
             HapticFeedbackEngine.lightClick(requireContext())
-            selectRatingRange(RatingRange.RANGE_80_PLUS)
+            selectRatingRange(RatingRange.RANGE_80_90)
+        }
+        ratingChip90Plus.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            selectRatingRange(RatingRange.RANGE_90_PLUS)
         }
 
         librarySearchInput.addTextChangedListener(object : TextWatcher {
@@ -378,7 +386,8 @@ class LibraryFragment : Fragment() {
             ratingChipAll to (selectedRatingRange == null),
             ratingChip7075 to (selectedRatingRange == RatingRange.RANGE_70_75),
             ratingChip7580 to (selectedRatingRange == RatingRange.RANGE_75_80),
-            ratingChip80Plus to (selectedRatingRange == RatingRange.RANGE_80_PLUS),
+            ratingChip8090 to (selectedRatingRange == RatingRange.RANGE_80_90),
+            ratingChip90Plus to (selectedRatingRange == RatingRange.RANGE_90_PLUS),
         )
         chips.forEach { (chip, isSelected) ->
             if (isSelected) {
