@@ -4,15 +4,15 @@
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-[![Version](https://img.shields.io/badge/Release-v1.0.8-3A6348.svg)](docs/RELEASE_NOTES_v1.0.8.md)
-[![Architecture](https://img.shields.io/badge/Architecture-Interactive%20Archify-0284c7.svg)](docs/readtrace-architecture.html)
+[![Version](https://img.shields.io/badge/Release-v1.0.8-3A6348.svg)](docs/releases/RELEASE_NOTES_v1.0.8.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Interactive%20Archify-0284c7.svg)](docs/architecture/readtrace-architecture.html)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
 
-> 📢 **v1.0.8 正式版本**：📦 全量存档一次导入与账号数据主权（Sovereign Backup）、🎨 富内容 JSON 应用内本地导入（缺失作品自动建库）、🗑️ 账号数据物理清空、🌐 219 部预设作品富内容全量补全（角色谱 / 语录 / 章节大纲随 APK assets 自动生效）。详见 [v1.0.8 官方发布说明](docs/RELEASE_NOTES_v1.0.8.md) 与 [系统架构交互全景图](docs/readtrace-architecture.html)。
+> 📢 **v1.0.8 正式版本**：📦 全量存档一次导入与账号数据主权（Sovereign Backup）、🎨 富内容 JSON 应用内本地导入（缺失作品自动建库）、🗑️ 账号数据物理清空、🌐 219 部预设作品富内容全量补全（角色谱 / 语录 / 章节大纲随 APK assets 自动生效）。详见 [v1.0.8 官方发布说明](docs/releases/RELEASE_NOTES_v1.0.8.md) 与 [系统架构交互全景图](docs/architecture/readtrace-architecture.html)。
 
 ---
 
@@ -121,7 +121,7 @@
 
 ## 🛠️ 系统架构与技术拓扑 (System Architecture)
 
-> 💡 **交互式全景架构图已上线**：支持深浅色自适应主题切换、物理流光动效与 4K 超清矢量导出，点击体验 👉 **[阅痕 ReadTrace 系统架构全景交互图 (Archify)](docs/readtrace-architecture.html)**
+> 💡 **交互式全景架构图已上线**：支持深浅色自适应主题切换、物理流光动效与 4K 超清矢量导出，点击体验 👉 **[阅痕 ReadTrace 系统架构全景交互图 (Archify)](docs/architecture/readtrace-architecture.html)**
 
 ```mermaid
 graph LR
