@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/onboardingModalRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_elegant_dialog"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- 阶段 1：极速写入进度 (Progress) -->
+    <LinearLayout
+        android:id="@+id/layoutImportProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡"
+            android:textSize="36sp" />
+
+        <TextView
+            android:id="@+id/importProgressTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="正在极速收录到藏库…"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/importProgressCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="已处理 12 / 35 部" />
+
+        <ProgressBar
+            android:id="@+id/importProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginTop="14dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@color/readtrace_accent" />
+
+        <TextView
+            android:id="@+id/importProgressCurrentTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp"
+            tools:text="正在索引《盗梦空间》并同步心智画像…" />
+    </LinearLayout>
+
+    <!-- 阶段 2：建库完成与文化沉淀卡片 (Success) -->
+    <LinearLayout
+        android:id="@+id/layoutImportSuccess"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🏛️"
+            android:textSize="38sp" />
+
+        <TextView
+            android:id="@+id/importSuccessTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="极速建库完成！"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/importSuccessSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12.5sp"
+            tools:text="成功收录 28 部作品 · 已拥有 7 部" />
+
+        <!-- 统计面板 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_glass_panel_soft"
+            android:orientation="vertical">
+
+            <!-- 均分与媒介 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⭐ 藏品平均分"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/importStatRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/readtrace_accent"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="8.9 / 10.0" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📦 媒介分类"
+                        android:textColor="@color/readtrace_muted"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/importStatMediaType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        tools:text="🎬 影视" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.8dp"
+                android:layout_marginVertical="10dp"
+                android:background="@color/readtrace_glass_stroke" />
+
+            <!-- 核心题材分布 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏷️ 核心流派题材"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/importStatTags"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="13sp"
+                tools:text="剧情 · 悬疑 · 科幻 · 犯罪" />
+
+            <TextView
+                android:id="@+id/importStatMindprint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="🧠 已同步构建六维心智雷达骨架"
+                android:textColor="@color/readtrace_accent"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- 交互按钮组 -->
+        <TextView
+            android:id="@+id/btnGoToLibrary"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_chip_picker_selected"
+            android:gravity="center"
+            android:text="🚀 前往书架查看"
+            android:textColor="@color/chip_selected_text"
+            android:textSize="14.5sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnStayInDiscover"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="🔍 继续探索榜单"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>

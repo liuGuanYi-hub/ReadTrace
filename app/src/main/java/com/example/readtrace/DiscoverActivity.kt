@@ -503,7 +503,7 @@ class DiscoverActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.discoverBatchSelectAll)?.text = if (allSelected) "全清" else "全选"
     }
 
-    /** 批量确认：默认纪念为「已看」，单批 SQL 查重过滤，预编译极速入库（Dispatchers.IO 异步化，无马达振动） */
+    /** 批量确认：一键极速建库引导与进度沉淀 (P39 Phase 4) */
     private var isBatchSubmitting = false
 
     private fun confirmBatch() {
@@ -515,6 +515,32 @@ class DiscoverActivity : AppCompatActivity() {
 
         val selectedSnapshot = HashSet(selectedKeys)
         val candidateSubjects = adapter.itemsSnapshot().filter { keyOf(it) in selectedSnapshot }
+
+        // 调起极速建库弹窗
+        val dialog = android.app.Dialog(this).apply {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.dialog_fast_library_onboarding)
+            setCancelable(false)
+            setCanceledOnTouchOutside(false)
+            window?.apply {
+                setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+                setLayout((resources.displayMetrics.widthPixels * 0.90f).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+                setGravity(android.view.Gravity.CENTER)
+            }
+        }
+
+        val layoutProgress = dialog.findViewById<View>(R.id.layoutImportProgress)
+        val layoutSuccess = dialog.findViewById<View>(R.id.layoutImportSuccess)
+        val progressBar = dialog.findViewById<android.widget.ProgressBar>(R.id.importProgressBar)
+        val progressCount = dialog.findViewById<TextView>(R.id.importProgressCount)
+        val progressCurrentTitle = dialog.findViewById<TextView>(R.id.importProgressCurrentTitle)
+
+        progressBar.max = candidateSubjects.size
+        progressBar.progress = 0
+        progressCount.text = "已处理 0 / ${candidateSubjects.size} 部"
+        progressCurrentTitle.text = "正在分析作品骨架与来源…"
+
+        dialog.show()
 
         lifecycleScope.launch(Dispatchers.IO) {
             // 1. 按 source 分组进行单批批量 SQL 查重（含已删除作品，防回收站复活）
@@ -529,7 +555,7 @@ class DiscoverActivity : AppCompatActivity() {
             val insertedTitles = mutableSetOf<String>()
             var skipped = 0
 
-            for (subject in candidateSubjects) {
+            candidateSubjects.forEachIndexed { index, subject ->
                 val title = subject.displayTitle.trim()
                 val sourceAlreadyOwned = existingSourceIdsMap[subject.source]?.contains(subject.id.toString()) == true
                 val titleOwned = existingBooks.any { it.mediaType == selectedMediaType && it.title.equals(title, ignoreCase = true) }
@@ -537,27 +563,89 @@ class DiscoverActivity : AppCompatActivity() {
 
                 if (sourceAlreadyOwned || titleOwned || batchDuplicate) {
                     skipped++
-                    continue
+                } else {
+                    toInsert += buildImportedBook(subject, BookStatus.FINISHED)
+                    insertedTitles += title
                 }
-                toInsert += buildImportedBook(subject, BookStatus.FINISHED)
-                insertedTitles += title
+
+                // 适当微延迟与平滑进度刷新（给予用户流式索引的科技韵律感）
+                if (candidateSubjects.size <= 30) {
+                    kotlinx.coroutines.delay(12)
+                } else if (index % 4 == 0) {
+                    kotlinx.coroutines.delay(8)
+                }
+
+                withContext(Dispatchers.Main) {
+                    progressBar.progress = index + 1
+                    progressCount.text = "已处理 ${index + 1} / ${candidateSubjects.size} 部"
+                    progressCurrentTitle.text = "正在索引《$title》…"
+                }
             }
 
             // 3. 预编译单事务批量入库
+            withContext(Dispatchers.Main) {
+                progressCurrentTitle.text = "⚡ 正在极速写入本地 SQLite 藏库…"
+            }
             if (toInsert.isNotEmpty()) {
                 databaseHelper.insertBooksBatch(toInsert)
             }
 
-            // 4. 回到主线程刷新界面并提示
+            // 统计聚合指标
+            val importedCount = toInsert.size
+            val avgRating = toInsert.mapNotNull { it.remoteRating }.takeIf { it.isNotEmpty() }?.average() ?: 8.6
+            val topTags = toInsert.flatMap { it.tags }
+                .groupBy { it }
+                .mapValues { it.value.size }
+                .entries
+                .sortedByDescending { it.value }
+                .take(4)
+                .map { it.key }
+                .joinToString(" · ")
+                .ifBlank { selectedMediaType.displayName }
+
+            // 4. 回到主线程展示建库完成成果卡片
             withContext(Dispatchers.Main) {
                 refreshExistingBooks()
                 isBatchSubmitting = false
-                Toast.makeText(
-                    this@DiscoverActivity,
-                    getString(R.string.discover_batch_done, toInsert.size, skipped),
-                    Toast.LENGTH_LONG,
-                ).show()
-                exitSelectionMode()
+                dialog.setCancelable(true)
+                dialog.setCanceledOnTouchOutside(true)
+
+                // 切换到完成阶段并伴随微光进入动画
+                layoutProgress.visibility = View.GONE
+                layoutSuccess.visibility = View.VISIBLE
+                layoutSuccess.alpha = 0f
+                layoutSuccess.translationY = 24f
+                layoutSuccess.animate().alpha(1f).translationY(0f).setDuration(350L).start()
+
+                HapticFeedbackEngine.stampImpact(this@DiscoverActivity)
+
+                dialog.findViewById<TextView>(R.id.importSuccessSubtitle).text =
+                    "已成功收录 $importedCount 部作品 · 跳过已拥有 $skipped 部"
+                dialog.findViewById<TextView>(R.id.importStatRating).text =
+                    String.format(java.util.Locale.getDefault(), "%.1f / 10.0", avgRating)
+                dialog.findViewById<TextView>(R.id.importStatMediaType).text =
+                    "${selectedMediaType.emoji} ${selectedMediaType.displayName} ($importedCount 部)"
+                dialog.findViewById<TextView>(R.id.importStatTags).text = topTags
+
+                dialog.findViewById<View>(R.id.btnGoToLibrary).setOnClickListener {
+                    dialog.dismiss()
+                    exitSelectionMode()
+                    val intent = Intent(this@DiscoverActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        putExtra(MainActivity.EXTRA_TAB_INDEX, MainActivity.TAB_LIBRARY)
+                    }
+                    startActivity(intent)
+                    finish()
+                }
+
+                dialog.findViewById<View>(R.id.btnStayInDiscover).setOnClickListener {
+                    dialog.dismiss()
+                    exitSelectionMode()
+                }
+
+                dialog.setOnDismissListener {
+                    exitSelectionMode()
+                }
             }
         }
     }

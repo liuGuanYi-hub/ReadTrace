@@ -54,7 +54,11 @@ class MainActivity : AppCompatActivity() {
         initTabs()
         setupBackPressHandler()
 
-        if (savedInstanceState != null) {
+        val targetTab = intent.getIntExtra(EXTRA_TAB_INDEX, -1)
+        if (targetTab in 0..4) {
+            currentTabIndex = targetTab
+            selectTab(targetTab)
+        } else if (savedInstanceState != null) {
             currentTabIndex = savedInstanceState.getInt(KEY_TAB_INDEX, TAB_HUB)
             for (i in 0..4) {
                 val f = supportFragmentManager.findFragmentByTag("tag_tab_$i")
@@ -65,6 +69,15 @@ class MainActivity : AppCompatActivity() {
             selectTab(currentTabIndex)
         } else {
             selectTab(TAB_HUB)
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val targetTab = intent.getIntExtra(EXTRA_TAB_INDEX, -1)
+        if (targetTab in 0..4) {
+            selectTab(targetTab)
         }
     }
 
@@ -282,5 +295,6 @@ class MainActivity : AppCompatActivity() {
         const val TAB_GALAXY = 2
         const val TAB_MEMOIR = 3
         const val TAB_PROFILE = 4
+        const val EXTRA_TAB_INDEX = "extra_tab_index"
     }
 }
