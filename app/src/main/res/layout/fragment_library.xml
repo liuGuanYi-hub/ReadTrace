@@ -73,6 +73,45 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- 搜索框（置顶，先搜后筛） -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input_glass">
+
+                    <EditText
+                        android:id="@+id/librarySearchInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toStartOf="@+id/librarySearchClearButton"
+                        android:background="@null"
+                        android:drawableStart="@android:drawable/ic_menu_search"
+                        android:drawablePadding="8dp"
+                        android:fontFamily="sans"
+                        android:hint="搜索书名、影名、游戏、番剧、作者、标签..."
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="6dp"
+                        android:textColor="@color/readtrace_ink"
+                        android:textColorHint="@color/readtrace_muted"
+                        android:textSize="13sp" />
+
+                    <ImageView
+                        android:id="@+id/librarySearchClearButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="4dp"
+                        android:contentDescription="清除搜索"
+                        android:padding="7dp"
+                        android:src="@android:drawable/ic_menu_close_clear_cancel"
+                        android:visibility="gone"
+                        app:tint="@color/readtrace_muted" />
+                </RelativeLayout>
+
                 <!-- 一级：媒介类型切换胶囊栏 -->
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -148,45 +187,6 @@
                             android:textSize="12sp" />
                     </LinearLayout>
                 </HorizontalScrollView>
-
-                <!-- 搜索框 -->
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="38dp"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_input_glass">
-
-                    <EditText
-                        android:id="@+id/librarySearchInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_toStartOf="@+id/librarySearchClearButton"
-                        android:background="@null"
-                        android:drawableStart="@android:drawable/ic_menu_search"
-                        android:drawablePadding="8dp"
-                        android:fontFamily="sans"
-                        android:hint="搜索书名、影名、游戏、番剧、作者、标签..."
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="6dp"
-                        android:textColor="@color/readtrace_ink"
-                        android:textColorHint="@color/readtrace_muted"
-                        android:textSize="13sp" />
-
-                    <ImageView
-                        android:id="@+id/librarySearchClearButton"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="4dp"
-                        android:contentDescription="清除搜索"
-                        android:padding="7dp"
-                        android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        android:visibility="gone"
-                        app:tint="@color/readtrace_muted" />
-                </RelativeLayout>
 
                 <!-- 二级：iOS 风格轻量状态分段条 -->
                 <LinearLayout
