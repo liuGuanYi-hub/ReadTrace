@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         tabHub.post { moveNavIndicator(currentTabIndex, animate = false) }
     }
 
-    /** 滑动选中指示胶囊：弹性移动到目标 Tab 下方 */
+    /** 滑动选中指示胶囊：弹性移动到目标 Tab 下方并严格中心对齐 */
     private fun moveNavIndicator(index: Int, animate: Boolean) {
         if (!::navIndicator.isInitialized) return
         val tab = when (index) {
@@ -140,15 +140,19 @@ class MainActivity : AppCompatActivity() {
         }
         tab.post {
             if (!::navIndicator.isInitialized) return@post
-            val shell = navIndicator.parent as? FrameLayout ?: return@post
-            val lp = navIndicator.layoutParams as FrameLayout.LayoutParams
-            val targetWidth = tab.width - shell.paddingStart - shell.paddingEnd - dp(4)
+            val lp = navIndicator.layoutParams as? FrameLayout.LayoutParams ?: return@post
+            val insetX = dp(3)
+            val targetWidth = tab.width - insetX * 2
             if (targetWidth <= 0) return@post
             if (lp.width != targetWidth) {
                 lp.width = targetWidth
                 navIndicator.layoutParams = lp
             }
-            val targetX = shell.paddingStart + tab.x + dp(2)
+            // 计算 Tab 在导航外壳中的真实几何中心 X
+            val bottomNavBar = tab.parent as? View
+            val tabCenterXInShell = (bottomNavBar?.x ?: 0f) + tab.x + tab.width / 2f
+            // 让指示胶囊的几何中心与 Tab / 图标几何中心严格对齐，并减除 lp.leftMargin
+            val targetX = tabCenterXInShell - targetWidth / 2f - lp.leftMargin
             if (animate) {
                 navIndicator.animate()
                     .translationX(targetX)

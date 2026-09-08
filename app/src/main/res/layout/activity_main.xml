@@ -36,7 +36,8 @@
             android:id="@+id/navIndicator"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_margin="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
             android:background="@drawable/bg_nav_tab_active" />
 
         <LinearLayout
@@ -55,7 +56,6 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/bg_nav_tab_active"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
