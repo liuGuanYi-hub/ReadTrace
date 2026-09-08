@@ -39,6 +39,10 @@ import com.example.readtrace.util.CuratedShelf
 import com.example.readtrace.util.CuratedShelfRepository
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 /**
@@ -138,12 +142,17 @@ class DiscoverActivity : AppCompatActivity() {
         adapter = SubjectAdapter(
             onItemClicked = { subject, position ->
                 android.util.Log.d("DiscoverBatch", "click pos=$position sel=$selectionMode title=${subject.displayTitle}")
-                HapticFeedbackEngine.cartridgeSnap(this)
-                if (selectionMode) toggleSelection(subject, position) else openSubjectPreview(subject)
+                if (selectionMode) {
+                    // 批量模式：纯视觉快速勾选，不触发马达振动
+                    toggleSelection(subject, position)
+                } else {
+                    HapticFeedbackEngine.cartridgeSnap(this)
+                    openSubjectPreview(subject)
+                }
             },
             onItemLongClicked = { subject, position ->
                 android.util.Log.d("DiscoverBatch", "longclick pos=$position sel=$selectionMode owned=${isOwned(subject)} title=${subject.displayTitle}")
-                // 长按进入批量模式并选中该条目（已收藏条目不可选）
+                // 长按进入批量模式并选中该条目（已收藏条目不可选，无马达振动）
                 if (!selectionMode) enterSelectionMode()
                 if (!isOwned(subject)) toggleSelection(subject, position)
                 true
@@ -197,13 +206,14 @@ class DiscoverActivity : AppCompatActivity() {
             performSearch(forceRefresh = true)
         }
 
-        // v4.2.24 批量纪念：入口 / 取消 / 确认
+        // v4.2.24 批量纪念：入口 / 全选 / 取消 / 确认（批量操作完全静音无震动）
         batchButton.setOnClickListener {
-            HapticFeedbackEngine.lightClick(this)
             enterSelectionMode()
         }
+        findViewById<View>(R.id.discoverBatchSelectAll)?.setOnClickListener {
+            toggleSelectAll()
+        }
         findViewById<View>(R.id.discoverBatchCancel).setOnClickListener {
-            HapticFeedbackEngine.lightClick(this)
             exitSelectionMode()
         }
         batchConfirm.setOnClickListener { confirmBatch() }
@@ -467,42 +477,89 @@ class DiscoverActivity : AppCompatActivity() {
         adapter.notifyItemChanged(position)
     }
 
+    private fun toggleSelectAll() {
+        val currentItems = adapter.itemsSnapshot()
+        val selectable = currentItems.filter { !isOwned(it) }
+        if (selectable.isEmpty()) return
+        val allSelected = selectable.all { keyOf(it) in selectedKeys }
+        if (allSelected) {
+            selectedKeys.clear()
+        } else {
+            selectable.forEach { selectedKeys.add(keyOf(it)) }
+        }
+        updateBatchBar()
+        adapter.notifyDataSetChanged()
+    }
+
     private fun updateBatchBar() {
         val count = selectedKeys.size
         batchConfirm.text = getString(R.string.discover_batch_confirm, count)
-        batchConfirm.isEnabled = count > 0
-        batchConfirm.alpha = if (count > 0) 1f else 0.5f
+        batchConfirm.isEnabled = count > 0 && !isBatchSubmitting
+        batchConfirm.alpha = if (count > 0 && !isBatchSubmitting) 1f else 0.5f
+
+        val currentItems = adapter.itemsSnapshot()
+        val selectable = currentItems.filter { !isOwned(it) }
+        val allSelected = selectable.isNotEmpty() && selectable.all { keyOf(it) in selectedKeys }
+        findViewById<TextView>(R.id.discoverBatchSelectAll)?.text = if (allSelected) "全清" else "全选"
     }
 
-    /** 批量确认：默认纪念为「已看」，逐条双层查重跳过并计数，单事务落库 */
+    /** 批量确认：默认纪念为「已看」，单批 SQL 查重过滤，预编译极速入库（Dispatchers.IO 异步化，无马达振动） */
+    private var isBatchSubmitting = false
+
     private fun confirmBatch() {
-        if (selectedKeys.isEmpty()) return
-        HapticFeedbackEngine.stampImpact(this)
-        val toInsert = mutableListOf<Book>()
-        val insertedTitles = mutableSetOf<String>()
-        var skipped = 0
-        for (subject in adapter.itemsSnapshot()) {
-            if (keyOf(subject) !in selectedKeys) continue
-            val title = subject.displayTitle.trim()
-            // 精确（含已删除防回收站复活）+ 标题模糊 + 本批内标题互斥
-            val duplicate = databaseHelper.findBookBySource(subject.source, subject.id.toString()) != null ||
-                existingBooks.any { it.mediaType == selectedMediaType && it.title.equals(title, ignoreCase = true) } ||
-                insertedTitles.any { it.equals(title, ignoreCase = true) }
-            if (duplicate) {
-                skipped++
-                continue
+        if (selectedKeys.isEmpty() || isBatchSubmitting) return
+        isBatchSubmitting = true
+        batchConfirm.isEnabled = false
+        batchConfirm.alpha = 0.5f
+        batchConfirm.text = "正在入库…"
+
+        val selectedSnapshot = HashSet(selectedKeys)
+        val candidateSubjects = adapter.itemsSnapshot().filter { keyOf(it) in selectedSnapshot }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            // 1. 按 source 分组进行单批批量 SQL 查重（含已删除作品，防回收站复活）
+            val sourceGroups = candidateSubjects.groupBy { it.source }
+            val existingSourceIdsMap = mutableMapOf<String, Set<String>>()
+            for ((source, list) in sourceGroups) {
+                existingSourceIdsMap[source] = databaseHelper.findExistingSourceIds(source, list.map { it.id.toString() })
             }
-            toInsert += buildImportedBook(subject, BookStatus.FINISHED)
-            insertedTitles += title
+
+            // 2. 内存比对与 Book 模型构建
+            val toInsert = mutableListOf<Book>()
+            val insertedTitles = mutableSetOf<String>()
+            var skipped = 0
+
+            for (subject in candidateSubjects) {
+                val title = subject.displayTitle.trim()
+                val sourceAlreadyOwned = existingSourceIdsMap[subject.source]?.contains(subject.id.toString()) == true
+                val titleOwned = existingBooks.any { it.mediaType == selectedMediaType && it.title.equals(title, ignoreCase = true) }
+                val batchDuplicate = insertedTitles.any { it.equals(title, ignoreCase = true) }
+
+                if (sourceAlreadyOwned || titleOwned || batchDuplicate) {
+                    skipped++
+                    continue
+                }
+                toInsert += buildImportedBook(subject, BookStatus.FINISHED)
+                insertedTitles += title
+            }
+
+            // 3. 预编译单事务批量入库
+            if (toInsert.isNotEmpty()) {
+                databaseHelper.insertBooksBatch(toInsert)
+            }
+
+            // 4. 回到主线程刷新界面并提示
+            withContext(Dispatchers.Main) {
+                refreshExistingBooks()
+                isBatchSubmitting = false
+                Toast.makeText(
+                    this@DiscoverActivity,
+                    getString(R.string.discover_batch_done, toInsert.size, skipped),
+                    Toast.LENGTH_LONG,
+                ).show()
+                exitSelectionMode()
+            }
         }
-        if (toInsert.isNotEmpty()) databaseHelper.insertBooksBatch(toInsert)
-        refreshExistingBooks()
-        Toast.makeText(
-            this,
-            getString(R.string.discover_batch_done, toInsert.size, skipped),
-            Toast.LENGTH_LONG,
-        ).show()
-        exitSelectionMode()
     }
 
     /** 卡片「＋」快捷添加：免弹窗直接纪念为已看 */
@@ -790,6 +847,7 @@ class DiscoverActivity : AppCompatActivity() {
             private val dateView = itemView.findViewById<TextView>(R.id.itemDiscoverDate)
             private val quickAdd = itemView.findViewById<TextView>(R.id.itemDiscoverQuickAdd)
             private val selectedRing = itemView.findViewById<TextView>(R.id.itemDiscoverSelectedRing)
+            private val selectOverlay = itemView.findViewById<View>(R.id.itemDiscoverSelectOverlay)
 
             init {
                 itemView.setOnClickListener {
@@ -821,8 +879,27 @@ class DiscoverActivity : AppCompatActivity() {
                 ownedBadge.visibility = if (owned) View.VISIBLE else View.GONE
                 // 「＋」快捷添加：已收藏或批量选择模式下隐藏，避免与点选冲突
                 quickAdd.visibility = if (!owned && !selectionMode) View.VISIBLE else View.GONE
-                selectedRing.visibility =
-                    if (selectionMode && keyOf(subject) in selectedKeys) View.VISIBLE else View.GONE
+
+                val isSelected = selectionMode && keyOf(subject) in selectedKeys
+                selectOverlay?.visibility = if (isSelected) View.VISIBLE else View.GONE
+
+                if (selectionMode && !owned) {
+                    selectedRing.visibility = View.VISIBLE
+                    if (isSelected) {
+                        selectedRing.setBackgroundResource(R.drawable.bg_checkbox_selected)
+                        selectedRing.text = "✓"
+                    } else {
+                        selectedRing.setBackgroundResource(R.drawable.bg_checkbox_unselected)
+                        selectedRing.text = ""
+                    }
+                    itemView.alpha = 1.0f
+                } else if (selectionMode && owned) {
+                    selectedRing.visibility = View.GONE
+                    itemView.alpha = 0.45f
+                } else {
+                    selectedRing.visibility = View.GONE
+                    itemView.alpha = 1.0f
+                }
             }
         }
     }

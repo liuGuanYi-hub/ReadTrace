@@ -108,39 +108,12 @@
             app:chipSpacingHorizontal="8dp"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
 
-        <!-- 评分滑块 -->
-        <LinearLayout
+        <!-- 触觉滑动手势打分组件 -->
+        <com.example.readtrace.widget.HapticSwipeRatingBar
+            android:id="@+id/quickLogRatingSwipeBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⭐"
-                android:textSize="14sp" />
-
-            <SeekBar
-                android:id="@+id/quickLogRatingSeek"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:max="20"
-                android:progress="0" />
-
-            <TextView
-                android:id="@+id/quickLogRatingText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="52dp"
-                android:gravity="end"
-                android:text="未评分"
-                android:textColor="#FFE700"
-                android:textSize="13sp" />
-        </LinearLayout>
+            android:layout_height="38dp"
+            android:layout_marginTop="6dp" />
 
         <!-- 五态大按键 -->
         <LinearLayout

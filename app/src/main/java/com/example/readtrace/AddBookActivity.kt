@@ -51,8 +51,7 @@ class AddBookActivity : AppCompatActivity() {
     private lateinit var chipStatusPaused: TextView
     private lateinit var chipStatusDropped: TextView
     private var selectedStatus: BookStatus = BookStatus.READING
-    private lateinit var starViews: List<TextView>
-    private lateinit var starHint: TextView
+    private lateinit var swipeRatingBar: com.example.readtrace.widget.HapticSwipeRatingBar
     private var selectedScore10: Double = 8.0 // 默认 8.0 分 (10 分制)
     private lateinit var tagsInput: EditText
     private lateinit var sectionThoughtsTitle: TextView
@@ -215,14 +214,11 @@ class AddBookActivity : AppCompatActivity() {
         chipStatusFinished = findViewById(R.id.chipStatusFinished)
         chipStatusPaused = findViewById(R.id.chipStatusPaused)
         chipStatusDropped = findViewById(R.id.chipStatusDropped)
-        starViews = listOf(
-            findViewById(R.id.star1),
-            findViewById(R.id.star2),
-            findViewById(R.id.star3),
-            findViewById(R.id.star4),
-            findViewById(R.id.star5),
-        )
-        starHint = findViewById(R.id.starHint)
+        swipeRatingBar = findViewById(R.id.addBookSwipeRatingBar)
+        swipeRatingBar.rating = selectedScore10
+        swipeRatingBar.onRatingChangeListener = { score, _ ->
+            selectedScore10 = score
+        }
         findViewById<View>(R.id.btnOpenDimensionalScoring)?.setOnClickListener {
             com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
             com.example.readtrace.ui.DimensionalScoringBottomSheet.show(
@@ -944,28 +940,11 @@ class AddBookActivity : AppCompatActivity() {
     }
 
     private fun setupStarRating() {
-        starViews.forEachIndexed { index, star ->
-            star.setOnClickListener {
-                selectedScore10 = (index + 1) * 2.0
-                renderStarSelection()
-                com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
-            }
-        }
-        renderStarSelection()
+        swipeRatingBar.rating = selectedScore10
     }
 
     private fun renderStarSelection() {
-        val activeStars = (selectedScore10 / 2.0).coerceIn(0.0, 5.0)
-        starViews.forEachIndexed { index, star ->
-            star.setTextColor(
-                if (index + 1 <= activeStars || (index < activeStars && activeStars - index >= 0.5)) {
-                    android.graphics.Color.parseColor("#F4A261")
-                } else {
-                    android.graphics.Color.parseColor("#3A3630")
-                }
-            )
-        }
-        starHint.text = "${String.format(Locale.getDefault(), "%.1f", selectedScore10)} 分 · ${com.example.readtrace.util.DimensionalScoringEngine.getShortTierLabel(selectedScore10)}"
+        swipeRatingBar.rating = selectedScore10
     }
 
     private fun parseRating(): Double? = selectedScore10

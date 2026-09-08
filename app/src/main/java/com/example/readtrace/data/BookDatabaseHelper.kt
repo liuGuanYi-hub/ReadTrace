@@ -2319,21 +2319,50 @@ if (oldVersion < 13) {
         return newId
     }
 
-    /** 外部导入批量写入：单事务 + 末尾一次缓存失效（逐条 insert 会让缓存反复失效，批量纪念场景不可接受） */
+    /** 外部导入批量写入：单事务 + 预编译 SQLiteStatement 极速落盘 + 末尾一次缓存失效 */
     fun insertBooksBatch(books: List<Book>): Int {
         if (books.isEmpty()) return 0
         val now = currentTimestamp()
         val db = writableDatabase
+        val sql = """
+            INSERT INTO $TABLE_BOOKS (
+                $COLUMN_TITLE, $COLUMN_AUTHOR, $COLUMN_COVER_URL, $COLUMN_CATEGORY,
+                $COLUMN_STATUS, $COLUMN_MEDIA_TYPE, $COLUMN_RATING, $COLUMN_TAGS,
+                $COLUMN_SHORT_COMMENT, $COLUMN_REVIEW, $COLUMN_START_DATE, $COLUMN_FINISH_DATE,
+                $COLUMN_BUY_CHANNEL, $COLUMN_SHELF_LOCATION, $COLUMN_BINDING_TYPE, $COLUMN_BUY_PRICE,
+                $COLUMN_SOURCE_TYPE, $COLUMN_SOURCE_ID, $COLUMN_REMOTE_RATING, $COLUMN_DESCRIPTION,
+                $COLUMN_CREATED_AT, $COLUMN_UPDATED_AT, $COLUMN_IS_DELETED, $COLUMN_DELETED_AT
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)
+        """.trimIndent()
+
         db.beginTransaction()
         try {
+            val statement = db.compileStatement(sql)
             for (book in books) {
-                val values = book.toContentValues().apply {
-                    put(COLUMN_CREATED_AT, book.createdAt.ifBlank { now })
-                    put(COLUMN_UPDATED_AT, book.updatedAt.ifBlank { now })
-                    put(COLUMN_IS_DELETED, 0)
-                    putNull(COLUMN_DELETED_AT)
-                }
-                db.insertOrThrow(TABLE_BOOKS, null, values)
+                statement.clearBindings()
+                statement.bindString(1, book.title.trim())
+                book.author?.let { statement.bindString(2, it) } ?: statement.bindNull(2)
+                book.coverUrl?.let { statement.bindString(3, it) } ?: statement.bindNull(3)
+                book.category?.let { statement.bindString(4, it) } ?: statement.bindNull(4)
+                statement.bindString(5, book.status.databaseValue)
+                statement.bindString(6, book.mediaType.databaseValue)
+                book.rating?.let { statement.bindDouble(7, it) } ?: statement.bindNull(7)
+                statement.bindString(8, org.json.JSONArray(book.tags).toString())
+                book.shortComment?.let { statement.bindString(9, it) } ?: statement.bindNull(9)
+                book.review?.let { statement.bindString(10, it) } ?: statement.bindNull(10)
+                book.startDate?.let { statement.bindString(11, it) } ?: statement.bindNull(11)
+                book.finishDate?.let { statement.bindString(12, it) } ?: statement.bindNull(12)
+                book.buyChannel?.let { statement.bindString(13, it) } ?: statement.bindNull(13)
+                book.shelfLocation?.let { statement.bindString(14, it) } ?: statement.bindNull(14)
+                book.bindingType?.let { statement.bindString(15, it) } ?: statement.bindNull(15)
+                book.buyPrice?.let { statement.bindDouble(16, it) } ?: statement.bindNull(16)
+                book.sourceType?.let { statement.bindString(17, it) } ?: statement.bindNull(17)
+                book.sourceId?.let { statement.bindString(18, it) } ?: statement.bindNull(18)
+                book.remoteRating?.let { statement.bindDouble(19, it) } ?: statement.bindNull(19)
+                book.description?.let { statement.bindString(20, it) } ?: statement.bindNull(20)
+                statement.bindString(21, book.createdAt.ifBlank { now })
+                statement.bindString(22, book.updatedAt.ifBlank { now })
+                statement.executeInsert()
             }
             db.setTransactionSuccessful()
         } finally {
@@ -2341,6 +2370,32 @@ if (oldVersion < 13) {
         }
         invalidateBookCache()
         return books.size
+    }
+
+    /** 外部导入单批批量查重：一次性查出已入库 source_id 集合（含已删除作品，防回收站复活），杜绝 N 次循环查库 */
+    fun findExistingSourceIds(sourceType: String, sourceIds: Collection<String>): Set<String> {
+        if (sourceIds.isEmpty()) return emptySet()
+        val found = mutableSetOf<String>()
+        val idList = sourceIds.toList()
+        val chunkSize = 400
+        val db = readableDatabase
+        for (chunk in idList.chunked(chunkSize)) {
+            val placeholders = chunk.joinToString(",") { "?" }
+            val args = arrayOf(sourceType) + chunk.toTypedArray()
+            db.query(
+                TABLE_BOOKS,
+                arrayOf(COLUMN_SOURCE_ID),
+                "$COLUMN_SOURCE_TYPE = ? AND $COLUMN_SOURCE_ID IN ($placeholders)",
+                args,
+                null, null, null,
+            ).use { cursor ->
+                val idx = cursor.getColumnIndexOrThrow(COLUMN_SOURCE_ID)
+                while (cursor.moveToNext()) {
+                    cursor.getString(idx)?.let { found.add(it) }
+                }
+            }
+        }
+        return found
     }
 
     /** 外部导入第一层精确查重：同一来源的同一条目是否已导入过（含已删除作品，避免回收站复活） */

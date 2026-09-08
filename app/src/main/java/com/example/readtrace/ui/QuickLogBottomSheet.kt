@@ -15,7 +15,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import com.example.readtrace.AddBookActivity
@@ -78,8 +77,7 @@ object QuickLogBottomSheet {
         val mediaRow = view.findViewById<LinearLayout>(R.id.quickLogMediaRow)
         val tagGroup = view.findViewById<ChipGroup>(R.id.quickLogTagGroup)
         val statusRow = view.findViewById<LinearLayout>(R.id.quickLogStatusRow)
-        val ratingSeek = view.findViewById<SeekBar>(R.id.quickLogRatingSeek)
-        val ratingText = view.findViewById<TextView>(R.id.quickLogRatingText)
+        val ratingSwipeBar = view.findViewById<com.example.readtrace.widget.HapticSwipeRatingBar>(R.id.quickLogRatingSwipeBar)
 
         // --- 媒介切换胶囊 ---
         val mediaChips = mutableListOf<TextView>()
@@ -118,17 +116,8 @@ object QuickLogBottomSheet {
             }
         })
 
-        // --- 评分滑块（0~10 分，步进 0.5） ---
-        ratingSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seek: SeekBar?, progress: Int, fromUser: Boolean) {
-                ratingText.text = if (progress == 0) "未评分" else String.format(java.util.Locale.US, "%.1f", progress / 2.0)
-            }
-
-            override fun onStartTrackingTouch(seek: SeekBar?) {}
-            override fun onStopTrackingTouch(seek: SeekBar?) {
-                HapticFeedbackEngine.cartridgeSnap(activity)
-            }
-        })
+        // --- 触觉滑动手势打分（默认 8.0，带机械棘轮微颤） ---
+        ratingSwipeBar.rating = 8.0
 
         // --- 五态大按键 ---
         BookStatus.entries.forEach { status ->
@@ -153,7 +142,7 @@ object QuickLogBottomSheet {
                         subject,
                         status,
                         selectedTags,
-                        ratingSeek.progress.takeIf { it > 0 }?.let { it / 2.0 },
+                        ratingSwipeBar.rating.takeIf { it > 0.0 },
                     )
                     dialog.dismiss()
                 }
@@ -329,6 +318,13 @@ object QuickLogBottomSheet {
         confirmSection.findViewById<TextView>(R.id.quickLogPickedTitle).text = "《${subject.displayTitle}》"
         confirmSection.findViewById<TextView>(R.id.quickLogPickedCreator).text =
             listOfNotNull(subject.creator, subject.date).joinToString(" · ").ifBlank { "—" }
+
+        val ratingBar = confirmSection.findViewById<com.example.readtrace.widget.HapticSwipeRatingBar>(R.id.quickLogRatingSwipeBar)
+        if (subject.ratingScore != null && subject.ratingScore > 0.0) {
+            ratingBar?.rating = subject.ratingScore
+        } else {
+            ratingBar?.rating = 8.0
+        }
 
         pickedTags.clear()
         val suggestions = AutoTagSuggestionHelper.suggestTags(subject, currentMedia)

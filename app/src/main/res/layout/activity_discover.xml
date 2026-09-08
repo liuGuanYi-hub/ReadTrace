@@ -306,10 +306,23 @@
             android:textSize="12sp" />
 
         <TextView
+            android:id="@+id/discoverBatchSelectAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:text="全选"
+            android:textColor="@color/readtrace_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/discoverBatchCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="4dp"
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
