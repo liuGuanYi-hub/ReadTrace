@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1075015,
+    "name": "Cien años de soledad",
+    "name_cn": "百年孤独",
+    "creator": "加西亚·马尔克斯",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s6384944.jpg",
+    "rating_score": 9.3,
+    "date": "1967-05-30",
+    "tags": [
+      "魔幻现实主义",
+      "拉美文学",
+      "经典",
+      "马尔克斯",
+      "诺奖"
+    ],
+    "summary": "作品描写了布恩迪亚家族七代人的传奇故事，以及加勒比海沿岸小镇马孔多的百年兴衰。全书以奇绝的神话、梦幻和现实交织在一起，深刻展现了拉丁美洲历史的风云变幻与刻骨铭心的孤独宿命。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 2567698,
+    "name": "三体全集",
+    "name_cn": "三体",
+    "creator": "刘慈欣",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s2768378.jpg",
+    "rating_score": 9.4,
+    "date": "2008-01-01",
+    "tags": [
+      "科幻",
+      "硬核",
+      "黑暗森林",
+      "大刘",
+      "雨果奖"
+    ],
+    "summary": "文化大革命如火如荼，天体物理学家叶文洁历经磨难，向浩瀚宇宙发出了人类第一声啼鸣，四光年外濒临崩溃的三体文明接收到了这一讯号。人类文明与三体文明长达数个世纪的生死搏杀就此拉开序幕，黑暗森林法则展露出宇宙最深沉冷酷的哲学本质。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 4913064,
+    "name": "活着",
+    "name_cn": "活着",
+    "creator": "余华",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s29053580.jpg",
+    "rating_score": 9.4,
+    "date": "1993-11-01",
+    "tags": [
+      "苦难",
+      "中国文学",
+      "坚韧",
+      "余华",
+      "经典"
+    ],
+    "summary": "地主少爷福贵嗜赌成性输光家产，穷困潦倒中经历抗日战争、解放战争与动荡岁月。身边亲人相继离世，晚年的福贵只剩下一头老牛相依为命。人是为了活着本身而活着的，而不是为了活着之外的任何事物所活着。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1008145,
+    "name": "围城",
+    "name_cn": "围城",
+    "creator": "钱钟书",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s1070222.jpg",
+    "rating_score": 9.0,
+    "date": "1947-05-01",
+    "tags": [
+      "幽默",
+      "知识分子",
+      "婚姻",
+      "讽刺",
+      "经典"
+    ],
+    "summary": "方鸿渐留洋回国，在家庭、爱情与三闾大学的学术官场间颠簸挣扎。婚姻就像一座被围困的城堡，城外的人想冲进去，城里的人想逃出来。钱钟书先生以幽默犀利至极的语言洞穿了人性与世态炎凉。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1449351,
+    "name": "1984",
+    "name_cn": "一九八四",
+    "creator": "乔治·奥威尔",
+    "cover_url": "https://img2.doubanio.com/view/subject/s/public/s4371408.jpg",
+    "rating_score": 9.4,
+    "date": "1949-06-08",
+    "tags": [
+      "反乌托邦",
+      "思想",
+      "政治寓言",
+      "经典",
+      "自由"
+    ],
+    "summary": "在大洋国的极权统治下，老大哥无处不在，思想警察监控着每一个人的微表情与梦呓，新话与双重思想抹杀历史与记忆。真理部职员温斯顿·史密斯在内心点燃了反抗与爱的微光，却最终被系统残酷粉碎。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1056405,
+    "name": "白夜行",
+    "name_cn": "白夜行",
+    "creator": "东野圭吾",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s4610502.jpg",
+    "rating_score": 9.1,
+    "date": "1999-08-01",
+    "tags": [
+      "推理",
+      "人性",
+      "暗黑",
+      "东野圭吾",
+      "悬疑"
+    ],
+    "summary": "一桩发生在废弃大楼里的当铺老板被杀案，因证据不足悬而未决。十九年间，涉案双方的遗孤桐原亮司与西本雪穗走上了截然不同的人生道路，但一连串离奇惨案始终如影随形。我的天空里没有太阳，总是黑夜，但并不暗，因为有东西代替了太阳。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1014972,
+    "name": "L'Étranger",
+    "name_cn": "局外人",
+    "creator": "阿尔贝·加缪",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s4367104.jpg",
+    "rating_score": 9.1,
+    "date": "1942-05-19",
+    "tags": [
+      "荒诞哲学",
+      "法国文学",
+      "存在主义",
+      "加缪",
+      "经典"
+    ],
+    "summary": "今天，妈妈死了。也许是昨天，我不知道。默尔索以近乎麻木的真实与世界格格不入。在一场海滩冲突中他因阳光刺眼开枪打死了一名阿拉伯人，法庭审判的焦点却变成了他在母亲葬礼上没有流泪。一个拒绝在虚伪社会中扮演悲伤的人，成了众矢之的的局外人。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1084336,
+    "name": "The Moon and Sixpence",
+    "name_cn": "月亮与六便士",
+    "creator": "毛姆",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s1793509.jpg",
+    "rating_score": 9.0,
+    "date": "1919-04-15",
+    "tags": [
+      "艺术",
+      "理想",
+      "追寻",
+      "毛姆",
+      "经典"
+    ],
+    "summary": "证券经纪人思特里克兰德中年抛弃优渥的家庭与社会地位，奔赴巴黎学画，在穷困潦倒中不顾一切追逐内心的艺术呼唤。最后他在南太平洋塔希提岛上完成了惊世骇俗的绝美壁画，并在双目失明临终前下令将壁画付之一炬。满地都是六便士，他却抬头看见了月亮。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  }
+]

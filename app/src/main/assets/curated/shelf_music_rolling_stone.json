@@ -1,0 +1,78 @@
+[
+  {
+    "id": 30001,
+    "name": "Abbey Road",
+    "name_cn": "阿比路 (Abbey Road)",
+    "creator": "The Beatles",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/4/42/Beatles_-_Abbey_Road.jpg",
+    "rating_score": 9.7,
+    "date": "1969-09-26",
+    "tags": [
+      "摇滚",
+      "披头士",
+      "摇滚圣经",
+      "滚石500",
+      "经典"
+    ],
+    "summary": "披头士乐队四位成员最后一次全部参与录制的划时代伟大录音室专辑。四人在伦敦阿比路录音室门外斑马线行走的封面成为了二十世纪流行文化永恒的标志性图腾。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30002,
+    "name": "The Dark Side of the Moon",
+    "name_cn": "月之暗面",
+    "creator": "Pink Floyd",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png",
+    "rating_score": 9.8,
+    "date": "1973-03-01",
+    "tags": [
+      "前卫摇滚",
+      "概念专辑",
+      "棱镜色散",
+      "哲学",
+      "殿堂"
+    ],
+    "summary": "前卫摇滚传奇平克·弗洛伊德的传世巅峰概念专辑。探讨了时间流逝、金钱贪婪、心智疯狂与死亡宿命。封面的三棱镜白光折射七彩光谱，成为全球乐迷心中最崇高的美学印记。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30003,
+    "name": "Fantasy",
+    "name_cn": "范特西",
+    "creator": "周杰伦",
+    "cover_url": "https://img2.doubanio.com/view/subject/s/public/s1434313.jpg",
+    "rating_score": 9.6,
+    "date": "2001-09-14",
+    "tags": [
+      "华语流行",
+      "周杰伦",
+      "天王巅峰",
+      "千禧时代",
+      "R&B"
+    ],
+    "summary": "周杰伦第二张个人录音室专辑，奠定了其华语乐坛不可动摇的开创者地位。《爱在西元前》《简单爱》《双截棍》《开不了口》《安静》等十首神曲全曲封神，红衣连帽衫造型风靡整个时代。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30004,
+    "name": "Plagiarism",
+    "name_cn": "盗作 (Plagiarism)",
+    "creator": "Yorushika (ヨルシカ)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s33649514.jpg",
+    "rating_score": 9.4,
+    "date": "2020-07-29",
+    "tags": [
+      "J-Pop",
+      "夜鹿",
+      "概念专辑",
+      "美学",
+      "诗意"
+    ],
+    "summary": "日本超人气音乐组合 Yorushika 的第三张完整概念专辑。以一位自称为“盗作小偷”的男人的精神日记为故事线展开，suis 空灵透亮的声线与 n-buna 极具文学质感的词曲交织出深夜的灵魂漫游。",
+    "subject_type": 3,
+    "source": "curated_music"
+  }
+]

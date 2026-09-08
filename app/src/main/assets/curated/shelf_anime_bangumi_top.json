@@ -1,0 +1,116 @@
+[
+  {
+    "id": 253,
+    "name": "Cowboy Bebop",
+    "name_cn": "星际牛仔",
+    "creator": "渡边信一郎 / Sunrise",
+    "cover_url": "covers/bgm_259_7C5D9.jpg",
+    "rating_score": 9.3,
+    "date": "1998-04-03",
+    "tags": [
+      "经典",
+      "科幻",
+      "爵士",
+      "菅野洋子",
+      "神作"
+    ],
+    "summary": "在人类迈入太阳系太空星际时代的2071年，以斯派克和杰特为首的赏金猎人驾驶Bebop号飞船游荡在行星与星门之间。蓝调与爵士乐流淌在每一次枪火对决与烟圈缭绕中，浪漫至死的成年人挽歌。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 259,
+    "name": "新世紀エヴァンゲリオン",
+    "name_cn": "新世纪福音战士 (EVA)",
+    "creator": "庵野秀明 / GAINAX",
+    "cover_url": "covers/bgm_259_7C5D9.jpg",
+    "rating_score": 9.1,
+    "date": "1995-10-04",
+    "tags": [
+      "机战",
+      "心理学",
+      "意识流",
+      "神作",
+      "庵野秀明"
+    ],
+    "summary": "第二次冲击后的人类面临神秘使徒的灭世袭击。14岁少年碇真嗣被冷酷的父亲推上了泛用人型决战兵器EVA初号机的驾驶舱。在一次次生死战栗中，人类补完计划的终极谜底与少年灵魂的心灵防线逐步剥落。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 1424,
+    "name": "鋼の錬金術師 FULLMETAL ALCHEMIST",
+    "name_cn": "钢之炼金术师 FA",
+    "creator": "荒川弘 / BONES",
+    "cover_url": "covers/bgm_1424_q8FMQ.jpg",
+    "rating_score": 9.2,
+    "date": "2009-04-05",
+    "tags": [
+      "热血",
+      "剧情",
+      "等价交换",
+      "神作",
+      "骨头社"
+    ],
+    "summary": "为了让病逝的母亲复活，爱德华和阿尔冯斯兄弟触犯了炼金术最大禁忌——人体炼成，不仅未能挽回母亲，更付出了肢体与肉身的惨痛代价。为了找回失去的一切，兄弟俩踏上探寻贤者之石的宏大史诗旅途。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 1851,
+    "name": "CLANNAD ～AFTER STORY～",
+    "name_cn": "CLANNAD 第二季",
+    "creator": "石原立也 / 京都动画",
+    "cover_url": "covers/bgm_1851_ZFEg7.jpg",
+    "rating_score": 9.3,
+    "date": "2008-10-02",
+    "tags": [
+      "催泪",
+      "人生",
+      "京阿尼",
+      "温情",
+      "神作"
+    ],
+    "summary": "从高中毕业迈向残酷现实社会的冈崎朋也与古河渚，一同经历了工作自立、步入婚姻、组建家庭并迎来新生命的喜悦与阵痛。写作CLANNAD，读作人生；在小镇的花田里，爱完成了跨越生死的传承与救赎。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 4330,
+    "name": "Steins;Gate",
+    "name_cn": "命运石之门",
+    "creator": "佐藤卓哉 / WHITE FOX",
+    "cover_url": "covers/bgm_4330_czWc0.jpg",
+    "rating_score": 9.1,
+    "date": "2011-04-05",
+    "tags": [
+      "科幻",
+      "时间回溯",
+      "秋叶原",
+      "烧脑",
+      "神作"
+    ],
+    "summary": "自称狂气疯癫科学家的大学生冈部伦太郎，在秋叶原的未来道具研究所意外将微波炉改装成可向过去发送短信的D-mail，引发了世界线变动的连锁风暴。为了从收束死亡的死神手中夺回珍视的伙伴，冈部在无尽痛苦轮回中寻找通往命运石之门的唯一世界线。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 6048,
+    "name": "天元突破グレンラガン",
+    "name_cn": "天元突破 红莲螺岩",
+    "creator": "今石洋之 / GAINAX",
+    "cover_url": "covers/bgm_6048_MJqSM.jpg",
+    "rating_score": 9.0,
+    "date": "2007-04-01",
+    "tags": [
+      "热血",
+      "机战",
+      "燃向",
+      "浪漫",
+      "今石洋之"
+    ],
+    "summary": "在被压迫于地下村庄的少年西蒙，在豪气干云的大哥卡米那鼓励下突破地表，用钻头冲破天际。用螺旋之力击溃反螺旋族的浩瀚宇宙战争，用炽热的浪漫与信念打破命运枷锁。",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  }
+]

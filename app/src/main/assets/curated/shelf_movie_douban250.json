@@ -1,0 +1,230 @@
+[
+  {
+    "id": 1292052,
+    "name": "The Shawshank Redemption",
+    "name_cn": "肖申克的救赎",
+    "creator": "弗兰克·德拉邦特",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p480747492.jpg",
+    "rating_score": 9.7,
+    "date": "1994-09-10",
+    "tags": [
+      "经典",
+      "救赎",
+      "希望",
+      "剧情",
+      "人性"
+    ],
+    "summary": "一场谋杀案使银行家安迪蒙冤入狱，被判终身监禁送往肖申克监狱。安迪凭借精通财务的特长，在监狱中为狱警避税、为典狱长洗钱，逐步赢得信任，并用一把微小的地质锤在十九年间凿出通向自由的希望之洞。希望是美好的事物，也许是世间最美好的事物，而美好的事物永不消逝。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291546,
+    "name": "霸王别姬",
+    "name_cn": "霸王别姬",
+    "creator": "陈凯歌",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561716440.jpg",
+    "rating_score": 9.6,
+    "date": "1993-01-01",
+    "tags": [
+      "经典",
+      "戏曲",
+      "文艺",
+      "史诗",
+      "张国荣"
+    ],
+    "summary": "段小楼与程蝶衣是一对打小一起长大的师兄弟，两人合演的《霸王别姬》名噪京师。小楼演生，蝶衣演旦，蝶衣人戏不分，深陷对小楼的痴恋。随着时代风云激荡变迁，两人的命运与艺术在半个世纪的历史沧桑中跌宕漂泊，风华绝代却走向悲剧宿命。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292720,
+    "name": "Forrest Gump",
+    "name_cn": "阿甘正传",
+    "creator": "罗伯特·泽米吉斯",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2372307693.jpg",
+    "rating_score": 9.5,
+    "date": "1994-06-23",
+    "tags": [
+      "经典",
+      "励志",
+      "温情",
+      "人生",
+      "汤姆·汉克斯"
+    ],
+    "summary": "阿甘是个智商只有75的先天弱智男孩，但他的母亲总是鼓励他坚强生活。阿甘凭借惊人的奔跑天赋与执着的信念，先后成为橄榄球巨星、越战英雄、乒乓外交功臣与捕虾船长，奇迹般地见证并参与了美国历史的重大时刻。生活就像一盒巧克力，你永远不知道下一块是什么味道。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292063,
+    "name": "La vita è bella",
+    "name_cn": "美丽人生",
+    "creator": "罗伯托·贝尼尼",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2578474672.jpg",
+    "rating_score": 9.6,
+    "date": "1997-12-20",
+    "tags": [
+      "二战",
+      "父爱",
+      "温情",
+      "经典",
+      "喜剧"
+    ],
+    "summary": "二战时期，犹太青年圭多与美丽女教师多拉坠入爱河并生下儿子约书亚。一家人不幸被关入纳粹集中营。圭多为了保护幼小儿子的童年不被恐惧击碎，谎称集中营生活是一场正在进行的千分制积分游戏，最后赢家可得到一辆真坦克。圭多用生命守护了谎言与爱。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291561,
+    "name": "千と千尋の神隠し",
+    "name_cn": "千与千寻",
+    "creator": "宫崎骏",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2557573348.jpg",
+    "rating_score": 9.4,
+    "date": "2001-07-20",
+    "tags": [
+      "动画",
+      "宫崎骏",
+      "吉卜力",
+      "成长",
+      "奇幻"
+    ],
+    "summary": "10岁少女千寻在与父母搬家途中，误入神秘的神灵异世界。贪婪的父母因偷吃供品变成了猪，千寻在少年白龙的指引下，进入掌管神灵浴场的汤婆婆门下工作，在这个诡谲又温情的世界中学会独立、勇敢与爱，找回自己的名字并拯救父母。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1295644,
+    "name": "Léon",
+    "name_cn": "这个杀手不太冷",
+    "creator": "吕克·贝松",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p511118051.jpg",
+    "rating_score": 9.4,
+    "date": "1994-09-14",
+    "tags": [
+      "经典",
+      "动作",
+      "救赎",
+      "温情",
+      "让·雷诺"
+    ],
+    "summary": "孤独冷酷的职业杀手莱昂偶遇全家被缉毒恶警残忍杀害的12岁小女孩玛蒂尔达。两个边缘孤独的灵魂在危险四伏的城市角落彼此救赎、相互依赖，莱昂教会玛蒂尔达生存与复仇，而玛蒂尔达唤醒了莱昂冰冷内心深处的温暖与柔情。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1889243,
+    "name": "Interstellar",
+    "name_cn": "星际穿越",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614988097.jpg",
+    "rating_score": 9.4,
+    "date": "2014-11-05",
+    "tags": [
+      "科幻",
+      "硬核",
+      "太空",
+      "父女情",
+      "诺兰"
+    ],
+    "summary": "近未来的地球黄沙肆虐，人类面临绝境。前宇航员库珀告别年幼的女儿墨菲，带领科学家小组穿越土星附近的虫洞，进入深邃未知的系外黑洞星系寻找新家园。在引力时间膨胀与高维超立方体中，爱成为唯一可以跨越时间和维度的引力波。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 3541415,
+    "name": "Inception",
+    "name_cn": "盗梦空间",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p513344864.jpg",
+    "rating_score": 9.4,
+    "date": "2010-07-16",
+    "tags": [
+      "科幻",
+      "烧脑",
+      "悬疑",
+      "造梦",
+      "小李子"
+    ],
+    "summary": "多姆·柯布是一名顶尖潜意识盗梦大师，专门在目标人物进入潜意识睡眠时窃取核心商业机密。这次他接到了不可能完成的任务：不是盗取，而是植入潜意识念头。在层层梦境重叠与时间延展的危机深渊中，旋转的陀螺成为了现实与幻觉唯一的锚点。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292213,
+    "name": "The Truman Show",
+    "name_cn": "楚门的世界",
+    "creator": "彼得·威尔",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p497856664.jpg",
+    "rating_score": 9.4,
+    "date": "1998-06-01",
+    "tags": [
+      "哲学",
+      "讽刺",
+      "金·凯瑞",
+      "经典",
+      "人性"
+    ],
+    "summary": "平凡保险推销员楚门生活在一个看似宁静美丽的港湾小镇，然而他不知道的是，他的整个人生实际上是由顶级导演精心设计的全球超大规模真人秀。身边所有的亲人、朋友、街道、甚至阳光海风都是摄影棚布景。当真相裂变，楚门决意驾驶小船驶向无尽风暴尽头那一堵被画上蓝天的墙壁。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291841,
+    "name": "Hachi: A Dog's Tale",
+    "name_cn": "忠犬八公的故事",
+    "creator": "莱塞·霍尔斯道姆",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p524964016.jpg",
+    "rating_score": 9.4,
+    "date": "2009-06-13",
+    "tags": [
+      "动物",
+      "催泪",
+      "忠诚",
+      "温情",
+      "理查·基尔"
+    ],
+    "summary": "大学教授帕克在火车站捡到一只走失的小秋田犬，取名“八公”。八公每天准时陪伴教授到车站，傍晚在出站口接他回家。直到某天教授在课堂上突发脑溢血去世再未归来，八公却日复一日、风雨无阻在车站前苦苦守候了整整九个春秋，直至生命的尽头。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291549,
+    "name": "Le fabuleux destin d'Amélie Poulain",
+    "name_cn": "天使爱美丽",
+    "creator": "让-皮埃尔·热内",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2447590313.jpg",
+    "rating_score": 8.7,
+    "date": "2001-04-25",
+    "tags": [
+      "法国",
+      "浪漫",
+      "色彩美学",
+      "治愈",
+      "奥黛丽·塔图"
+    ],
+    "summary": "巴黎蒙马特高地咖啡馆女侍应生爱美丽，有着极其丰富的奇思妙想。偶然发现藏在墙砖里的老铁盒后，她暗中策划了一连串温柔奇妙的小恶作剧与善举，点亮了周围每个孤独平凡人的暗淡生活，同时也邂逅了那个爱收集快照亭废弃相片的奇妙男孩。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1300267,
+    "name": "The Matrix",
+    "name_cn": "黑客帝国",
+    "creator": "莉莉·沃卓斯基 / 拉娜·沃卓斯基",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p451926917.jpg",
+    "rating_score": 9.1,
+    "date": "1999-03-31",
+    "tags": [
+      "赛博朋克",
+      "科幻",
+      "哲学",
+      "基努·里维斯",
+      "经典"
+    ],
+    "summary": "年轻黑客尼奥发现看似真实的世界其实是一个由名为母体（Matrix）的人工智能系统虚拟生成的巨大幻象代码。在反抗军领袖墨菲斯的引导下，他吞下了代表残酷真相的红色药丸，成为打破机械统治救赎人类的救世主。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  }
+]

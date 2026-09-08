@@ -1,0 +1,154 @@
+[
+  {
+    "id": 2358720,
+    "name": "Black Myth: Wukong",
+    "name_cn": "黑神话：悟空",
+    "creator": "游戏科学 Game Science",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2358720/header.jpg",
+    "rating_score": 9.6,
+    "date": "2024-08-20",
+    "tags": [
+      "魂系",
+      "神话",
+      "国产3A",
+      "动作",
+      "西游"
+    ],
+    "summary": "以中国神话为背景的西游题材动作角色扮演游戏。玩家将扮演一位“天命人”，为了探寻昔日传说的真相，踏上一条充满危险与惊奇的西行之旅，重历九九八十一难，领略极具东方美学的壮丽奇景与震撼对决。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1245620,
+    "name": "ELDEN RING",
+    "name_cn": "艾尔登法环",
+    "creator": "FromSoftware Inc.",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg",
+    "rating_score": 9.6,
+    "date": "2022-02-25",
+    "tags": [
+      "开放世界",
+      "黑暗奇幻",
+      "宫崎英高",
+      "魂系",
+      "TGA年度"
+    ],
+    "summary": "以交界地为舞台的史诗级黑暗奇幻动作RPG。破碎的艾尔登法环召唤着褪色者回归。骑上灵马探索广袤宏伟的大地、幽深危险的地下迷宫，直面神祇与半神，铸就属于你的艾尔登之王传奇。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 413150,
+    "name": "Stardew Valley",
+    "name_cn": "星露谷物语",
+    "creator": "ConcernedApe",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg",
+    "rating_score": 9.8,
+    "date": "2016-02-26",
+    "tags": [
+      "农场模拟",
+      "像素",
+      "疗愈",
+      "好评如潮",
+      "独立"
+    ],
+    "summary": "你继承了爷爷在星露谷留下的老旧农场。带着几件残破的工具和几枚硬币，你开启了全新的田园生活。耕种土地、饲养动物、采矿钓鱼、结识鹈鹕镇性格各异的村民，在这片宁静田园中找回心灵的从容与温暖。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 367520,
+    "name": "Hollow Knight",
+    "name_cn": "空洞骑士",
+    "creator": "Team Cherry",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/367520/header.jpg",
+    "rating_score": 9.7,
+    "date": "2017-02-24",
+    "tags": [
+      "银河恶魔城",
+      "类魂",
+      "手绘美术",
+      "探索",
+      "独立神作"
+    ],
+    "summary": "衰落幽深的地下昆虫王国圣巢正在被橙色瘟疫侵蚀。沉默的小骑士手持骨钉深入蛛网盘踞的深渊废墟、真菌荒原与泪水之城，挑战各具难度的守卫强敌，解开古老文明封印与深邃身世的最终宿命。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1086940,
+    "name": "Baldur's Gate 3",
+    "name_cn": "博德之门 3",
+    "creator": "Larian Studios",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg",
+    "rating_score": 9.7,
+    "date": "2023-08-03",
+    "tags": [
+      "CRPG",
+      "DND",
+      "网状叙事",
+      "战术回合",
+      "TGA年度"
+    ],
+    "summary": "一支由夺心魔幼体感染者组成的杂牌冒险者小队，在费伦大陆上面临被转化为怪物的威胁，却也意外获得了前所未有的黑暗力量。极其庞大且充满自由度的网状叙事与深邃的跑团战术体系，定义了现代CRPG的最高峰。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 620,
+    "name": "Portal 2",
+    "name_cn": "传送门 2",
+    "creator": "Valve",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/620/header.jpg",
+    "rating_score": 9.8,
+    "date": "2011-04-19",
+    "tags": [
+      "解谜",
+      "物理机制",
+      "幽默",
+      "科幻",
+      "V社神作"
+    ],
+    "summary": "手持光圈科技传送枪，在空间中开启蓝色与橙色双向连通门，挑战常识物理定律与重力惯性。充满黑色幽默与讽刺的人工智能GLaDOS和惠特利，构成了影院级叙事与精妙关卡设计的传世丰碑。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1145360,
+    "name": "Hades",
+    "name_cn": "黑帝斯 (Hades)",
+    "creator": "Supergiant Games",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg",
+    "rating_score": 9.6,
+    "date": "2020-09-17",
+    "tags": [
+      "Roguelike",
+      "动作爽快",
+      "希腊神话",
+      "打击感",
+      "独立神作"
+    ],
+    "summary": "作为冥界不羁王子扎格柔斯，在奥林匹斯众神的祝福助力下，挥舞神兵一路披荆斩棘杀出冥界地牢。每一次死亡不仅不是终结，而是剧情与羁绊深化的绝妙契机。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1426210,
+    "name": "It Takes Two",
+    "name_cn": "双人成行",
+    "creator": "Hazelight Studios",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1426210/header.jpg",
+    "rating_score": 9.5,
+    "date": "2021-03-26",
+    "tags": [
+      "双人合作",
+      "合家欢",
+      "奇思妙想",
+      "关卡设计",
+      "TGA年度"
+    ],
+    "summary": "濒临离婚的夫妇科迪与小梅因女儿的眼泪被魔咒变成了玩偶。在爱之书哈金医生的引导下，两人必须通力协作跨越童话般惊险且天马行空的关卡挑战，重燃爱意并寻找回到女儿身边的道路。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  }
+]

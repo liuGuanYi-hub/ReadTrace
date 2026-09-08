@@ -34,6 +34,10 @@ import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.NeteaseClient
 import com.example.readtrace.util.RankRepository
 import com.example.readtrace.util.SteamClient
+import com.example.readtrace.ui.CuratedShelfAdapter
+import com.example.readtrace.util.CuratedShelf
+import com.example.readtrace.util.CuratedShelfRepository
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 
@@ -63,6 +67,9 @@ class DiscoverActivity : AppCompatActivity() {
     private lateinit var batchButton: TextView
     private lateinit var batchBar: View
     private lateinit var batchConfirm: TextView
+    private lateinit var shelfRecycler: RecyclerView
+    private lateinit var shelfAdapter: CuratedShelfAdapter
+    private var activeCuratedShelf: CuratedShelf? = null
 
     private var selectedMediaType: MediaType = MediaType.BOOK
     private var existingBooks: List<Book> = emptyList()
@@ -110,15 +117,22 @@ class DiscoverActivity : AppCompatActivity() {
         batchButton = findViewById(R.id.discoverBatchButton)
         batchBar = findViewById(R.id.discoverBatchBar)
         batchConfirm = findViewById(R.id.discoverBatchConfirm)
+        shelfRecycler = findViewById(R.id.discoverShelfRecycler)
 
         // v4.2.15 下拉刷新：强制跳过缓存联网更新；顶部内容可见时才允许触发
         swipeRefresh.setOnRefreshListener {
-            performSearch(forceRefresh = true)
+            val shelf = activeCuratedShelf
+            if (shelf != null) {
+                selectCuratedShelf(shelf)
+            } else {
+                performSearch(forceRefresh = true)
+            }
         }
         swipeRefresh.setOnChildScrollUpCallback { _, _ ->
             gridView.canScrollVertically(-1)
         }
 
+        setupShelfBanner()
         setupMediaChips()
 
         adapter = SubjectAdapter(
@@ -205,13 +219,79 @@ class DiscoverActivity : AppCompatActivity() {
         }
 
         refreshExistingBooks()
-        performSearch()
+        val defaultShelf = CuratedShelfRepository.getShelves().find { it.mediaType == selectedMediaType }
+        if (defaultShelf != null) {
+            selectCuratedShelf(defaultShelf)
+        } else {
+            performSearch()
+        }
     }
 
     override fun onDestroy() {
         searchHandler.removeCallbacks(searchRunnable)
         if (sessionToken != 0L) RankRepository.discardSession(sessionToken)
         super.onDestroy()
+    }
+
+    private fun setupShelfBanner() {
+        val shelves = CuratedShelfRepository.getShelves()
+        shelfAdapter = CuratedShelfAdapter(shelves) { shelf, isSelected ->
+            HapticFeedbackEngine.lightClick(this)
+            if (isSelected) {
+                selectCuratedShelf(shelf)
+            } else {
+                activeCuratedShelf = null
+                performSearch()
+            }
+        }
+        shelfRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        shelfRecycler.adapter = shelfAdapter
+    }
+
+    private fun selectCuratedShelf(shelf: CuratedShelf) {
+        activeCuratedShelf = shelf
+        shelfAdapter.setSelectedShelf(shelf.id)
+
+        // 联动同步更新分类 Tab 选中态（不触发重复网络搜索）
+        if (selectedMediaType != shelf.mediaType) {
+            selectedMediaType = shelf.mediaType
+            updateMediaChips()
+        }
+
+        // 终止原有网络会话与游标
+        if (sessionToken != 0L) {
+            RankRepository.discardSession(sessionToken)
+            sessionToken = 0L
+        }
+        hasMore = false
+        isLoadingPage = false
+        if (!searchInput.text.isNullOrEmpty()) {
+            searchInput.setText("")
+        }
+
+        selectionMode = false
+        selectedKeys.clear()
+        batchBar.visibility = View.GONE
+        batchButton.visibility = View.VISIBLE
+        loadingView.visibility = View.GONE
+        swipeRefresh.isRefreshing = false
+
+        val subjects = CuratedShelfRepository.loadShelfSubjects(this, shelf)
+        if (subjects.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            gridView.visibility = View.GONE
+            emptyView.text = getString(R.string.discover_empty)
+            adapter.submitList(emptyList())
+        } else {
+            emptyView.visibility = View.GONE
+            gridView.visibility = View.VISIBLE
+            adapter.submitList(subjects)
+            adapter.setFooterState(FOOTER_END)
+            gridView.scrollToPosition(0)
+        }
+
+        modeTitle.text = "${shelf.badge} · ${shelf.title} (${subjects.size}部)"
+        sourceNote.text = "离线精选策展 · 0ms 瞬间直达"
     }
 
     private fun setupMediaChips() {
@@ -224,8 +304,12 @@ class DiscoverActivity : AppCompatActivity() {
         )
         mediaChips.forEach { (chip, media) ->
             chip.setOnClickListener {
-                if (selectedMediaType == media) return@setOnClickListener
+                if (selectedMediaType == media && activeCuratedShelf == null) return@setOnClickListener
                 selectedMediaType = media
+                if (activeCuratedShelf != null) {
+                    activeCuratedShelf = null
+                    shelfAdapter.setSelectedShelf(null)
+                }
                 HapticFeedbackEngine.lightClick(this)
                 updateMediaChips()
                 performSearch()
@@ -252,6 +336,10 @@ class DiscoverActivity : AppCompatActivity() {
 
     private fun performSearch(forceRefresh: Boolean = false) {
         val keyword = searchInput.text?.toString()?.trim().orEmpty()
+        if (keyword.isNotEmpty() && activeCuratedShelf != null) {
+            activeCuratedShelf = null
+            shelfAdapter.setSelectedShelf(null)
+        }
         // v4.2.24：切分类/新搜索时重置批量选择态，防止跨会话残留选中
         selectionMode = false
         selectedKeys.clear()
@@ -276,6 +364,7 @@ class DiscoverActivity : AppCompatActivity() {
 
     /** 加载会话下一页：无限滚动、下拉刷新与首次进入共用此入口 */
     private fun loadNextPage(forceRefresh: Boolean = false) {
+        if (activeCuratedShelf != null) return
         if (isLoadingPage || !hasMore) return
         isLoadingPage = true
         if (adapter.itemDataCount() > 0) {
