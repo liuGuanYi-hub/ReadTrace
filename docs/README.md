@@ -14,10 +14,6 @@ docs/
 │   ├── dynamic-archify-architecture.html    # 架构动效交互页
 │   ├── dynamic-archify-architecture.svg     # 4K 高清矢量架构图
 │   └── dynamic-archify-architecture.gif     # 架构流光演进动图
-├── design/                   # 🎨 3D 沉浸式原型与交互式视觉演示
-│   ├── 3D沉浸式阅读原型.html                 # 纯 CSS 3D 书架、翻书摘录与悬浮封面卡
-│   ├── 书籍展览馆原型.html                   # 3D 虚拟展厅漫游原型
-│   └── 纪念功能设计风格预览.html              # 玻璃拟态与票根质感设计风格预览
 ├── exports/                  # 📦 数据资产导出包、全量备份与预设种子
 │   ├── 用户数据导出_2026-09-07.csv/json/md   # 历史用户多格式导出样例
 │   ├── 全作品数据导出.csv                    # 全品类作品离线数据表
