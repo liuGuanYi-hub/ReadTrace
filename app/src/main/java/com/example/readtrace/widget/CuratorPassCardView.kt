@@ -51,6 +51,8 @@ class CuratorPassCardView @JvmOverloads constructor(
     private val tvBio: TextView
     private val tvSyncStatus: TextView
     private val tvJoinedDate: TextView
+    /** 票头分隔线：顶栏文字与主体之间的横线，随主题明暗反色 */
+    private val headerDivider: View
 
     private var currentAccount: CuratorAccount = CuratorAccount()
     private var currentAuthStatus: AuthStatus = AuthStatus.GUEST
@@ -59,11 +61,10 @@ class CuratorPassCardView @JvmOverloads constructor(
         setWillNotDraw(false)
         ViewAnimationHelper.attachSpringTouch(this)
 
-        // 内部布局构建
+        // 内部布局构建：顶部收窄，让票头文字贴近卡面上边线，形成上边线+分隔线的票据头布局
         val contentLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            val pad = dpToPx(18f).toInt()
-            setPadding(pad, pad, pad, pad)
+            setPadding(dpToPx(18f).toInt(), dpToPx(10f).toInt(), dpToPx(18f).toInt(), dpToPx(18f).toInt())
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         }
 
@@ -89,11 +90,20 @@ class CuratorPassCardView @JvmOverloads constructor(
         headerRow.addView(tvPassId)
         contentLayout.addView(headerRow)
 
+        // 票头下分隔线：与顶栏文字组成「上边线 / 文字 / 分隔线」的票据头布局
+        headerDivider = View(context).apply {
+            val mTop = dpToPx(7f).toInt()
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(1f).toInt()).apply {
+                topMargin = mTop
+            }
+        }
+        contentLayout.addView(headerDivider)
+
         // 中间主体：头像 + 昵称 + 阶位徽徽
         val middleRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            val topMargin = dpToPx(14f).toInt()
+            val topMargin = dpToPx(12f).toInt()
             setPadding(0, topMargin, 0, 0)
         }
         tvAvatar = TextView(context).apply {
@@ -226,6 +236,10 @@ class CuratorPassCardView @JvmOverloads constructor(
         val ink = { alpha: String -> Color.parseColor("#${alpha}1A1C19") }
         tvHeader.setTextColor(if (light) ink("99") else Color.parseColor("#80FFFFFF"))
         tvPassId.setTextColor(if (light) ink("C0") else Color.parseColor("#C0FFFFFF"))
+        // 分隔线与卡面边框同色系，保持票头两线视觉一致
+        headerDivider.background = android.graphics.drawable.ColorDrawable(
+            Color.parseColor(if (light) "#30000000" else "#26FFFFFF"),
+        )
         tvNickname.setTextColor(if (light) Color.parseColor("#FF1A1C19") else Color.WHITE)
         tvTitle.setTextColor(if (light) Color.parseColor("#CC8A6D3B") else Color.parseColor("#E0C9A050"))
         tvBindingBadge.setTextColor(if (light) ink("99") else Color.parseColor("#99FFFFFF"))
@@ -264,6 +278,8 @@ class CuratorPassCardView @JvmOverloads constructor(
 
         // 绘制顶部高光微弧线：只走顶边与两个上圆角。
         // 不能用 drawRoundRect 画 24dp 高的矩形——它的底边会横穿 18dp 起绘制的标题文字（P38 回归用户反馈）
+        // 注意：两个圆角必须用 addArc 各自独立成轮廓；若用 arcTo 顺序拼接，路径会从右上角
+        // 自动直线连到左下角起点，在 top+18dp 处产生一条横穿票头文字的多余弦线
         glowPaint.color = accentColor
         glowPaint.alpha = 100
         val hlLeft = cardBounds.left + dpToPx(1f)
@@ -272,13 +288,13 @@ class CuratorPassCardView @JvmOverloads constructor(
         glowPath.rewind()
         glowPath.moveTo(hlLeft + cardCornerRadius, hlTop)
         glowPath.lineTo(hlRight - cardCornerRadius, hlTop)
-        glowPath.arcTo(
+        glowPath.addArc(
             RectF(hlRight - 2 * cardCornerRadius, hlTop, hlRight, hlTop + 2 * cardCornerRadius),
-            -90f, 90f, false,
+            -90f, 90f,
         )
-        glowPath.arcTo(
+        glowPath.addArc(
             RectF(hlLeft, hlTop, hlLeft + 2 * cardCornerRadius, hlTop + 2 * cardCornerRadius),
-            180f, 90f, false,
+            180f, 90f,
         )
         canvas.drawPath(glowPath, glowPaint)
 
