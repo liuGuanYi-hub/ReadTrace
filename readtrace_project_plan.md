@@ -3029,3 +3029,289 @@ P35 实施后：
 | **Phase 2：批量勾选入库与触觉打分** | ① 专题网格支持多选，悬浮批量导入胶囊；<br>② 数据库批量事务优化（单事务插入 50 条 < 50ms）；<br>③ 触觉滑动手势打分控件开发（星辉平滑填充 + 棘轮马达）。 | 一口气勾选 20 部作品一键全量入库，无卡顿无 ANR；滑动打分有清晰机械齿轮手感。 |
 | **Phase 3：情绪胶囊与外部搬家** | ① 情绪胶囊（Vibe Chips）与时间语义胶囊接入详情页；<br>② 情绪标签与心智雷达权重自动联动算法；<br>③ Steam / Bangumi 公开 ID 一键同步抓取。 | 详情页点击情绪胶囊直接保存并更新雷达图；输入 Steam ID 成功拉取游戏列表并建库。 |
 
+---
+
+## 50. 附录 A：外部导入体系专项设计与技术规格 (External Ingestion Specs)
+
+> 历史归档源：原 `docs/specs/外部导入功能设计与计划.md`（2026-08-31 制定）。
+> 定位：解决新用户冷启动问题——手写导入一个作品要填十几个字段，门槛太高。
+> 方案：提供「发现」页，展示热门作品，用户一键添加骨架数据（标题/作者/封面/简介/远程评分），之后在详情页慢慢补个人感想与纪念信息。基于数据源调研与代码结构（DB v9 / 零网络依赖）编写。
+
+### 50.1 数据源选型结论
+
+#### 1. 平台调研
+
+| 平台 | 官方开放 API | 中文元数据 | 分类覆盖 | 结论 |
+|:---|:---:|:---:|:---|:---|
+| 豆瓣 | ❌（2017 年关闭） | ✅ | 书/影/音 | 只能爬虫，反爬严、合规灰色、随时失效，**放弃** |
+| B站 | ❌（媒体元数据无官方 API） | ✅ | 番剧/影视 | 非官方 PGC 接口不稳定，**放弃** |
+| **Bangumi (bgm.tv)** | ✅ 官方开放、免费 | ✅ | 书籍/动画/音乐/游戏/三次元 | **主数据源** |
+| TMDB | ✅（免费 API key） | ✅ (zh-CN) | 电影/剧集 | 二期备选补充源 |
+
+#### 2. 为什么是 Bangumi
+- **官方开放 API**（`https://api.bgm.tv`，文档 https://bangumi.github.io/api/ ），无爬虫合规风险；
+- 五大条目类型与阅痕媒介类型几乎一一对齐；
+- 元数据质量高：中文名、封面、简介、评分、标签齐全；
+- 用户群高度重合：阅痕面向 ACGN 爱好者，Bangumi 就是 ACGN 条目百科。
+
+#### 3. 豆瓣的降级处理
+豆瓣数据不爬取。若后续有需求，只做「用户手动粘贴豆瓣链接」级别的辅助功能，且不做自动抓取承诺。
+
+---
+
+### 50.2 数据模型设计
+
+#### 1. 分类映射
+Bangumi `subject_type` → 阅痕 `MediaType`：
+
+| Bangumi type | 含义 | 阅痕 MediaType |
+|:---:|:---|:---|
+| 1 | 书籍 | `BOOK` |
+| 2 | 动画 | `ANIME` |
+| 3 | 音乐 | `MUSIC` |
+| 4 | 游戏 | `GAME` |
+| 6 | 三次元（影视/纪实） | `MOVIE` |
+
+> 注：Bangumi 无 type 5。电影/剧集归入「三次元」，一期先用它覆盖 MOVIE；若三期接 TMDB 则电影源切 TMDB，Bangumi 三次元保留为补充。
+
+#### 2. 字段映射
+
+| Bangumi 字段 | 阅痕字段 | 说明 |
+|:---|:---|:---|
+| `name_cn`（空则 `name`） | `title` | 优先中文名 |
+| `infobox` 中「作者/导演/开发/艺术家/音乐人」等键 | `author` | 按媒介类型定义键名优先级，解析失败留空由用户补 |
+| `images.large`（降级 `images.common`） | `cover_url` | **直接存 Bangumi CDN 在线地址，不做本地下载** |
+| `summary` | `description`（**新增列**） | 现有 books 表无简介字段 |
+| `rating.score` | `remote_rating`（**新增列**） | 与用户个人评分 `rating` 分离，互不覆盖 |
+| `tags` | `tags`（可选拼接前 3 个） | Bangumi 标签与现有 JSON 格式对齐 |
+| `date` | 可存入 `description` 头部或忽略 | 一期忽略 |
+
+#### 3. 数据库迁移（DB v9 → v10）
+`books` 表新增 4 列（`CREATE TABLE` 语句同步修改，`onUpgrade` 走 `ALTER TABLE`）：
+
+```sql
+ALTER TABLE books ADD COLUMN source_type TEXT;      -- 'bangumi' / 'manual'（NULL 视为 manual）
+ALTER TABLE books ADD COLUMN source_id TEXT;        -- Bangumi subject id
+ALTER TABLE books ADD COLUMN remote_rating REAL;    -- 远程评分 0~10
+ALTER TABLE books ADD COLUMN description TEXT;      -- 简介正文
+```
+- `source_type + source_id` 建联合索引用于防重复导入；
+- 老数据全部视为 `manual`，行为不变；
+- 详情页排版需兼容新增的简介展示（远程评分 + 简介分区）。
+
+---
+
+### 50.3 网络层设计
+
+#### 1. 技术选型
+**不引入任何第三方网络库**，沿用项目「零臃肿依赖」原则：
+- HTTP：`HttpURLConnection`（Android 内置）；
+- JSON 解析：`org.json`（Android 内置）；
+- 并发：单例 `Executors.newSingleThreadExecutor()`；
+- 主线程回调：`Handler(Looper.getMainLooper())`。
+
+#### 2. Bangumi API 对接要点
+- 搜索：`POST /v0/search/subjects`，body：`{"keyword": "...", "sort": "rank", "filter": {"type": [2]}}`；
+- 热门榜单：同上接口，`keyword` 留空 + `sort: "rank"` + `filter.type` 按媒介过滤；
+- 条目详情：`GET /v0/subjects/{id}`（含 infobox/summary/rating/images）；
+- **User-Agent 必须自定义**：`ReadTrace/<version> (Android; github.com/liuGuanYi-hub/ReadTrace)`；
+- 限流与缓存：搜索按钮 500ms 防抖；榜单结果内存缓存 + 磁盘 JSON 缓存 24h，减少请求频率；连接 8s / 读取 15s 超时。
+
+#### 3. 封面加载
+- **不做封面本地下载**：导入落库的 `cover_url` 直接保存 Bangumi CDN 在线地址；
+- 发现页与详情页按需在线加载，配 `BitmapFactory` + 内存 LruCache；无网降级占位图。
+
+---
+
+### 50.4 产品与页面设计
+
+#### 1. 入口与页面结构
+```
+AddBookActivity（添加页）
+  └─ 顶部新增「🔍 从发现页导入」入口
+        └─ DiscoverActivity（发现页）
+             ├─ 顶部：媒介分类 Tab（书/番/影/音/游）
+             ├─ 搜索框（关键词搜索）
+             └─ 封面网格（2~3 列，标题 + 远程评分角标，下拉刷新）
+                   └─ 点击封面
+                        └─ 条目预览（BottomSheetDialogFragment）
+                             ├─ 封面 + 中文名/原名 + 简介（3 行可展开）
+                             ├─ 远程评分 + Bangumi 标签
+                             └─ [添加至纪念] 按钮
+                                   └─ 状态选择弹层 → 落库
+```
+
+#### 2. 交互原则
+1. **一键添加必选状态**：点「添加至纪念」弹出状态选择，一步到位不留歧义；
+2. **骨架 vs 灵魂分离**：远程数据只填客观字段，个人评分、感想、摘录留空，详情页提示「还没有留下你的想法」；
+3. **防重复**：按 `source_type + source_id` 精确查重禁止重复添加；按 `title + media_type` 模糊查重弹可能已存在提示；
+4. **与纪念功能衔接**：导入的是骨架，纪念才是灵魂。
+
+---
+
+### 50.5 分期开发计划与执行状态
+
+| 版本 | 内容 | 状态 |
+|:---|:---|:---:|
+| 导入一期 | DB v10 迁移（4 新列）+ 网络层（搜索/详情/UA/缓存）+ DiscoverActivity 搜索与一键添加 + 防重复 | ✅ 已完成（2026-08-31）|
+| 导入二期 | 热门榜单 + 24h 磁盘缓存 + 搜索完善（防抖/相关性重排/计数/清空/重试）+ 版本信息展示 | ✅ 已完成（2026-08-31，模拟器验证） |
+| v1.0.2 | 简介来源标注 + 「未补全」轻提示 + 详情页简介排版适配 | ✅ 已完成（2026-09-01，模拟器验证） |
+| TMDB 评估 | 调研 TMDB 免费政策 / 中文元数据 / 配额 / 国内可达性，给出接入结论 | ✅ 已完成（2026-09-01，暂缓接入） |
+
+---
+
+### 50.6 TMDB 电影源评估结论（2026-09-01 调研）
+
+1. **TMDB 现状**：API 免费（Developer 个人计划）；支持 `zh-CN`；配额 40 次/10s；**国内可达性不理想（官网与 CDN 在国内普遍不稳定）**；客户端直连有 Key 泄露风险。
+2. **结论与建议**：
+   - 暂缓客户端直连 TMDB，避免超时失败破坏纯本地体验；
+   - 电影源继续走「Bangumi 三次元 + 豆瓣降级」；
+   - 未来自建服务端代理后再重启 TMDB 接入评估（服务端持 key、代理解决可达性）。
+
+---
+
+## 51. 附录 B：纪念功能体系专项设计与竞品调研 (Memorial System Specs)
+
+> 历史归档源：原 `docs/specs/纪念功能设计与计划.md`（2026-08-22 制定）。
+> 定位：把「读过的一本书 / 一个作品」变成值得纪念的存在。
+
+### 51.1 调研背景与竞品结论
+
+#### 1. 调研对象
+- **Openreads**（Flutter，1.6k+ stars）：隐私优先的书籍追踪 App，功能最接近的正面对标；
+- **BookDiaryMobile**（Kotlin + Room）：阅读日记 App，技术栈相同的架构参考；
+- **Every Read**（安卓，闭源）：私人阅读日记，笔记绑定页码参考；
+- **「阅读记录」**（iOS，闭源）：打卡 + 时长 + 年度总结，国内赛道标杆。
+
+#### 2. 核心启示
+1. **「纯记录」赛道已经成熟**：Openreads 把书单状态、标签、在线搜书、统计做完了，阅痕继续在纯工具维度追赶没有壁垒。
+2. **「纪念意义」是所有开源项目的空白**：没有任何一个项目做「那年今日」「周年回忆」「阅读里程碑」这类情感化功能，这是阅痕的破局点。
+3. **数据模型是分水岭**：扁平单表无法沉淀过程性记忆，必须引入独立的「摘录 / 笔记」子表。
+
+---
+
+### 51.2 借鉴点与反面教材
+
+#### 1. Openreads
+- **值得借鉴**：多次阅读建模（支持重读）；读完即评微交互；软删除与回收站；封面文件分离；年度阅读挑战。
+- **反面教材**：统计拉全量书籍进内存循环算（阅痕下推 SQL 聚合）；标签用字符串拼接与 LIKE 过滤（阅痕用 JSON/结构化）。
+
+#### 2. BookDiaryMobile
+- **值得借鉴**：相册选图 → 固定裁剪 → 内部存储落盘；响应式数据流；ZIP 全量备份。
+- **反面教材**：单表无关联，「日记」只是书行内的一段文本，无法绑定页码与心情。
+
+#### 3. Every Read
+- 笔记和摘录**绑定到具体页码**（「第 192 页的私人批注」）——「位置即记忆」。
+
+---
+
+### 51.3 v1.1 摘录与笔记 —— 纪念核心层（数据模型设计）
+
+#### 1. notes 表结构
+```sql
+CREATE TABLE notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book_id INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'excerpt',   -- excerpt=摘录 / note=随想
+    content TEXT NOT NULL,                  -- 正文
+    page INTEGER,                           -- 页码（可空，位置即记忆）
+    chapter TEXT,                           -- 章节（可空）
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    is_deleted INTEGER NOT NULL DEFAULT 0,
+    deleted_at TEXT,
+    FOREIGN KEY(book_id) REFERENCES books(id)
+);
+CREATE INDEX index_notes_book_deleted ON notes(book_id, is_deleted);
+CREATE INDEX index_notes_created ON notes(created_at);
+```
+
+#### 2. v1.1 功能清单
+1. Note 数据模型 + notes 表 + DAO（增、改、按书查、软归档）；
+2. 书籍详情页「摘录与随想」区块（时间倒序卡片流）；
+3. 添加/编辑摘录表单（页码、章节、正文）；
+4. 翻书模式浏览摘录（`FlipNotesActivity`，ViewPager2 仿真 3D 翻页）。
+
+---
+
+### 51.4 v1.2 统计与回忆 —— 纪念表达层
+
+1. **统计（SQL 聚合）**：
+   - 读书数、均分、月度柱状图（`GROUP BY strftime('%Y-%m', finish_date)`）。
+2. **回忆（差异化核心）**：
+   - **那年今日**：月日匹配历史读完作品，首页卡片轮换呈现；
+   - **里程碑成就勋章**：第 N 本作品达成时解锁成就；
+   - **年度精神年鉴**：年末生成策展级画册。
+3. **封面管线**：本地文件优先，内存保护与居中裁剪。
+
+---
+
+### 51.5 3D 沉浸式空间与北向愿景（每本书一座展览馆）
+
+- **空间理念**：书架是纪念馆外墙，「走进一本书」= 走进它的私人展览馆。每本书拥有一个专属 3D 展厅，展品随记录向纵深生长。
+- **展品映射**：摘录画框（notes excerpt）、随想画框（notes note）、纪念牌（评分+标签）、封面原画（cover）、主题墙（review 读后感）、中央展台（books 本体）。
+- **分级落地**：
+  - 场景 1（悬浮卡）：XML `rotationY` + `translationZ` 触摸回正；
+  - 场景 2（翻书）：`ViewPager2` + 仿真卷曲翻折着色器；
+  - 场景 3（私人展厅）：OpenGL ES 3D / SceneView 虚拟立体画廊。
+
+---
+
+## 52. 附录 C：工程历程、工程事实与历史迭代总表 (Engineering Milestones & Iteration Changelog)
+
+> 历史归档源：原 `docs/specs/开发进度.md`。记录项目从 0 到 v1.0.11 的完整研发历程与技术事实。
+
+### 52.1 核心工程事实
+
+- **工程定位**：Android 原生开发（Kotlin 100% / API 31+），根目录为工程根；
+- **核心架构**：主模块 `:app`，包名 `com.example.readtrace`；
+- **UI 体系**：XML Layout + AppCompat + 自定义 Canvas 2D/3D View + OpenGL ES 3.0/2.0 画廊渲染器；
+- **数据库架构**：SQLiteOpenHelper 单例（`readtrace.db`，v13），包含 `books`、`notes`、`audio_tracks`、`mindprints`、`curator_favorites` 等表，全链路严格遵守软删除与级联清理；
+- **发布版本演进**：`versionCode = 47`、`versionName = "1.0.11"`。
+
+---
+
+### 52.2 版本演进总表 (Milestones)
+
+| 版本 | 目标与核心里程碑 | 验收状态 |
+|:---|:---|:---:|
+| **v1.0** | Android 本地书籍记录核心功能、软删除回收站、玻璃书架首页 | ✅ 已完成 |
+| **v1.1** | 摘录与随想笔记、3D 翻书模式 (`FlipNotesActivity`)、CSV 批量导入 | ✅ 已完成 |
+| **v1.2** | 统计与回忆、那年今日时光留痕、月度阅读趋势原生柱状图 | ✅ 已完成 |
+| **v1.3** | 回收站恢复与文件物理清理、本地封面防 OOM 居中采样管线 | ✅ 已完成 |
+| **v1.4** | 即时搜索与多维标签筛选过滤条、里程碑成就勋章大厅 (`BadgesActivity`) | ✅ 已完成 |
+| **v2.0** | 五大媒介模型扩展（书籍 📖、番剧 🌸、影视 🎬、游戏 🎮、音乐 💿） | ✅ 已完成 |
+| **v2.1** | 数据备份中心 (`BackupActivity`)：全量 JSON、Markdown 排版文集、RFC 4180 CSV | ✅ 已完成 |
+| **v2.2** | 3D 私人展厅 (`Gallery3DActivity`)：OpenGL ES 环形自适应悬浮排布、手势聚焦拾取 | ✅ 已完成 |
+| **v2.3** | TXT 名著纯净资源库内置与 3D 拟真翻书阅读器 (`Book3DReaderActivity`) | ✅ 已完成 |
+| **v3.0** | 阅痕云端展览社区 (`CommunityActivity`)、3D 他人展厅探访与策展发布向导 | ✅ 已完成 |
+| **v1.0.0** | 策展人账号体系、3D 全息通行证 (`CuratorPassCardView`)、生物识别指纹速登 | ✅ 已完成（正式序列起点） |
+| **v1.0.1** | 微信一键授权（沙盒/正式双轨）与手机号 6 位验证码速登 (`OtpInputView`) | ✅ 已完成 |
+| **v1.0.2** | 外部导入详情页简介 3 行折叠展开、来源标注、骨架未补全轻提示 | ✅ 已完成 |
+| **v1.0.3** | 阿里云短信通道直连 (Dysmsapi HMAC-SHA1) + 接入指南 | ✅ 已完成 |
+| **v1.0.4** | 远程评分联动、榜单交互优化、封面弱网 APK 兜底、杉果/Steam 游戏榜单 | ✅ 已完成 |
+| **v1.0.5** | P20 缺陷清零、伴读钟白噪音打卡、WebDAV 静默增量同步、年鉴自由选年 | ✅ 已完成 |
+| **v1.0.6** | 主页分页化重塑：首屏独尊清爽记录台、探索长廊沉浸下探、我的最爱心选展厅 | ✅ 已完成 |
+| **v1.0.7** | 3D 拟真黑胶/复古透明磁带播放器、物理线性马达触觉联动、版本演进纪要体系 | ✅ 已完成 |
+| **v1.0.8** | 全量存档合并包一次导入 (Sovereign Backup)、富内容 JSON 应用内自动建库、账号数据物理清空、预设资产补全 | ✅ 已完成 |
+| **v1.0.9** | 移除 Web 微卡、长卷封面加载加速、全息卡带封面支持自由拖拽平移、云歌单标题修复 | ✅ 已完成 |
+| **v1.0.10**| P38 安全加固与性能扫探：WebDAV 密码 AndroidKeyStore AES 加密、小组件异步化、详情页 12 连查清零 | ✅ 已完成 |
+| **v1.0.11**| 全新安装评分散布算法修正、离散档位平滑过渡、多媒介评分自适应 | ✅ 已完成 |
+
+---
+
+### 52.3 关键历史缺陷修复与技术复核归档
+
+#### 1. A/B/C/D 组核心交互修复 (v1.0.8)
+- **A 组 播放器 -38/0 状态死锁**：解绑旧实例监听，改用 `reset()` 代替 `stop()`，增加 `isPreparing` 门禁与 Referer/UA 请求头，杜绝 native 非法状态崩溃；
+- **B 组 窗口 Insets 累加遮挡**：修正 WindowInsets 回调累加 `systemBars.bottom` 导致按钮漂移顶出的问题，改为基于初始 Padding 的幂等重算；
+- **C 组 艺术头像几何规格不齐**：统一卡片圆角（16dp）与固定高度（76dp），解决不同 emoji 字形度量差异导致的错位；
+- **D 组 新版本弹窗日间对比度崩塌**：将硬编码白字改为日夜自适应色牌 `@color/readtrace_ink`，达到 4.5:1 无障碍对比度。
+
+#### 2. P38 数据安全与性能深度扫探 (v1.0.10)
+- **G13 凭据加密落盘**：弃用已过时的 AndroidX security-crypto，手写 AndroidKeyStore AES-256-GCM 安全加解密仓，实现 WebDAV 密码密文存储与旧明文自愈迁移；
+- **G14 OTP 暴力破解防御**：采用 `SecureRandom`，限制单验证码最多 5 次输错尝试；
+- **G12 小组件查库与位图解码后台化**：彻底消除桌面 AppWidget 更新时的主线程磁盘 I/O；
+- **P-1~P-5 渲染吞吐优化**：详情页 `onResume` 12 连查异步化、自定义 View `onDraw` 消除每帧分配（`RadialGradient` 与 `Shader` 缓存复用）。
+
+

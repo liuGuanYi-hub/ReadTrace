@@ -31,11 +31,8 @@ docs/
 │   ├── RELEASE_NOTES_v1.0.5.md              # 情绪等高线拓扑与五媒介藏库升级
 │   ├── RELEASE_NOTES_v1.0.0.md              # 初代核心架构奠基与基础策展系统
 │   └── RELEASE_NOTES_v6.0.0.md              # 微信小程序端同步演化说明
-├── specs/                    # 📑 产品规划、功能设计与核心技术规格
-│   ├── 开发进度.md                           # 完整迭代日志、技术演进与需求清单
+├── specs/                    # 📑 产品规格、架构设计与接入指南
 │   ├── 安卓开发文档.md                       # Android 端工程架构、核心类说明与开发规范
-│   ├── 外部导入功能设计与计划.md              # 豆瓣/Bangumi/Steam 多源导入技术方案
-│   ├── 纪念功能设计与计划.md                 # 护照盖章、票根、藏书票与 3D 展厅规划
 │   └── 认证正式化接入指南.md                 # 微信鉴权与阿里云短信通道配置指南
 ├── screenshots/              # 📸 项目 README 视觉画廊高保真实机截图
 └── pic/                      # 🧪 本地测试与多端验证临时截图
@@ -60,10 +57,8 @@ docs/
 - 🖼️ **[架构动态演化 GIF](architecture/dynamic-archify-architecture.gif)** 与 **[矢量 SVG](architecture/dynamic-archify-architecture.svg)**。
 
 ### 3. 📑 技术规格与规划 (Specs)
-- 📌 **[开发进度与全景任务表](specs/开发进度.md)**：包含各阶段迭代记录、待办特性与技术债清理状态。
+- 🗺️ **[大一统项目规划与开发全景图 (Master Plan)](../readtrace_project_plan.md)**：包含 1~49 章完整规划路线、P1~P39 演进批次、外部导入与纪念功能规格及版本历程（已合并全量计划）。
 - 📱 **[安卓开发文档](specs/安卓开发文档.md)**：包含 Android Native 架构规范、数据层事务保护与 UI 渲染约定。
-- 📦 **[外部导入功能设计与计划](specs/外部导入功能设计与计划.md)**：豆瓣、Bangumi、Steam、本地 CSV/JSON 解析管道设计。
-- 🎴 **[纪念功能设计与计划](specs/纪念功能设计与计划.md)**：精神护照、透光票根、版画藏书票与 3D 展厅方案。
 - 🔐 **[认证正式化接入指南](specs/认证正式化接入指南.md)**：微信登录、阿里云短信验证码与 WebDAV 增量校验规范。
 
 ### 4. 📦 数据资产与预设 (Exports)
