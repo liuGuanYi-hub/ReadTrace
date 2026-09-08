@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_panel"
+    android:elevation="18dp"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="24dp">
+
+    <!-- 顶部应用品牌标志区 -->
+    <ImageView
+        android:id="@+id/ivAboutLogo"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@string/app_name"
+        android:elevation="4dp"
+        android:src="@mipmap/ic_launcher" />
+
+    <TextView
+        android:id="@+id/tvAboutAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:fontFamily="sans"
+        android:text="@string/app_name"
+        android:textColor="@color/readtrace_ink"
+        android:textSize="21sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvAboutSlogan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans"
+        android:text="安静记录每一部作品留下的心智印记"
+        android:textColor="@color/readtrace_accent"
+        android:textSize="12.5sp" />
+
+    <!-- 版本徽章 -->
+    <TextView
+        android:id="@+id/tvAboutVersionBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_status_chip_selected"
+        android:fontFamily="sans"
+        android:paddingStart="12dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="3dp"
+        android:textColor="@color/readtrace_accent"
+        android:textSize="11.5sp"
+        tools:text="v1.0.11 · 正式发布版" />
+
+    <!-- 理念与宣言卡片 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_segmented_container"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans"
+            android:lineSpacingExtra="3.5dp"
+            android:text="“每一本书、每一部番剧、每一部电影与每一款游戏，都是一段当时的自己。阅痕坚守「纯本地数据掌控」与「离线优先」原则，守护属于您自己的精神心智年轮。”"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="12.5sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="#158A7A68" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans"
+            android:lineSpacingExtra="3dp"
+            android:text="✦ 离线优先：端侧 SQLite，数据永不上传中心服务器\n✦ 云端自持：支持坚果云 / WebDAV 增量同步\n✦ 拟真声学：微声学音效引擎 · 空间音频黑胶卡座\n✦ 数据致敬：Bangumi 番组计划 · 豆瓣公开页 · 网易云音乐"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="11.5sp" />
+    </LinearLayout>
+
+    <!-- 快捷操作按钮 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btnAboutChangelog"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="📜 版本纪要"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnAboutWhatsNew"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_secondary_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="✨ 新版特性"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 关闭按钮 -->
+    <TextView
+        android:id="@+id/btnAboutDismiss"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_primary_button"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="知道了"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

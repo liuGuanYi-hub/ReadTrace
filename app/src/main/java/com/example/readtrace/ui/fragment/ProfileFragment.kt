@@ -146,15 +146,17 @@ class ProfileFragment : Fragment() {
         val versionText = view.findViewById<TextView>(R.id.profileVersionText)
         // 版本演进纪要入口徽章：动态读真实 versionName，XML 里的占位文本不作真值
         val versionBadge = view.findViewById<TextView>(R.id.profileChangelogVersionBadge)
+        val aboutBadge = view.findViewById<TextView>(R.id.profileVersionBadge)
         runCatching {
             val info = requireContext().packageManager
                 .getPackageInfo(requireContext().packageName, 0)
-            "阅痕 ReadTrace v${info.versionName}（versionCode ${info.longVersionCode}）\n纯本地数据掌控 · 封面与条目数据来自 Bangumi / 国内 CDN" to "v${info.versionName}"
-        }.onSuccess { (text, badge) ->
+            Triple("阅痕 ReadTrace v${info.versionName} · 纯本地掌控", "v${info.versionName}", "v${info.versionName}")
+        }.onSuccess { (text, badge, abBadge) ->
             versionText.text = text
             versionBadge?.text = badge
+            aboutBadge?.text = abBadge
         }.onFailure {
-            versionText.text = "阅痕 ReadTrace"
+            versionText.text = "阅痕 ReadTrace · 纯本地掌控"
         }
     }
 
@@ -230,10 +232,16 @@ class ProfileFragment : Fragment() {
             startActivity(com.example.readtrace.ChangelogActivity.createIntent(requireContext()))
         }
 
+        val profileVersionPanel = view?.findViewById<View>(R.id.profileVersionPanel)
+        profileVersionPanel?.setOnClickListener {
+            com.example.readtrace.util.HapticFeedbackEngine.lightClick(requireContext())
+            com.example.readtrace.ui.AboutAppBottomSheet.show(requireContext())
+        }
+
         listOfNotNull<View>(
             profileCommunityPanel,
             profileBadgePanel, profileMigrationPanel, profileBackupPanel, profileTrashPanel,
-            profileChangelogPanel
+            profileChangelogPanel, profileVersionPanel
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
 
