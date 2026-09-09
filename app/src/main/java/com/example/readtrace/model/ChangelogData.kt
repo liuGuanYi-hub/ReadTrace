@@ -15,9 +15,21 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
+            versionName = "v1.0.12",
+            releaseDate = "2026-09-09",
+            isLatest = true,
+            tagTitle = "🚀 精选热门榜单货架与极速建库轻量化系统 (P39)",
+            highlights = listOf(
+                "🔥 精选离线热门榜单货架：内置豆瓣 Top250 书影、Steam Top100、Bangumi 当季新番、滚石 500 经典专辑，一键点选即看",
+                "🤫 批量勾选静音化与触觉手势打分：批量选卡彻底剔除马达震动，全选/全清底栏；5 星 10 分制机械棘轮微颤手势打分组件",
+                "🔮 美学情绪胶囊与心智雷达动态联动：书影剧游音五大媒介高频情绪胶囊，点击即时注入并反向推算六维心智雷达",
+                "⚡ 一键极速建库与进度沉淀闭环：双阶段流式建库弹窗、四宫格成果面板、一键直达藏库与继续探索闭环",
+            ),
+        ),
+        ChangelogVersion(
             versionName = "v1.0.8",
             releaseDate = "2026-09-04",
-            isLatest = true,
+            isLatest = false,
             tagTitle = "📤 全量存档一次导入与账号数据主权 (Sovereign Backup)",
             highlights = listOf(
                 "📦 全量存档合并包：219 部作品连同角色谱/语录/章节大纲合成一个 JSON，「一个账号 = 一个 JSON」一次导入全部恢复",
