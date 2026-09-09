@@ -150,5 +150,1056 @@
     "summary": "证券经纪人思特里克兰德中年抛弃优渥的家庭与社会地位，奔赴巴黎学画，在穷困潦倒中不顾一切追逐内心的艺术呼唤。最后他在南太平洋塔希提岛上完成了惊世骇俗的绝美壁画，并在双目失明临终前下令将壁画付之一炬。满地都是六便士，他却抬头看见了月亮。",
     "subject_type": 1,
     "source": "curated_douban"
+  },
+  {
+    "id": 1010001,
+    "name": "Le Petit Prince",
+    "name_cn": "小王子",
+    "creator": "圣埃克苏佩里",
+    "cover_url": "covers/bgm_470322_nAZAP.jpg",
+    "rating_score": 9.1,
+    "date": "1943-04-06",
+    "tags": [
+      "童话",
+      "治愈",
+      "哲学",
+      "经典"
+    ],
+    "summary": "这是一本写给所有曾经是小孩的大人的童话。它用最纯净的语言，道出了人世间最深刻的真理：爱是驯服与责任，唯有用心才能看清本质。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010002,
+    "name": "Nineteen Eighty-Four",
+    "name_cn": "1984",
+    "creator": "乔治·奥威尔",
+    "cover_url": "covers/douban_s4371408.jpg",
+    "rating_score": 9.4,
+    "date": "1949-06-08",
+    "tags": [
+      "反乌托邦",
+      "极权批判",
+      "思想控制",
+      "经典"
+    ],
+    "summary": "反乌托邦文学的三大巅峰之首。冷峻剖析了极权主义对人类思想、语言与自由意志的终极剥夺。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010003,
+    "name": "La Peste",
+    "name_cn": "鼠疫",
+    "creator": "加缪",
+    "cover_url": "covers/bgm_310634_R3bhR.jpg",
+    "rating_score": 9.1,
+    "date": "1947-06-10",
+    "tags": [
+      "存在主义",
+      "荒诞与反抗",
+      "加缪",
+      "人性"
+    ],
+    "summary": "加缪存在主义文学的代表作。面对突如其来的荒诞灾难与封闭隔离，里厄医生等普通人坚守良知，展现了人类面对绝境时不屈的尊严。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010004,
+    "name": "Animal Farm",
+    "name_cn": "动物农场",
+    "creator": "乔治·奥威尔",
+    "cover_url": "covers/bgm_123576_9yR5T.jpg",
+    "rating_score": 9.3,
+    "date": "1945-08-17",
+    "tags": [
+      "政治寓言",
+      "讽刺",
+      "奥威尔",
+      "神作"
+    ],
+    "summary": "传世的政治讽喻寓言。用极具洞察力的笔触揭示了权力如何腐蚀革命理想的残酷规律。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010005,
+    "name": "Norwegian Wood",
+    "name_cn": "挪威的森林",
+    "creator": "村上春树",
+    "cover_url": "covers/bgm_920_85mPM.jpg",
+    "rating_score": 8.9,
+    "date": "1987-09-04",
+    "tags": [
+      "村上春树",
+      "青春迷茫",
+      "生死羁绊",
+      "伤感"
+    ],
+    "summary": "村上春树最负盛名的青春物语。迷惘的成长、无法弥合的孤独与逝去的青春。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010006,
+    "name": "Crime and Punishment",
+    "name_cn": "罪与罚",
+    "creator": "陀思妥耶夫斯基",
+    "cover_url": "covers/bgm_477180_I9dd9.jpg",
+    "rating_score": 9.2,
+    "date": "1866-12-01",
+    "tags": [
+      "俄国文学",
+      "心理剖析",
+      "救赎",
+      "经典"
+    ],
+    "summary": "陀思妥耶夫斯基深邃的心理剖析巅峰。通过拉斯柯尔尼科夫的犯罪与心灵忏悔，拷问了道德、超人与救赎的真谛。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010007,
+    "name": "The Myth of Sisyphus",
+    "name_cn": "西西弗神话",
+    "creator": "加缪",
+    "cover_url": "covers/bgm_635490_d6ekH.jpg",
+    "rating_score": 8.8,
+    "date": "1942-10-01",
+    "tags": [
+      "哲学",
+      "荒诞",
+      "西西弗斯",
+      "反抗"
+    ],
+    "summary": "关于生命荒诞与反抗哲学的经典随笔。推石上山的西西弗斯正是每一个直面荒谬人生的清醒反抗者。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010008,
+    "name": "The Old Man and the Sea",
+    "name_cn": "老人与海",
+    "creator": "海明威",
+    "cover_url": "covers/bgm_156705_3VOdt.jpg",
+    "rating_score": 8.9,
+    "date": "1952-09-01",
+    "tags": [
+      "海明威",
+      "硬汉文学",
+      "尊严",
+      "经典"
+    ],
+    "summary": "海明威硬汉文学的极简巅峰。圣地亚哥老人与大马林鱼及鲨鱼群的生死搏斗，是人类尊严与不屈意志的永恒赞歌。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010009,
+    "name": "Love in the Time of Cholera",
+    "name_cn": "霍乱时期的爱情",
+    "creator": "马尔克斯",
+    "cover_url": "covers/bgm_556855_7hv2O.jpg",
+    "rating_score": 9.0,
+    "date": "1985-01-01",
+    "tags": [
+      "马尔克斯",
+      "爱情史诗",
+      "半个世纪",
+      "经典"
+    ],
+    "summary": "马尔克斯耗费一生心血书写的爱情百科全书。跨越半个多世纪的等待与执念，展现了爱情在面对衰老与死亡时的至高神圣。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010010,
+    "name": "Les Misérables",
+    "name_cn": "悲惨世界",
+    "creator": "雨果",
+    "cover_url": "covers/bgm_156904_qYLyb.jpg",
+    "rating_score": 9.3,
+    "date": "1862-04-03",
+    "tags": [
+      "雨果",
+      "人道主义",
+      "救赎",
+      "冉阿让"
+    ],
+    "summary": "法国浪漫主义文学的巍峨巨塔。冉阿让一生的救赎与冉冉升起的人性光辉，跨越两百年依然震撼人心。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010011,
+    "name": "Four Generations Under One Roof",
+    "name_cn": "四世同堂",
+    "creator": "老舍",
+    "cover_url": "covers/douban_s3424257.jpg",
+    "rating_score": 9.3,
+    "date": "1946-01-01",
+    "tags": [
+      "老舍",
+      "京味文学",
+      "抗战群像",
+      "小羊圈胡同"
+    ],
+    "summary": "老舍笔下小羊圈胡同里北平市民在抗战风云中的生死离合，民族气节与世态炎凉的巨幅画卷。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010012,
+    "name": "Sapiens: A Brief History of Humankind",
+    "name_cn": "人类简史",
+    "creator": "尤瓦尔·赫拉利",
+    "cover_url": "covers/douban_s27814883.jpg",
+    "rating_score": 9.1,
+    "date": "2014-11-01",
+    "tags": [
+      "大历史",
+      "认知革命",
+      "人类学",
+      "深度通识"
+    ],
+    "summary": "宏大的人类进化与文明发展史通识读物。以跨学科视角颠覆我们对农业革命、金钱与宗教的传统认知。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010013,
+    "name": "A Brief History of Time",
+    "name_cn": "时间简史",
+    "creator": "霍金",
+    "cover_url": "covers/douban_s1914861.jpg",
+    "rating_score": 8.9,
+    "date": "1988-03-01",
+    "tags": [
+      "宇宙学",
+      "黑洞",
+      "量子力学",
+      "霍金"
+    ],
+    "summary": "世界级物理学大师写给大众的宇宙学经典。探讨时间起源、黑洞引力与大爆炸理论的壮丽诗篇。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010014,
+    "name": "Quantum Mechanics History",
+    "name_cn": "上帝掷骰子吗",
+    "creator": "曹天元",
+    "cover_url": "covers/douban_s1486674.jpg",
+    "rating_score": 9.2,
+    "date": "2006-01-01",
+    "tags": [
+      "量子物理史话",
+      "科普神作",
+      "波粒二象性"
+    ],
+    "summary": "国内最生动通俗的量子物理史话。将百年量子力学发展史写得如同一部跌宕起伏的武侠史诗。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010015,
+    "name": "Principles of Economics",
+    "name_cn": "经济学原理",
+    "creator": "曼昆",
+    "cover_url": "covers/douban_s33698881.jpg",
+    "rating_score": 9.3,
+    "date": "1997-12-01",
+    "tags": [
+      "经济学启蒙",
+      "微观宏观",
+      "十大原理",
+      "经典教材"
+    ],
+    "summary": "享誉全球的经济学入门教科书。用极其清晰幽默的笔触阐释了市场、价格机制与供求关系。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010016,
+    "name": "Social Psychology",
+    "name_cn": "社会心理学",
+    "creator": "戴维·迈尔斯",
+    "cover_url": "covers/douban_s1670932.jpg",
+    "rating_score": 9.0,
+    "date": "2006-01-01",
+    "tags": [
+      "心理学经典",
+      "从众从善",
+      "态度与行为"
+    ],
+    "summary": "社会心理学领域的权威著作。系统剖析了人类在社会情境中的从众、偏见、利他与人际吸引。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010017,
+    "name": "Cries in the Drizzle",
+    "name_cn": "在细雨中呼喊",
+    "creator": "余华",
+    "cover_url": "covers/douban_s34569411.jpg",
+    "rating_score": 8.8,
+    "date": "1991-01-01",
+    "tags": [
+      "余华",
+      "童年记忆",
+      "诗意叙事",
+      "回望"
+    ],
+    "summary": "余华最具诗意和回忆质感的第一部长篇小说。以碎锦式的结构回望南门小镇少年孙光林的成长记忆。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010018,
+    "name": "Chronicle of a Blood Merchant",
+    "name_cn": "许三观卖血记",
+    "creator": "余华",
+    "cover_url": "covers/douban_s24575140.jpg",
+    "rating_score": 9.2,
+    "date": "1995-11-01",
+    "tags": [
+      "余华",
+      "父爱如山",
+      "民间叙事",
+      "时代沧桑"
+    ],
+    "summary": "余华民间叙事的巅峰之作。小人物许三观用一次次卖血换来的钱维系起家庭的温饱，饱含底层平民的悲悯与温情。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010019,
+    "name": "The Miracles of the Namiya General Store",
+    "name_cn": "解忧杂货店",
+    "creator": "东野圭吾",
+    "cover_url": "covers/bgm_177164_jp.jpg",
+    "rating_score": 8.5,
+    "date": "2012-03-01",
+    "tags": [
+      "东野圭吾",
+      "温情奇幻",
+      "浪矢杂货店",
+      "治愈"
+    ],
+    "summary": "东野圭吾最温情治愈的长篇小说。穿梭时空的咨询信件，连接起一个个在十字路口迷茫的普通人灵魂。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010020,
+    "name": "And Then There Were None",
+    "name_cn": "无人生还",
+    "creator": "阿加莎·克里斯蒂",
+    "cover_url": "covers/bgm_396073_GO8H4.jpg",
+    "rating_score": 9.0,
+    "date": "1939-11-06",
+    "tags": [
+      "暴风雪山庄",
+      "阿婆",
+      "孤岛谋杀",
+      "推理神作"
+    ],
+    "summary": "暴风雪山庄模式的鼻祖与无可超越的奇迹。孤岛之上童谣杀人的设定与步步紧逼的窒息悬疑，推理迷必读之作。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010021,
+    "name": "Zekkyou",
+    "name_cn": "绝叫",
+    "creator": "叶真中显",
+    "cover_url": "covers/bgm_337991_HTm3A.jpg",
+    "rating_score": 8.9,
+    "date": "2014-10-01",
+    "tags": [
+      "社会派推理",
+      "孤独死",
+      "女性命运",
+      "神作"
+    ],
+    "summary": "当代日本社会派推理的震撼力作。从一具孤独死女尸剥离出整个平成年代女性在家庭与社会双重碾压下的悲剧史诗。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010022,
+    "name": "The 13 Steps",
+    "name_cn": "消失的十三级台阶",
+    "creator": "高野和明",
+    "cover_url": "covers/douban_s34070178.jpg",
+    "rating_score": 8.7,
+    "date": "2001-08-01",
+    "tags": [
+      "死刑制度",
+      "江户川乱步奖",
+      "硬核推理"
+    ],
+    "summary": "荣获第47届江户川乱步奖的杰作。严谨探讨死刑制度与司法正义的硬核推理小说。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010023,
+    "name": "Malice",
+    "name_cn": "恶意的深渊",
+    "creator": "东野圭吾",
+    "cover_url": "covers/bgm_120043_jp.jpg",
+    "rating_score": 8.7,
+    "date": "1996-09-01",
+    "tags": [
+      "东野圭吾",
+      "动机至上",
+      "人性嫉妒",
+      "恶意"
+    ],
+    "summary": "东野圭吾在动机探索上的巅峰之作。无关情仇与利益，仅仅因为纯粹深不见底的嫉妒，便构筑了这场残忍的构陷。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010024,
+    "name": "I Am a Cat",
+    "name_cn": "我是猫",
+    "creator": "夏目漱石",
+    "cover_url": "covers/douban_s2507284.jpg",
+    "rating_score": 8.6,
+    "date": "1905-01-01",
+    "tags": [
+      "夏目漱石",
+      "讽刺批判",
+      "猫眼看人间",
+      "名著"
+    ],
+    "summary": "日本国民作家夏目漱石的长篇名作。借一只猫的冷眼旁观，辛辣讽刺了明治维新时期知识分子的虚伪与颓废。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010025,
+    "name": "Rashomon",
+    "name_cn": "罗生门",
+    "creator": "芥川龙之介",
+    "cover_url": "covers/douban_s3435158.jpg",
+    "rating_score": 8.8,
+    "date": "1915-11-01",
+    "tags": [
+      "芥川龙之介",
+      "人性深渊",
+      "各执一词",
+      "经典短篇"
+    ],
+    "summary": "芥川龙之介探讨人性自私与不可靠叙事的巅峰之作。在绝境面前，人性的善恶边界变得脆弱模糊。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010026,
+    "name": "Victims Association",
+    "name_cn": "同名同姓受害者协会",
+    "creator": "下村敦史",
+    "cover_url": "covers/bgm_602142_O20ve.jpg",
+    "rating_score": 8.4,
+    "date": "2020-09-01",
+    "tags": [
+      "叙述性诡计",
+      "网络暴力",
+      "同名同姓",
+      "推理"
+    ],
+    "summary": "极具时代敏锐度的社会派悬疑小说。利用同名同姓的叙述性诡计，深刻控诉了互联网时代人肉搜索与网络暴力的肆虐。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010027,
+    "name": "Trick Museum",
+    "name_cn": "诡计博物馆",
+    "creator": "大山诚一郎",
+    "cover_url": "covers/bgm_448954_xcxFM.jpg",
+    "rating_score": 8.3,
+    "date": "2015-05-01",
+    "tags": [
+      "大山诚一郎",
+      "短篇推理",
+      "赤色博物馆",
+      "冷案重启"
+    ],
+    "summary": "短篇本格推理之神大山诚一郎的代表作。通过馆藏冷案证物的精准逻辑串联，完成了一次次惊艳的安乐椅侦探反转。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010028,
+    "name": "All Suspects",
+    "name_cn": "全员嫌疑人",
+    "creator": "大山诚一郎",
+    "cover_url": "covers/douban_s34002344.jpg",
+    "rating_score": 8.2,
+    "date": "2021-08-01",
+    "tags": [
+      "大山诚一郎",
+      "华丽本格",
+      "多重解答",
+      "推理"
+    ],
+    "summary": "大山诚一郎本格推理短篇集。节奏明快、逻辑严密，多重解答层层剥茧。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010029,
+    "name": "Wuthering Heights",
+    "name_cn": "呼啸山庄",
+    "creator": "艾米莉·勃朗特",
+    "cover_url": "covers/bgm_127782_bSf0j.jpg",
+    "rating_score": 8.7,
+    "date": "1847-12-01",
+    "tags": [
+      "勃朗特姐妹",
+      "哥特浪漫",
+      "狂烈之爱",
+      "希斯克利夫"
+    ],
+    "summary": "英国文学史上最具原始狂野力量与哥特张力的复仇史诗。希斯克利夫那摧毁一切的疯狂爱意，撼人心魄。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010030,
+    "name": "Counselling for Toads",
+    "name_cn": "蛤蟆先生去看心理医生",
+    "creator": "罗伯特·戴博德",
+    "cover_url": "covers/douban_s33941998.jpg",
+    "rating_score": 8.5,
+    "date": "1997-01-01",
+    "tags": [
+      "心理学启蒙",
+      "童年创伤",
+      "自我觉察",
+      "治愈"
+    ],
+    "summary": "畅销英国的经典心理咨询启蒙读物。通过蛤蟆先生在苍鹭医生引导下的十次咨询，展现了自我接纳与疗愈的温暖力量。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010031,
+    "name": "Curtain: Poirot's Last Case",
+    "name_cn": "帷幕",
+    "creator": "阿加莎·克里斯蒂",
+    "cover_url": "covers/bgm_411619_m8E7V.jpg",
+    "rating_score": 8.8,
+    "date": "1975-09-01",
+    "tags": [
+      "波洛谢幕",
+      "阿婆",
+      "斯泰尔斯庄园",
+      "终局"
+    ],
+    "summary": "波洛侦探系列的终曲之作。面对不可绳之以法的终极恶人，迟暮的波洛以自己的生命和信仰为代价，拉下了传奇人生的帷幕。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010032,
+    "name": "A Man Called Ove",
+    "name_cn": "一个叫欧维的男人决定去死",
+    "creator": "弗雷德里克·巴克曼",
+    "cover_url": "covers/douban_s29071620.jpg",
+    "rating_score": 9.1,
+    "date": "2012-08-27",
+    "tags": [
+      "巴克曼",
+      "北欧治愈",
+      "暴躁老头",
+      "爱与陪伴"
+    ],
+    "summary": "瑞典作家巴克曼风靡全球的温情之作。一个古板暴躁的鳏夫老头，在一群吵闹邻居的关爱中重新寻回活下去的温度。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010033,
+    "name": "Pride and Prejudice",
+    "name_cn": "傲慢与偏见",
+    "creator": "简·奥斯汀",
+    "cover_url": "covers/bgm_426638_51raR.jpg",
+    "rating_score": 9.0,
+    "date": "1813-01-28",
+    "tags": [
+      "简·奥斯汀",
+      "英国文学",
+      "达西与伊丽莎白",
+      "浪漫经典"
+    ],
+    "summary": "英国文学史上最优雅迷人的浪漫经典。伊丽莎白与达西先生在智慧与傲慢、偏见的交锋中，找到了心灵真正的共鸣。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010034,
+    "name": "The Border Town",
+    "name_cn": "边城",
+    "creator": "沈从文",
+    "cover_url": "covers/bgm_458438_5Co5t.jpg",
+    "rating_score": 8.8,
+    "date": "1934-01-01",
+    "tags": [
+      "沈从文",
+      "湘西烟雨",
+      "翠翠",
+      "纯净诗意"
+    ],
+    "summary": "中国乡土文学最澄澈空灵的诗意丰碑。茶峒小镇的渡船、老船夫的纯良与翠翠的守望，绘就了不惹尘埃的湘西田园牧歌。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010035,
+    "name": "The Setting Sun",
+    "name_cn": "斜阳",
+    "creator": "太宰治",
+    "cover_url": "covers/bgm_501590_ppwOL.jpg",
+    "rating_score": 8.6,
+    "date": "1947-07-01",
+    "tags": [
+      "太宰治",
+      "无赖派",
+      "没落贵族",
+      "凄美"
+    ],
+    "summary": "太宰治战后文学的巅峰力作。描写了战后日本没落贵族家庭在时代剧变下的毁灭与最后的尊严挣扎。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010036,
+    "name": "The Count of Monte Cristo",
+    "name_cn": "基督山伯爵",
+    "creator": "大仲马",
+    "cover_url": "covers/bgm_116740_5OoZG.jpg",
+    "rating_score": 9.2,
+    "date": "1844-08-28",
+    "tags": [
+      "大仲马",
+      "爽文鼻祖",
+      "快意恩仇",
+      "等待与希望"
+    ],
+    "summary": "通俗文学史上不可逾越的复仇神作。爱德蒙·唐泰斯从伊夫堡地牢的囚徒蜕变为复仇之神，快意恩仇的同时展现了宽恕与救赎的真谛。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010037,
+    "name": "No Longer Human",
+    "name_cn": "人间失格",
+    "creator": "太宰治",
+    "cover_url": "covers/bgm_2176_2866n.jpg",
+    "rating_score": 8.3,
+    "date": "1948-06-01",
+    "tags": [
+      "太宰治",
+      "生而为人",
+      "私小说",
+      "绝望自白"
+    ],
+    "summary": "太宰治最具震撼力的绝笔自白。以叶藏的视角展现了敏感纤细的心灵在粗暴世俗人间的艰难泅渡与幻灭。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010038,
+    "name": "The A.B.C. Murders",
+    "name_cn": "ABC谋杀案",
+    "creator": "阿加莎·克里斯蒂",
+    "cover_url": "covers/bgm_218090_H70Fk.jpg",
+    "rating_score": 8.5,
+    "date": "1936-01-06",
+    "tags": [
+      "阿婆",
+      "波洛探案",
+      "连环杀人",
+      "推理经典"
+    ],
+    "summary": "阿加莎连环杀人模式的巅峰之作。按照英国字母表顺序作案的冷血杀手与波洛灰色脑细胞的终极对决。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010039,
+    "name": "Spring Snow",
+    "name_cn": "春雪",
+    "creator": "三岛由纪夫",
+    "cover_url": "covers/douban_s4418737.jpg",
+    "rating_score": 8.7,
+    "date": "1969-01-01",
+    "tags": [
+      "三岛由纪夫",
+      "丰饶之海",
+      "唯美主义",
+      "日式哀伤"
+    ],
+    "summary": "三岛由纪夫《丰饶之海》四部曲第一卷。将大正时代华族贵族的青春爱恋与日式极致物哀美学推向了巅峰。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010040,
+    "name": "The Kite Runner",
+    "name_cn": "追风筝的人",
+    "creator": "卡勒德·胡赛尼",
+    "cover_url": "covers/douban_s1727290.jpg",
+    "rating_score": 8.9,
+    "date": "2003-05-29",
+    "tags": [
+      "胡赛尼",
+      "救赎之书",
+      "为你千千万万遍",
+      "阿富汗"
+    ],
+    "summary": "感动全球数千万读者的救赎之书。阿米尔与哈桑跨越阶级与苦难的友谊，道出了人类在懦弱与悔恨后寻求宽恕的永恒光芒。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010041,
+    "name": "War and Peace",
+    "name_cn": "战争与和平",
+    "creator": "列夫·托尔斯泰",
+    "cover_url": "covers/bgm_172940_jHsTY.jpg",
+    "rating_score": 9.3,
+    "date": "1869-01-01",
+    "tags": [
+      "托尔斯泰",
+      "历史巨著",
+      "全景史诗",
+      "俄国文学"
+    ],
+    "summary": "世界文学史上最伟大的全景式历史史诗。托尔斯泰以宏大的视野再现了1812年俄法战争的风云变幻与数百个人物的悲欢离合。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010042,
+    "name": "Life and Death Are Wearing Me Out",
+    "name_cn": "生死疲劳",
+    "creator": "莫言",
+    "cover_url": "covers/douban_s35289336.jpg",
+    "rating_score": 9.1,
+    "date": "2006-01-01",
+    "tags": [
+      "莫言",
+      "魔幻现实",
+      "六道轮回",
+      "高密东北乡"
+    ],
+    "summary": "莫言问鼎诺贝尔文学奖的核心代表作。地主西门闹经历驴、牛、猪、狗、猴六道轮回，见证了中国农村半个世纪的风云变迁。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010043,
+    "name": "A Murder Is Announced",
+    "name_cn": "谋杀启事",
+    "creator": "阿加莎·克里斯蒂",
+    "cover_url": "covers/bgm_410675_Vx37q.jpg",
+    "rating_score": 8.6,
+    "date": "1950-06-05",
+    "tags": [
+      "阿婆",
+      "马普尔小姐",
+      "乡村悬疑",
+      "经典"
+    ],
+    "summary": "马普尔小姐系列的杰出代表作。将英国乡村平静生活下的暗流涌动与心理谜题巧妙交融。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010044,
+    "name": "Oliver Twist",
+    "name_cn": "雾都孤儿",
+    "creator": "查尔斯·狄更斯",
+    "cover_url": "covers/bgm_143159_b135f.jpg",
+    "rating_score": 8.4,
+    "date": "1838-01-01",
+    "tags": [
+      "狄更斯",
+      "批判现实主义",
+      "伦敦雾都",
+      "奥利弗"
+    ],
+    "summary": "狄更斯批判现实主义的名作。孤儿奥利弗在19世纪伦敦黑暗底层的挣扎与坚守，充满了对底层苦难的深切同情。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010045,
+    "name": "The Human Chair",
+    "name_cn": "人间椅子",
+    "creator": "江户川乱步",
+    "cover_url": "covers/bgm_612863_HxOOQ.jpg",
+    "rating_score": 8.2,
+    "date": "1925-10-01",
+    "tags": [
+      "江户川乱步",
+      "猎奇推理",
+      "心理异化",
+      "经典短篇"
+    ],
+    "summary": "日本变格派推理鼻祖江户川乱步的惊悚名作。将病态诡异的心理执念与出人意料的反转融为一体。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010046,
+    "name": "Snow Country",
+    "name_cn": "雪国",
+    "creator": "川端康成",
+    "cover_url": "covers/bgm_366887_6e7e8.jpg",
+    "rating_score": 8.6,
+    "date": "1937-01-01",
+    "tags": [
+      "川端康成",
+      "诺奖文学",
+      "极致物哀",
+      "驹子"
+    ],
+    "summary": "川端康成唯美主义与日本物哀文学的巅峰。雪国温泉旅馆中驹子如飞蛾扑火般的爱与徒劳，美得令人心碎。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010047,
+    "name": "The Dancing Girl of Izu",
+    "name_cn": "伊豆的舞女",
+    "creator": "川端康成",
+    "cover_url": "covers/bgm_296767_0oKUU.jpg",
+    "rating_score": 8.5,
+    "date": "1926-01-01",
+    "tags": [
+      "川端康成",
+      "纯真初恋",
+      "清新哀伤",
+      "伊豆半岛"
+    ],
+    "summary": "川端康成清新唯美的早期成名作。记录了青年学生与流浪舞女之间朦胧纯真而又不得不告别的青春初恋。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1010048,
+    "name": "Viper's Tangle",
+    "name_cn": "蛇结",
+    "creator": "弗朗索瓦·莫里亚克",
+    "cover_url": "covers/douban_s35106938.jpg",
+    "rating_score": 8.5,
+    "date": "1932-01-01",
+    "tags": [
+      "诺贝尔文学奖",
+      "心理剖析",
+      "金钱与亲情",
+      "救赎"
+    ],
+    "summary": "法国诺贝尔文学奖得主莫里亚克的代表作。通过一位守财奴临终前的自白信，剖析了家庭内部金钱欲望与亲情背叛的深渊。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075020,
+    "name": "Dream of the Red Chamber",
+    "name_cn": "红楼梦",
+    "creator": "曹雪芹",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1070959.jpg",
+    "rating_score": 9.6,
+    "date": "1791-01-01",
+    "tags": [
+      "古典名著",
+      "中国文学巅峰",
+      "贾宝玉",
+      "林黛玉",
+      "世家兴衰"
+    ],
+    "summary": "满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味。中国古典长篇小说的最高峰，以贾、史、王、薛四大家族的兴衰为背景，细腻展现了大观园中青年男女的纯真爱情与宿命悲剧，洞穿人情世故与哲理禅意。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075021,
+    "name": "Ordinary World",
+    "name_cn": "平凡的世界",
+    "creator": "路遥",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s1220562.jpg",
+    "rating_score": 9.0,
+    "date": "1986-12-01",
+    "tags": [
+      "茅盾文学奖",
+      "奋斗",
+      "陕北",
+      "孙少平",
+      "励志经典"
+    ],
+    "summary": "以中国70年代中期到80年代中期为背景，讲述了孙少安、孙少平兄弟在平凡而沉重的生活重压下，自强不息、在历史变革中拼搏奋进的壮丽史诗。即使最平凡的人，也得为他生活的那个世界奋斗。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075022,
+    "name": "The Brothers Karamazov",
+    "name_cn": "卡拉马佐夫兄弟",
+    "creator": "费奥多尔·陀思妥耶夫斯基",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s27237850.jpg",
+    "rating_score": 9.6,
+    "date": "1880-11-01",
+    "tags": [
+      "陀氏巅峰",
+      "哲学",
+      "弑父",
+      "人性深渊",
+      "信仰"
+    ],
+    "summary": "世界文学史最伟大的心理与哲学小说之一。围绕老卡拉马佐夫的离奇被杀，德米特里、伊万、阿廖沙三兄弟在爱欲狂乱、无神论理性与基督之爱间展开了对人类灵魂终极救赎的深邃拷问。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075023,
+    "name": "Siddhartha",
+    "name_cn": "悉达多",
+    "creator": "赫尔曼·黑塞",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s29053580.jpg",
+    "rating_score": 9.3,
+    "date": "1922-10-01",
+    "tags": [
+      "黑塞",
+      "灵修",
+      "寻找自我",
+      "河流",
+      "诺贝尔文学奖"
+    ],
+    "summary": "古印度贵族青年悉达多为了探寻生命真谛，告别优渥家庭成为苦修沙门，涉足红尘商海与情欲享乐，最终在静默奔流的大河边作为摆渡人聆听万物之声，在圆融觉照中获得灵魂的平静。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075024,
+    "name": "Fang Siqi's First Love Paradise",
+    "name_cn": "房思琪的初恋乐园",
+    "creator": "林奕含",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s29656730.jpg",
+    "rating_score": 9.2,
+    "date": "2017-02-07",
+    "tags": [
+      "华语文学",
+      "直面创伤",
+      "细腻",
+      "勇敢",
+      "震撼人心"
+    ],
+    "summary": "向死而生的绝笔文学。林奕含以极其华美细腻如琉璃般的文字，剖开了权力不对等下对少女心智与肉体的残忍掠夺。任何关于性的暴力，都是整个社会共谋的结果。她的文字在沉默的世界上敲响了永不熄灭的警钟。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075025,
+    "name": "The Courage to Be Disliked",
+    "name_cn": "被讨厌的勇气",
+    "creator": "岸见一郎 / 古贺史健",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s27237850.jpg",
+    "rating_score": 8.6,
+    "date": "2013-12-13",
+    "tags": [
+      "阿德勒心理学",
+      "课题分离",
+      "自我成长",
+      "对话体",
+      "畅销神作"
+    ],
+    "summary": "青年与哲人的五夜对话，直面人际关系的痛苦源头。一切烦恼都来自人际关系，通过课题分离摆脱他人认可的束缚。所谓自由，就是拥有被人讨厌的勇气；认真活在当下此时此刻，就是对人生最好的回应。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075026,
+    "name": "In the Field",
+    "name_cn": "置身事内：中国政府与经济发展",
+    "creator": "兰小欢",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s33989393.jpg",
+    "rating_score": 9.1,
+    "date": "2021-08-01",
+    "tags": [
+      "中国经济",
+      "地方政府",
+      "土地财政",
+      "通俗透彻",
+      "硬核科普"
+    ],
+    "summary": "复旦大学兰小欢教授以极高水平的通俗笔触，将微观机制与宏观经济运行融为一体。深入解析分税制改革、土地财政、城投招商引资与债务化解，帮助每一个读者看懂中国经济奇迹背后的深层体制逻辑。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075027,
+    "name": "Those Stories in Ming Dynasty",
+    "name_cn": "明朝那些事儿",
+    "creator": "当年明月",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s3848243.jpg",
+    "rating_score": 9.3,
+    "date": "2006-09-01",
+    "tags": [
+      "历史通俗",
+      "明朝",
+      "朱元璋",
+      "王阳明",
+      "经典传世"
+    ],
+    "summary": "以史料为基石，以年代和具体人物为主线，用小说笔法全景式再现了明朝近三百年十六位皇帝与文官武将的惊涛骇浪。从朱元璋乞讨开局到崇祯煤山自缢，落脚于徐霞客的千古名言：按自己的方式度过一生。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075028,
+    "name": "From the Soil",
+    "name_cn": "乡土中国",
+    "creator": "费孝通",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s4367104.jpg",
+    "rating_score": 9.3,
+    "date": "1948-04-01",
+    "tags": [
+      "社会学经典",
+      "差序格局",
+      "熟人社会",
+      "礼治秩序",
+      "费孝通"
+    ],
+    "summary": "社会学泰斗费孝通先生的立足之作。差序格局、男女有别、礼治秩序、无为而治，寥寥数万字精准勾勒出中国传统基层乡土社会的血缘网络与伦理秩序，是理解中国文化DNA的必读经典。",
+    "subject_type": 1,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1075029,
+    "name": "1587, A Year of No Significance",
+    "name_cn": "万历十五年",
+    "creator": "黄仁宇",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s1070222.jpg",
+    "rating_score": 9.0,
+    "date": "1982-05-01",
+    "tags": [
+      "大历史观",
+      "黄仁宇",
+      "张居正",
+      "申时行",
+      "历史哲思"
+    ],
+    "summary": "公元1587年，万历十五年，表面上四海升平无可称道。黄仁宇以大历史观聚焦万历皇帝、张居正、申时行、海瑞、戚继光和李贽等关键人物的命运，深刻揭示了以道德代替法律、缺乏数目字管理的传统官僚体制无可挽回的溃败宿命。",
+    "subject_type": 1,
+    "source": "curated_douban"
   }
 ]

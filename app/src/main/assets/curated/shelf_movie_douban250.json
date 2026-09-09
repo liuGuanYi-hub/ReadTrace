@@ -57,6 +57,44 @@
     "source": "curated_douban"
   },
   {
+    "id": 1292722,
+    "name": "Titanic",
+    "name_cn": "泰坦尼克号",
+    "creator": "詹姆斯·卡梅隆",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p457760035.jpg",
+    "rating_score": 9.5,
+    "date": "1997-12-19",
+    "tags": [
+      "爱情",
+      "灾难",
+      "浪漫",
+      "经典",
+      "史诗"
+    ],
+    "summary": "穷画家杰克在一次赌博中赢得泰坦尼克号的下等舱船票，贵族少女罗丝则厌倦了虚伪的名利场。两人在豪华巨轮上相遇相爱，当巨轮撞上冰山沉入大西洋的冰冷深海，杰克将唯一的生还机会留给了罗丝。赢得那张船票是我一生中最美好的事情，它让我遇见了你。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1295644,
+    "name": "Léon",
+    "name_cn": "这个杀手不太冷",
+    "creator": "吕克·贝松",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p511118051.jpg",
+    "rating_score": 9.4,
+    "date": "1994-09-14",
+    "tags": [
+      "经典",
+      "动作",
+      "救赎",
+      "温情",
+      "让·雷诺"
+    ],
+    "summary": "孤独冷酷的职业杀手莱昂偶遇全家被缉毒恶警残忍杀害的12岁小女孩玛蒂尔达。两个边缘孤独的灵魂在危险四伏的城市角落彼此救赎、相互依赖，莱昂教会玛蒂尔达生存与复仇，而玛蒂尔达唤醒了莱昂冰冷内心深处的温暖与柔情。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
     "id": 1292063,
     "name": "La vita è bella",
     "name_cn": "美丽人生",
@@ -95,40 +133,21 @@
     "source": "curated_douban"
   },
   {
-    "id": 1295644,
-    "name": "Léon",
-    "name_cn": "这个杀手不太冷",
-    "creator": "吕克·贝松",
-    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p511118051.jpg",
-    "rating_score": 9.4,
-    "date": "1994-09-14",
+    "id": 1295124,
+    "name": "Schindler's List",
+    "name_cn": "辛德勒的名单",
+    "creator": "史蒂文·斯皮尔伯格",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p492406163.jpg",
+    "rating_score": 9.5,
+    "date": "1993-11-30",
     "tags": [
-      "经典",
-      "动作",
+      "二战",
+      "史诗",
+      "人性",
       "救赎",
-      "温情",
-      "让·雷诺"
+      "黑白摄影"
     ],
-    "summary": "孤独冷酷的职业杀手莱昂偶遇全家被缉毒恶警残忍杀害的12岁小女孩玛蒂尔达。两个边缘孤独的灵魂在危险四伏的城市角落彼此救赎、相互依赖，莱昂教会玛蒂尔达生存与复仇，而玛蒂尔达唤醒了莱昂冰冷内心深处的温暖与柔情。",
-    "subject_type": 6,
-    "source": "curated_douban"
-  },
-  {
-    "id": 1889243,
-    "name": "Interstellar",
-    "name_cn": "星际穿越",
-    "creator": "克里斯托弗·诺兰",
-    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614988097.jpg",
-    "rating_score": 9.4,
-    "date": "2014-11-05",
-    "tags": [
-      "科幻",
-      "硬核",
-      "太空",
-      "父女情",
-      "诺兰"
-    ],
-    "summary": "近未来的地球黄沙肆虐，人类面临绝境。前宇航员库珀告别年幼的女儿墨菲，带领科学家小组穿越土星附近的虫洞，进入深邃未知的系外黑洞星系寻找新家园。在引力时间膨胀与高维超立方体中，爱成为唯一可以跨越时间和维度的引力波。",
+    "summary": "二战时期，德国投机商人奥斯卡·辛德勒来到波兰克拉科夫开设军工厂发战争财。目睹纳粹对犹太人的残酷屠杀后，良心受到震撼的他倾家荡产贿赂纳粹官员，买下了1100名犹太人的性命，将他们从死亡集中营拯救出来。凡救人一命，即救全世界。",
     "subject_type": 6,
     "source": "curated_douban"
   },
@@ -152,6 +171,44 @@
     "source": "curated_douban"
   },
   {
+    "id": 1291841,
+    "name": "Hachi: A Dog's Tale",
+    "name_cn": "忠犬八公的故事",
+    "creator": "莱塞·霍尔斯道姆",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p524964016.jpg",
+    "rating_score": 9.4,
+    "date": "2009-06-13",
+    "tags": [
+      "动物",
+      "催泪",
+      "忠诚",
+      "温情",
+      "理查·基尔"
+    ],
+    "summary": "大学教授帕克在火车站捡到一只走失的小秋田犬，取名“八公”。八公每天准时陪伴教授到车站，傍晚在出站口接他回家。直到某天教授在课堂上突发脑溢血去世再未归来，八公却日复一日、风雨无阻在车站前苦苦守候了整整九个春秋，直至生命的尽头。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1889243,
+    "name": "Interstellar",
+    "name_cn": "星际穿越",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614988097.jpg",
+    "rating_score": 9.4,
+    "date": "2014-11-05",
+    "tags": [
+      "科幻",
+      "硬核",
+      "太空",
+      "父女情",
+      "诺兰"
+    ],
+    "summary": "近未来的地球黄沙肆虐，人类面临绝境。前宇航员库珀告别年幼的女儿墨菲，带领科学家小组穿越土星附近的虫洞，进入深邃未知的系外黑洞星系寻找新家园。在引力时间膨胀与高维超立方体中，爱成为唯一可以跨越时间和维度的引力波。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
     "id": 1292213,
     "name": "The Truman Show",
     "name_cn": "楚门的世界",
@@ -171,21 +228,40 @@
     "source": "curated_douban"
   },
   {
-    "id": 1291841,
-    "name": "Hachi: A Dog's Tale",
-    "name_cn": "忠犬八公的故事",
-    "creator": "莱塞·霍尔斯道姆",
-    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p524964016.jpg",
-    "rating_score": 9.4,
-    "date": "2009-06-13",
+    "id": 3793023,
+    "name": "3 Idiots",
+    "name_cn": "三傻大闹宝莱坞",
+    "creator": "拉库马·希拉尼",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p579729551.jpg",
+    "rating_score": 9.2,
+    "date": "2009-12-25",
     "tags": [
-      "动物",
-      "催泪",
-      "忠诚",
-      "温情",
-      "理查·基尔"
+      "印度",
+      "励志",
+      "青春",
+      "教育",
+      "喜剧"
     ],
-    "summary": "大学教授帕克在火车站捡到一只走失的小秋田犬，取名“八公”。八公每天准时陪伴教授到车站，傍晚在出站口接他回家。直到某天教授在课堂上突发脑溢血去世再未归来，八公却日复一日、风雨无阻在车站前苦苦守候了整整九个春秋，直至生命的尽头。",
+    "summary": "兰彻、法罕与拉加是帝国理工学院的室友。特立独行的兰彻敢于挑战死板僵化的填鸭式教育体制，鼓励朋友追随内心真正的热爱。伴随欢声笑语与热泪，三人度过了跌宕起伏的大学时代，并用一生证明了追求卓越、成功便会不期而至。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 2131459,
+    "name": "WALL·E",
+    "name_cn": "机器人总动员",
+    "creator": "安德鲁·斯坦顿",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1461851991.jpg",
+    "rating_score": 9.3,
+    "date": "2008-06-27",
+    "tags": [
+      "皮克斯",
+      "科幻",
+      "爱情",
+      "环保",
+      "治愈"
+    ],
+    "summary": "公元2805年，人类因环境严重恶化乘飞船离开地球，只留下破旧的清扫型机器人瓦力独自日复一日压缩垃圾。直到探索机器人伊娃降临地球，两颗机械心脏在荒芜废墟与浩瀚星海中碰撞出了纯真深邃的永恒浪漫。",
     "subject_type": 6,
     "source": "curated_douban"
   },
@@ -224,6 +300,1602 @@
       "经典"
     ],
     "summary": "年轻黑客尼奥发现看似真实的世界其实是一个由名为母体（Matrix）的人工智能系统虚拟生成的巨大幻象代码。在反抗军领袖墨菲斯的引导下，他吞下了代表残酷真相的红色药丸，成为打破机械统治救赎人类的救世主。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291858,
+    "name": "Les choristes",
+    "name_cn": "放牛班的春天",
+    "creator": "克里斯托夫·巴拉蒂",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1910824951.jpg",
+    "rating_score": 9.3,
+    "date": "2004-03-17",
+    "tags": [
+      "音乐",
+      "治愈",
+      "教育",
+      "温情",
+      "法国"
+    ],
+    "summary": "怀才不遇的音乐老师克莱门特·马修来到名为池塘之底的寄宿学校担任学监。面对性格乖戾被视作无可救药的问题少年们，马修用音乐组建合唱团，以包容与慈爱化解孩子们心头的冰霜，天籁般的童声回荡在破旧阁楼，放飞了无数纸飞机与希望。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292215,
+    "name": "大話西遊之大聖娶親",
+    "name_cn": "大话西游之大圣娶亲",
+    "creator": "刘镇伟",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2455050536.jpg",
+    "rating_score": 9.2,
+    "date": "1995-02-04",
+    "tags": [
+      "喜剧",
+      "爱情",
+      "周星驰",
+      "宿命",
+      "后现代"
+    ],
+    "summary": "至尊宝穿越五百年寻找白晶晶，却在盘丝洞遇见了拔出紫青宝剑的紫霞仙子。当牛魔王威逼成亲，至尊宝必须戴上金箍化身齐天大圣才能拯救所爱，而代价是斩断人世间一切情爱。苦海翻起爱恨，在世间难逃避命运，他好像一条狗啊。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 5912992,
+    "name": "도가니",
+    "name_cn": "熔炉",
+    "creator": "黄东赫",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p1978709908.jpg",
+    "rating_score": 9.3,
+    "date": "2011-09-22",
+    "tags": [
+      "真实改编",
+      "韩国",
+      "社会",
+      "人性",
+      "正义"
+    ],
+    "summary": "美术教师仁浩前往雾津聋哑人学校任教，意外撞破学校教职员工对残障儿童长期进行令人发指的性侵与虐待。仁浩与人权活动家幼真携手打破沉默，将恶魔推上法庭。我们一路奋战不是为了改变世界，而是为了不让世界改变我们。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291843,
+    "name": "The Godfather",
+    "name_cn": "教父",
+    "creator": "弗朗西斯·福特·科波拉",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2190556185.jpg",
+    "rating_score": 9.3,
+    "date": "1972-03-24",
+    "tags": [
+      "黑帮",
+      "经典",
+      "权力",
+      "马龙·白兰度",
+      "史诗"
+    ],
+    "summary": "40年代的纽约，第一代黑手党教父维托·柯里昂运筹帷幄掌控地下秩序。当五大家族矛盾爆发，刺客在街头向老教父倾泻子弹，原本远离家族生意的幼子迈克不得不临危接管家族，经历浴血淬炼，最终蜕变为冷酷铁腕的第二代教父。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1307914,
+    "name": "無間道",
+    "name_cn": "无间道",
+    "creator": "刘伟强 / 麦兆辉",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2564556863.jpg",
+    "rating_score": 9.3,
+    "date": "2002-12-12",
+    "tags": [
+      "警匪",
+      "卧底",
+      "香港",
+      "梁朝伟",
+      "刘德华"
+    ],
+    "summary": "陈永仁卧底黑帮十年，精神逼近崩溃边缘；刘健明作为黑帮暗桩潜伏警局平步青云。天台对决、音响店听蔡琴，佛经所谓受身无间者永远不死，寿长乃无间地狱中之大劫。港片难以逾越的巅峰之作。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 25662329,
+    "name": "Zootopia",
+    "name_cn": "疯狂动物城",
+    "creator": "拜伦·霍华德 / 里奇·摩尔",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2614500649.jpg",
+    "rating_score": 9.2,
+    "date": "2016-03-04",
+    "tags": [
+      "动画",
+      "迪士尼",
+      "幽默",
+      "破案",
+      "反偏见"
+    ],
+    "summary": "怀揣警察梦想的乡村兔子朱迪来到哺乳动物大都会，面对体型与物种偏见，她与狡黠机智的狐狸尼克联手调查一桩哺乳动物离奇狂暴失踪案，在欢笑与险象环生中揭开阴谋，打破社会偏见。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291560,
+    "name": "となりのトトロ",
+    "name_cn": "龙猫",
+    "creator": "宫崎骏",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2540924496.jpg",
+    "rating_score": 9.2,
+    "date": "1988-04-16",
+    "tags": [
+      "吉卜力",
+      "童年",
+      "治愈",
+      "纯真",
+      "宫崎骏"
+    ],
+    "summary": "小月和小梅随父亲搬到宁静乡间老宅陪伴养病的母亲。在古老樟树下，小梅发现了神奇的巨大毛茸茸森林守护神——龙猫。乘着猫巴士在田野与电线上疾驰，纯真童心唤醒了生命中最柔软温热的治愈力量。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1296141,
+    "name": "Witness for the Prosecution",
+    "name_cn": "控方证人",
+    "creator": "比利·怀尔德",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1505392928.jpg",
+    "rating_score": 9.6,
+    "date": "1957-12-17",
+    "tags": [
+      "悬疑",
+      "法庭",
+      "反转",
+      "经典",
+      "阿加莎"
+    ],
+    "summary": "伦敦老牌资深刑辩律师韦菲爵士病愈初愈，接手了一桩极具挑战性的遗嘱富婆谋杀案。被告沃尔坚称无罪，唯一的关键证人却是他的妻子克里斯汀。在法庭唇枪舌剑与戏剧性证词之间，惊天逆转接踵而至。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 6786002,
+    "name": "Intouchables",
+    "name_cn": "触不可及",
+    "creator": "奥利维埃·纳卡什",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p1455584797.jpg",
+    "rating_score": 9.3,
+    "date": "2011-11-02",
+    "tags": [
+      "温情",
+      "友谊",
+      "真实改编",
+      "幽默",
+      "法国"
+    ],
+    "summary": "跳伞事故导致高位截瘫的富有贵族菲利普，出人意料地聘请了刚从监狱获释的黑人贫民青年德希斯担任全职护工。德希斯没有泛滥同情，两人在滑翔伞、古典乐与流行舞曲中建立起跨越阶层的挚友羁绊。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291552,
+    "name": "The Lord of the Rings: The Return of the King",
+    "name_cn": "指环王3：王者无敌",
+    "creator": "彼得·杰克逊",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2642829472.jpg",
+    "rating_score": 9.3,
+    "date": "2003-12-17",
+    "tags": [
+      "史诗",
+      "奇幻",
+      "奥斯卡",
+      "托尔金",
+      "战争"
+    ],
+    "summary": "中土世界终极决战拉开序幕。阿拉贡率领刚铎军民背水一战，在黑门前吸引索伦大军的目光；霍比特人弗罗多与山姆在咕噜的带领下涉险深入末日火山，在至尊魔戒的毁灭烈焰中缔造不朽传奇。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1300299,
+    "name": "Gone with the Wind",
+    "name_cn": "乱世佳人",
+    "creator": "维克多·弗莱明",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1963089117.jpg",
+    "rating_score": 9.3,
+    "date": "1939-12-15",
+    "tags": [
+      "经典",
+      "史诗",
+      "坚韧",
+      "南北战争",
+      "费雯·丽"
+    ],
+    "summary": "美国南北战争前夕，佐治亚州塔拉庄园的大小姐斯嘉丽任性坚毅。在战火纷飞家园沦为焦土的浩劫中，她抓起红土誓言永不挨饿，与浪荡商人白瑞德爱恨交织。无论如何，明天又是新的一天。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1851857,
+    "name": "The Dark Knight",
+    "name_cn": "蝙蝠侠：黑暗骑士",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p462654316.jpg",
+    "rating_score": 9.2,
+    "date": "2008-07-18",
+    "tags": [
+      "超英巅峰",
+      "小丑",
+      "哲学",
+      "犯罪",
+      "希斯·莱杰"
+    ],
+    "summary": "哥谭市迎来前所未有的混乱化身——小丑。他不求金钱名利，只为撕碎虚伪文明的人性底线。在双面人哈维·丹特堕落与两艘轮船引爆器的极端道德困境中，蝙蝠侠选择背负恶名，成为哥谭沉默的守护者、黑夜骑士。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291851,
+    "name": "活着",
+    "name_cn": "活着",
+    "creator": "张艺谋",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2513253791.jpg",
+    "rating_score": 9.3,
+    "date": "1994-05-18",
+    "tags": [
+      "历史",
+      "苦难",
+      "葛优",
+      "巩俐",
+      "中国电影巅峰"
+    ],
+    "summary": "富少福贵嗜赌成性输光家产，在时代洪流中经历战火与动荡。皮影箱子伴随了他与妻子家珍一生的跌宕流离。儿女的夭亡与苦难没有击垮普通老百姓对生活的执着，小鸡变成鹅，鹅变成羊，羊变成牛，日子总会好起来的。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1929463,
+    "name": "Life of Pi",
+    "name_cn": "少年派的奇幻漂流",
+    "creator": "李安",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1784592701.jpg",
+    "rating_score": 9.1,
+    "date": "2012-11-22",
+    "tags": [
+      "李安",
+      "哲学",
+      "信仰",
+      "视觉美学",
+      "冒险"
+    ],
+    "summary": "印度少年派一家随动物园迁往加拿大，货船在太平洋遭遇风暴沉没。派与一只名叫理查德·帕克的孟加拉虎在狭窄救生艇上展开了长达227天的海上漂流求生。两个版本的故事，你选择相信哪一个？",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291844,
+    "name": "Nuovo Cinema Paradiso",
+    "name_cn": "天堂电影院",
+    "creator": "朱塞佩·托纳多雷",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2625298132.jpg",
+    "rating_score": 9.2,
+    "date": "1988-11-17",
+    "tags": [
+      "电影情书",
+      "温情",
+      "成长",
+      "意大利",
+      "童年"
+    ],
+    "summary": "西西里岛小镇男孩多多迷恋放映机里的光影幻境，与年迈放映师阿尔弗雷多成为忘年交。阿尔弗雷多鼓励多多离开小镇追逐广阔世界。多年后功成名就的多多归来参加葬礼，看到了老人留给他最深情的礼物——所有被剪掉的吻戏胶片重现银幕。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291854,
+    "name": "鬼子来了",
+    "name_cn": "鬼子来了",
+    "creator": "姜文",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1181775734.jpg",
+    "rating_score": 9.3,
+    "date": "2000-05-12",
+    "tags": [
+      "姜文",
+      "讽刺",
+      "人性",
+      "历史",
+      "荒诞黑白"
+    ],
+    "summary": "抗战末期，华北挂甲屯村民马大三深夜被神秘人塞了两个麻袋——一个日本兵花屋和一个汉奸翻译官，约定大年三十来取人。半年过去无人认领，村民在杀与留的恐惧与博弈中陷入荒诞深渊，最终迎来了血与火的黑色寓言。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1296075,
+    "name": "12 Angry Men",
+    "name_cn": "十二怒汉",
+    "creator": "西德尼·吕美特",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2173577632.jpg",
+    "rating_score": 9.4,
+    "date": "1957-04-10",
+    "tags": [
+      "法治",
+      "悬疑",
+      "密室",
+      "人性",
+      "经典"
+    ],
+    "summary": "十六岁贫民窟少年涉嫌刺死生父面临死刑判决。十二名各怀心事的陪审团成员进入逼仄的休息室进行最终投票，最初十一票认定有罪。8号陪审员戴维斯凭借理性怀疑与严谨推敲，在暴雨闷热中逐一动摇众人成见，捍卫了司法的神圣底线。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291583,
+    "name": "天空の城ラピュタ",
+    "name_cn": "天空之城",
+    "creator": "宫崎骏",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2892224030.jpg",
+    "rating_score": 9.2,
+    "date": "1986-08-02",
+    "tags": [
+      "宫崎骏",
+      "奇幻",
+      "冒险",
+      "蒸汽朋克",
+      "久石让"
+    ],
+    "summary": "矿工少年巴鲁偶遇从天而降携带飞行石的神秘少女希达。为了逃避军方特务与空贼朵拉一家的追捕，两人踏上探寻传说中悬浮在云海深处的古代高度文明遗迹拉普达的惊险航程。树根深扎大地，歌声随风消逝。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292224,
+    "name": "One Flew Over the Cuckoo's Nest",
+    "name_cn": "飞越疯人院",
+    "creator": "米洛斯·福尔曼",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p792263738.jpg",
+    "rating_score": 9.1,
+    "date": "1975-11-19",
+    "tags": [
+      "自由",
+      "反抗",
+      "经典",
+      "人性",
+      "杰克·尼科尔森"
+    ],
+    "summary": "为了逃避监狱劳改，痞子麦克墨菲装疯混入精神病院。这里的病人在冷酷护士长拉契特的铁腕规训下温顺麻木。麦克墨菲带来赌博、棒球比赛与喧闹生机，点燃了病人们对自由的渴望。即便粉身碎骨，酋长最终砸破铁窗奔向黎明雪原。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291572,
+    "name": "The Lord of the Rings: The Two Towers",
+    "name_cn": "指环王2：双塔奇兵",
+    "creator": "彼得·杰克逊",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2640099008.jpg",
+    "rating_score": 9.2,
+    "date": "2002-12-18",
+    "tags": [
+      "史诗",
+      "奇幻",
+      "圣盔谷",
+      "魔戒",
+      "战斗"
+    ],
+    "summary": "魔戒远征队分道扬镳。阿拉贡、莱戈拉斯与金雳驰援洛汗国，在圣盔谷暴雨夜直面万名强兽人的狂暴围攻；甘道夫白袍重生扭转乾坤；弗罗多与山姆则与被魔戒折磨的咕噜同行走向魔多暗黑之门。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1293839,
+    "name": "Roman Holiday",
+    "name_cn": "罗马假日",
+    "creator": "威廉·惠勒",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2189264010.jpg",
+    "rating_score": 9.1,
+    "date": "1953-08-20",
+    "tags": [
+      "爱情",
+      "奥黛丽·赫本",
+      "经典",
+      "浪漫",
+      "黑白摄影"
+    ],
+    "summary": "欧洲某国王室安妮公主访问罗马，厌倦繁文缛节的她深夜出逃，偶遇美国穷记者乔。两人在西班牙广场吃冰淇淋、骑踏板摩托畅游罗马古城。短短一天的纯真浪漫，终化作新闻发布会上永难忘怀的深情相望。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1298624,
+    "name": "Scent of a Woman",
+    "name_cn": "闻香识女人",
+    "creator": "马丁·布莱斯特",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2550757929.jpg",
+    "rating_score": 9.1,
+    "date": "1992-12-23",
+    "tags": [
+      "阿尔·帕西诺",
+      "经典",
+      "探戈",
+      "尊严",
+      "救赎"
+    ],
+    "summary": "穷学生查理为了赚学费接下一份兼职，照顾脾气暴躁且双目失明的退役中校弗兰克。中校策划了一场穷奢极欲的纽约告别之旅，并在酒店展开绝美探戈。在人生的十字路口，两个孤独的灵魂挽救了彼此的尊严与生命。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291571,
+    "name": "The Lord of the Rings: The Fellowship of the Ring",
+    "name_cn": "指环王1：护戒使者",
+    "creator": "彼得·杰克逊",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2640236255.jpg",
+    "rating_score": 9.1,
+    "date": "2001-12-19",
+    "tags": [
+      "奇幻",
+      "夏尔",
+      "魔戒",
+      "托尔金",
+      "经典"
+    ],
+    "summary": "从宁静祥和的夏尔绿野出发，纯洁善良的霍比特人弗罗多继承了至尊魔戒。在灰袍巫师甘道夫的号召下，人类、精灵、矮人与霍比特人结成护戒远征队，涉险踏上穿越迷雾山脉与摩瑞亚矿坑的壮阔史诗征途。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 21937445,
+    "name": "변호인",
+    "name_cn": "辩护人",
+    "creator": "杨宇硕",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2158166535.jpg",
+    "rating_score": 9.2,
+    "date": "2013-12-18",
+    "tags": [
+      "韩国",
+      "社会",
+      "法治",
+      "真实改编",
+      "宋康昊"
+    ],
+    "summary": "80年代釜山，只有高中学历的税务律师宋佑硕为了赚钱不择手段。直到常去的光顾饭馆大婶的大学生儿子振宇因涉嫌阅读禁书遭到军警秘密逮捕与残酷刑讯。目睹司法不公的宋律师毅然站上辩护席：宪法第一条第二款，大韩民国主权属于国民，所有权力由国民赋予！",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292064,
+    "name": "Fight Club",
+    "name_cn": "搏击俱乐部",
+    "creator": "大卫·芬奇",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2546408289.jpg",
+    "rating_score": 9.0,
+    "date": "1999-09-10",
+    "tags": [
+      "悬疑",
+      "反叛",
+      "心理",
+      "大卫·芬奇",
+      "布拉德·皮特"
+    ],
+    "summary": "患有严重失眠症的汽车公司白领杰克在飞机上结识了肥皂商人泰勒·德顿。两人在酒吧后巷以肉体搏击宣泄对消费主义虚妄世界的厌恶，并迅速创立秘密搏击俱乐部。当混乱计划失控升级为炸毁金融大厦，杰克发现了泰勒身份的惊骇真相。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1308807,
+    "name": "ハウルの動く城",
+    "name_cn": "哈尔的移动城堡",
+    "creator": "宫崎骏",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2174346180.jpg",
+    "rating_score": 9.1,
+    "date": "2004-11-20",
+    "tags": [
+      "宫崎骏",
+      "奇幻",
+      "浪漫",
+      "吉卜力",
+      "治愈"
+    ],
+    "summary": "制帽少女苏菲被荒野女巫施咒变成了九十岁的老妪。离家出走的她偶然进入了巫师哈尔那座由蒸汽齿轮与火魔卡西法驱动的移动城堡。在反抗战争与打破心魔的旅程中，苏菲重获青春，也拯救了哈尔迷失的心灵。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1299131,
+    "name": "The Godfather Part II",
+    "name_cn": "教父2",
+    "creator": "弗朗西斯·福特·科波拉",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2194138787.jpg",
+    "rating_score": 9.3,
+    "date": "1974-12-12",
+    "tags": [
+      "黑帮",
+      "阿尔·帕西诺",
+      "罗伯特·德尼罗",
+      "史诗",
+      "经典"
+    ],
+    "summary": "影片采取双线叙事，一方面展现年轻维托·柯里昂初抵纽约小意大利艰难白手起家成为受人敬重的教父；另一方面展现迈克·柯里昂为了保全家族权力，在背叛与暗杀的风暴中走向极致冷酷与彻底的孤独。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1301753,
+    "name": "The Lion King",
+    "name_cn": "狮子王",
+    "creator": "罗杰·艾勒斯 / 罗伯·明可夫",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p726659067.jpg",
+    "rating_score": 9.1,
+    "date": "1994-06-15",
+    "tags": [
+      "迪士尼",
+      "童年",
+      "莎士比亚",
+      "成长",
+      "经典"
+    ],
+    "summary": "荣耀王国的小狮子辛巴在舅舅刀疤的阴谋中失去了父亲木法沙并被迫流亡。在丁满与彭彭的陪伴下，辛巴学会无忧无虑的“哈库那玛塔塔”，最终在爱与责任的召唤下重返荣耀石，夺回王位完成生命的轮回。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1298353,
+    "name": "Dead Poets Society",
+    "name_cn": "死亡诗社",
+    "creator": "彼得·威尔",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1910824951.jpg",
+    "rating_score": 9.2,
+    "date": "1989-06-02",
+    "tags": [
+      "诗歌",
+      "教育",
+      "青春",
+      "罗宾·威廉姆斯",
+      "经典"
+    ],
+    "summary": "传统的威尔顿预备学校迎来特立独行的英语老师约翰·基汀。他站在讲桌上带领学生撕毁教条分析课本，朗诵惠特曼的诗句，激励少年们“抓住今天（Carpe Diem）”，建立死亡诗社追寻独立意志与崇高激情。哦，船长，我的船长！",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1306029,
+    "name": "A Beautiful Mind",
+    "name_cn": "美丽心灵",
+    "creator": "朗·霍华德",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1665997400.jpg",
+    "rating_score": 9.1,
+    "date": "2001-12-21",
+    "tags": [
+      "传记",
+      "博弈论",
+      "数学",
+      "爱情",
+      "罗素·克劳"
+    ],
+    "summary": "数学天才约翰·纳什年轻时提出革命性的博弈论假说，却在此后长期深受精神分裂症妄想与幻觉的残酷折磨。在妻子艾丽西亚数十年如一日的温柔坚守与陪伴下，纳什凭借坚韧理性学会与幻觉共存，最终在斯德哥尔摩荣获诺贝尔经济学奖。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 3721430,
+    "name": "让子弹飞",
+    "name_cn": "让子弹飞",
+    "creator": "姜文",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1512562287.jpg",
+    "rating_score": 9.0,
+    "date": "2010-12-16",
+    "tags": [
+      "姜文",
+      "讽刺",
+      "台词神作",
+      "葛优",
+      "周润发"
+    ],
+    "summary": "悍匪张牧之劫了马邦德的火车，摇身一变化身县长马邦德走马上任鹅城。盘踞鹅城的南国一霸黄四郎企图将新县长玩弄于股掌。张麻子联手假师爷，在鸿门宴与替身计中掀起惊天狂澜：站着把钱挣了！",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291842,
+    "name": "Finding Nemo",
+    "name_cn": "海底总动员",
+    "creator": "安德鲁·斯坦顿",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2512030138.jpg",
+    "rating_score": 8.5,
+    "date": "2003-05-30",
+    "tags": [
+      "皮克斯",
+      "父子",
+      "海洋",
+      "温情",
+      "经典"
+    ],
+    "summary": "大堡礁的小丑鱼父亲马林胆小过虑，儿子尼莫在一次赌气中被潜水员捕走送往悉尼牙医诊所。马林为了找回爱子，与患有短期失忆症的蓝唐王鱼多莉结伴跨越茫茫太平洋，历经鲨鱼互助会、水母森林与海龟洋流的伟大冒险。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291818,
+    "name": "飲食男女",
+    "name_cn": "饮食男女",
+    "creator": "李安",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1910899751.jpg",
+    "rating_score": 9.2,
+    "date": "1994-08-03",
+    "tags": [
+      "李安",
+      "家庭",
+      "美食",
+      "传统",
+      "台湾电影"
+    ],
+    "summary": "台北圆山大饭店主厨老朱每逢周日必精心烹制满汉全席召集三个女儿聚餐。然而饭桌之上暗流涌动，三个女儿各有情感波澜与独立渴望。食色性也，在一次猝不及防的家宴摊牌中，家庭秩序被彻底打破重构。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1300867,
+    "name": "大話西遊之月光寶盒",
+    "name_cn": "大话西游之月光宝盒",
+    "creator": "刘镇伟",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2561721372.jpg",
+    "rating_score": 9.0,
+    "date": "1995-01-21",
+    "tags": [
+      "周星驰",
+      "无厘头",
+      "经典",
+      "穿越",
+      "喜剧"
+    ],
+    "summary": "五百年后孙悟空转世为斧头帮帮主至尊宝，偶遇盘丝大仙门下白晶晶并对其一见钟情。在牛魔王抢夺唐僧肉的危机中，至尊宝为了拯救自刎的白晶晶，借助月光宝盒屡次穿梭时空，波若波罗蜜，却阴差阳错回到了五百年前。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292370,
+    "name": "Edward Scissorhands",
+    "name_cn": "剪刀手爱德华",
+    "creator": "蒂姆·波顿",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p480956937.jpg",
+    "rating_score": 8.7,
+    "date": "1990-12-06",
+    "tags": [
+      "暗黑童话",
+      "德普",
+      "爱情",
+      "蒂姆·波顿",
+      "纯真"
+    ],
+    "summary": "古堡里的发明家未竟身亡，留下了拥有锋利剪刀双手的半成品男孩爱德华。雅芳推销员佩格将他带入五彩斑斓的郊区小镇，爱德华爱上了佩格的女儿金。我拿起刀无法拥抱你，放下刀无法保护你，漫天白雪是古堡深处永恒的眷恋。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1485260,
+    "name": "The Curious Case of Benjamin Button",
+    "name_cn": "本杰明·巴顿奇事",
+    "creator": "大卫·芬奇",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p476020584.jpg",
+    "rating_score": 9.0,
+    "date": "2008-12-25",
+    "tags": [
+      "奇幻",
+      "时间",
+      "生命",
+      "大卫·芬奇",
+      "布拉德·皮特"
+    ],
+    "summary": "1918年新奥尔良，本杰明·巴顿出生时是一个八十岁的老翁，被遗弃在养老院门前。违反自然法则的他逆向生长，越活越年轻。在时光逆流中，他与挚爱黛西在生命的中点相交、相爱，最终化为婴儿在所爱之人怀中合上双眼。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 11594824,
+    "name": "The Grand Budapest Hotel",
+    "name_cn": "布达佩斯大饭店",
+    "creator": "韦斯·安德森",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2178872593.jpg",
+    "rating_score": 8.9,
+    "date": "2014-02-06",
+    "tags": [
+      "对称美学",
+      "粉色调",
+      "欧洲挽歌",
+      "韦斯·安德森",
+      "经典"
+    ],
+    "summary": "欧洲虚构国家祖布罗夫卡的大饭店门房古斯塔夫先生优雅风趣，深得贵妇欢心。在卷入一桩名画遗产争夺与凶杀案后，古斯塔夫与门厅门童泽罗展开了一场绝妙逃亡。韦斯·安德森以极致对称的构图与糖果色调谱写了老欧洲文明落幕的挽歌。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1780330,
+    "name": "The Prestige",
+    "name_cn": "致命魔术",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p480383375.jpg",
+    "rating_score": 8.9,
+    "date": "2006-10-19",
+    "tags": [
+      "诺兰",
+      "魔术",
+      "双雄对决",
+      "烧脑",
+      "悬疑"
+    ],
+    "summary": "十九世纪末的伦敦，两位顶尖魔术师安吉尔与伯登从挚友演变为宿敌。为了破解对方的“移形换影”神技，两人陷入不惜牺牲尊严、亲人甚至生命的病态痴狂对决。魔术的三个步骤：验证、转换与最终的声东击西。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 3008247,
+    "name": "The Boy in the Striped Pyjamas",
+    "name_cn": "穿条纹睡衣的男孩",
+    "creator": "马克·赫曼",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1473670352.jpg",
+    "rating_score": 9.2,
+    "date": "2008-08-28",
+    "tags": [
+      "二战",
+      "童真",
+      "震撼",
+      "反战",
+      "悲剧"
+    ],
+    "summary": "八岁德国小男孩布鲁诺随纳粹军官父亲搬到集中营附近的郊区。无聊的他沿着铁丝网探索，结识了铁丝网另一边同样八岁、穿着条纹睡衣的犹太男孩什穆埃尔。纯洁的友谊最终在一场无辜的“探险”中走向令人窒息的心碎绝境。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1294408,
+    "name": "The Sound of Music",
+    "name_cn": "音乐之声",
+    "creator": "罗伯特·怀斯",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p453788577.jpg",
+    "rating_score": 9.1,
+    "date": "1965-03-02",
+    "tags": [
+      "歌舞",
+      "奥地利",
+      "经典",
+      "治愈",
+      "家庭"
+    ],
+    "summary": "天真烂漫的见习修女玛利亚来到丧偶的冯·特拉普上校家担任七个孩子的家庭教师。她用吉他与《Do-Re-Mi》等明朗歌声融化了冰冷古板的家庭氛围，最终带领全家翻越阿尔卑斯山逃脱纳粹魔掌。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1808870,
+    "name": "Das Leben der Anderen",
+    "name_cn": "窃听风暴",
+    "creator": "弗洛里安·亨克尔·冯·多纳斯马尔克",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1808870.jpg",
+    "rating_score": 9.2,
+    "date": "2006-03-23",
+    "tags": [
+      "冷战",
+      "良知",
+      "监听",
+      "救赎",
+      "德国"
+    ],
+    "summary": "1984年东德柏林，冷酷忠诚的斯塔西秘密警察维斯勒奉命对剧作家德赖曼与其女友实施全天候窃听。在耳机里倾听优美的奏鸣曲与自由思想的过程中，冷酷的特工内心冰雪消融，暗中成为这对艺术家的守护天使。这是献给好人的奏鸣曲。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291999,
+    "name": "重慶森林",
+    "name_cn": "重庆森林",
+    "creator": "王家卫",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p792381411.jpg",
+    "rating_score": 8.8,
+    "date": "1994-07-14",
+    "tags": [
+      "王家卫",
+      "金城武",
+      "梁朝伟",
+      "文艺",
+      "香港美学"
+    ],
+    "summary": "失恋警察223每晚吃一罐5月1号过期的凤梨罐头，在酒吧偶遇金发女杀手；快餐店女孩阿菲暗恋巡警663，偷偷潜入他的公寓更换肥皂与毛巾。都市水泥森林里的孤独男女在呼吸与错落中寻找爱情保质期。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 2149806,
+    "name": "おくりびと",
+    "name_cn": "入殓师",
+    "creator": "泷田洋二郎",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p594972928.jpg",
+    "rating_score": 8.9,
+    "date": "2008-09-13",
+    "tags": [
+      "生死",
+      "大提琴",
+      "久石让",
+      "尊严",
+      "日本电影"
+    ],
+    "summary": "管弦乐团解散后的大提琴手小林大悟带着妻子回到山形老家，误打误撞应聘成为一名为逝者净身更衣的入殓师。在面对死者的庄严仪式中，大悟理解了生命的终点不是告别，而是跨越通往来世的门扉。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1297359,
+    "name": "もののけ姫",
+    "name_cn": "幽灵公主",
+    "creator": "宫崎骏",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1613191025.jpg",
+    "rating_score": 8.9,
+    "date": "1997-07-12",
+    "tags": [
+      "吉卜力",
+      "自然",
+      "文明冲突",
+      "史诗",
+      "宫崎骏"
+    ],
+    "summary": "中诅咒的虾夷族少年阿席达卡为了解开诅咒西行，卷入达达拉炼铁城幻姬与白狼神养大的幽灵公主阿桑的生死大战。在人与森林众神的残酷博弈中，麒麟兽昂首倒下，万物复苏，即便充满伤痛也要坚强活下去。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292849,
+    "name": "Saving Private Ryan",
+    "name_cn": "拯救大兵瑞恩",
+    "creator": "史蒂文·斯皮尔伯格",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p1014542496.jpg",
+    "rating_score": 9.1,
+    "date": "1998-07-24",
+    "tags": [
+      "诺曼底登陆",
+      "战争",
+      "人性",
+      "史皮尔伯格",
+      "汤姆·汉克斯"
+    ],
+    "summary": "诺曼底登陆奥马哈海滩血流成河。盟军司令部发现瑞恩家四兄弟中已有三人阵亡，米勒上尉奉命率领八人小队深入敌后展开搜救。用八条命去换一条命是否值得？在桥头激战的废墟上，上尉留下了最后的嘱托：瑞恩，好好活下去，对得起大家。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292402,
+    "name": "Malèna",
+    "name_cn": "西西里的美丽传说",
+    "creator": "朱塞佩·托纳多雷",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p792457421.jpg",
+    "rating_score": 8.9,
+    "date": "2000-10-27",
+    "tags": [
+      "莫妮卡·贝鲁奇",
+      "人性",
+      "美丽",
+      "嫉妒",
+      "意大利"
+    ],
+    "summary": "二战时期的西西里宁静小镇，玛莲娜拥有颠倒众生的惊世美貌。当丈夫在前线阵亡的消息传来，小镇男人的欲望与女人的嫉妒将这位手无寸铁的遗孀推入屈辱深渊。十三岁少年雷纳多用自行车轮与目光见证了一场美丽被摧毁的悲歌。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 27060077,
+    "name": "Green Book",
+    "name_cn": "绿皮书",
+    "creator": "彼得·法雷里",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2549177902.jpg",
+    "rating_score": 8.9,
+    "date": "2018-09-11",
+    "tags": [
+      "公路片",
+      "友谊",
+      "反歧视",
+      "奥斯卡最佳影片",
+      "温情"
+    ],
+    "summary": "60年代种族歧视严重的美国深南部，粗俗善斗的白人保镖托尼受雇为举止高雅的黑人古典钢琴家唐·雪利博士担任巡回演出司机。一路上对照专为黑人准备的绿皮书出行指南，两个截然不同阶层的人在炸鸡与钢琴曲中碰撞出深刻的共鸣。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292000,
+    "name": "La leggenda del pianista sull'oceano",
+    "name_cn": "海上钢琴师",
+    "creator": "朱塞佩·托纳多雷",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2574551676.jpg",
+    "rating_score": 9.3,
+    "date": "1998-10-28",
+    "tags": [
+      "音乐",
+      "孤独",
+      "琴键",
+      "浪漫",
+      "经典"
+    ],
+    "summary": "在往返欧美大陆的维吉尼亚号豪华邮轮上，弃婴1900无师自通成为旷世钢琴大师。陆地是一艘太大的船，是一个太漂亮的女人，是一场太长的旅行。1900一生从未踏上陆地一步，在有限的88个琴键上弹奏着无限的宇宙之声。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291543,
+    "name": "功夫",
+    "name_cn": "功夫",
+    "creator": "周星驰",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2219011938.jpg",
+    "rating_score": 8.8,
+    "date": "2004-12-23",
+    "tags": [
+      "周星驰",
+      "武侠",
+      "动作",
+      "喜剧",
+      "如来神掌"
+    ],
+    "summary": "街头混混阿星一心想加入斧头帮出人头地，意外在猪笼城寨挑起斧头帮与隐藏隐世武林高手的血战。火云邪神蛤蟆功摧枯拉朽，阿星在生死边缘任督二脉被打通，如来神掌化作彩蝶翱翔：想学啊，我教你啊。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1418200,
+    "name": "Pride & Prejudice",
+    "name_cn": "傲慢与偏见",
+    "creator": "乔·赖特",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2013532341.jpg",
+    "rating_score": 8.7,
+    "date": "2005-09-16",
+    "tags": [
+      "名著改编",
+      "爱情",
+      "英伦美学",
+      "凯拉·奈特莉",
+      "经典"
+    ],
+    "summary": "十九世纪初的英国乡间，班内特家的二女儿伊丽莎白聪慧独立，对初次见面傲慢冷漠的达西先生心存偏见。历经种种误解与考验，达西放下了他的傲慢，伊丽莎白消解了她的偏见，晨曦薄雾中两人互诉衷肠。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 2334904,
+    "name": "Shutter Island",
+    "name_cn": "禁闭岛",
+    "creator": "马丁·斯科塞斯",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1832875827.jpg",
+    "rating_score": 8.9,
+    "date": "2010-02-19",
+    "tags": [
+      "悬疑",
+      "心理",
+      "反转",
+      "小李子",
+      "经典"
+    ],
+    "summary": "联邦执法官泰迪与搭档查克前往重犯精神病患禁闭岛调查女凶犯离奇失踪案。暴风雨切断了海岛与外界的一切联系，头痛与梦魇缠绕着泰迪，在灯塔与秘密试验的迷雾背后，一个关于创伤与记忆篡改的惊天谜题浮出水面。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 26312637,
+    "name": "Dangal",
+    "name_cn": "摔跤吧！爸爸",
+    "creator": "涅提·蒂瓦里",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2457983084.jpg",
+    "rating_score": 9.0,
+    "date": "2016-12-23",
+    "tags": [
+      "印度",
+      "励志",
+      "阿米尔·汗",
+      "女性力量",
+      "真实改编"
+    ],
+    "summary": "前摔跤冠军马哈维亚打破印度农村重男轻女的传统桎梏，将两个女儿吉塔和巴比塔培养成世界顶尖摔跤冠军。在泥土摔跤场与国际赛场上，女儿们不仅为国家赢得金牌，更为亿万印度女性摔出了一条崭新的人生道路。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291832,
+    "name": "Pulp Fiction",
+    "name_cn": "低俗小说",
+    "creator": "昆汀·塔伦蒂诺",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1910902213.jpg",
+    "rating_score": 8.9,
+    "date": "1994-05-21",
+    "tags": [
+      "昆汀",
+      "非线性叙事",
+      "黑色幽默",
+      "神作",
+      "经典"
+    ],
+    "summary": "由两个杀手、一个黑帮老大与其妖娆妻子、一个落魄拳击手和一个抢劫情侣构成的非线性三段式故事。圣经独白、扭扭舞大赛、金表的故事在昆汀天马行空的环形叙事中天衣无缝交融，颠覆了传统电影编剧法则。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1787291,
+    "name": "嫌われ松子の一生",
+    "name_cn": "被嫌弃的松子的一生",
+    "creator": "中岛哲也",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p453788577.jpg",
+    "rating_score": 8.9,
+    "date": "2006-05-27",
+    "tags": [
+      "绚烂悲剧",
+      "中岛哲也",
+      "人性",
+      "爱与救赎",
+      "日本电影"
+    ],
+    "summary": "松子一生渴望被爱，一次次毫无保留地奔向爱情，却一次次遭遇背叛与抛弃。中岛哲也以极具童话色彩的华丽歌舞与绚烂色彩包装了一具伤痕累累的灵魂。生而为人，我很抱歉；然而松子的上帝，就是她毫无保留爱人的纯粹。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292223,
+    "name": "Se7en",
+    "name_cn": "七宗罪",
+    "creator": "大卫·芬奇",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p457631648.jpg",
+    "rating_score": 8.8,
+    "date": "1995-09-22",
+    "tags": [
+      "犯罪",
+      "大卫·芬奇",
+      "悬疑",
+      "皮特",
+      "摩根·弗里曼"
+    ],
+    "summary": "老刑警沙摩塞与年轻气盛的搭档米尔斯接手连环暴戾命案。凶手约翰·杜严格按照天主教教义中的“七宗罪”——暴食、贪婪、怠惰、淫欲、傲慢、嫉妒与愤怒依次猎杀受害者。当黄昏的荒漠送来那个密封包裹，终极的绝望闭环悄然成型。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 30295905,
+    "name": "Parasite",
+    "name_cn": "寄生虫",
+    "creator": "奉俊昊",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2561439800.jpg",
+    "rating_score": 8.8,
+    "date": "2019-05-21",
+    "tags": [
+      "奥斯卡最佳影片",
+      "阶级隐喻",
+      "黑色幽默",
+      "悬疑",
+      "韩国电影"
+    ],
+    "summary": "一家四口全员失业的金家挤在破旧半地下室，长子基宇凭借伪造文凭进入富豪朴社长家当英语家教。金家四口像寄生虫般顺藤摸瓜悉数寄生于朴家豪宅。暴雨夜的地下密室曝光，贫富之间那道无法抹去的气味酿成了震撼世界的血案。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 20495023,
+    "name": "Coco",
+    "name_cn": "寻梦环游记",
+    "creator": "李·昂克里奇",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2505544837.jpg",
+    "rating_score": 9.1,
+    "date": "2017-11-22",
+    "tags": [
+      "皮克斯",
+      "亲情",
+      "亡灵节",
+      "催泪",
+      "音乐"
+    ],
+    "summary": "墨西哥小男孩米格热爱音乐，却遭到世代制鞋家族的严厉禁止。在亡灵节之夜，米格意外穿越万寿菊金桥进入绚丽繁华的亡灵世界。真正的死亡不是肉体的消逝，而是被生者彻底遗忘。一曲《Remember Me》唤醒了曾祖母可可尘封的记忆。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 4202302,
+    "name": "告白",
+    "name_cn": "告白",
+    "creator": "中岛哲也",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p689520756.jpg",
+    "rating_score": 8.8,
+    "date": "2010-06-05",
+    "tags": [
+      "复仇",
+      "校园",
+      "暗黑",
+      "中岛哲也",
+      "松隆子"
+    ],
+    "summary": "结业典礼上，女教师森口悠子平静地向全班学生宣告：四岁的女儿并非意外溺水，而是被在座的两位学生残忍杀害。她没有诉诸法律，而是将艾滋病毒注入两名凶手的牛奶盒中。多视角独白抽丝剥茧，展开一场冰冷刺骨的心灵复仇。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292220,
+    "name": "甜蜜蜜",
+    "name_cn": "甜蜜蜜",
+    "creator": "陈可辛",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p1962625305.jpg",
+    "rating_score": 8.9,
+    "date": "1996-11-02",
+    "tags": [
+      "张曼玉",
+      "黎明",
+      "邓丽君",
+      "时代记忆",
+      "香港爱情"
+    ],
+    "summary": "1986年，天津青年黎小军来到香港打拼，结识了精明强干的广州女孩李翘。两个漂泊异乡的年轻人在邓丽君歌声与时代浪潮中浮沉离合，历经十年纽约街头的橱窗偶遇，岁月流转，唯有情愫未变。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1299398,
+    "name": "喜劇之王",
+    "name_cn": "喜剧之王",
+    "creator": "李力持 / 周星驰",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1043597424.jpg",
+    "rating_score": 8.8,
+    "date": "1999-02-13",
+    "tags": [
+      "周星驰",
+      "张柏芝",
+      "我养你啊",
+      "演员的自我修养",
+      "经典"
+    ],
+    "summary": "醉心于戏剧表演的跑龙套尹天仇在福利会开办街坊剧场，偶遇舞女柳飘飘。一句颤抖的“我养你啊”击碎了风尘防备。即便盒饭被踩在脚底，尹天仇依然紧握《演员的自我修养》，在辛酸泪水中守护卑微小人物的艺术尊严。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1297447,
+    "name": "倩女幽魂",
+    "name_cn": "倩女幽魂",
+    "creator": "程小东",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2414157745.jpg",
+    "rating_score": 8.8,
+    "date": "1987-07-18",
+    "tags": [
+      "张国荣",
+      "王祖贤",
+      "徐克",
+      "武侠奇幻",
+      "绝代风华"
+    ],
+    "summary": "落魄书生宁采臣夜宿兰若寺，与千年树妖胁迫的美艳女鬼聂小倩相遇相恋。在道士燕赤霞相助下，宁采臣勇闯黑山地府拯救小倩投胎转世。小倩晨曦中飞入棺木，十里平湖霜满天，寸寸青丝愁华年。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 25773932,
+    "name": "Whiplash",
+    "name_cn": "爆裂鼓手",
+    "creator": "达米恩·查泽雷",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2220776342.jpg",
+    "rating_score": 8.7,
+    "date": "2014-01-16",
+    "tags": [
+      "爵士鼓",
+      "狂热",
+      "意志对决",
+      "燃",
+      "奥斯卡"
+    ],
+    "summary": "19岁爵士鼓手安德鲁考入顶尖音乐学院，遭遇魔鬼指挥家弗莱彻。弗莱彻以极端的羞辱、人身攻击与心理摧残逼迫学生突破极限。血溅镲片，安德鲁在近乎疯狂的偏执中化身战神，《Caravan》九分钟终极独奏燃尽一切。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1304447,
+    "name": "Memento",
+    "name_cn": "记忆碎片",
+    "creator": "克里斯托弗·诺兰",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p641688453.jpg",
+    "rating_score": 8.7,
+    "date": "2000-09-05",
+    "tags": [
+      "诺兰",
+      "非线性倒叙",
+      "烧脑",
+      "记忆",
+      "悬疑"
+    ],
+    "summary": "莱昂纳多因妻子遇害脑部受损患上短期记忆丧失症，记忆只能维持十几分钟。他依靠宝丽来照片、纸条和身上的文身追踪凶手。诺兰用黑白正叙与彩色倒叙交替穿插，为观众打造了一场无与伦比的结构性迷宫体验。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 21360417,
+    "name": "더 테러 라이브",
+    "name_cn": "恐怖直播",
+    "creator": "金秉祐",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2016930906.jpg",
+    "rating_score": 8.8,
+    "date": "2013-07-31",
+    "tags": [
+      "密室",
+      "政治惊悚",
+      "反转",
+      "河正宇",
+      "韩国电影"
+    ],
+    "summary": "被降职的电台主持人尹英华在早间连线中接到听众炸毁麻浦大桥的恐怖威胁。为了咸鱼翻身夺回黄金档主播席位，他决定在狭小演播室内进行全天候独家实况直播。随着耳麦炸弹启动与青瓦台的冷酷权衡，局势彻底失控。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 25917973,
+    "name": "心迷宫",
+    "name_cn": "心迷宫",
+    "creator": "忻钰坤",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2275298525.jpg",
+    "rating_score": 8.7,
+    "date": "2014-07-27",
+    "tags": [
+      "忻钰坤",
+      "国产悬疑",
+      "多线叙事",
+      "黑色幽默",
+      "人性"
+    ],
+    "summary": "偏远村庄里的一具无名焦尸引得数家争相认领。村长儿子失手杀人、偷情少妇假借认尸、贪财瘸子铤而走险，三条时间交错的故事线如多米诺骨牌般倒下，精准展现了乡土人情下的道德迷局。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1303037,
+    "name": "青蛇",
+    "name_cn": "青蛇",
+    "creator": "徐克",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p584021789.jpg",
+    "rating_score": 8.6,
+    "date": "1993-11-04",
+    "tags": [
+      "徐克",
+      "王祖贤",
+      "张曼玉",
+      "妖娆",
+      "美学巅峰"
+    ],
+    "summary": "南宋西湖边，白蛇与青蛇修炼成人入世体验情爱。白素贞沉迷于许仙的书生温情，小青懵懂探求人间情欲，而法海执念于降妖除魔却心魔难抑。水漫金山后小青刺死懦弱许仙跳入波涛：我来到世上，被世人所误，你们说人间有情，情为何物？",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1297574,
+    "name": "英雄本色",
+    "name_cn": "英雄本色",
+    "creator": "吴宇森",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2504997087.jpg",
+    "rating_score": 8.7,
+    "date": "1986-08-02",
+    "tags": [
+      "周润发",
+      "狄龙",
+      "张国荣",
+      "暴力美学",
+      "兄弟情义"
+    ],
+    "summary": "伪钞集团骨干宋子豪被捕入狱，好友小马哥单枪匹马血洗枫林阁身负重伤沦为擦车跛子。出狱后的子豪决意改过自新，身为警察的弟弟却视其为仇敌。风衣墨镜双枪烈火，小马哥喊出那句时代的呐喊：我等了三年，就是要争一口气！",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 3792799,
+    "name": "歲月神偷",
+    "name_cn": "岁月神偷",
+    "creator": "罗启锐",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p456666151.jpg",
+    "rating_score": 8.7,
+    "date": "2010-03-11",
+    "tags": [
+      "香港怀旧",
+      "温情",
+      "任达华",
+      "吴君如",
+      "催泪"
+    ],
+    "summary": "60年代深水埗永利街，罗鞋匠一家四口艰辛度日。长子进一品学兼优却罹患白血病，顽皮的小儿子戴着鱼缸幻想着太空探险。岁月是最大的小偷，偷走了青春、生命与时光，但偷不走家人携手跨过难关的深情。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 26588308,
+    "name": "Contratiempo",
+    "name_cn": "看不见的客人",
+    "creator": "奥里奥尔·保罗",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2498971355.jpg",
+    "rating_score": 8.8,
+    "date": "2016-09-23",
+    "tags": [
+      "密室杀人",
+      "反转神作",
+      "悬疑",
+      "西班牙",
+      "唇枪舌剑"
+    ],
+    "summary": "年轻高科技企业家艾德里安在密室酒店被控谋杀情妇。金牌女律师弗吉尼亚在开庭前夕与其进行长达三小时的极速复盘，在数个推演版本谎言被戳穿后，一场惊天动地的父母寻仇复仇局震撼揭晓。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1296339,
+    "name": "Before Sunrise",
+    "name_cn": "爱在黎明破晓前",
+    "creator": "理查德·林克莱特",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1505392928.jpg",
+    "rating_score": 8.8,
+    "date": "1995-01-27",
+    "tags": [
+      "话痨爱情",
+      "维也纳",
+      "浪漫",
+      "爱在三部曲",
+      "文艺"
+    ],
+    "summary": "美国青年杰西在开往维也纳的欧洲列车上偶遇法国女学生塞琳。两人意气相投相约下车，漫步于维也纳晨曦微露的古老街头，在试音间、摩天轮与墓园中畅谈人生与灵魂，立下半年后再会的约定。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291990,
+    "name": "Before Sunset",
+    "name_cn": "爱在日落黄昏时",
+    "creator": "理查德·林克莱特",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p1910902213.jpg",
+    "rating_score": 8.9,
+    "date": "2004-02-10",
+    "tags": [
+      "爱在三部曲",
+      "巴黎",
+      "重逢",
+      "文艺",
+      "经典"
+    ],
+    "summary": "九年后，杰西将当年的相遇写成畅销书在巴黎书店签售，塞琳意外现身。两人穿行在塞纳河畔与老咖啡馆，时光在脸上留下痕迹，但眼神依然炽热。宝贝，你赶不上那班飞机了；我知道。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292434,
+    "name": "一一",
+    "name_cn": "一一",
+    "creator": "杨德昌",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2119648126.jpg",
+    "rating_score": 9.1,
+    "date": "2000-05-14",
+    "tags": [
+      "杨德昌",
+      "人生哲思",
+      "台湾新浪潮",
+      "洋洋",
+      "经典"
+    ],
+    "summary": "台北中产家庭简南俊一家从一场婚礼开始，经历了婆婆中风、初恋重逢与青春烦恼。八岁小男孩洋洋拿着相机专拍别人的后脑勺，因为人们看不见自己的背面。杨德昌用平实深邃的笔触，将人生的全貌铺展在观众眼前。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292329,
+    "name": "牯嶺街少年殺人事件",
+    "name_cn": "牯岭街少年杀人事件",
+    "creator": "杨德昌",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p848381239.jpg",
+    "rating_score": 8.9,
+    "date": "1991-07-27",
+    "tags": [
+      "张震",
+      "杨德昌",
+      "青春史诗",
+      "台湾",
+      "震撼"
+    ],
+    "summary": "60年代初的台北，外省移民二代小四在帮派争斗与成人社会的冷酷压抑中维持着纯真信念。当心爱的女孩小明以世俗成熟的态度告知“这个世界是不可改变的”，绝望的小四拔出了短刀，刺破了一个时代的幻梦。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1293359,
+    "name": "菊次郎の夏",
+    "name_cn": "菊次郎的夏天",
+    "creator": "北野武",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p751835220.jpg",
+    "rating_score": 8.9,
+    "date": "1999-05-20",
+    "tags": [
+      "北野武",
+      "久石让",
+      "温情",
+      "治愈",
+      "公路片"
+    ],
+    "summary": "三年级小男孩正男在暑假独自踏上前往丰桥寻找母亲的旅途。邻居欧巴桑拜托游手好闲的前黑道混混菊次郎护送。一路上输光旅费、搭便车、学盲人搞恶作剧，大叔陪着男孩度过了一个温情洋溢的盛夏。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 21350553,
+    "name": "Gone Girl",
+    "name_cn": "消失的爱人",
+    "creator": "大卫·芬奇",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2221768894.jpg",
+    "rating_score": 8.7,
+    "date": "2014-09-26",
+    "tags": [
+      "大卫·芬奇",
+      "婚姻惊悚",
+      "反转",
+      "悬疑",
+      "罗莎蒙德·派克"
+    ],
+    "summary": "结婚五周年纪念日当天，完美妻子艾米离奇失踪，家中留下明显的打斗痕迹。丈夫尼克在警方面前漏洞百出沦为头号嫌凶。伴随着艾米的日记与惊心动魄的复仇布局，一场关于现代婚姻控制与博弈的恐怖戏剧全面引爆。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 3075287,
+    "name": "Source Code",
+    "name_cn": "源代码",
+    "creator": "邓肯·琼斯",
+    "cover_url": "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p988260249.jpg",
+    "rating_score": 8.5,
+    "date": "2011-04-01",
+    "tags": [
+      "时间循环",
+      "科幻",
+      "悬疑",
+      "杰克·吉伦哈尔",
+      "列车"
+    ],
+    "summary": "阿富汗前线直升机飞行员柯尔特上尉醒来，发现自己附身在前往芝加哥的通勤列车上的一名历史教师体内，八分钟后列车被炸毁。他在绝密“脑源代码”系统中不断重复这最后的八分钟，追查炸弹狂魔并改变平行世界的命运。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292343,
+    "name": "The Butterfly Effect",
+    "name_cn": "蝴蝶效应",
+    "creator": "埃里克·布雷斯",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2209066019.jpg",
+    "rating_score": 8.8,
+    "date": "2004-01-23",
+    "tags": [
+      "穿越",
+      "悬疑",
+      "宿命",
+      "烧脑",
+      "经典"
+    ],
+    "summary": "伊万童年时常有严重记忆断片。成年后他通过阅读当年的日记，发现自己能够穿越回童年改写历史。然而每一次细微的修正，都会在未来掀起无法预料的多米诺灾难。为了拯救所爱之人，他选择在子宫中掐断生命的脐带。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1300374,
+    "name": "The Green Mile",
+    "name_cn": "绿里奇迹",
+    "creator": "弗兰克·德拉邦特",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p767586451.jpg",
+    "rating_score": 8.9,
+    "date": "1999-12-10",
+    "tags": [
+      "斯蒂芬·金",
+      "死刑犯",
+      "神迹",
+      "汉克斯",
+      "人性"
+    ],
+    "summary": "冷山监狱死囚区被称为“绿里”，看守长保罗迎来了身材魁梧却胆小如孩童的黑人死囚约翰·考菲。考菲拥有抚平疾苦吸食病痛的不可思议神迹，面对人世间深重的邪恶与恶意，这位疲惫的神迹天使走向了电椅。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1291848,
+    "name": "Terminator 2: Judgment Day",
+    "name_cn": "终结者2：审判日",
+    "creator": "詹姆斯·卡梅隆",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1910909085.jpg",
+    "rating_score": 8.8,
+    "date": "1991-07-03",
+    "tags": [
+      "阿诺·施瓦辛格",
+      "科幻动作",
+      "液态金属",
+      "卡梅隆",
+      "经典"
+    ],
+    "summary": "天网派出了更先进致命的液态金属机器人T-1000穿越回过去刺杀人类未来反抗军领袖约翰·康纳；未来人类也派出了重新编程的T-800誓死保护。在炽热钢水中竖起的大拇指，成为科幻动作史最动人的永恒定格。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1296736,
+    "name": "The Pianist",
+    "name_cn": "钢琴家",
+    "creator": "罗曼·波兰斯基",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p792484461.jpg",
+    "rating_score": 9.3,
+    "date": "2002-05-24",
+    "tags": [
+      "二战",
+      "肖邦",
+      "波兰斯基",
+      "生存",
+      "阿德里安·布罗迪"
+    ],
+    "summary": "犹太波兰古典钢琴家斯皮尔曼一家在二战华沙沦陷后遭遇残酷驱逐。侥幸逃脱死囚火车的斯皮尔曼在断壁残垣中苟延残喘。废墟冰冷的钢琴前，一位德国军官递来大衣，肖邦第一叙事曲回荡在毁灭之城的余烬中。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 4920389,
+    "name": "Ready Player One",
+    "name_cn": "头号玩家",
+    "creator": "史蒂文·斯皮尔伯格",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2516578307.jpg",
+    "rating_score": 8.7,
+    "date": "2018-03-29",
+    "tags": [
+      "斯皮尔伯格",
+      "VR虚拟现实",
+      "游戏彩蛋",
+      "赛博朋克",
+      "极客"
+    ],
+    "summary": "2045年现实世界衰败，人们沉浸于虚拟现实元宇宙“绿洲”。天才创始人哈利迪离世前留下三道彩蛋谜题，胜者将获得绿洲的绝对控制权与万亿财富。平民少年韦德组建高五战队，在高达对决机械哥斯拉与无数极客彩蛋中唤醒现实连接。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1300992,
+    "name": "The Silence of the Lambs",
+    "name_cn": "沉默的羔羊",
+    "creator": "乔纳森·戴米",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1593414327.jpg",
+    "rating_score": 8.9,
+    "date": "1991-02-14",
+    "tags": [
+      "心理惊悚",
+      "汉尼拔",
+      "安东尼·霍普金斯",
+      "探员",
+      "经典"
+    ],
+    "summary": "联邦调查局见习特工克拉丽斯奉命探访被囚禁在重犯精神病院的食人食髓心理学天才汉尼拔博士，以获取连环剥皮杀手“野牛比尔”的心理侧写。在玻璃囚笼两端，一场危险至极的心理审问与灵魂交换正式拉开序幕。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292225,
+    "name": "The Sixth Sense",
+    "name_cn": "第六感",
+    "creator": "M·奈特·沙马兰",
+    "cover_url": "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p1910904979.jpg",
+    "rating_score": 8.9,
+    "date": "1999-08-06",
+    "tags": [
+      "悬疑反转",
+      "布鲁斯·威利斯",
+      "温情",
+      "鬼魂",
+      "经典"
+    ],
+    "summary": "儿童心理学家麦戈遇到一位自称能看见死者的八岁男孩柯尔。在逐步解开男孩内心恐惧的过程中，医生帮助那些徘徊在人间的灵魂完成未了心愿，然而在秋风落叶中，麦戈发现了自己身上最残酷而温柔的真相。",
+    "subject_type": 6,
+    "source": "curated_douban"
+  },
+  {
+    "id": 1292062,
+    "name": "The Truman Show",
+    "name_cn": "心灵捕手",
+    "creator": "格斯·范·桑特",
+    "cover_url": "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p480965695.jpg",
+    "rating_score": 8.9,
+    "date": "1997-12-05",
+    "tags": [
+      "马特·达蒙",
+      "罗宾·威廉姆斯",
+      "治愈",
+      "数学天才",
+      "温情"
+    ],
+    "summary": "麻省理工学院的叛逆清洁工威尔是个数学旷世奇才，却因童年创伤习惯用暴力和嘲讽防御外界。心理学教授尚恩与他在一次次敞开心扉的交谈中融化了防备：这不是你的错。威尔终于勇敢踏上奔赴加州寻找真爱的公路。",
     "subject_type": 6,
     "source": "curated_douban"
   }

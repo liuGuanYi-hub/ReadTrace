@@ -74,5 +74,689 @@
     "summary": "日本超人气音乐组合 Yorushika 的第三张完整概念专辑。以一位自称为“盗作小偷”的男人的精神日记为故事线展开，suis 空灵透亮的声线与 n-buna 极具文学质感的词曲交织出深夜的灵魂漫游。",
     "subject_type": 3,
     "source": "curated_music"
+  },
+  {
+    "id": 30005,
+    "name": "Thriller",
+    "name_cn": "颤栗 (Thriller)",
+    "creator": "Michael Jackson",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png",
+    "rating_score": 9.8,
+    "date": "1982-11-30",
+    "tags": [
+      "流行天王",
+      "世界纪录",
+      "太空步",
+      "Billie Jean",
+      "滚石500"
+    ],
+    "summary": "人类音乐史上销量最高的录音室专辑，全球狂销超7000万张。《Billie Jean》《Beat It》《Thriller》打破了MTV黑人音乐禁忌，迈克尔·杰克逊凭借这张旷世神作登基为无可争议的流行音乐之王。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30006,
+    "name": "Nevermind",
+    "name_cn": "从不介意 (Nevermind)",
+    "creator": "Nirvana",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/b/b7/NirvanaNevermindalbumcover.jpg",
+    "rating_score": 9.6,
+    "date": "1991-09-24",
+    "tags": [
+      "垃圾摇滚",
+      "涅槃",
+      "科特·柯本",
+      "水下婴儿",
+      "90年代"
+    ],
+    "summary": "《Smells Like Teen Spirit》前奏扫弦炸响，将垃圾摇滚（Grunge）从西雅图地下车库推上全球主流巅峰。科特·柯本撕裂绝望的嗓音撕下了80年代华丽摇滚的虚伪面具，成为一代叛逆青年的精神圣经。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30007,
+    "name": "OK Computer",
+    "name_cn": "OK电脑 (OK Computer)",
+    "creator": "Radiohead",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/b/ba/Radioheadokcomputer.png",
+    "rating_score": 9.7,
+    "date": "1997-05-21",
+    "tags": [
+      "另类摇滚",
+      "电台司令",
+      "世纪末疏离",
+      "Paranoid Android",
+      "滚石殿堂"
+    ],
+    "summary": "世纪末信息技术爆发前夕，Radiohead 用迷离冰冷的吉他噪音与合成器回声精准预言了现代人在数字社会的精神异化与失重。《Paranoid Android》《Karma Police》《No Surprises》构成了人类摇滚乐的美学天花板。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30008,
+    "name": "Rumours",
+    "name_cn": "谣言 (Rumours)",
+    "creator": "Fleetwood Mac",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/f/fb/FMacRumours.PNG",
+    "rating_score": 9.5,
+    "date": "1977-02-04",
+    "tags": [
+      "经典摇滚",
+      "情感撕裂",
+      "Dreams",
+      "录音美学",
+      "白金唱片"
+    ],
+    "summary": "弗利特伍德·麦克乐队在两对情侣成员面临彻底分手、情感近乎崩溃撕裂的极端风暴中录制完成的奇迹专辑。《Dreams》《Go Your Own Way》将最痛苦的心碎化作了最晶莹剔透的天籁和声。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30009,
+    "name": "Pet Sounds",
+    "name_cn": "宠物之声 (Pet Sounds)",
+    "creator": "The Beach Boys",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/b/bb/PetSoundsCover.jpg",
+    "rating_score": 9.6,
+    "date": "1966-05-16",
+    "tags": [
+      "巴洛克流行",
+      "布莱恩·威尔逊",
+      "交响制作",
+      "披头士灵感",
+      "滚石第一阵营"
+    ],
+    "summary": "音乐天才布莱恩·威尔逊独自在录音室调遣交响乐器、自行车铃铛与可口可乐空瓶构筑的巴洛克流行奇迹。《God Only Knows》被保罗·麦卡特尼盛赞为有史以来最伟大的流行歌曲，直接催生了披头士的《佩珀军士》。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30010,
+    "name": "What's Going On",
+    "name_cn": "怎么回事 (What's Going On)",
+    "creator": "Marvin Gaye",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/8/84/MarvinGayeWhat%27sGoingOnalbumcover.jpg",
+    "rating_score": 9.7,
+    "date": "1971-05-21",
+    "tags": [
+      "摩城之声",
+      "灵魂乐",
+      "反战",
+      "社会正义",
+      "滚石五百第一名"
+    ],
+    "summary": "灵魂乐巨星马文·盖伊冲破摩城唱片商业限制，以越战老兵视角写给全人类的一封和平情书。行云流水不间断的萨克斯、打击乐与温暖假音，探讨了战争、贫困与生态保护，长年位居新版《滚石》杂志500强专辑榜首。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30011,
+    "name": "Songs in the Key of Life",
+    "name_cn": "生命之钥的歌曲",
+    "creator": "Stevie Wonder",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/e/e2/Songs_in_the_key_of_life.JPG",
+    "rating_score": 9.6,
+    "date": "1976-09-28",
+    "tags": [
+      "黑人音乐巅峰",
+      "放克",
+      "盲人天才",
+      "格莱美年度",
+      "史提夫·汪达"
+    ],
+    "summary": "双目失明的音乐巨人史提夫·汪达横跨爵士、放克、福音与流行交响的双唱片恢弘巨构。《Sir Duke》《Isn't She Lovely》溢满了对生命、新生儿与大师先驱最奔放灿烂的感恩与赞颂。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30012,
+    "name": "Blue",
+    "name_cn": "蓝色 (Blue)",
+    "creator": "Joni Mitchell",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/e/e1/JoniMitchellBlueAlbumCover.jpg",
+    "rating_score": 9.6,
+    "date": "1971-06-22",
+    "tags": [
+      "民谣",
+      "自省",
+      "扬琴",
+      "琼尼·米歇尔",
+      "女性自白"
+    ],
+    "summary": "加拿大民谣女诗人琼尼·米歇尔最坦诚刺骨的灵魂自白。阿巴拉契亚扬琴与纯净钢琴伴奏下，她毫无防备地将自己剥开在听众面前：爱是如此甘美，又如此孤独残忍。民谣音乐史上的极致纯蓝钻石。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30013,
+    "name": "The Rise and Fall of Ziggy Stardust",
+    "name_cn": "齐格·星尘的兴衰",
+    "creator": "David Bowie",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/0/01/ZiggyStardust.jpg",
+    "rating_score": 9.5,
+    "date": "1972-06-16",
+    "tags": [
+      "华丽摇滚",
+      "鲍伊",
+      "外星摇滚巨星",
+      "概念神作",
+      "先锋美学"
+    ],
+    "summary": "大卫·鲍伊虚构了来自外太空的双性恋摇滚救世主“齐格·星尘”在地球最后五年的传世概念专辑。火红短发、闪电妆容与雌雄莫辨的先锋舞台美学，彻底重塑了摇滚乐的视觉边界与身份认同。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30014,
+    "name": "Purple Rain",
+    "name_cn": "紫雨 (Purple Rain)",
+    "creator": "Prince",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/9/9c/Princepurplerain.jpg",
+    "rating_score": 9.5,
+    "date": "1984-06-25",
+    "tags": [
+      "王子",
+      "紫雨",
+      "放克摇滚",
+      "吉他独奏",
+      "80年代盛宴"
+    ],
+    "summary": "流行乐全才王子（Prince）在明尼阿波利斯录音室独自编曲演奏数十种乐器的集大成之作。《When Doves Cry》大胆抽离贝斯线条，《Purple Rain》长达数分钟的泣血电吉他独奏在漫天紫雨中成为永恒。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30015,
+    "name": "Led Zeppelin IV",
+    "name_cn": "齐柏林飞艇 IV",
+    "creator": "Led Zeppelin",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/2/26/Led_Zeppelin_-_Led_Zeppelin_IV.jpg",
+    "rating_score": 9.7,
+    "date": "1971-11-08",
+    "tags": [
+      "硬摇滚",
+      "重金属先驱",
+      "天梯",
+      "吉米·佩奇",
+      "经典"
+    ],
+    "summary": "封面没有任何乐队名与文字，仅有四个神秘符文。吉米·佩奇的双头吉他与罗伯特·普兰特的高亢嗓音在《Stairway to Heaven》中完成从柔美民谣笛声向重型硬摇滚狂飙的完美攀升，被誉为摇滚乐的巴别塔。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30016,
+    "name": "To Pimp a Butterfly",
+    "name_cn": "蝴蝶之舞 (To Pimp a Butterfly)",
+    "creator": "Kendrick Lamar",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/f/f6/Kendrick_Lamar_-_To_Pimp_a_Butterfly.png",
+    "rating_score": 9.6,
+    "date": "2015-03-15",
+    "tags": [
+      "西海岸说唱",
+      "爵士嘻哈",
+      "普利策奖",
+      "深刻批判",
+      "黑人文化"
+    ],
+    "summary": "现代嘻哈音乐史无可争议的至高丰碑。肯德里克·拉马尔将自由爵士、放克与灵魂乐完美融入尖锐的政治批判与灵魂自省中，终曲与已故传奇2Pac跨越时空的虚拟对话，将整张专辑升华为一部宏大的非裔文化交响史诗。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30017,
+    "name": "Back to Black",
+    "name_cn": "重回黑色 (Back to Black)",
+    "creator": "Amy Winehouse",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/6/67/Amy_Winehouse_-_Back_to_Black_%28album%29.png",
+    "rating_score": 9.3,
+    "date": "2006-10-27",
+    "tags": [
+      "复古摩城",
+      "艾米·怀恩豪斯",
+      "爵士灵魂",
+      "格莱美横扫",
+      "心碎"
+    ],
+    "summary": "蜂窝头与浓黑眼线的英国爵士天才艾米·怀恩豪斯横扫五座格莱美的传奇之作。Mark Ronson操刀复古大管弦乐，《Rehab》《Back to Black》以苍凉沙哑如黑胶唱片般的烟熏嗓音，撕裂展现了最痛楚的失恋与自毁。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30018,
+    "name": "Random Access Memories",
+    "name_cn": "随机存取记忆 (RAM)",
+    "creator": "Daft Punk",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg",
+    "rating_score": 9.4,
+    "date": "2013-05-17",
+    "tags": [
+      "法国蠢朋克",
+      "电子音乐巅峰",
+      "黑胶模拟录音",
+      "Get Lucky",
+      "格莱美年度"
+    ],
+    "summary": "电子双人组蠢朋克（Daft Punk）重返70年代模拟磁带与全编制现场乐手录音室打造的终极杰作。《Get Lucky》《Giorgio by Moroder》将浩室电子与古董放克无缝相连，为电子音乐注入了最温热鲜活的人性心跳。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30019,
+    "name": "A Night at the Opera",
+    "name_cn": "歌剧之夜 (A Night at the Opera)",
+    "creator": "Queen",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/4/4d/Queen_A_Night_At_The_Opera.png",
+    "rating_score": 9.6,
+    "date": "1975-11-21",
+    "tags": [
+      "皇后乐队",
+      "弗雷迪·默丘里",
+      "波希米亚狂想曲",
+      "歌剧摇滚",
+      "史诗"
+    ],
+    "summary": "皇后乐队将歌剧与硬摇滚融为一体的巅峰狂想。《Bohemian Rhapsody》耗费三周录制180轨人声和声，无副歌结构的结构性颠覆，让弗雷迪·默丘里的华丽悲剧美学在摇滚乐坛永生不朽。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30020,
+    "name": "Kind of Blue",
+    "name_cn": "泛蓝调调 (Kind of Blue)",
+    "creator": "Miles Davis",
+    "cover_url": "https://upload.wikimedia.org/wikipedia/en/9/9c/MilesDavisKindofBlue.jpg",
+    "rating_score": 9.8,
+    "date": "1959-08-17",
+    "tags": [
+      "调式爵士",
+      "迈尔斯·戴维斯",
+      "约翰·柯川",
+      "比尔·埃文斯",
+      "爵士圣经"
+    ],
+    "summary": "人类爵士音乐史上最伟大的录音室专辑。迈尔斯·戴维斯召集比尔·埃文斯与约翰·柯川在纽约录音室一次成型的神来之笔。摒弃复杂的和弦转换，以纯粹调式音阶营造出幽深如午夜静水般的东方禅意。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30021,
+    "name": "Yeh Hui-mei",
+    "name_cn": "叶惠美",
+    "creator": "周杰伦",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434310.jpg",
+    "rating_score": 9.5,
+    "date": "2003-07-31",
+    "tags": [
+      "周杰伦",
+      "以父之名",
+      "晴天",
+      "东欧复古",
+      "华语神作"
+    ],
+    "summary": "以母亲名字命名的第四张录音室专辑，见证了周杰伦古典复古编曲的集大成之作。《以父之名》前奏歌剧祷白与教父暗黑教父质感封神，《晴天》《东风破》重塑了华语流行乐与中国风的美学范式。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30022,
+    "name": "Fable",
+    "name_cn": "寓言",
+    "creator": "王菲",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s1435882.jpg",
+    "rating_score": 9.4,
+    "date": "2000-10-20",
+    "tags": [
+      "王菲",
+      "张亚东",
+      "概念五部曲",
+      "神仙编曲",
+      "千禧先锋"
+    ],
+    "summary": "王菲与张亚东、林夕携手打造的华语概念专辑巅峰。前半张《寒武纪》《新房客》《香奈儿》《阿修罗》《彼岸花》五部曲由王菲全包作曲，弦乐交响与Trip-Hop迷幻电音勾勒出前卫宿命的轮回寓言。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30023,
+    "name": "Black Dream",
+    "name_cn": "黑梦",
+    "creator": "窦唯",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434273.jpg",
+    "rating_score": 9.4,
+    "date": "1994-05-01",
+    "tags": [
+      "魔岩三杰",
+      "窦唯",
+      "后朋克",
+      "哥特",
+      "中国摇滚巅峰"
+    ],
+    "summary": "窦唯离开黑豹乐队后首张个人专辑，魔岩三杰红磡绝唱的基石。深受包豪斯与Post-Punk影响，低沉克制的贝斯律动与梦呓般的冷峻唱腔，在《明天更漫长》《黑色梦中》中构建了中国摇滚最深邃幽暗的精神梦境。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30024,
+    "name": "Omnipotent Youth Society",
+    "name_cn": "万能青年旅店",
+    "creator": "万能青年旅店",
+    "cover_url": "https://img9.doubanio.com/view/subject/s/public/s4520338.jpg",
+    "rating_score": 9.4,
+    "date": "2010-11-12",
+    "tags": [
+      "石家庄",
+      "杀杀死那个石家庄人",
+      "管乐交响",
+      "时代阵痛",
+      "独立摇滚"
+    ],
+    "summary": "十年磨一剑，河北石家庄走出的独立摇滚旷世奇迹。大提琴与小号撕裂工业黄昏，董亚千的吉他与姬赓如手术刀般的诗性歌词，在《杀死那个石家庄人》《十万嬉皮》中记录了时代巨变下普通工人的荒诞阵痛与深沉悲悯。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30025,
+    "name": "Born Like Summer Flowers",
+    "name_cn": "生如夏花",
+    "creator": "朴树",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434316.jpg",
+    "rating_score": 9.3,
+    "date": "2003-11-28",
+    "tags": [
+      "朴树",
+      "张亚东",
+      "异域风情",
+      "泰戈尔",
+      "纯真忧郁"
+    ],
+    "summary": "时隔四年沉淀，朴树与张亚东再次联手献出的纯真诗篇。借泰戈尔诗句“生如夏花之绚烂，死如秋叶之静美”，在印第安排箫、非洲鼓与梵语吟唱中绽放对生命最纯粹明净的眷恋与炽热。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30026,
+    "name": "Rock 'N' Roll On The New Long March",
+    "name_cn": "新长征路上的摇滚",
+    "creator": "崔健",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434272.jpg",
+    "rating_score": 9.4,
+    "date": "1989-02-01",
+    "tags": [
+      "中国摇滚开山作",
+      "崔健",
+      "一无所有",
+      "红布蒙眼",
+      "启蒙时代"
+    ],
+    "summary": "中国内地第一张原创摇滚专辑，中国摇滚乐的启蒙圣杯。身穿绿军装脚踏高低裤脚的崔健在工体一声嘶吼《一无所有》，唢呐与电吉他激烈交火，如平地惊雷般唤醒了一整代中国青年的独立意志与呐喊。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30027,
+    "name": "Zhi Hu Zhe Ye",
+    "name_cn": "之乎者也",
+    "creator": "罗大佑",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434271.jpg",
+    "rating_score": 9.5,
+    "date": "1982-04-21",
+    "tags": [
+      "华语音乐教父",
+      "黑衣墨镜",
+      "童年",
+      "光阴的故事",
+      "鹿港小镇"
+    ],
+    "summary": "罗大佑一身黑衣墨镜横空出世，终结了台湾校园民谣的温软风气。《鹿港小镇》吉他轰鸣怒问“台北不是我的家”，《童年》《光阴的故事》抚慰几代人的青春记忆，开创了华语流行音乐批判性与思想性的新纪元。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30028,
+    "name": "David Tao",
+    "name_cn": "陶喆同名专辑",
+    "creator": "陶喆",
+    "cover_url": "https://img2.doubanio.com/view/subject/s/public/s1434312.jpg",
+    "rating_score": 9.4,
+    "date": "1997-12-06",
+    "tags": [
+      "华语R&B教父",
+      "陶喆",
+      "望春风",
+      "爱很简单",
+      "开山之作"
+    ],
+    "summary": "陶喆首张个人专辑，彻底革新了华语流行音乐的律动审美。将纯正美式R&B、阿卡贝拉和声与台湾老民谣《望春风》奇妙融合，《爱很简单》《流沙》纯净透亮，成为华语乐坛不可磨灭的R&B黄金教科书。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30029,
+    "name": "U87",
+    "name_cn": "U87",
+    "creator": "陈奕迅",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434315.jpg",
+    "rating_score": 9.2,
+    "date": "2005-06-07",
+    "tags": [
+      "陈奕迅",
+      "U87麦克风",
+      "浮夸",
+      "葡萄成熟时",
+      "港乐巅峰"
+    ],
+    "summary": "以录音室传奇 Neumann U87 麦克风命名，时代周刊评选五大亚洲最值得购买唱片之一。《浮夸》声嘶力竭的独白揭露小人物被无视的痛苦，《葡萄成熟时》《阿牛》《夕阳无限好》尽显黄伟文与林夕笔下的岁月沉淀。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30030,
+    "name": "Kite",
+    "name_cn": "风筝",
+    "creator": "孙燕姿",
+    "cover_url": "https://img2.doubanio.com/view/subject/s/public/s1434314.jpg",
+    "rating_score": 9.1,
+    "date": "2001-07-12",
+    "tags": [
+      "孙燕姿",
+      "千禧天后",
+      "绿光",
+      "风筝",
+      "清澈灵动"
+    ],
+    "summary": "千禧初年孙燕姿最具灵气与爆发力的代表作之一。《绿光》爱尔兰踢踏舞曲掀起全民狂潮，同名主打歌《风筝》高亢自由如乘风展翅，短发女孩以清澈纯粹的音色定格了无数人的青春盛夏。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30031,
+    "name": "Wanderer's Love Song",
+    "name_cn": "浪人情歌",
+    "creator": "伍佰 & China Blue",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434274.jpg",
+    "rating_score": 9.2,
+    "date": "1994-12-16",
+    "tags": [
+      "伍佰",
+      "Live之王",
+      "浪人情歌",
+      "牵挂",
+      "台客摇滚"
+    ],
+    "summary": "伍佰与China Blue的第二张专辑，奠定了其华语摇滚Live现场之王的崇高地位。电吉他奔放粗粝，伍佰用看似笨拙却饱含万钧柔情的沙哑嗓音，在《浪人情歌》《牵挂》中将铁汉柔情唱进了每个男人的心底。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30032,
+    "name": "Rock and Roll",
+    "name_cn": "乐与怒",
+    "creator": "Beyond",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434275.jpg",
+    "rating_score": 9.6,
+    "date": "1993-05-14",
+    "tags": [
+      "黄家驹",
+      "海阔天空",
+      "自由信念",
+      "绝唱",
+      "华语殿堂"
+    ],
+    "summary": "黄家驹生前最后一张也是Beyond乐队最伟大的粤语录音室专辑。《海阔天空》钢琴与弦乐交织，“原谅我这一生不羁放纵爱自由，也会怕有一天会跌倒”，成为跨越时代、语言与地域的全华人精神图腾。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30033,
+    "name": "Sensible and Sensual",
+    "name_cn": "理性与感性作品音乐会",
+    "creator": "李宗盛",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s2508821.jpg",
+    "rating_score": 9.6,
+    "date": "2007-09-28",
+    "tags": [
+      "李宗盛",
+      "年少不听李宗盛",
+      "台北小巨蛋",
+      "山丘",
+      "人生写照"
+    ],
+    "summary": "华语流行乐坛最深邃的半生复盘。年少不听李宗盛，听懂已是不惑年。在台北小巨蛋的舞台上，老李抱起吉他与张震岳、梁静茹对唱，用半说半唱的沧桑白描将世间男女的情爱与遗憾剖析得干干净净。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30034,
+    "name": "12",
+    "name_cn": "12",
+    "creator": "坂本龙一 (Ryuichi Sakamoto)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s34394017.jpg",
+    "rating_score": 9.4,
+    "date": "2023-01-17",
+    "tags": [
+      "教授",
+      "坂本龙一",
+      "抗癌心境",
+      "极简钢琴",
+      "向死而生"
+    ],
+    "summary": "日本大师坂本龙一在与癌症搏斗的生命的最后阶段记录下的12首极简音乐日记。保留了病房里的呼吸机蜂鸣、窗外的风声与未被修饰的琴键杂音，平静而从容地走向终章：艺术千秋，人生朝露。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30035,
+    "name": "Kikujiro OST",
+    "name_cn": "菊次郎的夏天 原声带",
+    "creator": "久石让 (Joe Hisaishi)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434317.jpg",
+    "rating_score": 9.5,
+    "date": "1999-05-26",
+    "tags": [
+      "久石让",
+      "Summer",
+      "北野武",
+      "童年治愈",
+      "钢琴跳跃"
+    ],
+    "summary": "久石让电影配乐生涯的最标志性代表作。《Summer》欢快跳跃如雨后朝露般的钢琴跳音一响起，便瞬间唤回了童年奔跑在向日葵田野与蓝色海岸线的盛夏记忆，永不褪色的纯真治愈。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30036,
+    "name": "Cowboy Bebop OST 1",
+    "name_cn": "星际牛仔 原声大碟",
+    "creator": "菅野洋子 / The Seatbelts",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434318.jpg",
+    "rating_score": 9.6,
+    "date": "1998-05-21",
+    "tags": [
+      "菅野洋子",
+      "爵士大乐队",
+      "Tank!",
+      "太空蓝调",
+      "二次元配乐巅峰"
+    ],
+    "summary": "日本动画音乐史上的天花板神作。管乐齐鸣的《Tank!》铜管狂飙令人血脉偾张，蓝调口琴与低沉萨克斯交织出太空流浪客的宿命浪漫。菅野洋子以爵士大乐队让动画配乐达到了世界级严肃艺术水准。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30037,
+    "name": "Attack on Titan OST",
+    "name_cn": "进击的巨人 原声大碟",
+    "creator": "泽野弘之 (Hiroyuki Sawano)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s26553880.jpg",
+    "rating_score": 9.4,
+    "date": "2013-06-28",
+    "tags": [
+      "泽野弘之",
+      "核爆神曲",
+      "战歌",
+      "交响摇滚",
+      "史诗燃向"
+    ],
+    "summary": "泽野弘之奠定“燃曲教父”地位的代表作。重型电子合成器与巨型交响乐团激烈轰鸣，德语人声咏唱与电吉他穿透高墙，《ət'æk 0N tάɪtn》《Vogel im Käfig》完美契合了人类在绝望巨兽阴影下抗争宿命的悲壮战魂。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30038,
+    "name": "Magic Lantern",
+    "name_cn": "幻灯 (Gentou)",
+    "creator": "Yorushika (ヨルシカ)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s34460598.jpg",
+    "rating_score": 9.3,
+    "date": "2023-04-05",
+    "tags": [
+      "夜鹿",
+      "画集音乐",
+      "文学性",
+      "AR艺术",
+      "J-Pop先锋"
+    ],
+    "summary": "Yorushika 颠覆传统实体CD形态的“画集音乐”专辑。听众通过手机扫描加藤隆绘制的绝美画作聆听流动的音符。《又三郎》《老人与海》《斜阳》将文学名著解构为深夜漫步的清冷月光。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30039,
+    "name": "Merry Christmas Mr. Lawrence",
+    "name_cn": "圣诞快乐，劳伦斯先生",
+    "creator": "坂本龙一 (Ryuichi Sakamoto)",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434319.jpg",
+    "rating_score": 9.7,
+    "date": "1983-05-01",
+    "tags": [
+      "坂本龙一",
+      "大岛渚",
+      "大卫·鲍伊",
+      "甘美兰",
+      "传世名作"
+    ],
+    "summary": "大岛渚同名电影配乐，坂本龙一与大卫·鲍伊联袂出演。主旋律将印尼甘美兰乐器的神秘金属共鸣与西方交响织体融为一体，清脆的音符如冷冽的冰晶洒在战俘营的残酷热带雨林，成为世界电影音乐的永恒经典。",
+    "subject_type": 3,
+    "source": "curated_music"
+  },
+  {
+    "id": 30040,
+    "name": "Bao Jia Street 43",
+    "name_cn": "鲍家街43号",
+    "creator": "汪峰 / 鲍家街43号",
+    "cover_url": "https://img1.doubanio.com/view/subject/s/public/s1434276.jpg",
+    "rating_score": 9.1,
+    "date": "1997-05-01",
+    "tags": [
+      "中央音乐学院",
+      "汪峰",
+      "晚安北京",
+      "蓝调摇滚",
+      "都市夜行"
+    ],
+    "summary": "来自中央音乐学院门牌号的鲍家街43号乐队首张专辑。学院派严谨的蓝调织体与纯正管弦乐配器，终曲《晚安北京》长达九分钟的吉他啸叫与泣血长啸，记录了九十年代世纪末北京都市夜色下最真挚的失落与迷茫。",
+    "subject_type": 3,
+    "source": "curated_music"
   }
 ]

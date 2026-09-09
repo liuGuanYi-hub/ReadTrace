@@ -150,5 +150,1052 @@
     "summary": "濒临离婚的夫妇科迪与小梅因女儿的眼泪被魔咒变成了玩偶。在爱之书哈金医生的引导下，两人必须通力协作跨越童话般惊险且天马行空的关卡挑战，重燃爱意并寻找回到女儿身边的道路。",
     "subject_type": 4,
     "source": "curated_steam"
+  },
+  {
+    "id": 814380,
+    "name": "Sekiro: Shadows Die Twice",
+    "name_cn": "只狼：影逝二度",
+    "creator": "FromSoftware · 宫崎英高",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/814380/header.jpg",
+    "rating_score": 9.6,
+    "date": "2019-03-22",
+    "tags": [
+      "年度最佳",
+      "拼刀打铁",
+      "苇名弦一郎",
+      "硬核动作",
+      "断绝不死"
+    ],
+    "summary": "冷兵器打铁音律的极致快感。弹刀见招拆招的压迫感与唯美苍凉的苇名古国风貌，将武士道与不死宿命展现得淋漓尽致。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 374320,
+    "name": "DARK SOULS™ III",
+    "name_cn": "DARK SOULS™ III",
+    "creator": "FromSoftware · 宫崎英高",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/374320/header.jpg",
+    "rating_score": 9.5,
+    "date": "2016-04-12",
+    "tags": [
+      "黑魂3",
+      "传火时代",
+      "无火余灰",
+      "薪王们",
+      "魂系巅峰"
+    ],
+    "summary": "黑魂三部曲的终极史诗篇章。传火祭祀场中回荡的管风琴声与洛斯里克高墙，将不死人的宿命升华为永恒赞歌。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 211420,
+    "name": "DARK SOULS™: REMASTERED",
+    "name_cn": "DARK SOULS™: REMASTERED",
+    "creator": "FromSoftware",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/211420/header.jpg",
+    "rating_score": 9.3,
+    "date": "2018-05-24",
+    "tags": [
+      "魂系鼻祖",
+      "赞美太阳",
+      "罗德兰",
+      "传火祭祀场"
+    ],
+    "summary": "传火神话的开山之作。无缝垂直立体的罗德兰地图设计被奉为游戏关卡设计的无上教科书。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 335300,
+    "name": "DARK SOULS™ II: Scholar of the First Sin",
+    "name_cn": "DARK SOULS™ II: Scholar of the First Sin",
+    "creator": "FromSoftware",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/335300/header.jpg",
+    "rating_score": 8.8,
+    "date": "2015-04-02",
+    "tags": [
+      "原罪学者",
+      "多兰古雷格",
+      "安迪尔",
+      "黑魂2"
+    ],
+    "summary": "多兰古雷格王国的宏大悲剧，探讨人性诅咒与原罪深度的厚重史诗。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 601150,
+    "name": "Devil May Cry 5",
+    "name_cn": "Devil May Cry 5",
+    "creator": "CAPCOM · 伊津野英昭",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/601150/header.jpg",
+    "rating_score": 9.5,
+    "date": "2019-03-08",
+    "tags": [
+      "动作天花板",
+      "CAPCOM",
+      "SSS连招",
+      "阎魔刀",
+      "华丽摇滚"
+    ],
+    "summary": "动作游戏（ACT）领域的皇冠明珠。顶尖的 RE 引擎画面、深度极高的连招判定与暴风骤雨般的摇滚战斗。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000006,
+    "name": "剑星",
+    "name_cn": "剑星",
+    "creator": "SHIFT UP · 金亨泰",
+    "cover_url": "covers/bgm_283357_ZChZh.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "剑星",
+      "SHIFT UP",
+      "伊芙",
+      "硬核动作",
+      "末世地球"
+    ],
+    "summary": "兼具顶尖动作打击反馈与华丽韩系美学的 3A 动作新作。极度爽快的完美招架与处决演出。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000007,
+    "name": "明末：渊虚之羽",
+    "name_cn": "明末：渊虚之羽",
+    "creator": "灵泽科技",
+    "cover_url": "covers/bgm_498460_DFndm.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "明末蜀地",
+      "古蜀文明",
+      "国风魂系",
+      "三星堆",
+      "动作RPG"
+    ],
+    "summary": "备受期待的明末古蜀题材国风魂系动作大作。将三星堆、金沙古蜀文明与克苏鲁式羽化异变完美交融。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1687950,
+    "name": "Persona 5 Royal",
+    "name_cn": "女神异闻录5皇家版",
+    "creator": "ATLUS · P-Studio",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1687950/header.jpg",
+    "rating_score": 9.7,
+    "date": "2022-10-21",
+    "tags": [
+      "P5天下第一",
+      "JRPG巅峰",
+      "心之怪盗团",
+      "潮酷美学",
+      "神作"
+    ],
+    "summary": "天下第一的 JRPG 殿堂神作。无与伦比的潮爆 UI 视觉语言、酸爵士配乐与白天高中生活、夜晚怪盗夺心双重人生的完美融合。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 2161700,
+    "name": "Persona 3 Reload",
+    "name_cn": "女神异闻录3 Reload",
+    "creator": "ATLUS · P-Studio",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2161700/header.jpg",
+    "rating_score": 9.5,
+    "date": "2024-02-02",
+    "tags": [
+      "P3R",
+      "铭记死亡",
+      "影时间",
+      "ATLUS",
+      "神作重制"
+    ],
+    "summary": "P3 系列的终极完全重制。深邃的生死哲学命题、鞑靼罗斯之塔探索与经典人格面具召唤，催人泪下的灵魂篇章。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1113000,
+    "name": "Persona 4 Golden",
+    "name_cn": "女神异闻录4 黄金版",
+    "creator": "ATLUS · P-Studio",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1113000/header.jpg",
+    "rating_score": 9.7,
+    "date": "2020-06-13",
+    "tags": [
+      "P4G",
+      "八十稻羽",
+      "深夜电视",
+      "真理追寻",
+      "黄金青春"
+    ],
+    "summary": "充满稻羽市乡村阳光与青春回忆的侦探物语。自称特别搜查队的伙伴们在电视世界中直面真实自我的温暖传奇。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 2620600,
+    "name": "Metaphor: ReFantazio",
+    "name_cn": "暗喻幻想：ReFantazio",
+    "creator": "ATLUS · Studio Zero · 桥野桂",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2620600/header.jpg",
+    "rating_score": 9.4,
+    "date": "2024-10-11",
+    "tags": [
+      "桥野桂",
+      "ATLUS",
+      "选举之王",
+      "年度RPG",
+      "幻想史诗"
+    ],
+    "summary": "桥野桂、副岛成记、目黑将司铁三角打造的全新幻想 RPG 巅峰。探讨焦虑与乌托邦政治选举的哲学巨作。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1718570,
+    "name": "ASTLIBRA Revision",
+    "name_cn": "神之天平（ASTLIBRA Revision）",
+    "creator": "KEIZO · DX Library",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1718570/header.jpg",
+    "rating_score": 9.6,
+    "date": "2022-10-13",
+    "tags": [
+      "神作",
+      "神级剧本",
+      "一人十四年",
+      "时间跨越",
+      "热血反转"
+    ],
+    "summary": "一人独立开发十四年的传世独立神作。无可挑剔的剧本层层反转、极度爽快的横版刷宝战斗与宏大的宿命交响。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000013,
+    "name": "Granblue Fantasy: Relink",
+    "name_cn": "Granblue Fantasy: Relink",
+    "creator": "Cygames",
+    "cover_url": "covers/steam_881020_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "骑空团",
+      "Cygames",
+      "奥义连锁",
+      "日系共斗",
+      "王道冒险"
+    ],
+    "summary": "Cygames 匠心打磨的日式动作共斗佳作。极具冲击力的奥义连锁 Chain Burst 与王道冒险物语。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000014,
+    "name": "莱莎的炼金工房 ～常暗女王与秘密藏身处～",
+    "name_cn": "莱莎的炼金工房 ～常暗女王与秘密藏身处～",
+    "creator": "GUST · 光荣特库摩",
+    "cover_url": "covers/steam_1152620_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "莱莎",
+      "炼金工房",
+      "夏日冒险",
+      "治愈日常"
+    ],
+    "summary": "炼金工房系列最畅销之作。充满乡村夏日惬意风情的探索采集与合成系统。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 646570,
+    "name": "Slay the Spire",
+    "name_cn": "杀戮尖塔",
+    "creator": "Mega Crit Games",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/646570/header.jpg",
+    "rating_score": 9.7,
+    "date": "2019-01-23",
+    "tags": [
+      "肉鸽神作",
+      "卡牌构筑",
+      "DBG鼻祖",
+      "策略巅峰",
+      "无尽爬塔"
+    ],
+    "summary": "DBG（卡组构筑）肉鸽游戏的现代鼻祖与黄金标准。四种机制迥异的职业与近乎完美的数值平衡，造就了令人欲罢不能的爬塔体验。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000016,
+    "name": "杀戮尖塔 2",
+    "name_cn": "杀戮尖塔 2",
+    "creator": "Mega Crit Games",
+    "cover_url": "covers/steam_2868840_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "尖塔续作",
+      "肉鸽期待",
+      "卡牌神作",
+      "死灵术士"
+    ],
+    "summary": "万众期待的爬塔正统续作。全新引擎打造，引入全新职业死灵术士、剧毒机制与跨时代卡牌联动。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 588650,
+    "name": "Dead Cells",
+    "name_cn": "Dead Cells",
+    "creator": "Motion Twin",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/588650/header.jpg",
+    "rating_score": 9.6,
+    "date": "2018-08-07",
+    "tags": [
+      "横版肉鸽",
+      "爽快打击",
+      "无头宿主",
+      "皇室城堡"
+    ],
+    "summary": "打击感与动作流畅度首屈一指的横版银河恶魔城肉鸽。百种武器搭配与细胞升级体系极具深度。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000019,
+    "name": "Hollow Knight",
+    "name_cn": "Hollow Knight",
+    "creator": "Team Cherry",
+    "cover_url": "covers/steam_367520_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "银河恶魔城巅峰",
+      "圣巢",
+      "小骑士",
+      "丝之歌",
+      "神作"
+    ],
+    "summary": "银河恶魔城类型的无上丰碑。精雕细琢的昆虫王国地下世界、手绘哥特暗黑美学与富有挑战性的 BOSS 战体验。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 504230,
+    "name": "Celeste",
+    "name_cn": "Celeste",
+    "creator": "Extremely OK Games",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg",
+    "rating_score": 9.7,
+    "date": "2018-01-25",
+    "tags": [
+      "TGA最佳影响力",
+      "硬核跳跃",
+      "战胜抑郁",
+      "神级配乐"
+    ],
+    "summary": "关卡设计与心理叙事完美交融的神作。通过攀登险峻雪山的硬核跳跃，帮助无数抑郁与焦虑症患者战胜心魔。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 311690,
+    "name": "Enter the Gungeon",
+    "name_cn": "挺进地牢",
+    "creator": "Dodge Roll",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/311690/header.jpg",
+    "rating_score": 9.5,
+    "date": "2016-04-05",
+    "tags": [
+      "弹幕肉鸽",
+      "消灭过去",
+      "翻滚无敌",
+      "像素射击"
+    ],
+    "summary": "将弹幕射击与武器创意发挥到极致的像素肉鸽。翻滚无敌帧与掀桌掩体的快感。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1942280,
+    "name": "Brotato",
+    "name_cn": "土豆兄弟",
+    "creator": "Blobfish",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1942280/header.jpg",
+    "rating_score": 9.7,
+    "date": "2023-06-23",
+    "tags": [
+      "割草神作",
+      "六枪土豆",
+      "上头解压",
+      "构筑狂欢"
+    ],
+    "summary": "极简画面下蕴含无尽策略深度的自走割草肉鸽神作。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 2851900,
+    "name": "BlazBlue Entropy Effect",
+    "name_cn": "苍翼：混沌效应",
+    "creator": "91Act",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2851900/header.jpg",
+    "rating_score": 9.2,
+    "date": "2024-01-31",
+    "tags": [
+      "苍翼默示录",
+      "丝滑动作",
+      "赛博肉鸽",
+      "横版连招"
+    ],
+    "summary": "格斗游戏级丝滑手感的横版动作肉鸽。苍翼默示录经典角色与潜能继承系统。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000024,
+    "name": "Library Of Ruina",
+    "name_cn": "Library Of Ruina",
+    "creator": "Project Moon",
+    "cover_url": "covers/steam_1256670_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "Project Moon",
+      "罗兰",
+      "都市残酷",
+      "卡牌策略"
+    ],
+    "summary": "独一无二的脑叶公司世界观衍生神作。极具深度的骰子卡牌拼点与宏大的都市悲喜剧。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000025,
+    "name": "Limbus Company",
+    "name_cn": "Limbus Company",
+    "creator": "Project Moon",
+    "cover_url": "covers/steam_1973530_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "边狱公司",
+      "罪人巴士",
+      "但丁",
+      "都市物语"
+    ],
+    "summary": "黑暗哥特风格的都市罪人救赎物语。硬核硬派的回合拼点与深度群像叙事。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000026,
+    "name": "To the Moon《去月球》",
+    "name_cn": "To the Moon《去月球》",
+    "creator": "Freebird Games · 高瞰",
+    "cover_url": "covers/steam_206420_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "催泪天花板",
+      "神级配乐",
+      "去月球",
+      "纯真爱恋",
+      "心灵洗礼"
+    ],
+    "summary": "游戏艺术史上最纯粹的心灵震撼。用钢琴声和像素画面谱写了一曲关于阿斯伯格综合征、承诺与跨越生死的至高爱之诗。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000027,
+    "name": "Finding Paradise《寻找天堂》",
+    "name_cn": "Finding Paradise《寻找天堂》",
+    "creator": "Freebird Games · 高瞰",
+    "cover_url": "covers/steam_337340_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "寻找天堂",
+      "Freebird",
+      "自我和解",
+      "催泪感动"
+    ],
+    "summary": "去月球正统续作。探讨与自我和解、童年幻想朋友菲耶与接受不完美人生的温柔篇章。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000028,
+    "name": "Impostor Factory《影子工厂》",
+    "name_cn": "Impostor Factory《影子工厂》",
+    "creator": "Freebird Games · 高瞰",
+    "cover_url": "covers/steam_1182620_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "影子工厂",
+      "Freebird",
+      "悬疑科幻",
+      "时间轮回"
+    ],
+    "summary": "Freebird 系列第三部曲。融入悬疑谋杀与科幻轮回，揭示记忆修改技术的起源与母爱的深邃奇迹。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000029,
+    "name": "A Bird Story",
+    "name_cn": "A Bird Story",
+    "creator": "Freebird Games · 高瞰",
+    "cover_url": "covers/steam_265610_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "无字短篇",
+      "唯美治愈",
+      "童真梦境",
+      "温暖"
+    ],
+    "summary": "没有任何台词纯靠画面与音乐推动的唯美短篇。连接《去月球》与《寻找天堂》的心灵纽带。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000030,
+    "name": "ATRI -My Dear Moments-",
+    "name_cn": "ATRI -My Dear Moments-",
+    "creator": "Frontwing · 枕社",
+    "cover_url": "covers/steam_1290260_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "ATRI",
+      "亚托莉",
+      "沉没末日",
+      "仿生少女",
+      "催泪神作"
+    ],
+    "summary": "末日与仿生少女相伴的心灵物语。探讨情感与灵魂存在意义的催泪视觉小说巅峰。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000031,
+    "name": "Ori and the Will of the Wisps",
+    "name_cn": "Ori and the Will of the Wisps",
+    "creator": "Moon Studios",
+    "cover_url": "covers/steam_1057090_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "视听艺术",
+      "奥日2",
+      "唯美动作",
+      "萤火意志",
+      "催泪感动"
+    ],
+    "summary": "艺术品级别的视听盛宴。流畅如丝绸的位移手感与直击心灵的交响乐，将光与暗的牺牲救赎演绎到极致。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000032,
+    "name": "Ori and the Blind Forest",
+    "name_cn": "Ori and the Blind Forest",
+    "creator": "Moon Studios",
+    "cover_url": "covers/steam_387290_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "水彩童话",
+      "尼贝尔森林",
+      "母爱挽歌",
+      "唯美跳跃"
+    ],
+    "summary": "如同在动态水彩画中奔跑的艺术巨作。开场十分钟母子情深的动画让无数玩家潸然泪下。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 1091500,
+    "name": "Cyberpunk 2077",
+    "name_cn": "赛博朋克 2077",
+    "creator": "CD PROJEKT RED",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg",
+    "rating_score": 9.2,
+    "date": "2020-12-10",
+    "tags": [
+      "夜之城",
+      "赛博朋克",
+      "强尼银手",
+      "往日之影",
+      "CDPR"
+    ],
+    "summary": "科幻赛博朋克视觉艺术与沉浸叙事的集大成之作。强尼·银手的意识寄生与夜之城冷血资本下的悲壮挽歌。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 292030,
+    "name": "The Witcher 3: Wild Hunt",
+    "name_cn": "巫师 3：狂猎",
+    "creator": "CD PROJEKT RED",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/292030/header.jpg",
+    "rating_score": 9.7,
+    "date": "2015-05-18",
+    "tags": [
+      "年度最佳",
+      "白狼",
+      "欧美RPG巅峰",
+      "石之心",
+      "血与酒"
+    ],
+    "summary": "欧美 RPG 叙事不可逾越的高山。从血腥男爵的悲剧到陶森特的阳光葡萄园，展现了最真实的人性灰度与史诗冒险。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000035,
+    "name": "底特律：化身为人类",
+    "name_cn": "底特律：化身为人类",
+    "creator": "Quantic Dream",
+    "cover_url": "covers/steam_1222140_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "互动电影",
+      "仿生人觉醒",
+      "康纳酱",
+      "自由之声",
+      "蝴蝶效应"
+    ],
+    "summary": "互动电影游戏的巅峰代表作。庞大复杂的蝴蝶效应分支树与探讨仿生人自我意识、人权与自由的深刻命题。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 322330,
+    "name": "Don't Starve Together",
+    "name_cn": "饥荒",
+    "creator": "Klei Entertainment",
+    "cover_url": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/322330/header.jpg",
+    "rating_score": 9.7,
+    "date": "2016-04-21",
+    "tags": [
+      "硬核生存",
+      "哥特手绘",
+      "San值狂掉",
+      "联机神作"
+    ],
+    "summary": "暗黑手绘哥特风生存沙盒的巅峰。理智值（San值）与四季生物群系的机制让人沉浸其中数百小时。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000037,
+    "name": "缺氧",
+    "name_cn": "缺氧",
+    "creator": "Klei Entertainment",
+    "cover_url": "covers/steam_457140_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "硬核科学",
+      "自动化工程",
+      "Klei",
+      "小行星殖民"
+    ],
+    "summary": "硬核物理热力学与自动化工程模拟的天花板。管道、电路与气体液体的流动构建了无与伦比的工业美学。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000038,
+    "name": "极限竞速：地平线 4",
+    "name_cn": "极限竞速：地平线 4",
+    "creator": "Playground Games",
+    "cover_url": "covers/bgm_471932_uHoWl.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "地平线4",
+      "四季更迭",
+      "英伦漫游",
+      "赛车巅峰"
+    ],
+    "summary": "开放世界赛车游戏的殿堂标杆。如画的英伦乡间与上百款超跑的声浪交响。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000039,
+    "name": "《猎人：荒野的召唤™》",
+    "name_cn": "《猎人：荒野的召唤™》",
+    "creator": "Expansive Worlds",
+    "cover_url": "covers/steam_518790_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "大自然漫步",
+      "荒野召唤",
+      "极致风景",
+      "沉浸模拟",
+      "治愈养生"
+    ],
+    "summary": "大自然风光沉浸感第一的荒野漫步模拟器。极其逼真的植被光影、动物足迹追踪与风向气味系统。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000040,
+    "name": "房产达人",
+    "name_cn": "房产达人",
+    "creator": "Frozen District",
+    "cover_url": "covers/steam_613100_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "极度解压",
+      "房屋翻新",
+      "室内设计",
+      "模拟经营"
+    ],
+    "summary": "极度解压上头的房屋翻新改造模拟器。从破旧瓦房到奢华别墅的成就感满满。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000041,
+    "name": "冒险村物语",
+    "name_cn": "冒险村物语",
+    "creator": "开罗游戏 Kairosoft",
+    "cover_url": "covers/steam_1859360_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "开罗游戏",
+      "像素模拟",
+      "勇者冒险",
+      "经典治愈"
+    ],
+    "summary": "开罗像素模拟经营的经典代表作。看着冒险者们升级装备、讨伐巨龙并入住村庄，充满纯粹的养成快乐。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000042,
+    "name": "Beholder",
+    "name_cn": "Beholder",
+    "creator": "Warm Lamp Games",
+    "cover_url": "covers/steam_475550_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "反乌托邦",
+      "道德抉择",
+      "极权阴影",
+      "人性拷问"
+    ],
+    "summary": "冷峻的反乌托邦道德抉择神作。在生存重压与人性善念之间的艰难博弈。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000043,
+    "name": "烟火",
+    "name_cn": "烟火",
+    "creator": "拾英工作室",
+    "cover_url": "covers/steam_1509960_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "中式恐怖",
+      "拾英工作室",
+      "田芳芳",
+      "催泪悬疑",
+      "时代悲悯"
+    ],
+    "summary": "最具中式人情味与时代悲悯感的悬疑叙事神作。凄美的水彩国风与直击人心的乡村迷信悲剧。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000044,
+    "name": "黑森町绮谭",
+    "name_cn": "黑森町绮谭",
+    "creator": "拾英工作室",
+    "cover_url": "covers/steam_1093910_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "昭和物语",
+      "拾英工作室",
+      "妖怪奇谭",
+      "治愈感动"
+    ],
+    "summary": "拾英工作室开山之作。浪漫奇幻与现实历史相交融的叙事神作。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000045,
+    "name": "小小梦魇 强化版",
+    "name_cn": "小小梦魇 强化版",
+    "creator": "Tarsier Studios",
+    "cover_url": "covers/steam_424840_header.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "心理恐怖",
+      "黄色雨衣小六",
+      "环境叙事",
+      "艺术解谜"
+    ],
+    "summary": "微缩视角下的心理恐怖神作。精妙绝伦的环境叙事与无台词压迫感，探讨童年恐惧与人性异化。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000046,
+    "name": "小小梦魇2",
+    "name_cn": "小小梦魇2",
+    "creator": "Tarsier Studios",
+    "cover_url": "covers/steam_860510_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "小小梦魇2",
+      "纸袋头摩诺",
+      "电视电波",
+      "背叛轮回"
+    ],
+    "summary": "直击心灵的续作巅峰。令人心碎的终极反转与宿命循环。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000047,
+    "name": "Ib",
+    "name_cn": "Ib",
+    "creator": "kouri",
+    "cover_url": "covers/steam_1901370_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "四大名著RPG",
+      "红黄蓝玫瑰",
+      "Garry",
+      "催泪经典"
+    ],
+    "summary": "四大经典 RPG 恐怖解谜之首。充满艺术感的美术馆谜题与深深打动无数人的角色羁绊。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000048,
+    "name": "港诡实录",
+    "name_cn": "港诡实录",
+    "creator": "Ghostpie Games",
+    "cover_url": "covers/steam_1256760_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "港风恐怖",
+      "九龙城寨",
+      "粤剧民俗",
+      "佳慧"
+    ],
+    "summary": "充满老香港都市传说与九龙城寨民俗文化的沉浸式恐怖解谜。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000049,
+    "name": "Dying Light",
+    "name_cn": "Dying Light",
+    "creator": "Techland",
+    "cover_url": "covers/steam_239140_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "哈兰跑酷",
+      "夜魔追逐",
+      "抓钩起飞",
+      "丧尸生存"
+    ],
+    "summary": "丧尸跑酷题材的巅峰代表作。白天搜刮物资夜晚狂奔逃命的极致肾上腺素刺激。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000050,
+    "name": "雅皮士精神",
+    "name_cn": "雅皮士精神",
+    "creator": "Baroque Decay",
+    "cover_url": "covers/steam_485610_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "职场恐怖",
+      "像素解谜",
+      "辛特拉女巫",
+      "荒诞讽刺"
+    ],
+    "summary": "荒诞职场讽刺与像素心理恐怖的绝妙融合。九十年代复古美学与深层反资本隐喻。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000051,
+    "name": "灰烬之棺 Coffin of Ashes",
+    "name_cn": "灰烬之棺 Coffin of Ashes",
+    "creator": "二律背反",
+    "cover_url": "covers/steam_546080_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "日系解谜",
+      "暴雨古宅",
+      "多结局",
+      "悬疑微恐"
+    ],
+    "summary": "氛围极佳的日系微恐 RPG 解谜游戏。优美的立绘配乐与多结局救赎。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000052,
+    "name": "白色情人节：恐怖学校",
+    "name_cn": "白色情人节：恐怖学校",
+    "creator": "SONNORI",
+    "cover_url": "covers/steam_387240_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "校园恐怖",
+      "深夜逃生",
+      "东方惊悚",
+      "经典重制"
+    ],
+    "summary": "经典东方校园恐怖的先驱之作。无武器反抗机制带来的极致惊悚逃生体验。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000053,
+    "name": "Lakeview Cabin Collection",
+    "name_cn": "Lakeview Cabin Collection",
+    "creator": "Roope Tamminen",
+    "cover_url": "covers/steam_356570_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "复古恐怖",
+      "B级片解谜",
+      "脑洞大开",
+      "湖景小屋"
+    ],
+    "summary": "脑洞极大、解法极度自由的像素沙盒恐怖解谜神作。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000054,
+    "name": "Plants vs. Zombies: Game of the Year",
+    "name_cn": "Plants vs. Zombies: Game of the Year",
+    "creator": "PopCap Games · 宝开",
+    "cover_url": "covers/bgm_1859_GM4r4.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "童年神作",
+      "PopCap巅峰",
+      "戴夫疯狂",
+      "经典塔防"
+    ],
+    "summary": "承载整整一代人童年欢笑的塔防艺术极品。无懈可击的节奏平衡与充满创意的植物僵尸设计。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000055,
+    "name": "Kingdom Rush",
+    "name_cn": "Kingdom Rush",
+    "creator": "Ironhide Game Studio",
+    "cover_url": "covers/steam_246420_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "塔防教科书",
+      "Ironhide",
+      "为了国王",
+      "策略巅峰"
+    ],
+    "summary": "被誉为传统策略塔防顶峰的乌拉圭独立神作。极具深度的英雄操控与地形战术配置。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000056,
+    "name": "Kingdom Rush Frontiers",
+    "name_cn": "Kingdom Rush Frontiers",
+    "creator": "Ironhide Game Studio",
+    "cover_url": "covers/steam_246580_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "前线突破",
+      "外星异形",
+      "沙漠丛林",
+      "塔防神作"
+    ],
+    "summary": "王国保卫战系列集大成之作。更多变的地形危机与更刺激的 BOSS 决战。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000057,
+    "name": "雀魂麻将",
+    "name_cn": "雀魂麻将",
+    "creator": "猫粮工作室 · 悠星网络",
+    "cover_url": "covers/bgm_250372_lr1qD.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "雀魂",
+      "立直一发",
+      "国士无双",
+      "日麻对局"
+    ],
+    "summary": "将日式立直麻将与二次元角色立绘完美结合的现象级竞技棋牌。",
+    "subject_type": 4,
+    "source": "curated_steam"
+  },
+  {
+    "id": 9000058,
+    "name": "人类一败涂地 / Human Fall Flat",
+    "name_cn": "人类一败涂地 / Human Fall Flat",
+    "creator": "No Brakes Games",
+    "cover_url": "covers/steam_477160_library_600x900.jpg",
+    "rating_score": 8.0,
+    "date": "2020-01-01",
+    "tags": [
+      "面条人",
+      "沙雕开黑",
+      "物理引擎",
+      "爆笑解压"
+    ],
+    "summary": "软体物理引擎带来的纯粹友谊与欢笑。最适合与朋友一起开黑解谜的解压神作。",
+    "subject_type": 4,
+    "source": "curated_steam"
   }
 ]

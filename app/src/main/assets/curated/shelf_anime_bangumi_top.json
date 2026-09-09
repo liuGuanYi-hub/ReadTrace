@@ -112,5 +112,1062 @@
     "summary": "在被压迫于地下村庄的少年西蒙，在豪气干云的大哥卡米那鼓励下突破地表，用钻头冲破天际。用螺旋之力击溃反螺旋族的浩瀚宇宙战争，用炽热的浪漫与信念打破命运枷锁。",
     "subject_type": 2,
     "source": "curated_bangumi"
+  },
+  {
+    "id": 1728,
+    "name": "るろうに剣心 -明治剣客浪漫譚- 追憶編",
+    "name_cn": "浪客剑心 追忆篇",
+    "creator": "古桥一浩 · Studio Deen",
+    "cover_url": "covers/bgm_1728_HLsCr.jpg",
+    "rating_score": 9.1,
+    "date": "1999-02-20",
+    "tags": [
+      "1999年",
+      "时代剑戟",
+      "凄美神作",
+      "雪代巴"
+    ],
+    "summary": "追番纪实 · 时代剑戟 · 1999年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 2400,
+    "name": "夏目友人帳",
+    "name_cn": "夏目友人帐",
+    "creator": "大森贵弘 · Brain's Base",
+    "cover_url": "covers/bgm_259_7C5D9.jpg",
+    "rating_score": 8.7,
+    "date": "2008-07-07",
+    "tags": [
+      "2008年",
+      "治愈系",
+      "夏目贵志",
+      "猫咪老师"
+    ],
+    "summary": "追番纪实 · 治愈妖怪 · 2008年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 1423,
+    "name": "けいおん!",
+    "name_cn": "轻音少女",
+    "creator": "山田尚子 · 京都动画",
+    "cover_url": "covers/bgm_1424_q8FMQ.jpg",
+    "rating_score": 8.5,
+    "date": "2009-04-02",
+    "tags": [
+      "2009年",
+      "京阿尼",
+      "萌系日常",
+      "放学后TEA TIME"
+    ],
+    "summary": "追番纪实 · 青春音乐 · 2009年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 3774,
+    "name": "けいおん!!",
+    "name_cn": "轻音少女 第二季",
+    "creator": "山田尚子 · 京都动画",
+    "cover_url": "covers/bgm_3774_hs9Fr.jpg",
+    "rating_score": 8.8,
+    "date": "2010-04-06",
+    "tags": [
+      "2010年",
+      "京阿尼",
+      "毕业季",
+      "天使にふれたよ!"
+    ],
+    "summary": "追番纪实 · 青春音乐 · 2010年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000006,
+    "name": "怪盗基德",
+    "name_cn": "怪盗基德",
+    "creator": "TMS Entertainment",
+    "cover_url": "covers/bgm_4330_czWc0.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2010年",
+      "怪盗基德",
+      "魔术月光",
+      "黑羽快斗"
+    ],
+    "summary": "追番纪实 · 悬疑奇幻 · 2010年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000007,
+    "name": "Angel Beats！",
+    "name_cn": "Angel Beats！",
+    "creator": "麻枝准 · P.A.WORKS",
+    "cover_url": "covers/bgm_1851_ZFEg7.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2010年",
+      "麻枝准",
+      "死后世界",
+      "催泪神作"
+    ],
+    "summary": "追番纪实 · 奇幻催泪 · 2010年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 44439,
+    "name": "ジョジョの奇妙な冒険",
+    "name_cn": "JOJO 的奇妙冒险",
+    "creator": "津田尚克 · david production",
+    "cover_url": "covers/bgm_61534_55bd5.jpg",
+    "rating_score": 8.5,
+    "date": "2012-10-05",
+    "tags": [
+      "2012年",
+      "JOJO",
+      "波纹疾走",
+      "大乔二乔"
+    ],
+    "summary": "追番纪实 · 奇幻热血 · 2012年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000009,
+    "name": "我的青春恋爱物语果然有问题",
+    "name_cn": "我的青春恋爱物语果然有问题",
+    "creator": "吉村爱 · Brain's Base",
+    "cover_url": "covers/bgm_54433_JZ99l.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2013年",
+      "春物",
+      "大老师",
+      "真物"
+    ],
+    "summary": "追番纪实 · 青春思辨 · 2013年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000010,
+    "name": "约会大作战",
+    "name_cn": "约会大作战",
+    "creator": "元永庆太郎 · AIC PLUS+",
+    "cover_url": "covers/bgm_49131_CIPjC.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2013年",
+      "约战",
+      "精灵",
+      "十香"
+    ],
+    "summary": "追番纪实 · 奇幻恋爱 · 2013年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 85631,
+    "name": "ジョジョの奇妙な冒険 スターダストクルセイダース",
+    "name_cn": "JOJO 的奇妙冒险 星尘远征军",
+    "creator": "津田尚克 · david production",
+    "cover_url": "covers/bgm_85631_Gi7oH.jpg",
+    "rating_score": 8.7,
+    "date": "2014-04-04",
+    "tags": [
+      "2014年",
+      "JOJO",
+      "替身白金之星",
+      "承太郎"
+    ],
+    "summary": "追番纪实 · 奇幻热血 · 2014年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000012,
+    "name": "月刊少女野崎君",
+    "name_cn": "月刊少女野崎君",
+    "creator": "山崎光惠 · 动画工房",
+    "cover_url": "covers/bgm_100449_d101j.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2014年",
+      "搞笑",
+      "少女漫画",
+      "野崎君与佐仓"
+    ],
+    "summary": "追番纪实 · 搞笑恋爱 · 2014年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000013,
+    "name": "Charlotte",
+    "name_cn": "Charlotte",
+    "creator": "麻枝准 · P.A.WORKS",
+    "cover_url": "covers/bgm_120925_Zp040.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2015年",
+      "麻枝准",
+      "超能力",
+      "友利奈绪"
+    ],
+    "summary": "追番纪实 · 超能青春 · 2015年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000014,
+    "name": "我的青春恋爱物语果然有问题 续",
+    "name_cn": "我的青春恋爱物语果然有问题 续",
+    "creator": "及川启 · feel.",
+    "cover_url": "covers/bgm_102134_luzUc.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2015年",
+      "春物续",
+      "雪乃",
+      "团子",
+      "寻找真物"
+    ],
+    "summary": "追番纪实 · 青春思辨 · 2015年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000015,
+    "name": "路人女主的养成方法",
+    "name_cn": "路人女主的养成方法",
+    "creator": "龟井干太 · A-1 Pictures",
+    "cover_url": "covers/bgm_231497_tZxtU.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2015年",
+      "路人女主",
+      "加藤惠",
+      "圣人惠"
+    ],
+    "summary": "追番纪实 · 青春恋爱 · 2015年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000016,
+    "name": "齐木楠雄的灾难",
+    "name_cn": "齐木楠雄的灾难",
+    "creator": "樱井弘明 · J.C.STAFF",
+    "cover_url": "covers/bgm_181354_smUU3.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2016年",
+      "超能力搞笑",
+      "齐神",
+      "咖啡果冻"
+    ],
+    "summary": "追番纪实 · 搞笑日常 · 2016年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 150490,
+    "name": "ジョジョの奇妙な冒険 ダイヤモンドは砕けない",
+    "name_cn": "JOJO 的奇妙冒险 不灭钻石",
+    "creator": "津田尚克 · david production",
+    "cover_url": "covers/bgm_150490_h8ffV.jpg",
+    "rating_score": 8.6,
+    "date": "2016-04-01",
+    "tags": [
+      "2016年",
+      "杜王町",
+      "东方仗助",
+      "吉良吉影"
+    ],
+    "summary": "追番纪实 · 奇幻热血 · 2016年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000018,
+    "name": "在下坂本，有何贵干？",
+    "name_cn": "在下坂本，有何贵干？",
+    "creator": "高松信司 · Studio Deen",
+    "cover_url": "covers/bgm_165829_cwSZV.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2016年",
+      "装逼如风",
+      "坂本大佬",
+      "日常搞笑"
+    ],
+    "summary": "追番纪实 · 搞笑日常 · 2016年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 165829,
+    "name": "モブサイコ100",
+    "name_cn": "灵能百分百",
+    "creator": "立川让 · BONES 骨头社",
+    "cover_url": "covers/bgm_228109_wb3bL.jpg",
+    "rating_score": 8.8,
+    "date": "2016-07-11",
+    "tags": [
+      "2016年",
+      "骨头社",
+      "龙套",
+      "灵幻新隆"
+    ],
+    "summary": "追番纪实 · 热血成长 · 2016年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000020,
+    "name": "夏目友人帐 伍",
+    "name_cn": "夏目友人帐 伍",
+    "creator": "出合小都美 · 朱夏",
+    "cover_url": "covers/bgm_174638_zPvJZ.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2016年",
+      "夏目友人帐5",
+      "治愈",
+      "妖怪物语"
+    ],
+    "summary": "追番纪实 · 治愈妖怪 · 2016年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 203387,
+    "name": "メイドインアビス",
+    "name_cn": "来自深渊",
+    "creator": "小岛正幸 · Kinema Citrus",
+    "cover_url": "covers/bgm_230914_fJJ0J.jpg",
+    "rating_score": 8.8,
+    "date": "2017-07-07",
+    "tags": [
+      "2017年",
+      "阿比斯深渊",
+      "黎明卿",
+      "斯巴拉西"
+    ],
+    "summary": "追番纪实 · 黑暗奇幻 · 2017年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000022,
+    "name": "笨女孩",
+    "name_cn": "笨女孩",
+    "creator": "草川启造 · Diomedéa",
+    "cover_url": "covers/bgm_208450_0l5MJ.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2017年",
+      "猴子香蕉",
+      "花畑佳子",
+      "爆笑解压"
+    ],
+    "summary": "追番纪实 · 搞笑日常 · 2017年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000023,
+    "name": "欢迎来到实力至上主义教室",
+    "name_cn": "欢迎来到实力至上主义教室",
+    "creator": "岸诚二 · Lerche",
+    "cover_url": "covers/bgm_214272_vlcWz.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2017年",
+      "路哥",
+      "绫小路清隆",
+      "实力至上"
+    ],
+    "summary": "追番纪实 · 悬疑校园 · 2017年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000024,
+    "name": "夏目友人帐 陆",
+    "name_cn": "夏目友人帐 陆",
+    "creator": "出合小都美 · 朱夏",
+    "cover_url": "covers/bgm_203387_RD6Ll.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2017年",
+      "夏目友人帐6",
+      "治愈",
+      "岁月温柔"
+    ],
+    "summary": "追番纪实 · 治愈妖怪 · 2017年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000025,
+    "name": "路人女主的养成方法 2",
+    "name_cn": "路人女主的养成方法 2",
+    "creator": "龟井干太 · A-1 Pictures",
+    "cover_url": "covers/bgm_412144_39HJH.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2017年",
+      "路人女主2",
+      "同人游戏制作",
+      "加藤惠"
+    ],
+    "summary": "追番纪实 · 青春恋爱 · 2017年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000026,
+    "name": "JOJO 的奇妙冒险 黄金之风",
+    "name_cn": "JOJO 的奇妙冒险 黄金之风",
+    "creator": "津田尚克 · 木村泰大 · david production",
+    "cover_url": "covers/bgm_235128_RYOcp.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2018年",
+      "JOJO5",
+      "乔鲁诺",
+      "布加拉提"
+    ],
+    "summary": "追番纪实 · 奇幻热血 · 2018年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000027,
+    "name": "青春猪头少年不会梦到兔女郎学姐",
+    "name_cn": "青春猪头少年不会梦到兔女郎学姐",
+    "creator": "增井壮一 · CloverWorks",
+    "cover_url": "covers/bgm_240038_b5j7g.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2018年",
+      "青春综合征",
+      "麻衣学姐",
+      "咲太"
+    ],
+    "summary": "追番纪实 · 奇幻青春 · 2018年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 181354,
+    "name": "ヴァイオレット・エヴァーガーデン",
+    "name_cn": "紫罗兰永恒花园",
+    "creator": "石立太一 · 京都动画",
+    "cover_url": "covers/bgm_280837_L6VeG.jpg",
+    "rating_score": 8.7,
+    "date": "2018-01-10",
+    "tags": [
+      "2018年",
+      "京阿尼巅峰",
+      "薇尔莉特",
+      "爱是什么"
+    ],
+    "summary": "追番纪实 · 情感史诗 · 2018年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000029,
+    "name": "碧蓝之海",
+    "name_cn": "碧蓝之海",
+    "creator": "高松信司 · ZERO-G",
+    "cover_url": "covers/bgm_235130_suy3s.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2018年",
+      "硬核潜水",
+      "乌龙茶(可燃)",
+      "爆笑大学"
+    ],
+    "summary": "追番纪实 · 搞笑青春 · 2018年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 248148,
+    "name": "風が強く吹いている",
+    "name_cn": "强风吹拂",
+    "creator": "野村和也 · Production I.G",
+    "cover_url": "covers/bgm_248154_D8z6D.jpg",
+    "rating_score": 8.9,
+    "date": "2018-10-02",
+    "tags": [
+      "2018年",
+      "箱根驿传",
+      "跑步的意义",
+      "宽政大"
+    ],
+    "summary": "追番纪实 · 运动热血 · 2018年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000031,
+    "name": "文豪野犬 第二季",
+    "name_cn": "文豪野犬 第二季",
+    "creator": "五十岚卓哉 · BONES 骨头社",
+    "cover_url": "covers/bgm_171068_XIwkj.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2019年",
+      "黑之时代",
+      "织田作之助",
+      "太宰治"
+    ],
+    "summary": "追番纪实 · 异能战斗 · 2019年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000032,
+    "name": "灵能百分百 第二季",
+    "name_cn": "灵能百分百 第二季",
+    "creator": "立川让 · BONES 骨头社",
+    "cover_url": "covers/bgm_240760_xB0VY.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2019年",
+      "骨头社神作",
+      "最上启示",
+      "师徒情"
+    ],
+    "summary": "追番纪实 · 热血成长 · 2019年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000033,
+    "name": "约会大作战 第三季",
+    "name_cn": "约会大作战 第三季",
+    "creator": "元永庆太郎 · J.C.STAFF",
+    "cover_url": "covers/bgm_228254_X7Y56.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2019年",
+      "约战3",
+      "七罪",
+      "折纸"
+    ],
+    "summary": "追番纪实 · 奇幻恋爱 · 2019年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000034,
+    "name": "魔女之旅",
+    "name_cn": "魔女之旅",
+    "creator": "洼冈俊之 · C2C",
+    "cover_url": "covers/bgm_292970_mxMxx.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2020年",
+      "伊蕾娜",
+      "灰之魔女",
+      "公路物语"
+    ],
+    "summary": "追番纪实 · 奇幻公路 · 2020年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000035,
+    "name": "我的青春恋爱物语果然有问题。完",
+    "name_cn": "我的青春恋爱物语果然有问题。完",
+    "creator": "及川启 · feel.",
+    "cover_url": "covers/bgm_277954_s8qHA.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2020年",
+      "春物完结",
+      "比企谷八幡",
+      "雪之下雪乃"
+    ],
+    "summary": "追番纪实 · 青春思辨 · 2020年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000036,
+    "name": "Re：从零开始的异世界生活 新编集版",
+    "name_cn": "Re：从零开始的异世界生活 新编集版",
+    "creator": "渡边政治 · WHITE FOX",
+    "cover_url": "covers/bgm_296195_n0KqL.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2020年",
+      "死亡回归",
+      "菜月昴",
+      "蕾姆"
+    ],
+    "summary": "追番纪实 · 奇幻穿越 · 2020年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000037,
+    "name": "国王排名",
+    "name_cn": "国王排名",
+    "creator": "八田洋介 · WIT STUDIO",
+    "cover_url": "covers/bgm_296109_8GeaM.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2021年",
+      "波吉王子",
+      "卡克",
+      "催泪治愈"
+    ],
+    "summary": "追番纪实 · 奇幻成长 · 2021年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000038,
+    "name": "转生成蜘蛛又怎样！",
+    "name_cn": "转生成蜘蛛又怎样！",
+    "creator": "板垣伸 · Millepensee",
+    "cover_url": "covers/bgm_252782_aWyEn.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2021年",
+      "单口相声",
+      "蜘蛛子",
+      "悠木碧"
+    ],
+    "summary": "追番纪实 · 异界转生 · 2021年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000039,
+    "name": "JOJO 的奇妙冒险 石之海",
+    "name_cn": "JOJO 的奇妙冒险 石之海",
+    "creator": "铃木健一 · david production",
+    "cover_url": "covers/bgm_332261_szZEK.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2021年",
+      "空条徐伦",
+      "普奇神父",
+      "天堂制造"
+    ],
+    "summary": "追番纪实 · 奇幻热血 · 2021年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 353605,
+    "name": "SPY×FAMILY",
+    "name_cn": "间谍过家家",
+    "creator": "古桥一浩 · WIT STUDIO / CloverWorks",
+    "cover_url": "covers/bgm_329906_hmtVD.jpg",
+    "rating_score": 8.3,
+    "date": "2022-04-09",
+    "tags": [
+      "2022年",
+      "阿尼亚",
+      "黄昏",
+      "约尔太太"
+    ],
+    "summary": "追番纪实 · 搞笑日常 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000041,
+    "name": "夏日重现",
+    "name_cn": "夏日重现",
+    "creator": "渡边步 · OLM",
+    "cover_url": "covers/bgm_326895_j1S2n.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2022年",
+      "日都岛",
+      "时间轮回",
+      "影子病"
+    ],
+    "summary": "追番纪实 · 悬疑循环 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 328609,
+    "name": "ぼっち・ざ・ろっく！",
+    "name_cn": "孤独摇滚！",
+    "creator": "斋藤圭一郎 · CloverWorks",
+    "cover_url": "covers/bgm_328609_2EHLJ.jpg",
+    "rating_score": 8.9,
+    "date": "2022-10-08",
+    "tags": [
+      "2022年",
+      "波奇酱",
+      "结束乐队",
+      "社恐神作"
+    ],
+    "summary": "追番纪实 · 音乐日常 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000043,
+    "name": "蓝色监狱",
+    "name_cn": "蓝色监狱",
+    "creator": "渡边彻明 · 8bit",
+    "cover_url": "covers/bgm_341163_l525N.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2022年",
+      "唯我独尊",
+      "洁世一",
+      "利己主义前锋"
+    ],
+    "summary": "追番纪实 · 竞技热血 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000044,
+    "name": "灵能百分百 第三季",
+    "name_cn": "灵能百分百 第三季",
+    "creator": "莲井隆弘 · BONES 骨头社",
+    "cover_url": "covers/bgm_353605_t8jsh.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2022年",
+      "神树篇",
+      "告白篇",
+      "完美谢幕"
+    ],
+    "summary": "追番纪实 · 热血成长 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000045,
+    "name": "约会大作战 第四季",
+    "name_cn": "约会大作战 第四季",
+    "creator": "中川淳 · GEEK TOYS",
+    "cover_url": "covers/bgm_302128_82c5B.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2022年",
+      "本条二亚",
+      "星宫六喰",
+      "约战4"
+    ],
+    "summary": "追番纪实 · 奇幻恋爱 · 2022年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000046,
+    "name": "间谍过家家 第二季",
+    "name_cn": "间谍过家家 第二季",
+    "creator": "古桥一浩 · WIT STUDIO / CloverWorks",
+    "cover_url": "covers/bgm_411427_1Bw95.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2023年",
+      "豪华游轮篇",
+      "约尔太太大显身手"
+    ],
+    "summary": "追番纪实 · 搞笑日常 · 2023年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000047,
+    "name": "我独自升级",
+    "name_cn": "我独自升级",
+    "creator": "中重俊祐 · A-1 Pictures",
+    "cover_url": "covers/bgm_390353_07vz7.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2024年",
+      "成振宇",
+      "暗影君王",
+      "站起来"
+    ],
+    "summary": "追番纪实 · 爽快异能 · 2024年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000048,
+    "name": "蓝色监狱 第二季",
+    "name_cn": "蓝色监狱 第二季",
+    "creator": "生原雄次 · 8bit",
+    "cover_url": "covers/bgm_426123_siDEi.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "2024年",
+      "U-20决战",
+      "怪物觉醒"
+    ],
+    "summary": "追番纪实 · 竞技热血 · 2024年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 245665,
+    "name": "鬼滅の刃",
+    "name_cn": "鬼灭之刃",
+    "creator": "外崎春雄 · Ufotable",
+    "cover_url": "covers/bgm_245665_5an54.jpg",
+    "rating_score": 8.4,
+    "date": "2019-04-06",
+    "tags": [
+      "飞碟社",
+      "炭治郎",
+      "祢豆子",
+      "无限列车"
+    ],
+    "summary": "追番纪实 · 和风热血 · 经典年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 9717,
+    "name": "魔法少女まどか☆マギカ",
+    "name_cn": "魔法少女小圆",
+    "creator": "新房昭之 · 虚渊玄 · SHAFT",
+    "cover_url": "covers/bgm_9717_sAVag.jpg",
+    "rating_score": 8.9,
+    "date": "2011-01-06",
+    "tags": [
+      "圆神",
+      "晓美焰",
+      "爱的战士",
+      "神作"
+    ],
+    "summary": "追番纪实 · 黑暗奇幻 · 经典年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000051,
+    "name": "咒术回战",
+    "name_cn": "咒术回战",
+    "creator": "朴性厚 · MAPPA",
+    "cover_url": "covers/bgm_294993_JrrzK.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "咒术回战",
+      "虎杖悠仁",
+      "五条悟",
+      "MAPPA"
+    ],
+    "summary": "追番纪实 · 热血奇幻 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000052,
+    "name": "咒术回战 第二季",
+    "name_cn": "咒术回战 第二季",
+    "creator": "御所园翔太 · MAPPA",
+    "cover_url": "covers/bgm_369304_gC7HZ.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "怀玉玉折",
+      "涩谷事变",
+      "五条悟",
+      "夏油杰"
+    ],
+    "summary": "追番纪实 · 怀玉玉折/涩谷事变 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000053,
+    "name": "咒术回战 第三季",
+    "name_cn": "咒术回战 第三季",
+    "creator": "MAPPA",
+    "cover_url": "covers/bgm_472741_MqsB8.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "死灭回游",
+      "羂索",
+      "乙骨忧太"
+    ],
+    "summary": "追番纪实 · 热血奇幻 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000054,
+    "name": "魔都精兵的奴隶",
+    "name_cn": "魔都精兵的奴隶",
+    "creator": "Seven Arcs",
+    "cover_url": "covers/bgm_357962_eEjJA.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "魔都精兵",
+      "羽前京香",
+      "奴隶契约"
+    ],
+    "summary": "追番纪实 · 战斗奇幻 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000055,
+    "name": "魔都精兵的奴隶 第二季",
+    "name_cn": "魔都精兵的奴隶 第二季",
+    "creator": "Passione",
+    "cover_url": "covers/bgm_486054_Hl0Cx.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "魔都精兵2",
+      "八雷神",
+      "魔防队"
+    ],
+    "summary": "追番纪实 · 战斗奇幻 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000056,
+    "name": "我推的孩子 第二季",
+    "name_cn": "我推的孩子 第二季",
+    "creator": "平牧大辅 · 动画工房",
+    "cover_url": "covers/bgm_443428_FIhFu.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "东京BLADE",
+      "舞台剧篇",
+      "黑川茜",
+      "有马加奈"
+    ],
+    "summary": "追番纪实 · 演艺悬疑 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000057,
+    "name": "我推的孩子 第三季",
+    "name_cn": "我推的孩子 第三季",
+    "creator": "动画工房",
+    "cover_url": "covers/bgm_517057_257ad.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "我推的孩子3",
+      "偶像与复仇",
+      "真相逼近"
+    ],
+    "summary": "追番纪实 · 演艺悬疑 · 待整理年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000058,
+    "name": "玉子市场",
+    "name_cn": "玉子市场",
+    "creator": "山田尚子 · 京都动画",
+    "cover_url": "covers/bgm_55113_TR5Is.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "待看清单",
+      "京阿尼",
+      "兔山商店街",
+      "大路饼藏"
+    ],
+    "summary": "追番纪实 · 日常治愈 · 待看年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000059,
+    "name": "某科学的超电磁炮",
+    "name_cn": "某科学的超电磁炮",
+    "creator": "长井龙雪 · J.C.STAFF",
+    "cover_url": "covers/bgm_98371_zdWKw.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "待看清单",
+      "炮姐",
+      "御坂美琴",
+      "唯我超电磁炮"
+    ],
+    "summary": "追番纪实 · 超能战斗 · 待看年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
+  },
+  {
+    "id": 7000060,
+    "name": "凉宫春日的忧郁",
+    "name_cn": "凉宫春日的忧郁",
+    "creator": "石原立也 · 京都动画",
+    "cover_url": "covers/bgm_485_Et062.jpg",
+    "rating_score": 8.0,
+    "date": "2015-01-01",
+    "tags": [
+      "待看清单",
+      "SOS团",
+      "凉宫春日",
+      "漫无止境的八月"
+    ],
+    "summary": "追番纪实 · 校园科幻 · 待看年",
+    "subject_type": 2,
+    "source": "curated_bangumi"
   }
 ]
