@@ -24,6 +24,7 @@ docs/
 │       ├── rich_content_*.json              # 角色谱/语录/章节大纲等富内容包
 │       └── 导入说明.md                       # 应用内导入与恢复完整指引
 ├── releases/                 # 🚀 官方正式与阶段性发布说明 (Release Notes)
+│   ├── RELEASE_NOTES_v1.0.12.md             # 精选离线热门榜单货架、极速建库轻量化系统与美学情绪胶囊
 │   ├── RELEASE_NOTES_v1.0.11.md             # 修复预置评分散布与多媒介评分适配
 │   ├── RELEASE_NOTES_v1.0.10.md             # 全新安装评分算法修正与冷启动优化
 │   ├── RELEASE_NOTES_v1.0.8.md              # 账号数据主权、全量存档恢复与富内容自动建库
@@ -45,6 +46,7 @@ docs/
 ### 1. 🚀 版本发布纪要 (Release Notes)
 | 版本 | 发布核心亮点 | 说明文档 |
 | :--- | :--- | :--- |
+| **v1.0.12** | 336部离线殿堂榜单货架、批量静音勾选、触觉滑动打分星辉、美学情绪胶囊心智联动、流式建库弹窗 | [查阅 v1.0.12 说明](releases/RELEASE_NOTES_v1.0.12.md) |
 | **v1.0.11** | 修复全新安装评分散布、离散档位平滑过渡、多媒介评分适配 | [查阅 v1.0.11 说明](releases/RELEASE_NOTES_v1.0.11.md) |
 | **v1.0.10** | 冷启动优化、评分区间联动与藏库过滤增强 | [查阅 v1.0.10 说明](releases/RELEASE_NOTES_v1.0.10.md) |
 | **v1.0.8** | 数据主权备份（Sovereign Backup）、富内容本地一键导入恢复 | [查阅 v1.0.8 说明](releases/RELEASE_NOTES_v1.0.8.md) |
@@ -57,7 +59,7 @@ docs/
 - 🖼️ **[架构动态演化 GIF](architecture/dynamic-archify-architecture.gif)** 与 **[矢量 SVG](architecture/dynamic-archify-architecture.svg)**。
 
 ### 3. 📑 技术规格与规划 (Specs)
-- 🗺️ **[大一统项目规划与开发全景图 (Master Plan)](../readtrace_project_plan.md)**：包含 1~49 章完整规划路线、P1~P39 演进批次、外部导入与纪念功能规格及版本历程（已合并全量计划）。
+- 🗺️ **[大一统项目规划与开发全景图 (Master Plan)](../readtrace_project_plan.md)**：包含 1~54 章完整规划路线、P1~P40 演进批次、外部导入与纪念功能规格及版本历程（已合并全量计划）。
 - 📱 **[安卓开发文档](specs/安卓开发文档.md)**：包含 Android Native 架构规范、数据层事务保护与 UI 渲染约定。
 - 🔐 **[认证正式化接入指南](specs/认证正式化接入指南.md)**：微信登录、阿里云短信验证码与 WebDAV 增量校验规范。
 
