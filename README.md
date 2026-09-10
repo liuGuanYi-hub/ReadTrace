@@ -1,10 +1,10 @@
-# 阅痕 ReadTrace v1.0.8 — 个人精神文化印记与美学策展空间
+# 阅痕 ReadTrace v1.0.12 — 个人精神文化印记与美学策展空间
 
-> **Android 原生开发 · 3D 情绪等高线拓扑 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 年鉴画册与云端展览社区 · 桌面小组件 · 纯本地数据掌控**
+> **Android 原生开发 · 336 部殿堂离线榜单货架 · 极速建库闭环 · 3D 情绪等高线拓扑 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 触觉滑动手势打分 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 年鉴画册与云端展览社区 · 桌面小组件 · 纯本地数据掌控**
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-[![Version](https://img.shields.io/badge/Release-v1.0.8-3A6348.svg)](docs/releases/RELEASE_NOTES_v1.0.8.md)
+[![Version](https://img.shields.io/badge/Release-v1.0.12-3A6348.svg)](docs/releases/RELEASE_NOTES_v1.0.12.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Interactive%20Archify-0284c7.svg)](docs/architecture/readtrace-architecture.html)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
@@ -12,7 +12,7 @@
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
 
-> 📢 **v1.0.8 正式版本**：📦 全量存档一次导入与账号数据主权（Sovereign Backup）、🎨 富内容 JSON 应用内本地导入（缺失作品自动建库）、🗑️ 账号数据物理清空、🌐 219 部预设作品富内容全量补全（角色谱 / 语录 / 章节大纲随 APK assets 自动生效）。详见 [v1.0.8 官方发布说明](docs/releases/RELEASE_NOTES_v1.0.8.md) 与 [系统架构交互全景图](docs/architecture/readtrace-architecture.html)。
+> 📢 **v1.0.12 正式版本（P39 极速建库轻量化系统收官）**：🔥 内置 336 部跨媒介殿堂经典离线榜单货架（豆瓣读书/电影 Top250、Bangumi 神作、Steam 百大压倒性好评、滚石 500）、🤫 批量勾选静音化与触觉滑动手势打分、🔮 五大媒介美学情绪胶囊与心智雷达动态联动、⚡ 一键极速建库引导与无缝沉淀闭环。上承 v1.0.10 安全加固五项（WebDAV 凭据加密落盘 / 验证码防暴力 / 小组件后台化）与 v1.0.11 预置评分差异化。详见 [v1.0.12 官方发布说明](docs/releases/RELEASE_NOTES_v1.0.12.md) 与 [系统架构交互全景图](docs/architecture/readtrace-architecture.html)。
 
 ---
 
@@ -107,6 +107,21 @@
 - **WebDAV 双向增量同步**：坚果云 / NAS / Nextcloud 12h 静默自动校验，Local-First 数据主权尽在掌握。
 - **🗑️ 清空账号数据**：打字验证「我确定删除账号数据」二次确认，物理清空全部作品与关联维度，方便从零重导。
 
+### 11. 🔥 精选离线榜单货架与极速建库轻量化系统 (P39)
+- **336 部殿堂经典离线货架**：`assets/curated/` 内置清洗后的跨媒介经典数据集——📖 豆瓣读书 Top250 精选、🎬 豆瓣电影 Top250 精选、🌸 Bangumi 经典神作与当季热番、🎮 Steam 百大压倒性好评、💿 滚石 500 经典专辑，零网络依赖秒级响应。
+- **发现页横滑画廊**：进入发现页即见离线热门专题横滑画廊，高清封面与大众客观评分直观呈现。
+- **🤫 批量勾选静音化**：批量选卡时彻底剥离高频马达震动，提供全选 / 全清与已选计数快捷底栏；`insertBatchCurated` 预编译语句 + 单事务批量落库，数十部作品耗时低于 50ms，杜绝 ANR。
+- **触觉滑动手势打分 (`HapticSwipeRatingBar`)**：5 星 10 分制平滑拖拽打分，配机械棘轮微颤反馈。
+- **🔮 美学情绪胶囊 (`VibeChipEngine`)**：五媒介各 5 枚专属情绪胶囊（如书籍 `#醍醐灌顶`、游戏 `#电子阳痿解药`、音乐 `#深夜微醺`），点击即注入并反向推算六维心智雷达权重，免去手动拖拽。
+- **⚡ 一键极速建库闭环**：双阶段流式进度 + 四宫格成果面板（入库总数 / 平均评分 / 主导媒介流派 / 心智骨架画像），点击成果卡平滑切入我的藏库。
+
+### 12. 🔐 安全加固与数据真实性 (P38)
+- **WebDAV 凭据加密落盘 (`SecurePrefs`)**：AndroidKeyStore AES-256-GCM 密钥不可导出，旧明文首读自动迁移并抹除，解密失败宁可清条目也不落明文。
+- **验证码防暴力**：`SecureRandom` 取代时间种子随机数，单条验证码最多 5 次错误尝试，超限即作废。
+- **桌面小组件后台化**：两个小组件的查库、会话统计与位图解码全部移交后台单线程，主线程零阻塞。
+- **一句话速记修复**：入库前来源精确 + 同媒介同名双查重，解析取剔除关键词后的整段文本（「读完 Snow Crash 9分」完整入库）。
+- **预置评分差异化**：取消「统一 8.0」机制，全新安装按六维均值 / 5 分制线性散射形成 25 个评分档，老库永不改写。
+
 ---
 
 ## 📦 数据资产：导入即恢复，一个账号 = 一份存档
@@ -200,6 +215,8 @@ graph LR
 | **P8** | **🔊 声光反应式脉冲与 ASMR 拟音 (Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **与 P1 黑胶唱机/夜鹿曲目形成绝妙化合反应，手感天花板**<br>· 网易云级经典大黑胶与顶部 23° 金属机械唱臂精准落针/抬针<br>· 音频低频反应式极光光斑脉冲 + 全场景羊皮纸/火漆印 ASMR 拟音 (`SonicHapticMatrix`) |
 | **P9** | **🪐 跨媒介认知引力星系 (Cosmos.so / Siteinspire)** | 🌟🌟🌟🌟 | ✅ **全量竣工** | **将零散记录升维为浩瀚心智宇宙，极具极客与学者气质**<br>· 音乐/番剧/文学引力星轨弹性力导向图 (`CosmicGravityGraphView` & `CosmicGalaxyActivity`) |
 | **P10** | **📜 典藏藏书票与生成式工坊 (Land-book / One Page Love)** | 🌟🌟🌟🌟 | ✅ **全量竣工** | **裂变与社交分享杀手锏，将数字记录转化为实体级艺术资产**<br>· 个人专属 Ex-Libris 版画藏书票与 4K 瑞士网格海报生成器 (`ExLibrisStampView` & `ExLibrisStudioActivity`) |
+| **P38** | **🔐 数据安全与性能纵深加固** | 🌟🌟🌟 | ✅ **全量竣工** | **凭据加密、防暴力与后台化**<br>· WebDAV 密码 AndroidKeyStore AES-256-GCM 加密落盘 (`SecurePrefs`)，旧明文首读自动迁移并抹除<br>· 验证码 `SecureRandom` 防暴力（单条最多 5 次尝试，超限作废）<br>· 桌面小组件查库、统计与位图解码全面后台单线程化<br>· 剪贴板嗅探 / 获取验证码按钮 / 通行证高光线三处预置缺陷修复 |
+| **P39** | **🔥 精选热门榜单货架与极速建库轻量化** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **冷启动与输入门槛的降维化解**<br>· 336 部跨媒介殿堂经典离线榜单货架 (`assets/curated/`)<br>· 批量勾选静音化 + 单事务批量落库 (`insertBatchCurated`)<br>· 触觉滑动手势打分 (`HapticSwipeRatingBar`)<br>· 美学情绪胶囊与心智雷达动态联动 (`VibeChipEngine`)<br>· 一键极速建库流式进度与四宫格成果面板、藏库直通闭环 |
 
 ---
 
