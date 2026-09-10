@@ -94,17 +94,22 @@ class LibraryFragment : Fragment() {
     private lateinit var libraryBooksContainer: LinearLayout
     private lateinit var libraryEmptyPanel: View
 
+    // 整页翻页导航条
+    private lateinit var libraryPagerBar: View
+    private lateinit var btnLibraryPrevPage: TextView
+    private lateinit var btnLibraryNextPage: TextView
+    private lateinit var libraryPageIndicator: TextView
+
     private var selectedMediaType: MediaType? = null
     private var selectedStatus: BookStatus? = null
     private var searchKeyword: String = ""
     private var selectedTag: String? = null
     private var isGridView: Boolean = false
-    private var currentDisplayLimit: Int = 24
 
-    // v4.2.25 滚动到底自动加载：当前筛选结果集 + 增量渲染状态
-    // （pendingCarry：双列模式下跨页的落单卡片；endNoteView：列表尾部「已展示全部」静态文案）
+    // 整页翻页：currentPage 为 0 基页码，currentFilteredBooks 为当前筛选结果集
+    // （endNoteView：最后一页尾部的收尾文案）
+    private var currentPage: Int = 0
     private var currentFilteredBooks: List<Book> = emptyList()
-    private var pendingCarry: Book? = null
     private var endNoteView: TextView? = null
 
     // 内存数据缓存与搜索防抖，避免频繁切标签与按键触发 SQLite 全表扫描
@@ -173,6 +178,11 @@ class LibraryFragment : Fragment() {
         libraryBooksContainer = view.findViewById(R.id.libraryBooksContainer)
         libraryEmptyPanel = view.findViewById(R.id.libraryEmptyPanel)
 
+        libraryPagerBar = view.findViewById(R.id.libraryPagerBar)
+        btnLibraryPrevPage = view.findViewById(R.id.btnLibraryPrevPage)
+        btnLibraryNextPage = view.findViewById(R.id.btnLibraryNextPage)
+        libraryPageIndicator = view.findViewById(R.id.libraryPageIndicator)
+
         updateMediaChips()
         updateStatusChips()
         updateRatingChips()
@@ -189,8 +199,16 @@ class LibraryFragment : Fragment() {
 
         libraryScroll.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             updateScrollTopButton(scrollY)
-            // v4.2.25 滚动到底自动加载下一页（增量追加，不重建全表）
-            maybeLoadNextPage()
+        }
+
+        btnLibraryPrevPage.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            goToPage(currentPage - 1)
+        }
+
+        btnLibraryNextPage.setOnClickListener {
+            HapticFeedbackEngine.lightClick(requireContext())
+            goToPage(currentPage + 1)
         }
 
         btnLibraryScrollTop.setOnClickListener {
@@ -236,7 +254,7 @@ class LibraryFragment : Fragment() {
                 val query = s?.toString()?.trim().orEmpty()
                 if (searchKeyword != query) {
                     searchKeyword = query
-                    currentDisplayLimit = 24
+                    currentPage = 0
                     librarySearchClearButton.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
                     searchRunnable?.let { searchHandler.removeCallbacks(it) }
                     searchRunnable = Runnable {
@@ -269,6 +287,7 @@ class LibraryFragment : Fragment() {
 
         listOfNotNull<View>(
             btnLibraryAdd, btnLibraryToggleView, btnLibraryExportScroll, btnLibraryScrollTop,
+            btnLibraryPrevPage, btnLibraryNextPage,
             mediaChipAll, mediaChipBook, mediaChipAnime, mediaChipMovie, mediaChipGame, mediaChipMusic,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
@@ -283,7 +302,7 @@ class LibraryFragment : Fragment() {
         if (type == MediaType.MUSIC) {
             selectedStatus = null
         }
-        currentDisplayLimit = 24
+        currentPage = 0
         updateMediaChips()
         updateStatusChips()
         refreshLibrary(forceDbReload = false)
@@ -313,7 +332,7 @@ class LibraryFragment : Fragment() {
             if (selectedStatus == status) return
             selectedStatus = status
         }
-        currentDisplayLimit = 24
+        currentPage = 0
         updateStatusChips()
         refreshLibrary(forceDbReload = false)
     }
@@ -375,7 +394,7 @@ class LibraryFragment : Fragment() {
     private fun selectRatingRange(range: RatingRange?) {
         if (selectedRatingRange == range) return
         selectedRatingRange = range
-        currentDisplayLimit = 24
+        currentPage = 0
         updateRatingChips()
         refreshLibrary(forceDbReload = false)
     }
@@ -405,7 +424,7 @@ class LibraryFragment : Fragment() {
     private fun selectTag(tag: String?) {
         if (selectedTag == tag) return
         selectedTag = tag
-        currentDisplayLimit = 24
+        currentPage = 0
         updateTagChips()
         refreshShelfOnly()
     }
@@ -515,12 +534,11 @@ class LibraryFragment : Fragment() {
         currentFilteredBooks = books
 
         libraryCountText.text = "共 ${books.size} 部藏品"
-        libraryBooksContainer.removeAllViews()
-        pendingCarry = null
-        endNoteView = null
 
         if (books.isEmpty()) {
+            libraryBooksContainer.removeAllViews()
             libraryBooksContainer.visibility = View.GONE
+            libraryPagerBar.visibility = View.GONE
             libraryEmptyPanel.clearAnimation()
             libraryEmptyPanel.visibility = View.VISIBLE
             libraryEmptyPanel.alpha = 0f
@@ -532,9 +550,8 @@ class LibraryFragment : Fragment() {
         libraryEmptyPanel.visibility = View.GONE
         libraryBooksContainer.visibility = View.VISIBLE
 
-        // v4.2.25：首屏只渲染展示上限内的卡片，其余由滚动到底自动追加（替代手动「查看更多」）
-        renderCardsRange(0, minOf(currentDisplayLimit, books.size))
-        updateEndNote()
+        // 整页翻页：每次只渲染当前页的 PAGE_SIZE 部（页码越界由 renderPage 内部收敛）
+        renderPage()
 
         libraryScroll.post {
             if (isAdded) {
@@ -543,67 +560,101 @@ class LibraryFragment : Fragment() {
         }
     }
 
-    // ---------------------------------------------------------------- v4.2.25 滚动自动加载
+    // ---------------------------------------------------------------- 整页翻页（每页 PAGE_SIZE 部）
 
-    /** 接近底部（阈值内）且仍有未展示条目时追加下一页 */
-    private fun maybeLoadNextPage() {
-        if (currentDisplayLimit >= currentFilteredBooks.size) return
-        val content = libraryScroll.getChildAt(0) ?: return
-        val bottomGap = content.bottom - (libraryScroll.scrollY + libraryScroll.height)
-        if (bottomGap < dpToPx(AUTO_LOAD_TRIGGER_GAP_DP)) {
-            appendNextPage()
+    /** 渲染当前页区间 [currentPage * PAGE_SIZE, +PAGE_SIZE)，页码越界时自动收敛 */
+    private fun renderPage() {
+        val books = currentFilteredBooks
+        libraryBooksContainer.removeAllViews()
+        endNoteView = null
+
+        if (books.isEmpty()) {
+            libraryPagerBar.visibility = View.GONE
+            return
         }
+
+        val totalPages = pageCount()
+        currentPage = currentPage.coerceIn(0, totalPages - 1)
+        val from = currentPage * PAGE_SIZE
+        val to = minOf(books.size, from + PAGE_SIZE)
+
+        renderCardsRange(from, to)
+        updateEndNote()
+        updatePager(totalPages)
     }
 
-    private fun appendNextPage() {
+    /** 翻到指定页：越界即忽略；换页后回到列表顶部 */
+    private fun goToPage(page: Int) {
+        val totalPages = pageCount()
+        if (page < 0 || page >= totalPages || page == currentPage) return
+        currentPage = page
+        renderPage()
+        libraryScroll.scrollTo(0, 0)
+        updateScrollTopButton(0)
+    }
+
+    private fun pageCount(): Int {
         val total = currentFilteredBooks.size
-        if (currentDisplayLimit >= total) return
-        val from = currentDisplayLimit
-        currentDisplayLimit = minOf(total, from + PAGE_STEP)
-        renderCardsRange(from, currentDisplayLimit)
-        updateEndNote()
+        return if (total <= 0) 0 else (total + PAGE_SIZE - 1) / PAGE_SIZE
+    }
+
+    /** 同步底部页码条：只有一页时整条隐藏，首/末页时置灰对应按钮 */
+    private fun updatePager(totalPages: Int = pageCount()) {
+        if (totalPages <= 1) {
+            libraryPagerBar.visibility = View.GONE
+            return
+        }
+        libraryPagerBar.visibility = View.VISIBLE
+        libraryPageIndicator.text = "${currentPage + 1} / $totalPages"
+        setPagerButtonEnabled(btnLibraryPrevPage, currentPage > 0)
+        setPagerButtonEnabled(btnLibraryNextPage, currentPage < totalPages - 1)
     }
 
     /**
-     * 增量渲染 [from, to)：只在容器尾部追加，不清空重建。
-     * 列表模式逐卡追加；双列模式两两成行，落单卡片由 pendingCarry 带过页边界。
+     * 仅切换可用态与置灰观感，刻意保留 clickable：
+     * 若禁用时一并把 clickable 置为 false，按钮就不再消费触摸事件，
+     * 于是在首页点「上一页」、末页点「下一页」会穿透到底层卡片并误开作品详情页。
+     * 保持 clickable=true 时，禁用按钮只吞掉事件、不触发 onClick，恰好是所需行为。
+     */
+    private fun setPagerButtonEnabled(button: TextView, enabled: Boolean) {
+        button.isEnabled = enabled
+        button.isClickable = true
+        button.alpha = if (enabled) 1f else 0.35f
+    }
+
+    /**
+     * 渲染 [from, to) 区间：整页翻页每次只渲染一页，两页之间互不牵连。
+     * 列表模式逐卡追加；双列模式两两成行，本页末尾落单的卡片独占最后一行左侧。
      */
     private fun renderCardsRange(from: Int, to: Int) {
         if (from >= to) return
         val books = currentFilteredBooks
-        val animate = from == 0
         if (!isGridView) {
             for (i in from until to) {
                 val card = createBookCard(books[i])
                 libraryBooksContainer.addView(card)
-                if (animate && i < 8) ViewAnimationHelper.staggerFadeIn(card, i)
+                if (i - from < 8) ViewAnimationHelper.staggerFadeIn(card, i - from)
             }
             return
         }
         val ctx = context ?: return
         var index = from
         var rowIndex = 0
-        // 上一页遗留的落单卡片与本页第一张配对
-        if (pendingCarry != null) {
-            val row = createGridRow(ctx)
-            row.addView(buildGridCard(pendingCarry!!, isLeft = true))
-            row.addView(buildGridCard(books[index], isLeft = false))
-            libraryBooksContainer.addView(row)
-            if (animate && rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
-            rowIndex++
-            pendingCarry = null
-            index++
-        }
         while (index + 1 < to) {
             val row = createGridRow(ctx)
             row.addView(buildGridCard(books[index], isLeft = true))
             row.addView(buildGridCard(books[index + 1], isLeft = false))
             libraryBooksContainer.addView(row)
-            if (animate && rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
+            if (rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
             rowIndex++
             index += 2
         }
-        if (index < to) pendingCarry = books[index]
+        if (index < to) {
+            val row = createGridRow(ctx)
+            row.addView(buildGridCard(books[index], isLeft = true))
+            libraryBooksContainer.addView(row)
+            if (rowIndex < 4) ViewAnimationHelper.staggerFadeIn(row, rowIndex)
+        }
     }
 
     private fun createGridRow(ctx: Context): LinearLayout = LinearLayout(ctx).apply {
@@ -621,7 +672,7 @@ class LibraryFragment : Fragment() {
         layoutParams = p
     }
 
-    /** 尾部静态文案：全部展示完才显示「已展示全部 N 部」，并始终保持在容器最后一个子视图 */
+    /** 尾部静态文案：翻到最后一页才显示「已展示全部 N 部」，并始终保持在容器最后一个子视图 */
     private fun updateEndNote() {
         val ctx = context ?: return
         val total = currentFilteredBooks.size
@@ -638,7 +689,7 @@ class LibraryFragment : Fragment() {
             }
             endNoteView = this
         }
-        if (total > 0 && currentDisplayLimit >= total) {
+        if (total > 0 && currentPage >= pageCount() - 1) {
             note.text = "已展示全部 $total 部"
             note.visibility = View.VISIBLE
         } else {
@@ -944,8 +995,7 @@ class LibraryFragment : Fragment() {
             "治愈",
         )
 
-        // v4.2.25 滚动自动加载：距底小于该阈值触发追加，每页追加 30 部
-        private const val AUTO_LOAD_TRIGGER_GAP_DP = 800
-        private const val PAGE_STEP = 30
+        // 整页翻页：每页展示的作品数量
+        private const val PAGE_SIZE = 20
     }
 }

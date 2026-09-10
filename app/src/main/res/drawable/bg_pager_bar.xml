@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 藏库整页翻页条背景：与 bg_glass_panel 同款玻璃质感，但不带 20dp 内边距，
+     以适配 42dp 高度的紧凑横条（bg_glass_panel 的 padding 会把内容区压扁）。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/readtrace_glass" />
+    <stroke
+        android:width="0.8dp"
+        android:color="@color/readtrace_glass_stroke" />
+    <corners android:radius="21dp" />
+</shape>
