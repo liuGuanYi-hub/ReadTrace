@@ -70,7 +70,9 @@ android {
             }
         }
         release {
-            isMinifyEnabled = false
+            // P40 安装包瘦身：开启 R8 代码混淆与资源收缩（规则见 proguard-rules.pro）
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

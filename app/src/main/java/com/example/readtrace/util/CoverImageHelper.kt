@@ -46,13 +46,28 @@ object CoverImageHelper {
 
     /** 该封面键是否已有 APK 内置兜底文件：有则离线优先直接解码，不排队走网络 */
     private fun hasBundledCover(context: Context?, key: String): Boolean {
-        if (context == null || !isLanCoverKey(key)) return false
+        return resolveBundledAssetUri(context, key) != null
+    }
+
+    /**
+     * 预置封面键 → APK 内置资产 URI。先按原扩展名查找，未命中再回退 `.webp`
+     * （P40 起预置封面已全面 WebP 化，而数据库键仍保留历史 `covers/xxx.jpg` 格式）。未捆绑返回 null。
+     */
+    private fun resolveBundledAssetUri(context: Context?, key: String): String? {
+        if (context == null || !isLanCoverKey(key)) return null
+        val base = key.trim().substring(LAN_COVER_KEY_PREFIX.length)
         val names = bundledCoverNames ?: synchronized(this) {
             bundledCoverNames ?: runCatching {
                 context.applicationContext.assets.list("covers")?.toSet() ?: emptySet()
             }.getOrDefault(emptySet()).also { bundledCoverNames = it }
         }
-        return names.contains(key.substring(LAN_COVER_KEY_PREFIX.length))
+        val webpCandidate = base.substringBeforeLast('.', base) + ".webp"
+        val actual = when {
+            names.contains(base) -> base
+            names.contains(webpCandidate) -> webpCandidate
+            else -> return null
+        }
+        return "$BUNDLED_ASSET_PREFIX$LAN_COVER_KEY_PREFIX$actual"
     }
 
     // 键 → 国内图源 URL 映射（首次访问从 assets 惰性加载，与数据库解耦，换图源只需更新映射文件）
@@ -309,7 +324,7 @@ object CoverImageHelper {
             isLanCoverKey(trimmed) -> resolveLanCoverUrl(appContext, trimmed)
             else -> null
         }
-        val bundledAssetUri = if (networkUrl == null && isLanCoverKey(trimmed)) BUNDLED_ASSET_PREFIX + trimmed else null
+        val bundledAssetUri = if (networkUrl == null) resolveBundledAssetUri(appContext, trimmed) else null
 
         // 4. 将所有磁盘检查、哈希计算与解码操作完全推入后台线程池
         imageExecutor.execute {
@@ -321,13 +336,10 @@ object CoverImageHelper {
             if (networkUrl != null) {
                 bitmap = downloadRemoteCover(appContext, networkUrl, THUMB_WIDTH, THUMB_HEIGHT, cacheKeyFor = trimmed)
                 // 弱网/图源不可达时，预置封面键回退 APK 内置兜底资产，避免裸占位图
-                if (bitmap == null && isLanCoverKey(trimmed)) {
-                    bitmap = decodeSampledBitmapFromAsset(
-                        appContext,
-                        BUNDLED_ASSET_PREFIX + trimmed,
-                        THUMB_WIDTH,
-                        THUMB_HEIGHT,
-                    )
+                if (bitmap == null) {
+                    bitmap = resolveBundledAssetUri(appContext, trimmed)?.let {
+                        decodeSampledBitmapFromAsset(appContext, it, THUMB_WIDTH, THUMB_HEIGHT)
+                    }
                 }
             } else if (bundledAssetUri != null) {
                 // 映射未收录的键回退 APK 内置兜底封面
@@ -398,10 +410,9 @@ object CoverImageHelper {
             } else if (isLanCoverKey(trimmed) && ctx != null) {
                 // 内置资产优先：已捆绑的键（全部预置番剧等）离线/弱网立即出图，不进网络队列；
                 // hasBundledCover 守卫避免未捆绑键的解码异常触发 memoryCache.evictAll() 清空全缓存
-                bitmap = if (hasBundledCover(ctx, trimmed)) {
-                    decodeSampledBitmapFromAsset(ctx, BUNDLED_ASSET_PREFIX + trimmed, reqWidth, reqHeight)
-                } else null
-                    ?: when (val resolved = resolveLanCoverUrl(ctx, trimmed)) {
+                bitmap = resolveBundledAssetUri(ctx, trimmed)?.let {
+                    decodeSampledBitmapFromAsset(ctx, it, reqWidth, reqHeight)
+                } ?: when (val resolved = resolveLanCoverUrl(ctx, trimmed)) {
                         null -> null
                         else -> downloadRemoteCover(ctx, resolved, reqWidth, reqHeight, cacheKeyFor = trimmed)
                     }
