@@ -70,6 +70,13 @@ class MainActivity : AppCompatActivity() {
         } else {
             selectTab(TAB_HUB)
         }
+
+        // 🏛️ 极简画刊 · 人文微缩呼吸启动揭幕系统（冷启动展示，支持全屏瞬切跳过）
+        com.example.readtrace.ui.EditorialSplashOverlay.showIfColdLaunch(
+            this,
+            findViewById(R.id.mainRoot),
+            savedInstanceState
+        )
     }
 
     override fun onNewIntent(intent: android.content.Intent) {

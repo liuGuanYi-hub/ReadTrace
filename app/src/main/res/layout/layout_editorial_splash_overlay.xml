@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/editorialSplashOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/readtrace_background"
+    android:clickable="true"
+    android:elevation="30dp"
+    android:focusable="true">
+
+    <!-- 极简画刊中心卡片（支持 Ken Burns 微幅推近 1.0 -> 1.035） -->
+    <LinearLayout
+        android:id="@+id/editorialSplashCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="36dp"
+        android:paddingEnd="36dp">
+
+        <!-- 顶部微型策展印记胶囊 -->
+        <TextView
+            android:id="@+id/editorialSplashBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_curated_filter_chip"
+            android:letterSpacing="0.22"
+            android:paddingStart="14dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="5dp"
+            android:text="M U S E U M · O F · T R A C E S"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="9sp" />
+
+        <!-- 核心画刊大字标：R E A D T R A C E（动态舒展 letterSpacing: 0.15 -> 0.42） -->
+        <TextView
+            android:id="@+id/editorialSplashTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:letterSpacing="0.15"
+            android:text="READTRACE"
+            android:textColor="@color/readtrace_ink"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <!-- 策展副标题 -->
+        <TextView
+            android:id="@+id/editorialSplashSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:letterSpacing="0.16"
+            android:text="数字策展 · 痕迹档案"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="12sp" />
+
+        <!-- 黄金比例极细微光分割线（宽度动态展开 0dp -> 44dp） -->
+        <View
+            android:id="@+id/editorialSplashDivider"
+            android:layout_width="0dp"
+            android:layout_height="1.2dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="22dp"
+            android:background="@color/readtrace_gold_accent" />
+
+        <!-- 人文金句箴言容器（带 Y 轴位移上浮渐显） -->
+        <LinearLayout
+            android:id="@+id/editorialSplashQuoteContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/editorialSplashQuoteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:lineSpacingExtra="7dp"
+                android:maxWidth="280dp"
+                android:text="“我心里一直在暗暗设想，天堂应该是图书馆的模样。”"
+                android:textColor="@color/readtrace_ink"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/editorialSplashQuoteAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:letterSpacing="0.08"
+                android:text="—— 豪尔赫·路易斯·博尔赫斯"
+                android:textColor="@color/readtrace_muted"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 底部轻触跳过指引（极简微透明） -->
+    <TextView
+        android:id="@+id/editorialSplashSkip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:letterSpacing="0.12"
+        android:text="轻触任意位置开启展馆"
+        android:textColor="@color/readtrace_muted"
+        android:textSize="11sp" />
+
+</FrameLayout>
