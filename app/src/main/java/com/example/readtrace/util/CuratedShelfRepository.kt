@@ -26,6 +26,15 @@ data class CuratedShelf(
 )
 
 /**
+ * 策展货架二级多维流派/年代过滤器定义 (P40 Phase 2)
+ */
+data class ShelfFilter(
+    val id: String,
+    val label: String,
+    val predicate: (BangumiSubject) -> Boolean,
+)
+
+/**
  * 精选热门榜单货架数据仓库（P39 Phase 1 核心组件）。
  *
  * 职责：
@@ -157,5 +166,53 @@ object CuratedShelfRepository {
         MediaType.MUSIC -> 3
         MediaType.GAME -> 4
         MediaType.MOVIE -> 6
+    }
+
+    /**
+     * 获取指定货架的多维流派与年代二级筛选规则 (P40 Phase 2)
+     */
+    fun getFiltersForShelf(shelfId: String): List<ShelfFilter> = when (shelfId) {
+        "shelf_movie_douban250" -> listOf(
+            ShelfFilter("all", "全部") { true },
+            ShelfFilter("drama", "剧情") { it.tags.any { t -> t.contains("剧情") } || it.summary?.contains("剧情") == true },
+            ShelfFilter("scifi", "科幻") { it.tags.any { t -> t.contains("科幻") } || it.summary?.contains("科幻") == true },
+            ShelfFilter("suspense", "悬疑/犯罪") { it.tags.any { t -> t.contains("悬疑") || t.contains("犯罪") } || it.summary?.contains("悬疑") == true || it.summary?.contains("犯罪") == true },
+            ShelfFilter("anime_fantasy", "动画/奇幻") { it.tags.any { t -> t.contains("动画") || t.contains("奇幻") } || it.summary?.contains("动画") == true || it.summary?.contains("奇幻") == true },
+            ShelfFilter("era_classic", "80/90年代") { (it.date?.take(4)?.toIntOrNull() ?: 0) in 1900..1999 },
+            ShelfFilter("era_modern", "2000后") { (it.date?.take(4)?.toIntOrNull() ?: 0) >= 2000 },
+        )
+        "shelf_book_douban250" -> listOf(
+            ShelfFilter("all", "全部") { true },
+            ShelfFilter("literature", "文学经典") { it.tags.any { t -> t.contains("文学") || t.contains("经典") || t.contains("小说") } },
+            ShelfFilter("social_science", "社科硬核") { it.tags.any { t -> t.contains("历史") || t.contains("哲学") || t.contains("社会") || t.contains("思考") || t.contains("经济") } },
+            ShelfFilter("scifi_detective", "科幻推理") { it.tags.any { t -> t.contains("科幻") || t.contains("推理") || t.contains("悬疑") } },
+            ShelfFilter("healing_life", "治愈心理") { it.tags.any { t -> t.contains("治愈") || t.contains("心理") || t.contains("成长") || t.contains("人生") || t.contains("散文") } },
+            ShelfFilter("chinese", "中国名著") { it.tags.any { t -> t.contains("中国") } || listOf("余华", "鲁迅", "史铁生", "钱钟书", "王小波", "刘慈欣", "曹雪芹", "老舍", "沈从文").any { author -> it.creator?.contains(author) == true } },
+        )
+        "shelf_game_steam_top" -> listOf(
+            ShelfFilter("all", "全部") { true },
+            ShelfFilter("action_soul", "动作/魂系") { it.tags.any { t -> t.contains("动作") || t.contains("魂系") || t.contains("格斗") } },
+            ShelfFilter("rogue_strategy", "肉鸽/策略") { it.tags.any { t -> t.contains("肉鸽") || t.contains("Rogue", ignoreCase = true) || t.contains("策略") || t.contains("卡牌") } },
+            ShelfFilter("open_world_rpg", "开放世界/RPG") { it.tags.any { t -> t.contains("开放世界") || t.contains("角色扮演") || t.contains("RPG", ignoreCase = true) } },
+            ShelfFilter("narrative", "叙事/剧情") { it.tags.any { t -> t.contains("剧情") || t.contains("叙事") || t.contains("独立") } },
+            ShelfFilter("casual_puzzle", "休闲/解谜") { it.tags.any { t -> t.contains("休闲") || t.contains("解谜") || t.contains("治愈") || t.contains("模拟") || t.contains("平台") } },
+        )
+        "shelf_anime_bangumi_top" -> listOf(
+            ShelfFilter("all", "全部") { true },
+            ShelfFilter("action_mecha", "热血/机战") { it.tags.any { t -> t.contains("热血") || t.contains("机战") || t.contains("动作") || t.contains("科幻") } },
+            ShelfFilter("suspense_god", "悬疑/神作") { it.tags.any { t -> t.contains("神作") || t.contains("悬疑") || t.contains("心理") || t.contains("智斗") } },
+            ShelfFilter("healing_daily", "治愈/日常") { it.tags.any { t -> t.contains("治愈") || t.contains("日常") || t.contains("校园") || t.contains("青春") } },
+            ShelfFilter("fantasy_adventure", "奇幻/冒险") { it.tags.any { t -> t.contains("奇幻") || t.contains("冒险") || t.contains("魔法") } },
+        )
+        "shelf_music_rolling_stone" -> listOf(
+            ShelfFilter("all", "全部") { true },
+            ShelfFilter("rock", "摇滚/金属") { it.tags.any { t -> t.contains("摇滚") || t.contains("Rock", ignoreCase = true) || t.contains("金属") } },
+            ShelfFilter("pop_rnb", "流行/原声") { it.tags.any { t -> t.contains("流行") || t.contains("Pop", ignoreCase = true) || t.contains("R&B", ignoreCase = true) || t.contains("原声") } },
+            ShelfFilter("era_classic", "20世纪经典") { (it.date?.take(4)?.toIntOrNull() ?: 0) in 1900..1999 },
+            ShelfFilter("era_modern", "千禧后时代") { (it.date?.take(4)?.toIntOrNull() ?: 0) >= 2000 },
+        )
+        else -> listOf(
+            ShelfFilter("all", "全部") { true },
+        )
     }
 }

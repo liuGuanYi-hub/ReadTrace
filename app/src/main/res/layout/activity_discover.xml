@@ -217,6 +217,25 @@
                 android:text="@string/discover_batch_button"
                 android:textColor="@color/white" />
         </LinearLayout>
+
+        <!-- P40 Phase 2 离线货架二级多维流派与年代筛选栏（当选中精选货架时动态展开） -->
+        <HorizontalScrollView
+            android:id="@+id/discoverSecondaryFilterScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/discoverSecondaryFilterGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="4dp" />
+        </HorizontalScrollView>
     </LinearLayout>
 
     <!-- 网格独立滚动（支撑每类 100+ 条大列表） -->

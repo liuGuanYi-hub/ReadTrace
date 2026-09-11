@@ -32,6 +32,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:textSize="34sp" />
+
+            <View
+                android:id="@+id/itemDiscoverShimmerOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_shimmer_gradient"
+                android:alpha="0.7" />
         </FrameLayout>
 
         <!-- 远程评分角标 -->

@@ -37,6 +37,7 @@ import com.example.readtrace.util.SteamClient
 import com.example.readtrace.ui.CuratedShelfAdapter
 import com.example.readtrace.util.CuratedShelf
 import com.example.readtrace.util.CuratedShelfRepository
+import com.example.readtrace.util.ShelfFilter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.lifecycle.lifecycleScope
@@ -74,6 +75,10 @@ class DiscoverActivity : AppCompatActivity() {
     private lateinit var shelfRecycler: RecyclerView
     private lateinit var shelfAdapter: CuratedShelfAdapter
     private var activeCuratedShelf: CuratedShelf? = null
+    private lateinit var secondaryFilterScroll: View
+    private lateinit var secondaryFilterGroup: android.widget.LinearLayout
+    private var activeShelfAllSubjects: List<BangumiSubject> = emptyList()
+    private var activeCuratedFilterId: String = "all"
 
     private var selectedMediaType: MediaType = MediaType.BOOK
     private var existingBooks: List<Book> = emptyList()
@@ -122,6 +127,8 @@ class DiscoverActivity : AppCompatActivity() {
         batchBar = findViewById(R.id.discoverBatchBar)
         batchConfirm = findViewById(R.id.discoverBatchConfirm)
         shelfRecycler = findViewById(R.id.discoverShelfRecycler)
+        secondaryFilterScroll = findViewById(R.id.discoverSecondaryFilterScroll)
+        secondaryFilterGroup = findViewById(R.id.discoverSecondaryFilterGroup)
 
         // v4.2.15 下拉刷新：强制跳过缓存联网更新；顶部内容可见时才允许触发
         swipeRefresh.setOnRefreshListener {
@@ -251,6 +258,7 @@ class DiscoverActivity : AppCompatActivity() {
                 selectCuratedShelf(shelf)
             } else {
                 activeCuratedShelf = null
+                secondaryFilterScroll.visibility = View.GONE
                 performSearch()
             }
         }
@@ -287,20 +295,90 @@ class DiscoverActivity : AppCompatActivity() {
         swipeRefresh.isRefreshing = false
 
         val subjects = CuratedShelfRepository.loadShelfSubjects(this, shelf)
-        if (subjects.isEmpty()) {
+        activeShelfAllSubjects = subjects
+        activeCuratedFilterId = "all"
+        setupSecondaryFilters(shelf, subjects)
+        secondaryFilterScroll.visibility = View.VISIBLE
+        applyCuratedFilter(shelf, subjects)
+    }
+
+    private fun setupSecondaryFilters(shelf: CuratedShelf, allSubjects: List<BangumiSubject>) {
+        secondaryFilterGroup.removeAllViews()
+        val filters = CuratedShelfRepository.getFiltersForShelf(shelf.id)
+        val density = resources.displayMetrics.density
+        val padH = (12 * density).toInt()
+        val padV = (5 * density).toInt()
+        val marginEnd = (8 * density).toInt()
+
+        filters.forEach { filter ->
+            val count = if (filter.id == "all") allSubjects.size else allSubjects.count(filter.predicate)
+            val chip = TextView(this).apply {
+                text = "${filter.label} ($count)"
+                textSize = 11.5f
+                setPadding(padH, padV, padH, padV)
+                val lp = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    this.marginEnd = marginEnd
+                }
+                layoutParams = lp
+                updateFilterChipStyle(this, filter.id == activeCuratedFilterId)
+                setOnClickListener {
+                    if (activeCuratedFilterId == filter.id) return@setOnClickListener
+                    HapticFeedbackEngine.lightClick(this@DiscoverActivity)
+                    activeCuratedFilterId = filter.id
+                    refreshFilterChipsUI(filters)
+                    applyCuratedFilter(shelf, allSubjects)
+                }
+            }
+            secondaryFilterGroup.addView(chip)
+        }
+    }
+
+    private fun refreshFilterChipsUI(filters: List<ShelfFilter>) {
+        for (i in 0 until secondaryFilterGroup.childCount) {
+            val view = secondaryFilterGroup.getChildAt(i) as? TextView ?: continue
+            val filter = filters.getOrNull(i) ?: continue
+            updateFilterChipStyle(view, filter.id == activeCuratedFilterId)
+        }
+    }
+
+    private fun updateFilterChipStyle(chip: TextView, isSelected: Boolean) {
+        if (isSelected) {
+            chip.setBackgroundResource(R.drawable.bg_curated_filter_chip_selected)
+            chip.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.white))
+            chip.paint.isFakeBoldText = true
+        } else {
+            chip.setBackgroundResource(R.drawable.bg_curated_filter_chip)
+            chip.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.readtrace_ink))
+            chip.paint.isFakeBoldText = false
+        }
+    }
+
+    private fun applyCuratedFilter(shelf: CuratedShelf, allSubjects: List<BangumiSubject>) {
+        val filters = CuratedShelfRepository.getFiltersForShelf(shelf.id)
+        val activeFilter = filters.find { it.id == activeCuratedFilterId } ?: filters.first()
+        val filtered = if (activeFilter.id == "all") allSubjects else allSubjects.filter(activeFilter.predicate)
+
+        if (filtered.isEmpty()) {
             emptyView.visibility = View.VISIBLE
             gridView.visibility = View.GONE
-            emptyView.text = getString(R.string.discover_empty)
+            emptyView.text = "该分类下暂无作品"
             adapter.submitList(emptyList())
         } else {
             emptyView.visibility = View.GONE
             gridView.visibility = View.VISIBLE
-            adapter.submitList(subjects)
+            adapter.submitList(filtered)
             adapter.setFooterState(FOOTER_END)
             gridView.scrollToPosition(0)
         }
 
-        modeTitle.text = "${shelf.badge} · ${shelf.title} (${subjects.size}部)"
+        modeTitle.text = if (activeFilter.id == "all") {
+            "${shelf.badge} · ${shelf.title} (${allSubjects.size}部)"
+        } else {
+            "${shelf.badge} · ${activeFilter.label} (${filtered.size}/${allSubjects.size}部)"
+        }
         sourceNote.text = "离线精选策展 · 0ms 瞬间直达"
     }
 
@@ -319,6 +397,7 @@ class DiscoverActivity : AppCompatActivity() {
                 if (activeCuratedShelf != null) {
                     activeCuratedShelf = null
                     shelfAdapter.setSelectedShelf(null)
+                    secondaryFilterScroll.visibility = View.GONE
                 }
                 HapticFeedbackEngine.lightClick(this)
                 updateMediaChips()
@@ -349,6 +428,10 @@ class DiscoverActivity : AppCompatActivity() {
         if (keyword.isNotEmpty() && activeCuratedShelf != null) {
             activeCuratedShelf = null
             shelfAdapter.setSelectedShelf(null)
+            secondaryFilterScroll.visibility = View.GONE
+        }
+        if (activeCuratedShelf == null) {
+            secondaryFilterScroll.visibility = View.GONE
         }
         // v4.2.24：切分类/新搜索时重置批量选择态，防止跨会话残留选中
         selectionMode = false
@@ -913,6 +996,13 @@ class DiscoverActivity : AppCompatActivity() {
             }
         }
 
+        override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+            super.onViewRecycled(holder)
+            if (holder is SubjectViewHolder) {
+                holder.stopShimmer()
+            }
+        }
+
         override fun getItemCount(): Int = items.size + if (footerState != FOOTER_NONE) 1 else 0
 
         private inner class FooterViewHolder(private val textView: TextView) : RecyclerView.ViewHolder(textView) {
@@ -929,6 +1019,8 @@ class DiscoverActivity : AppCompatActivity() {
             private val cover = itemView.findViewById<ImageView>(R.id.itemDiscoverCover)
             private val placeholder = itemView.findViewById<FrameLayout>(R.id.itemDiscoverPlaceholder)
             private val placeholderEmoji = itemView.findViewById<TextView>(R.id.itemDiscoverPlaceholderEmoji)
+            private val shimmerOverlay = itemView.findViewById<View?>(R.id.itemDiscoverShimmerOverlay)
+            private var shimmerAnimator: android.animation.ObjectAnimator? = null
             private val ratingView = itemView.findViewById<TextView>(R.id.itemDiscoverRating)
             private val ownedBadge = itemView.findViewById<TextView>(R.id.itemDiscoverOwnedBadge)
             private val titleView = itemView.findViewById<TextView>(R.id.itemDiscoverTitle)
@@ -962,6 +1054,7 @@ class DiscoverActivity : AppCompatActivity() {
                     ratingView.visibility = View.VISIBLE
                 } ?: run { ratingView.visibility = View.GONE }
                 placeholderEmoji.text = selectedMediaType.emoji
+                startShimmer()
                 CoverImageHelper.loadCover(cover, subject.coverUrl, placeholder)
                 val owned = isOwned(subject)
                 ownedBadge.visibility = if (owned) View.VISIBLE else View.GONE
@@ -988,6 +1081,27 @@ class DiscoverActivity : AppCompatActivity() {
                     selectedRing.visibility = View.GONE
                     itemView.alpha = 1.0f
                 }
+            }
+
+            private fun startShimmer() {
+                shimmerOverlay?.let { view ->
+                    view.visibility = View.VISIBLE
+                    if (shimmerAnimator == null) {
+                        shimmerAnimator = android.animation.ObjectAnimator.ofFloat(view, "alpha", 0.2f, 0.85f).apply {
+                            duration = 700L
+                            repeatMode = android.animation.ValueAnimator.REVERSE
+                            repeatCount = android.animation.ValueAnimator.INFINITE
+                        }
+                    }
+                    if (shimmerAnimator?.isRunning != true) {
+                        shimmerAnimator?.start()
+                    }
+                }
+            }
+
+            fun stopShimmer() {
+                shimmerAnimator?.cancel()
+                shimmerOverlay?.visibility = View.GONE
             }
         }
     }
