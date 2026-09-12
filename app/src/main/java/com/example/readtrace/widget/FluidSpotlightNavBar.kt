@@ -2,39 +2,27 @@ package com.example.readtrace.widget
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.RadialGradient
-import android.graphics.RectF
-import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import com.example.readtrace.util.HapticFeedbackEngine
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sin
-import kotlin.random.Random
 
 /**
  * 🌟 鸿蒙流光寻迹与刷动磁吸底部导航栏 (Fluid Spotlight Brush & Magnetic Drag Dock)
  *
- * 核心特性：
- * 1. 【指尖流光探针】：按下/滑动时在指尖生成动态水银翡翠径向渐变流光（Radial Spotlight）；
- * 2. 【画刷式轨迹跟踪】：手指在各 Tab 间往复刷动，光晕 100% 实时紧随手指移动；
- * 3. 【临近磁吸形变】：动态计算与各 Tab 的几何距离，驱动临近 Tab 图标平滑放大与浮动；
- * 4. 【棘轮微震矩阵】：跨越 Tab 感应边界时触发清脆细腻的线性马达棘轮微震；
- * 5. 【微光粒子溢散】：快速刷动时向四周散射微型闪烁光子；
- * 6. 【松手智能吸附】：松手后光斑弹性吸附至最近 Tab，自动完成页面平滑切换。
+ * 交互骨架：
+ * 1. 【画刷式轨迹跟踪】：手指在各 Tab 间往复刷动，临近 Tab 图标平滑放大与浮动；
+ * 2. 【临近磁吸形变】：动态计算与各 Tab 的几何距离，驱动图标缩放与位移；
+ * 3. 【棘轮微震矩阵】：跨越 Tab 感应边界时触发清脆细腻的线性马达棘轮微震；
+ * 4. 【松手智能吸附】：松手后吸附至最近 Tab，自动完成页面平滑切换。
+ *
+ * 注：按压「流光光球」视觉层已整体移除，待重新设计后在此回填渲染逻辑。
  */
 class FluidSpotlightNavBar @JvmOverloads constructor(
     context: Context,
@@ -43,13 +31,10 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
-    private val cornerRadius = dpToPx(32f)
 
-    // 探针流光坐标与透明度
+    /** 指尖当前坐标（相对本视图），供后续光球渲染设计使用 */
     private var spotlightX = 0f
     private var spotlightY = 0f
-    private var spotlightRadius = dpToPx(36f)
-    private var glowAlpha = 0f // 0f ~ 1f
 
     private var downX = 0f
     private var downY = 0f
@@ -58,62 +43,18 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
     private var currentHoverIndex = -1
     private var lastHoverIndex = -1
 
-    private val clipPath = Path()
-    private val clipRect = RectF()
-
-    private var cachedSpotlightGradient: RadialGradient? = null
-    private var cachedSpotlightRadius = -1f
-    private var cachedSpotlightIsDark = false
-    private val spotlightMatrix = android.graphics.Matrix()
-    private val spotlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        isDither = true
-    }
-
-    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dpToPx(1.5f)
-        isDither = true
-    }
-
-    private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val particles = mutableListOf<SparkleParticle>()
-
-    private var glowFadeAnimator: ValueAnimator? = null
     private var snapAnimator: ValueAnimator? = null
 
     var onTabSelectedListener: ((Int) -> Unit)? = null
-
-    data class SparkleParticle(
-        var x: Float,
-        var y: Float,
-        var vx: Float,
-        var vy: Float,
-        var alpha: Float,
-        var size: Float,
-        var life: Float,
-        var maxLife: Float
-    )
-
-    init {
-        setWillNotDraw(false)
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        clipRect.set(0f, 0f, w.toFloat(), h.toFloat())
-        clipPath.reset()
-        clipPath.addRoundRect(clipRect, cornerRadius, cornerRadius, Path.Direction.CW)
-    }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = ev.x
                 downY = ev.y
-                isDragging = false
                 spotlightX = ev.x
                 spotlightY = ev.y
-                animateGlowAlpha(1f, 150L)
+                isDragging = false
                 updateHoverState(ev.x)
             }
             MotionEvent.ACTION_MOVE -> {
@@ -127,7 +68,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             }
             MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
                 if (!isDragging) {
-                    animateGlowAlpha(0f, 250L)
+                    resetTabDistortion()
                 }
             }
         }
@@ -142,10 +83,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                 spotlightX = event.x
                 spotlightY = event.y
                 isDragging = false
-                animateGlowAlpha(1f, 150L)
                 updateHoverState(event.x)
-                spawnParticles(event.x, event.y, 4)
-                invalidate()
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -159,13 +97,6 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                 spotlightY = event.y
                 updateHoverState(event.x)
                 applyProximityDistortion(event.x)
-
-                // 刷动时产生流光微粒子
-                if (Random.nextFloat() < 0.45f) {
-                    spawnParticles(event.x, event.y, 1)
-                }
-
-                invalidate()
                 return true
             }
             MotionEvent.ACTION_UP -> {
@@ -174,7 +105,6 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                     snapToTab(targetIndex)
                     onTabSelectedListener?.invoke(targetIndex)
                 } else {
-                    animateGlowAlpha(0f, 250L)
                     resetTabDistortion()
                 }
                 isDragging = false
@@ -182,7 +112,6 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
-                animateGlowAlpha(0f, 250L)
                 resetTabDistortion()
                 isDragging = false
                 parent?.requestDisallowInterceptTouchEvent(false)
@@ -192,7 +121,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
-    /** 检查当前光斑正悬停在哪一个 Tab 上，并触发清脆棘轮微震 */
+    /** 检查当前触点正悬停在哪一个 Tab 上，并触发清脆棘轮微震 */
     private fun updateHoverState(x: Float) {
         val index = getTabIndexAt(x)
         if (index != -1 && index != currentHoverIndex) {
@@ -247,7 +176,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
         }
     }
 
-    /** 松手时光斑平滑磁吸至目标 Tab 并优雅淡出 */
+    /** 松手后触点平滑磁吸至目标 Tab（驱动临近形变跟随） */
     private fun snapToTab(tabIndex: Int) {
         val innerBar = getInnerNavBar() ?: return
         if (tabIndex !in 0 until innerBar.childCount) return
@@ -263,13 +192,11 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             addUpdateListener { anim ->
                 spotlightX = anim.animatedValue as Float
                 applyProximityDistortion(spotlightX)
-                invalidate()
             }
             start()
         }
 
         resetTabDistortion()
-        animateGlowAlpha(0f, 320L, delay = 120L)
     }
 
     private fun getTabIndexAt(x: Float): Int {
@@ -293,129 +220,6 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             if (v is LinearLayout) return v
         }
         return null
-    }
-
-    private fun animateGlowAlpha(target: Float, durationMs: Long, delay: Long = 0L) {
-        glowFadeAnimator?.cancel()
-        glowFadeAnimator = ValueAnimator.ofFloat(glowAlpha, target).apply {
-            startDelay = delay
-            duration = durationMs
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { anim ->
-                glowAlpha = anim.animatedValue as Float
-                invalidate()
-            }
-            start()
-        }
-    }
-
-    private fun spawnParticles(cx: Float, cy: Float, count: Int) {
-        // 浅色模式下不生成流光粒子：深绿粒子在滑动途经处残留成「一抹绿雾」，
-        // 观感像光斑拖尾脏渍；深色模式下亮色粒子保留。
-        val isDark = (resources.configuration.uiMode and
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        if (!isDark) return
-        for (i in 0 until count) {
-            val angle = Random.nextDouble(0.0, Math.PI * 2)
-            val speed = Random.nextFloat() * dpToPx(1.5f) + dpToPx(0.5f)
-            val life = Random.nextFloat() * 18f + 14f
-            particles.add(
-                SparkleParticle(
-                    x = cx + (Random.nextFloat() - 0.5f) * dpToPx(16f),
-                    y = cy + (Random.nextFloat() - 0.5f) * dpToPx(16f),
-                    vx = (cos(angle) * speed).toFloat(),
-                    vy = (sin(angle) * speed).toFloat(),
-                    alpha = 1f,
-                    size = dpToPx(Random.nextFloat() * 2.2f + 1.2f),
-                    life = life,
-                    maxLife = life
-                )
-            )
-        }
-    }
-
-    override fun dispatchDraw(canvas: Canvas) {
-        // 先绘制底部毛玻璃、指示胶囊及子 Tab
-        super.dispatchDraw(canvas)
-
-        // 在最上层叠加绘制流体水银极光流光
-        if (glowAlpha > 0.01f) {
-            canvas.save()
-            canvas.clipPath(clipPath)
-
-            // 1. 动态径向高光探针：渐变按「半径+深浅模式」缓存 + 局部矩阵平移 + paint.alpha 调制强度，每帧零分配（P38-P3）。
-            //    浅色毛玻璃底上白色高光对比度过低（光球隐形），改为深浅模式各自配色：
-            //    浅色 = 翡翠墨绿宝石光球，深色 = 水银白绿流光，两态均清晰可辨。
-            val isDark = (resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-            if (spotlightRadius != cachedSpotlightRadius || isDark != cachedSpotlightIsDark) {
-                cachedSpotlightRadius = spotlightRadius
-                cachedSpotlightIsDark = isDark
-                cachedSpotlightGradient = if (isDark) {
-                    RadialGradient(
-                        0f, 0f, spotlightRadius,
-                        intArrayOf(
-                            Color.argb(150, 255, 255, 255),
-                            Color.argb(85, 90, 168, 118),
-                            Color.argb(0, 58, 99, 72)
-                        ),
-                        floatArrayOf(0f, 0.5f, 1f),
-                        Shader.TileMode.CLAMP
-                    )
-                } else {
-                    RadialGradient(
-                        0f, 0f, spotlightRadius,
-                        intArrayOf(
-                            Color.argb(110, 255, 255, 255),
-                            Color.argb(36, 22, 130, 84),
-                            Color.argb(0, 16, 124, 82)
-                        ),
-                        floatArrayOf(0f, 0.5f, 1f),
-                        Shader.TileMode.CLAMP
-                    )
-                }
-            }
-            spotlightMatrix.setTranslate(spotlightX - spotlightRadius, spotlightY - spotlightRadius)
-            cachedSpotlightGradient?.setLocalMatrix(spotlightMatrix)
-            spotlightPaint.shader = cachedSpotlightGradient
-            spotlightPaint.alpha = (255 * glowAlpha).toInt().coerceIn(0, 255)
-            canvas.drawCircle(spotlightX, spotlightY, spotlightRadius, spotlightPaint)
-
-            // 光球外缘光环描边：让按压光斑的圆形轮廓在任意背景下都可辨识
-            ringPaint.color = if (cachedSpotlightIsDark) {
-                Color.argb((95 * glowAlpha).toInt(), 190, 255, 215)
-            } else {
-                Color.argb((55 * glowAlpha).toInt(), 22, 130, 84)
-            }
-            canvas.drawCircle(spotlightX, spotlightY, spotlightRadius * 0.88f, ringPaint)
-
-            // 2. 绘制流动微光粒子（颜色随深浅模式反相，保证可见）
-            if (particles.isNotEmpty()) {
-                val iterator = particles.iterator()
-                while (iterator.hasNext()) {
-                    val p = iterator.next()
-                    p.x += p.vx
-                    p.y += p.vy
-                    p.life -= 1f
-                    p.alpha = (p.life / p.maxLife).coerceIn(0f, 1f) * glowAlpha
-
-                    if (p.life <= 0f) {
-                        iterator.remove()
-                    } else {
-                        particlePaint.color = if (cachedSpotlightIsDark) {
-                            Color.argb((p.alpha * 220).toInt(), 230, 255, 240)
-                        } else {
-                            Color.argb((p.alpha * 150).toInt(), 10, 110, 74)
-                        }
-                        canvas.drawCircle(p.x, p.y, p.size, particlePaint)
-                    }
-                }
-            }
-
-            canvas.restore()
-        }
     }
 
     private fun dpToPx(dp: Float): Float {
