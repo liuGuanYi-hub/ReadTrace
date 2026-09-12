@@ -1141,10 +1141,17 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_MEDIA_TYPE, "movie")
                         if (movie.shortComment != null) put(COLUMN_SHORT_COMMENT, movie.shortComment)
                         if (movie.review != null) put(COLUMN_REVIEW, movie.review)
-                        if (movie.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, movie.coverUrl)
                         put(COLUMN_TAGS, JSONArray(movie.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    // 仅当封面为空时补齐预设值，升版重播种不再覆盖用户手动修改的封面
+                    if (movie.coverUrl.isNotBlank()) {
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_COVER_URL = ? " +
+                                "WHERE $COLUMN_ID = ? AND ($COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '')",
+                            arrayOf(movie.coverUrl, bookId.toString()),
+                        )
+                    }
                     db.execSQL(
                         "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
                         arrayOf(effectiveRating.toString(), bookId.toString()),
@@ -1329,10 +1336,17 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_MEDIA_TYPE, "game")
                         if (game.shortComment != null) put(COLUMN_SHORT_COMMENT, game.shortComment)
                         if (game.review != null) put(COLUMN_REVIEW, game.review)
-                        if (game.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, game.coverUrl)
                         put(COLUMN_TAGS, JSONArray(game.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    // 仅当封面为空时补齐预设值，升版重播种不再覆盖用户手动修改的封面
+                    if (game.coverUrl.isNotBlank()) {
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_COVER_URL = ? " +
+                                "WHERE $COLUMN_ID = ? AND ($COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '')",
+                            arrayOf(game.coverUrl, bookId.toString()),
+                        )
+                    }
                     db.execSQL(
                         "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
                         arrayOf(effectiveRating.toString(), bookId.toString()),
@@ -1574,10 +1588,17 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_MEDIA_TYPE, "music")
                         if (item.shortComment != null) put(COLUMN_SHORT_COMMENT, item.shortComment)
                         if (item.review != null) put(COLUMN_REVIEW, item.review)
-                        if (item.coverUrl.isNotBlank()) put(COLUMN_COVER_URL, item.coverUrl)
                         put(COLUMN_TAGS, JSONArray(item.tags).toString())
                     }
                     db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(bookId.toString()))
+                    // 仅当封面为空时补齐预设值，升版重播种不再覆盖用户手动修改的封面
+                    if (item.coverUrl.isNotBlank()) {
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_COVER_URL = ? " +
+                                "WHERE $COLUMN_ID = ? AND ($COLUMN_COVER_URL IS NULL OR $COLUMN_COVER_URL = '')",
+                            arrayOf(item.coverUrl, bookId.toString()),
+                        )
+                    }
                     db.execSQL(
                         "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ? WHERE $COLUMN_ID = ? AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
                         arrayOf(effectiveRating.toString(), bookId.toString()),
