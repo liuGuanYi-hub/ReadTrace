@@ -80,14 +80,17 @@ object WebDavSyncEngine {
      */
     fun performAutoSyncIfDue(context: Context, onComplete: ((SyncResult) -> Unit)? = null) {
         val appContext = context.applicationContext
-        val config = loadConfig(appContext)
-        if (!config.isConfigured || !UserPreferencesManager.isWebDavAutoSyncEnabled(appContext)) return
-
-        val lastSync = UserPreferencesManager.getWebDavLastSyncAt(appContext)
-        val elapsedHours = (System.currentTimeMillis() - lastSync) / (1000 * 3600)
-        if (elapsedHours < 12 && lastSync > 0) return
-
+        // T2.2：前置判断（loadConfig 走 AndroidKeyStore 解密凭据，数十至数百毫秒）
+        // 原本在调用线程——即 Application.onCreate 的主线程——执行，
+        // 现整体移入后台 executor，主线程只承担一次任务投递。
         executor.execute {
+            val config = loadConfig(appContext)
+            if (!config.isConfigured || !UserPreferencesManager.isWebDavAutoSyncEnabled(appContext)) return@execute
+
+            val lastSync = UserPreferencesManager.getWebDavLastSyncAt(appContext)
+            val elapsedHours = (System.currentTimeMillis() - lastSync) / (1000 * 3600)
+            if (elapsedHours < 12 && lastSync > 0) return@execute
+
             val result = runCatching { doSync(appContext) }
                 .getOrElse {
                     SyncResult(false, 0, 0, 0, false, "静默同步异常: ${it.message ?: "网络波动"}")
