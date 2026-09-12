@@ -300,10 +300,8 @@ class HubFragment : Fragment() {
 
     private fun setupListeners() {
         themeToggleButton.setOnClickListener {
-            val ctx = requireContext()
-            ThemeHelper.toggleDarkMode(ctx)
+            ThemeHelper.toggleDarkMode(requireContext())
             updateThemeToggleIcon()
-            com.example.readtrace.util.HapticFeedbackEngine.stampImpact(ctx)
             activity?.recreate()
         }
 
