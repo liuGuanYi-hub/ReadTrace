@@ -162,6 +162,7 @@ object UserPreferencesManager {
 
     private const val PREFS_AI = "readtrace_ai_prefs"
     private const val KEY_AI_API_KEY = "ai_api_key"
+    private const val SECURE_KEY_AI_API_KEY = "ai_api_key"
     private const val KEY_AI_BASE_URL = "ai_base_url"
     private const val KEY_AI_MODEL = "ai_model"
 
@@ -171,13 +172,27 @@ object UserPreferencesManager {
     /** 默认模型：实测四个免费模型中唯一一个长耗时流式请求仍能完整回包且史实准确的 */
     const val DEFAULT_AI_MODEL = "glm-5.3-flash"
 
-    fun getAiApiKey(context: Context): String =
-        context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+    /** AI Key 价值高于普通凭据（以 Bearer 头发出、可计费），与 WebDAV 密码同款改走 AndroidKeyStore 加密仓；
+     *  首次读取时把旧版本明文迁入并抹掉痕迹 */
+    fun getAiApiKey(context: Context): String {
+        val secure = SecurePrefs.get(context, SECURE_KEY_AI_API_KEY)
+        if (secure.isNotEmpty()) return secure
+
+        val legacy = context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
             .getString(KEY_AI_API_KEY, "").orEmpty()
+        if (legacy.isNotEmpty()) {
+            SecurePrefs.put(context, SECURE_KEY_AI_API_KEY, legacy)
+            context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
+                .edit().remove(KEY_AI_API_KEY).apply()
+        }
+        return legacy
+    }
 
     fun setAiApiKey(context: Context, key: String) {
+        SecurePrefs.put(context, SECURE_KEY_AI_API_KEY, key.trim())
+        // 无论如何都清掉旧字段，防加密写入失败时明文残留
         context.getSharedPreferences(PREFS_AI, Context.MODE_PRIVATE)
-            .edit().putString(KEY_AI_API_KEY, key.trim()).apply()
+            .edit().remove(KEY_AI_API_KEY).apply()
     }
 
     fun getAiBaseUrl(context: Context): String =
