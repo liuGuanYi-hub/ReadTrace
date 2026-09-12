@@ -118,9 +118,11 @@ object DatabaseMigrator {
             )
         }
         if (oldVersion < 14) {
-            // v14：级联移除《451 (华氏451)》与《Blues in the Closet》两部音乐作品
+            // v14：级联移除《451 (华氏451)》与《Blues in the Closet》两部音乐作品。
+            // 仅限预置/手动条目（source_type 为空）：外部导入的同名曲目不得误删（守卫与 v13 保持一致）。
             val removedTitles = arrayOf("451 (华氏451)", "Blues in the Closet")
-            val presetMusicWhere = "$COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music'"
+            val presetMusicWhere = "$COLUMN_TITLE IN (?, ?) AND $COLUMN_MEDIA_TYPE = 'music' " +
+                "AND ($COLUMN_SOURCE_TYPE IS NULL OR $COLUMN_SOURCE_TYPE = '')"
             database.execSQL(
                 "DELETE FROM $TABLE_AUDIO_TRACKS WHERE $COLUMN_AUDIO_BOOK_ID IN " +
                     "(SELECT $COLUMN_ID FROM $TABLE_BOOKS WHERE $presetMusicWhere)",
@@ -151,11 +153,13 @@ object DatabaseMigrator {
             )
         }
         if (oldVersion < 15) {
-            // v15: 音乐、影视、游戏三类作品从旧的 5 分制迁移为 7.0 ~ 8.0 离散分布
+            // v15: 预置/手动条目（source_type 为空）的音乐、影视、游戏从旧的 5 分制迁移为 7.0 ~ 8.0 离散分布；
+            // 外部导入条目（source_type 非空）的评分为用户或来源侧数据，不得改写。
             database.execSQL(
                 "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(7.0 + (ABS(RANDOM()) % 11) * 0.1, 1) " +
                     "WHERE $COLUMN_IS_DELETED = 0 " +
                     "AND $COLUMN_MEDIA_TYPE IN ('music', 'movie', 'game') " +
+                    "AND ($COLUMN_SOURCE_TYPE IS NULL OR $COLUMN_SOURCE_TYPE = '') " +
                     "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
             )
         }
