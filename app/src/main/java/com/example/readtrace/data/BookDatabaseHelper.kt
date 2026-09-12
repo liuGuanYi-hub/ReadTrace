@@ -51,7 +51,30 @@ class BookDatabaseHelper private constructor(val context: Context) :
     }
 
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // 跨版本升级（如 v12 → v15）先做文件快照备份，迁移异常可从 bak_v{old} 手动恢复
+        if (newVersion - oldVersion > 1) backupDatabaseFile(oldVersion)
         DatabaseMigrator.onUpgrade(database, oldVersion, newVersion)
+    }
+
+    /**
+     * 降级安装兜底（曾安装更高数据库版本的测试包后回退正式包时触发）。
+     * 框架默认直接抛 SQLiteDowngradeFailedException 崩溃；此处改为：
+     * 先快照备份原库文件，然后接受版本号继续运行——历次迁移均为加列/加表，
+     * 高版本结构对低版本代码向后兼容，用户数据零丢失；
+     * 一旦低版本代码真与高版本结构不兼容（如未来删除列），可从 bak_v{old} 文件恢复。
+     */
+    override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        backupDatabaseFile(oldVersion)
+    }
+
+    /** 将当前数据库文件复制为 readtrace.db.bak_v{version} 快照（已存在则跳过，失败不阻塞开库） */
+    private fun backupDatabaseFile(version: Int) {
+        runCatching {
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            if (!dbFile.exists()) return
+            val bak = File(dbFile.parentFile, "$DATABASE_NAME.bak_v$version")
+            if (!bak.exists()) dbFile.copyTo(bak, overwrite = false)
+        }
     }
 
     override fun onOpen(db: SQLiteDatabase) {
