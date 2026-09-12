@@ -3499,9 +3499,12 @@ class BookDatabaseHelper private constructor(val context: Context) :
         val finishedBooks = getBooks(BookStatus.FINISHED)
         if (finishedBooks.isEmpty()) return null
 
-        // T2.7：一次取全部心智档案后内存索引，替代逐书查询的 N+1（无档案书沿用默认六维语义）
+        // T2.7 + T2.8：一次取全部心智档案后内存索引（替代逐书查询 N+1）；
+        // 无心智档案的作品不计入均值——原逻辑把它们按默认六维（8.0/5.0 假对象）计入，
+        // 导致年度人格被系统性拉向默认值。全部无档案时直接返回 null。
         val allMindprints = getAllMindprints()
-        val mindprints = finishedBooks.map { allMindprints[it.id] ?: com.example.readtrace.model.BookMindprint(bookId = it.id) }
+        val mindprints = finishedBooks.mapNotNull { allMindprints[it.id] }
+        if (mindprints.isEmpty()) return null
         val count = mindprints.size.toDouble()
 
         val avgDepth = mindprints.sumOf { it.depthScore } / count
