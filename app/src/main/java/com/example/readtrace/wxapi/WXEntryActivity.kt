@@ -41,6 +41,17 @@ class WXEntryActivity : AppCompatActivity() {
 
         val isSandbox = intent?.getBooleanExtra(WeChatAuthManager.EXTRA_SANDBOX_MODE, false) ?: false
         if (isSandbox) {
+            // T1.4：沙盒模拟授权页仅限 debug 构建且必须由本应用自身拉起——
+            // 本 Activity 因微信 SDK 要求必须 exported，release 下任何来源
+            // （含第三方应用显式 Intent）拉起一律空结束，防止伪造授权页钓鱼
+            if (!com.example.readtrace.BuildConfig.DEBUG) {
+                finishWithCancelled()
+                return
+            }
+            if (callingActivity?.packageName != packageName) {
+                finishWithCancelled()
+                return
+            }
             setupSandboxAuthPage()
         } else {
             handleOfficialIntent(intent)

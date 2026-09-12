@@ -141,9 +141,10 @@ object WeChatAuthManager {
      *
      * openId / unionId 按微信真实格式（28 位小写十六进制）生成，
      * 便于后续接入正式 SDK 时字段结构无需改动。
+     * 使用默认随机源而非时间种子（T1.4），档案不可被外界预测。
      */
     fun generateSandboxProfile(): WeChatProfile {
-        val random = Random(System.currentTimeMillis())
+        val random = Random.Default
         return WeChatProfile(
             nickname = sandboxNicknames.random(random),
             avatarEmoji = sandboxAvatars.random(random),

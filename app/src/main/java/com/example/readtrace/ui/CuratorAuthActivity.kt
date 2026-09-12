@@ -249,6 +249,11 @@ class CuratorAuthActivity : AppCompatActivity() {
     private fun startWeChatAuth() {
         when (WeChatAuthManager.currentMode()) {
             WeChatAuthManager.Mode.SANDBOX -> {
+                // T1.4：正式包不提供沙盒微信登录——明确告知而非静默走虚拟档案
+                if (!com.example.readtrace.BuildConfig.DEBUG) {
+                    Toast.makeText(this, "微信登录暂不可用，请改用手机号速登", Toast.LENGTH_LONG).show()
+                    return
+                }
                 weChatAuthLauncher.launch(WeChatAuthManager.buildSandboxAuthIntent(this))
             }
             WeChatAuthManager.Mode.OFFICIAL -> {
