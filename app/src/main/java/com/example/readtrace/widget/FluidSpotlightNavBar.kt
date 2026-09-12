@@ -63,8 +63,15 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
 
     private var cachedSpotlightGradient: RadialGradient? = null
     private var cachedSpotlightRadius = -1f
+    private var cachedSpotlightIsDark = false
     private val spotlightMatrix = android.graphics.Matrix()
     private val spotlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        isDither = true
+    }
+
+    private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = dpToPx(1.5f)
         isDither = true
     }
 
@@ -331,19 +338,38 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             canvas.save()
             canvas.clipPath(clipPath)
 
-            // 1. 动态径向高光探针：渐变按半径缓存 + 局部矩阵平移 + paint.alpha 调制强度，每帧零分配（P38-P3）
-            if (spotlightRadius != cachedSpotlightRadius) {
+            // 1. 动态径向高光探针：渐变按「半径+深浅模式」缓存 + 局部矩阵平移 + paint.alpha 调制强度，每帧零分配（P38-P3）。
+            //    浅色毛玻璃底上白色高光对比度过低（光球隐形），改为深浅模式各自配色：
+            //    浅色 = 翡翠墨绿宝石光球，深色 = 水银白绿流光，两态均清晰可辨。
+            val isDark = (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+            if (spotlightRadius != cachedSpotlightRadius || isDark != cachedSpotlightIsDark) {
                 cachedSpotlightRadius = spotlightRadius
-                cachedSpotlightGradient = RadialGradient(
-                    0f, 0f, spotlightRadius,
-                    intArrayOf(
-                        Color.argb(110, 255, 255, 255),
-                        Color.argb(65, 90, 168, 118),
-                        Color.argb(0, 58, 99, 72)
-                    ),
-                    floatArrayOf(0f, 0.55f, 1f),
-                    Shader.TileMode.CLAMP
-                )
+                cachedSpotlightIsDark = isDark
+                cachedSpotlightGradient = if (isDark) {
+                    RadialGradient(
+                        0f, 0f, spotlightRadius,
+                        intArrayOf(
+                            Color.argb(150, 255, 255, 255),
+                            Color.argb(85, 90, 168, 118),
+                            Color.argb(0, 58, 99, 72)
+                        ),
+                        floatArrayOf(0f, 0.5f, 1f),
+                        Shader.TileMode.CLAMP
+                    )
+                } else {
+                    RadialGradient(
+                        0f, 0f, spotlightRadius,
+                        intArrayOf(
+                            Color.argb(110, 255, 255, 255),
+                            Color.argb(48, 22, 130, 84),
+                            Color.argb(0, 16, 124, 82)
+                        ),
+                        floatArrayOf(0f, 0.5f, 1f),
+                        Shader.TileMode.CLAMP
+                    )
+                }
             }
             spotlightMatrix.setTranslate(spotlightX - spotlightRadius, spotlightY - spotlightRadius)
             cachedSpotlightGradient?.setLocalMatrix(spotlightMatrix)
@@ -351,7 +377,15 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
             spotlightPaint.alpha = (255 * glowAlpha).toInt().coerceIn(0, 255)
             canvas.drawCircle(spotlightX, spotlightY, spotlightRadius, spotlightPaint)
 
-            // 2. 绘制流动微光粒子
+            // 光球外缘光环描边：让按压光斑的圆形轮廓在任意背景下都可辨识
+            ringPaint.color = if (cachedSpotlightIsDark) {
+                Color.argb((95 * glowAlpha).toInt(), 190, 255, 215)
+            } else {
+                Color.argb((55 * glowAlpha).toInt(), 22, 130, 84)
+            }
+            canvas.drawCircle(spotlightX, spotlightY, spotlightRadius * 0.88f, ringPaint)
+
+            // 2. 绘制流动微光粒子（颜色随深浅模式反相，保证可见）
             if (particles.isNotEmpty()) {
                 val iterator = particles.iterator()
                 while (iterator.hasNext()) {
@@ -364,7 +398,11 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                     if (p.life <= 0f) {
                         iterator.remove()
                     } else {
-                        particlePaint.color = Color.argb((p.alpha * 220).toInt(), 230, 255, 240)
+                        particlePaint.color = if (cachedSpotlightIsDark) {
+                            Color.argb((p.alpha * 220).toInt(), 230, 255, 240)
+                        } else {
+                            Color.argb((p.alpha * 150).toInt(), 10, 110, 74)
+                        }
                         canvas.drawCircle(p.x, p.y, p.size, particlePaint)
                     }
                 }
