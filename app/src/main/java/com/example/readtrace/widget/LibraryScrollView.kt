@@ -31,7 +31,6 @@ class LibraryScrollView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     var isDarkMode: Boolean = false
-        private set
 
     var bookList: List<Book> = emptyList()
         private set

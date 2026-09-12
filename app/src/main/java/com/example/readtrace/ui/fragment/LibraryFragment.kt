@@ -3,7 +3,6 @@ package com.example.readtrace.ui.fragment
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -21,7 +20,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.example.readtrace.AddBookActivity
 import com.example.readtrace.BookDetailActivity
@@ -34,12 +32,8 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ElegantChoiceDialog
 import com.example.readtrace.util.HapticFeedbackEngine
-import com.example.readtrace.util.ThemeHelper
 import com.example.readtrace.util.ViewAnimationHelper
-import com.example.readtrace.widget.LibraryScrollView
 import com.example.readtrace.widget.MindprintRadarView
-import java.io.File
-import java.io.FileOutputStream
 import java.text.DecimalFormat
 import java.time.LocalDate
 import kotlin.math.roundToInt
@@ -1019,8 +1013,8 @@ class LibraryFragment : Fragment() {
     }
 
     /**
-     * 导出全息藏书长卷：后台线程离屏渲染当前筛选结果全量，
-     * 生成后经 FileProvider 拉起系统分享（与编年画卷同流程）。
+     * 导出全息藏书长卷：跳转预览页实时展示当前筛选结果绘制的画卷，
+     * 由用户确认后手动点击「导出分享」再离屏渲染并拉起系统分享。
      */
     private fun exportLibraryScroll() {
         val books = currentFilteredBooks
@@ -1029,43 +1023,13 @@ class LibraryFragment : Fragment() {
             return
         }
 
-        Toast.makeText(requireContext(), "正在离屏渲染 1080P 全息藏书长卷...", Toast.LENGTH_SHORT).show()
-        val filterSummary = buildFilterSummary()
-        val darkMode = ThemeHelper.isDarkMode(requireContext())
-        val appContext = requireContext().applicationContext
-
-        Thread {
-            runCatching {
-                val scroll = LibraryScrollView(appContext)
-                scroll.setLibraryData(books, filterSummary, darkMode)
-                val bitmap = scroll.exportUltraHdBitmap()
-                scroll.releaseCovers()
-
-                val cacheDir = File(appContext.cacheDir, "scrolls").apply { if (!exists()) mkdirs() }
-                val file = File(cacheDir, "readtrace_library_scroll_${System.currentTimeMillis()}.png")
-                FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                }
-
-                val uri = FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", file)
-                view?.post {
-                    if (!isAdded) return@post
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "image/png"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_SUBJECT, "《阅痕》全息藏书长卷")
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            "✨ 这是我在《阅痕》生成的「全息藏书长卷」（$filterSummary），共沉淀 ${books.size} 座精神坐标，收藏即是热爱。",
-                        )
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, "分享我的「全息藏书长卷」"))
-                }
-            }.onFailure {
-                Toast.makeText(appContext, "导出长卷失败: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
-            }
-        }.start()
+        startActivity(
+            com.example.readtrace.LibraryScrollPreviewActivity.createIntent(
+                requireContext(),
+                books.map { it.id }.toLongArray(),
+                buildFilterSummary(),
+            ),
+        )
     }
 
     private fun dpToPx(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()

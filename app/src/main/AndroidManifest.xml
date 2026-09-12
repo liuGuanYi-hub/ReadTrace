@@ -24,6 +24,9 @@
             android:name=".MediaTimelineScrollActivity"
             android:exported="false" />
         <activity
+            android:name=".LibraryScrollPreviewActivity"
+            android:exported="false" />
+        <activity
             android:name=".AnimeTimelineScrollActivity"
             android:exported="false" />
         <activity
