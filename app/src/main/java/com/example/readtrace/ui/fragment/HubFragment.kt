@@ -299,13 +299,10 @@ class HubFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        themeToggleButton.setOnClickListener { anchor ->
-            // 目标主题背景色从按钮位置圆形向外扩散，铺满后在遮罩下静默重建——
-            // 消除 recreate 的整页跳变感（详见 ThemeTransitionPlayer）
-            com.example.readtrace.util.ThemeTransitionPlayer.toggleWithCircularReveal(
-                requireActivity(),
-                anchor,
-            )
+        themeToggleButton.setOnClickListener {
+            // 冻结旧界面快照，静默重建后从屏幕中心挖洞扩散——
+            // 新主题从中心向外显现，全程内容可见无黑屏（详见 ThemeTransitionPlayer）
+            com.example.readtrace.util.ThemeTransitionPlayer.toggleFromScreenCenter(requireActivity())
         }
 
         // P11 极简心流：主页「+」直弹 3 秒极速速记半屏 Sheet（高级录入仍可在 Sheet 内进入）
