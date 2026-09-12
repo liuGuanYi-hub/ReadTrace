@@ -58,7 +58,8 @@ class BookDatabaseHelper private constructor(val context: Context) :
         super.onOpen(db)
         patchCorruptedPresetCovers(db)
         runPresetSeedsOnce(db)
-        // 保持每次开库执行：兜底用户导入的无封面作品，无缺失时仅一次轻量查询，不阻塞主线程 (Keep running on every DB open: fallback for user-imported works without covers, only one lightweight query when nothing is missing, does not block the main thread)
+        // 保持每次开库执行：兜底用户导入的无封面作品，无缺失时仅一次轻量查询。
+        // 重播种路径已整体包事务并默认由 Application 后台预热线程触发，不应在主线程首次开库。
         autoFillMissingCovers(db)
     }
 
@@ -88,13 +89,12 @@ class BookDatabaseHelper private constructor(val context: Context) :
 
     /**
      * 预设播种守卫：同一进程只执行一次，并以数据库版本号为持久化标记。
-     * onOpen 在每次开库都会触发，而全项目 25+ 处各自 new helper，
+     * helper 为 private constructor + 双检锁的进程级真单例（全工程仅 getInstance 一处构造），
+     * 但 onOpen 在每次开库（包括进程内首次）都会触发，
      * 若不守卫，每次开库都会在当前线程重放 200+ 条幂等检查，造成高频卡顿/ANR。
      * 已播种的库每次开库只做一次轻量偏好读取即返回；数据库版本升级时重新播种一次。
-     * (Preset seed guard: runs only once in the same process, using the database version number as a persistent marker.
-     *  onOpen is triggered on every DB open, and there are 25+ places in the project each `new`-ing a helper,
-     *  without the guard, every DB open would replay 200+ idempotent checks on the current thread, causing high-frequency jank/ANR.
-     *  For already-seeded DBs, each DB open only does one lightweight prefs read and returns; when the database version upgrades, seeding runs once again.)
+     * 重播种路径整体包一个事务提交（数百次独立写入由数百次 fsync 合并为 1 次），
+     * 内部 migrateCoversToLanKeys / populatePresetRichContent 的既有事务表现为受支持的嵌套事务。
      */
     private fun runPresetSeedsOnce(db: SQLiteDatabase) {
         if (seedChecked) return
@@ -103,46 +103,53 @@ class BookDatabaseHelper private constructor(val context: Context) :
             val prefs = context.applicationContext.getSharedPreferences(SEED_PREF, Context.MODE_PRIVATE)
             val previousSeedVersion = prefs.getInt(KEY_SEED_VERSION, 0)
             if (previousSeedVersion != DATABASE_VERSION) {
-                populatePresetBookRichData(db)
-                seedUserAnimeList(db)
-                seedUserMovieList(db)
-                seedUserGameList(db)
-                seedUserMusicList(db)
-                populatePresetRichContent(db)
-                seedCuratedBookCovers(db)
-                migrateCoversToLanKeys(db)
-                // v15: 音乐、影视、游戏三类作品从历史 5 分制迁移为 7.0 ~ 8.0 离散分布（覆盖所有存量数据库）
-                if (previousSeedVersion < 15) {
-                    db.execSQL(
-                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(7.0 + (ABS(RANDOM()) % 11) * 0.1, 1) " +
-                            "WHERE $COLUMN_IS_DELETED = 0 " +
-                            "AND $COLUMN_MEDIA_TYPE IN ('music', 'movie', 'game') " +
-                            "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
-                    )
+                db.beginTransaction()
+                try {
+                    populatePresetBookRichData(db)
+                    seedUserAnimeList(db)
+                    seedUserMovieList(db)
+                    seedUserGameList(db)
+                    seedUserMusicList(db)
+                    populatePresetRichContent(db)
+                    seedCuratedBookCovers(db)
+                    migrateCoversToLanKeys(db)
+                    // v15: 音乐、影视、游戏三类作品从历史 5 分制迁移为 7.0 ~ 8.0 离散分布（覆盖所有存量数据库）
+                    if (previousSeedVersion < 15) {
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(7.0 + (ABS(RANDOM()) % 11) * 0.1, 1) " +
+                                "WHERE $COLUMN_IS_DELETED = 0 " +
+                                "AND $COLUMN_MEDIA_TYPE IN ('music', 'movie', 'game') " +
+                                "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
+                        )
+                    }
+                    // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时赋予初始评分，
+                    // 升版重播种一律不改写评分，避免覆盖用户手填数据（数据破坏）。
+                    // 初始评分按作品差异化（取消历史上的「统一 8.0」）：
+                    // - 有六维心智档案的作品取六维均值（含难度），与全息雷达自洽；
+                    // - 无档案的作品把种子源里的 5 分制评分线性散射回 10 分制 7.0~8.0 区间。
+                    if (previousSeedVersion == 0) {
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(" +
+                                "(SELECT (m.$COLUMN_DEPTH_SCORE + m.$COLUMN_ARTISTRY_SCORE + m.$COLUMN_EMOTION_SCORE + " +
+                                "m.$COLUMN_LOGIC_SCORE + m.$COLUMN_DIFFICULTY_SCORE + m.$COLUMN_HEALING_SCORE) / 6.0 " +
+                                "FROM $TABLE_BOOK_MINDPRINTS m WHERE m.$COLUMN_BOOK_ID = $TABLE_BOOKS.$COLUMN_ID), 1) " +
+                                "WHERE $COLUMN_ID IN (SELECT $COLUMN_BOOK_ID FROM $TABLE_BOOK_MINDPRINTS)",
+                        )
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + ($COLUMN_RATING - 4.5) * 2 " +
+                                "WHERE $COLUMN_RATING BETWEEN 4.0 AND 5.0",
+                        )
+                        // 富内容骨架书（无评分、无心智档案）：在 7.0~8.0 内逐部散布，避免整架同分
+                        db.execSQL(
+                            "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + (abs(random()) % 11) * 0.1 " +
+                                "WHERE $COLUMN_RATING IS NULL",
+                        )
+                    }
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
                 }
-                // 仅在首次播种（previousSeedVersion == 0，库中尚无用户数据）时赋予初始评分，
-                // 升版重播种一律不改写评分，避免覆盖用户手填数据（数据破坏）。
-                // 初始评分按作品差异化（取消历史上的「统一 8.0」）：
-                // - 有六维心智档案的作品取六维均值（含难度），与全息雷达自洽；
-                // - 无档案的作品把种子源里的 5 分制评分线性散射回 10 分制 7.0~8.0 区间。
-                if (previousSeedVersion == 0) {
-                    db.execSQL(
-                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = ROUND(" +
-                            "(SELECT (m.$COLUMN_DEPTH_SCORE + m.$COLUMN_ARTISTRY_SCORE + m.$COLUMN_EMOTION_SCORE + " +
-                            "m.$COLUMN_LOGIC_SCORE + m.$COLUMN_DIFFICULTY_SCORE + m.$COLUMN_HEALING_SCORE) / 6.0 " +
-                            "FROM $TABLE_BOOK_MINDPRINTS m WHERE m.$COLUMN_BOOK_ID = $TABLE_BOOKS.$COLUMN_ID), 1) " +
-                            "WHERE $COLUMN_ID IN (SELECT $COLUMN_BOOK_ID FROM $TABLE_BOOK_MINDPRINTS)",
-                    )
-                    db.execSQL(
-                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + ($COLUMN_RATING - 4.5) * 2 " +
-                            "WHERE $COLUMN_RATING BETWEEN 4.0 AND 5.0",
-                    )
-                    // 富内容骨架书（无评分、无心智档案）：在 7.0~8.0 内逐部散布，避免整架同分
-                    db.execSQL(
-                        "UPDATE $TABLE_BOOKS SET $COLUMN_RATING = 7.0 + (abs(random()) % 11) * 0.1 " +
-                            "WHERE $COLUMN_RATING IS NULL",
-                    )
-                }
+                // 播种落库成功后才持久化版本号；中途异常则事务回滚且不记版本，下次开库重新播种
                 prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()
             }
             // 自动自愈补齐：针对历史版本遗漏角色谱与大纲的藏本，幂等增量补齐
@@ -3793,7 +3800,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
     companion object {
         const val DATABASE_NAME = "readtrace.db"
 
-        // 书籍列表内存缓存：全项目共享（BookDatabaseHelper 存在多实例，缓存必须全局，否则写后失效无法跨实例传播）
+        // 书籍列表内存缓存：helper 为进程级真单例，缓存全局共享以保证写后 invalidate 跨页面即时生效
         @Volatile
         private var bookListCache: List<Book>? = null
         private val bookListCacheLock = Any()

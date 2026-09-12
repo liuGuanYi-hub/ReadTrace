@@ -3,6 +3,7 @@ package com.example.readtrace
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.ThemeHelper
 import com.example.readtrace.util.VinylNowPlayingFloat
 
@@ -16,6 +17,9 @@ class ReadTraceApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeHelper.applyTheme(this)
+        // 后台线程预开库：onOpen 中的播种/修补（数百次写入）默认在本线程完成，
+        // 避免主线程首帧后的首次查询触发首次开库长事务导致冷启动 ANR。
+        Thread { BookDatabaseHelper.getInstance(this).writableDatabase }.start()
         com.example.readtrace.sync.WebDavSyncEngine.performAutoSyncIfDue(this)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityResumed(activity: Activity) {
