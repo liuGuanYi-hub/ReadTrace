@@ -48,7 +48,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
     // 探针流光坐标与透明度
     private var spotlightX = 0f
     private var spotlightY = 0f
-    private var spotlightRadius = dpToPx(68f)
+    private var spotlightRadius = dpToPx(46f)
     private var glowAlpha = 0f // 0f ~ 1f
 
     private var downX = 0f
