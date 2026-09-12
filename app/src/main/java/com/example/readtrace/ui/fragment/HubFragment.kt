@@ -300,9 +300,9 @@ class HubFragment : Fragment() {
 
     private fun setupListeners() {
         themeToggleButton.setOnClickListener {
+            // setDefaultNightMode 会自动重建全部已启动 Activity（单次重建），
+            // 此处不再显式 recreate——重复重建正是切换时白闪两次、观感不丝滑的原因
             ThemeHelper.toggleDarkMode(requireContext())
-            updateThemeToggleIcon()
-            activity?.recreate()
         }
 
         // P11 极简心流：主页「+」直弹 3 秒极速速记半屏 Sheet（高级录入仍可在 Sheet 内进入）
