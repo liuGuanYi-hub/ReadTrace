@@ -2033,6 +2033,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
 
     private fun invalidateBookCache() {
         bookListCache = null
+        bookListCacheVersion++
         ConceptIndexRepository.invalidate()
     }
 
@@ -2200,6 +2201,45 @@ class BookDatabaseHelper private constructor(val context: Context) :
         return readableDatabase.query(
             TABLE_BOOKS,
             null,
+            selectionParts.joinToString(" AND "),
+            selectionArgs.toTypedArray(),
+            null,
+            null,
+            "$COLUMN_UPDATED_AT DESC, $COLUMN_ID DESC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.toBook())
+                }
+            }
+        }
+    }
+
+    /**
+     * 藏库列表轻量查询（T2.1）：与 getBooks 同序同过滤，但排除 description / review
+     * 两个长文本列——列表与搜索（标题/作者/分类/标签/拼音）均不消费长文，
+     * 每次切 Tab、搜索过滤不再把全站简介与书评拖出 SQLite。
+     * 详情页、备份导出等需要完整字段的场景仍使用 getBooks()。
+     */
+    fun getBooksForList(status: BookStatus? = null): List<Book> {
+        val projection = arrayOf(
+            COLUMN_ID, COLUMN_TITLE, COLUMN_AUTHOR, COLUMN_COVER_URL, COLUMN_CATEGORY,
+            COLUMN_STATUS, COLUMN_MEDIA_TYPE, COLUMN_RATING, COLUMN_TAGS, COLUMN_SHORT_COMMENT,
+            COLUMN_START_DATE, COLUMN_FINISH_DATE, COLUMN_BUY_CHANNEL, COLUMN_SHELF_LOCATION,
+            COLUMN_BINDING_TYPE, COLUMN_BUY_PRICE, COLUMN_CREATED_AT, COLUMN_UPDATED_AT,
+            COLUMN_IS_DELETED, COLUMN_DELETED_AT, COLUMN_SOURCE_TYPE, COLUMN_SOURCE_ID,
+            COLUMN_REMOTE_RATING,
+        )
+        val selectionParts = mutableListOf("$COLUMN_IS_DELETED = ?")
+        val selectionArgs = mutableListOf("0")
+        if (status != null) {
+            selectionParts += "$COLUMN_STATUS = ?"
+            selectionArgs += status.databaseValue
+        }
+
+        return readableDatabase.query(
+            TABLE_BOOKS,
+            projection,
             selectionParts.joinToString(" AND "),
             selectionArgs.toTypedArray(),
             null,
@@ -3655,8 +3695,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
         )
 
     private fun Cursor.getNullableString(columnName: String): String? {
-        val index = getColumnIndexOrThrow(columnName)
-        return if (isNull(index)) null else getString(index)
+        // T2.1：容忍缺失列——轻量列表投影（getBooksForList）不含 description/review 长文本，
+        // 缺列即视为 null，与 Book 模型的可空语义一致
+        val index = getColumnIndex(columnName)
+        return if (index >= 0 && !isNull(index)) getString(index) else null
     }
 
     private fun Cursor.getNullableDouble(columnName: String): Double? {
@@ -3848,6 +3890,12 @@ class BookDatabaseHelper private constructor(val context: Context) :
         @Volatile
         private var bookListCache: List<Book>? = null
         private val bookListCacheLock = Any()
+
+        /** 缓存代际版本号（T2.1）：每次失效递增，供列表页检测「外部页面发生过写操作」 */
+        @Volatile
+        private var bookListCacheVersion = 0
+
+        fun getBookListCacheVersion(): Int = bookListCacheVersion
         const val TABLE_FAVORITES = "curator_favorites"
         const val COLUMN_FAVORITE_BOOK_ID = "book_id"
         const val COLUMN_FAVORITE_MEDIA_TYPE = "media_type"

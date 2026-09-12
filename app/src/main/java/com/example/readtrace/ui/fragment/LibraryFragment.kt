@@ -114,6 +114,9 @@ class LibraryFragment : Fragment() {
 
     // 内存数据缓存与搜索防抖，避免频繁切标签与按键触发 SQLite 全表扫描
     private var cachedAllBooks: List<Book> = emptyList()
+
+    /** 藏库加载时的全局缓存代际版本（T2.1）：版本变化说明外部页面写过数据，需要重查 */
+    private var loadedCacheVersion = -1
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
 
@@ -137,7 +140,9 @@ class LibraryFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        refreshLibrary(forceDbReload = true)
+        // T2.1：不再无条件绕过缓存——refreshLibrary 内部按全局缓存版本号判断
+        // 「外部页面发生过写操作」时才重查，纯切 Tab 零数据库查询
+        refreshLibrary(forceDbReload = false)
     }
 
     override fun onDestroyView() {
@@ -430,8 +435,12 @@ class LibraryFragment : Fragment() {
     }
 
     private fun refreshLibrary(forceDbReload: Boolean = true) {
-        if (forceDbReload || cachedAllBooks.isEmpty()) {
-            cachedAllBooks = databaseHelper.getCachedBooks()
+        // T2.1：全局缓存版本号检测外部写操作（详情页/速记/备份恢复等 invalidate 过缓存时重查），
+        // 数据源改用轻量列表查询（不含 description/review 长文本）
+        val globalVersion = BookDatabaseHelper.getBookListCacheVersion()
+        if (forceDbReload || cachedAllBooks.isEmpty() || globalVersion != loadedCacheVersion) {
+            cachedAllBooks = databaseHelper.getBooksForList()
+            loadedCacheVersion = globalVersion
         }
         val baseFilteredBooks = cachedAllBooks.filter { book ->
             val matchesMedia = selectedMediaType == null || book.mediaType == selectedMediaType
