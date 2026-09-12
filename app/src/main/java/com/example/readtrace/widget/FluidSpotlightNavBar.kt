@@ -48,7 +48,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
     // 探针流光坐标与透明度
     private var spotlightX = 0f
     private var spotlightY = 0f
-    private var spotlightRadius = dpToPx(46f)
+    private var spotlightRadius = dpToPx(36f)
     private var glowAlpha = 0f // 0f ~ 1f
 
     private var downX = 0f
@@ -310,6 +310,12 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
     }
 
     private fun spawnParticles(cx: Float, cy: Float, count: Int) {
+        // 浅色模式下不生成流光粒子：深绿粒子在滑动途经处残留成「一抹绿雾」，
+        // 观感像光斑拖尾脏渍；深色模式下亮色粒子保留。
+        val isDark = (resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (!isDark) return
         for (i in 0 until count) {
             val angle = Random.nextDouble(0.0, Math.PI * 2)
             val speed = Random.nextFloat() * dpToPx(1.5f) + dpToPx(0.5f)
@@ -363,7 +369,7 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                         0f, 0f, spotlightRadius,
                         intArrayOf(
                             Color.argb(110, 255, 255, 255),
-                            Color.argb(48, 22, 130, 84),
+                            Color.argb(36, 22, 130, 84),
                             Color.argb(0, 16, 124, 82)
                         ),
                         floatArrayOf(0f, 0.5f, 1f),
