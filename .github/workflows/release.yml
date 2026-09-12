@@ -37,13 +37,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Prepare signing (official keystore via secrets, fallback debug keystore)
+      - name: Prepare signing (official keystore via secrets, fail if absent)
         env:
           KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
           PROPS_B64: ${{ secrets.RELEASE_KEYSTORE_PROPERTIES_BASE64 }}
         run: |
-          # AGP 在 CI 上不会自动生成 debug.keystore，而 release 回退签名（initWith debug）依赖它，
-          # 缺失会导致 validateSigningRelease 直接失败
+          # debug.keystore 仅供 assembleDebug 使用（AGP 在 CI 上不会自动生成）
           mkdir -p /home/runner/.config/.android
           if [ ! -f /home/runner/.config/.android/debug.keystore ]; then
             keytool -genkeypair -v \
@@ -52,13 +51,15 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
-          # 可选：若已配置正式签名 Secrets（Base64），则恢复正式签名发布；否则用 debug 签名兜底
+          # T1.1：正式发布必须使用可验证来源的签名——
+          # 未配置正式签名 Secrets 时直接失败，绝不以 debug 签名发布
           if [ -n "$KEYSTORE_B64" ] && [ -n "$PROPS_B64" ]; then
             echo "$KEYSTORE_B64" | base64 -d > readtrace-release.jks
             echo "$PROPS_B64" | base64 -d > keystore.properties
             echo "Official keystore restored from secrets."
           else
-            echo "No official keystore secrets configured; falling back to debug signing."
+            echo "::error::Release secrets (RELEASE_KEYSTORE_BASE64 / RELEASE_KEYSTORE_PROPERTIES_BASE64) are not configured; refusing to publish a debug-signed release."
+            exit 1
           fi
 
       - name: Build Release & Debug APKs

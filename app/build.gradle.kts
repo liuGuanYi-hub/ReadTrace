@@ -55,9 +55,10 @@ android {
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")
-            } else {
-                initWith(getByName("debug"))
             }
+            // 无正式签名配置时不再回退 debug key（T1.1）：
+            // 正式包必须使用可验证来源的签名，拦截逻辑见下方 taskGraph 检查，
+            // 放在执行期而非配置期，避免影响纯 debug 构建（如 CI 仅构建 debug 包）。
         }
     }
 
@@ -120,4 +121,17 @@ val unitTestKotlinClassesJar = tasks.register<Jar>("packageDebugUnitTestKotlinCl
     from(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes"))
     archiveFileName.set("readtrace-unit-test-classes.jar")
     destinationDirectory.set(file(System.getProperty("java.io.tmpdir") + "/readtrace-unit-tests"))
+}
+
+// T1.1：任务图中含 release 变体任务但缺少正式签名配置时，构建即失败——
+// 防止公开口令（android）的 debug key 签名的安装包被当作正式包发布。
+gradle.taskGraph.whenReady {
+    val requestsReleaseVariant = allTasks.any { it.name.contains("Release") }
+    if (requestsReleaseVariant && !keystorePropertiesFile.exists()) {
+        throw GradleException(
+            "检测到 release 构建任务，但缺少 keystore.properties 正式签名配置。\n" +
+                "为防止 debug 签名的安装包被当作正式包发布，本次构建已阻止。" +
+                "如仅构建 debug 包，请使用不含 release 变体的任务（如 assembleDebug）。"
+        )
+    }
 }
