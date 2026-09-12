@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  T1.2 明文流量收敛：全局禁用明文 HTTP，仅对酷狗音乐预览 CDN 的两个
+  无可靠 HTTPS 服务的域名保留明文放行（音乐试听 URL 检索）。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">mobilecdn.kugou.com</domain>
+        <domain includeSubdomains="false">m.kugou.com</domain>
+    </domain-config>
+</network-security-config>
