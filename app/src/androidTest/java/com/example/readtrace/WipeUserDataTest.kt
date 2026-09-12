@@ -7,16 +7,21 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.BookCsvParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 
 /**
  * 清空账号数据（wipeAllUserData）设备端验证。
- * ⚠️ 本测试会物理清空整个应用数据库，请勿与依赖预设播种的测试混跑。
+ * ⚠️ 本测试会物理清空整个应用数据库——已通过 [PreserveDatabaseRule]
+ * 在测试前后自动备份/还原库文件，不再影响设备上的真实用户数据。
  */
 @RunWith(AndroidJUnit4::class)
 class WipeUserDataTest {
+
+    @get:Rule
+    val preserveDatabase = PreserveDatabaseRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val helper = BookDatabaseHelper.getInstance(context)
