@@ -459,9 +459,9 @@ class MindprintConstellationView @JvmOverloads constructor(
 
         // 1. 深邃星空背景 (深黑曜空 / 唯美暖宣纸)
         if (isNight) {
-            canvas.drawColor(Color.parseColor("#080B11"))
+            canvas.drawColor(SKY_NIGHT)
         } else {
-            canvas.drawColor(Color.parseColor("#F5F1E8"))
+            canvas.drawColor(SKY_DAY)
         }
 
         val cx = width / 2f + offsetX
@@ -585,7 +585,7 @@ class MindprintConstellationView @JvmOverloads constructor(
 
             // 选中时的发光星环 (Orbit Focus Ring)
             if (isSel) {
-                ringPaint.color = Color.parseColor("#FFD166")
+                ringPaint.color = FOCUS_RING_COLOR
                 ringPaint.strokeWidth = dpToPx(1.8f)
                 ringPaint.alpha = 240
                 val orbitRadius = curRadius + dpToPx(5.5f) * scaleFactor.coerceIn(0.6f, 1.5f)
@@ -669,7 +669,7 @@ class MindprintConstellationView @JvmOverloads constructor(
 
         // 选中时给胶囊加一圈金色细边框
         if (isSelected) {
-            ringPaint.color = Color.parseColor("#FFD166")
+            ringPaint.color = FOCUS_RING_COLOR
             ringPaint.strokeWidth = dpToPx(1f)
             ringPaint.alpha = 200
             canvas.drawRoundRect(rect, dpToPx(4f), dpToPx(4f), ringPaint)
@@ -687,6 +687,9 @@ class MindprintConstellationView @JvmOverloads constructor(
         private val SKELETON_LINE_NIGHT = Color.parseColor("#506072")
         private val SKELETON_LINE_DAY = Color.parseColor("#BDB2A3")
         private val AMBIENT_PARTICLE_DAY = Color.parseColor("#9E9282")
+        private val SKY_NIGHT = Color.parseColor("#080B11")
+        private val SKY_DAY = Color.parseColor("#F5F1E8")
+        private val FOCUS_RING_COLOR = Color.parseColor("#FFD166")
 
         /**
          * 单位光晕渐变（半径 1，白→透明）：每帧通过 Matrix 缩放平移复用，

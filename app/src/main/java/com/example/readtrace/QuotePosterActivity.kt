@@ -247,7 +247,9 @@ class QuotePosterActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
+            // T2.9：大尺寸海报 Bitmap 用后即回收（含异常路径），避免触发大对象 GC
             fos?.close()
+            bitmap.recycle()
         }
 
         if (success) {
@@ -279,6 +281,8 @@ class QuotePosterActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "分享海报失败", Toast.LENGTH_SHORT).show()
+        } finally {
+            bitmap.recycle()
         }
     }
 

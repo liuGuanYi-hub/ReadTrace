@@ -273,7 +273,7 @@ class CuratorPassCardView @JvmOverloads constructor(
         canvas.drawRoundRect(cardBounds, cardCornerRadius, cardCornerRadius, cardPaint)
 
         // 绘制边框
-        strokePaint.color = Color.parseColor(if (theme == CuratorCardTheme.PARCHMENT_WOOD) "#30000000" else "#26FFFFFF")
+        strokePaint.color = if (theme == CuratorCardTheme.PARCHMENT_WOOD) STROKE_DARK else STROKE_LIGHT
         canvas.drawRoundRect(cardBounds, cardCornerRadius, cardCornerRadius, strokePaint)
 
         // 绘制顶部高光微弧线：只走顶边与两个上圆角。
@@ -303,5 +303,11 @@ class CuratorPassCardView @JvmOverloads constructor(
 
     private fun dpToPx(dp: Float): Float {
         return dp * resources.displayMetrics.density
+    }
+
+    companion object {
+        // T2.9：onDraw 热路径描边色常量化（不再每帧 parseColor）
+        private val STROKE_DARK = Color.parseColor("#30000000")
+        private val STROKE_LIGHT = Color.parseColor("#26FFFFFF")
     }
 }

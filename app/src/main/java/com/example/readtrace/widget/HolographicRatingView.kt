@@ -46,6 +46,10 @@ class HolographicRatingView @JvmOverloads constructor(
     }
     private val subTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
+    // T2.9：onDraw 热路径色彩常量化（不再每帧 parseColor）
+    private val LABEL_DIM_COLOR = Color.parseColor("#A89F91")
+    private val LABEL_GOLD_COLOR = Color.parseColor("#E0A96D")
+
     // 全息流光着色器
     private var shimmerTranslate: Float = 0f
     private var shimmerShader: LinearGradient? = null
@@ -173,7 +177,7 @@ class HolographicRatingView @JvmOverloads constructor(
         val h = height.toFloat()
 
         if (!isRecorded) {
-            textPaint.color = Color.parseColor("#A89F91")
+            textPaint.color = LABEL_DIM_COLOR
             textPaint.shader = null
             canvas.drawText("暂无评分记录", 0f, h * 0.68f, textPaint)
             return
@@ -216,7 +220,7 @@ class HolographicRatingView @JvmOverloads constructor(
             textPaint.shader = shimmerShader
         } else {
             textPaint.shader = null
-            textPaint.color = Color.parseColor("#E0A96D") // 典雅烫金色
+            textPaint.color = LABEL_GOLD_COLOR // 典雅烫金色
         }
 
         val scoreStr = String.format(Locale.getDefault(), "%.1f", currentDisplayScore)

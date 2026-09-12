@@ -3949,26 +3949,27 @@ class BookDatabaseHelper private constructor(val context: Context) :
             ORDER BY f.$COLUMN_FAVORITE_RANK_ORDER ASC, f.$COLUMN_ID ASC
         """.trimIndent()
 
-        val cursor = db.rawQuery(query, null)
-        while (cursor.moveToNext()) {
-            val favId = cursor.getLong(cursor.getColumnIndexOrThrow("fav_id"))
-            val rank = cursor.getInt(cursor.getColumnIndexOrThrow("fav_rank"))
-            val tagline = cursor.getString(cursor.getColumnIndexOrThrow("fav_tagline"))
-            val favCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow("fav_created_at"))
-            val book = cursor.toBook()
-            val mediaType = book.mediaType
-            result.add(
-                CuratorFavoriteItem(
-                    id = favId,
-                    book = book,
-                    mediaType = mediaType,
-                    rankOrder = rank,
-                    customTagline = tagline,
-                    createdAt = favCreatedAt,
+        // T2.9：cursor 纳入 use 管理，遍历抛异常时也保证释放（前轮审查登记的泄漏点）
+        db.rawQuery(query, null).use { cursor ->
+            while (cursor.moveToNext()) {
+                val favId = cursor.getLong(cursor.getColumnIndexOrThrow("fav_id"))
+                val rank = cursor.getInt(cursor.getColumnIndexOrThrow("fav_rank"))
+                val tagline = cursor.getString(cursor.getColumnIndexOrThrow("fav_tagline"))
+                val favCreatedAt = cursor.getString(cursor.getColumnIndexOrThrow("fav_created_at"))
+                val book = cursor.toBook()
+                val mediaType = book.mediaType
+                result.add(
+                    CuratorFavoriteItem(
+                        id = favId,
+                        book = book,
+                        mediaType = mediaType,
+                        rankOrder = rank,
+                        customTagline = tagline,
+                        createdAt = favCreatedAt,
+                    )
                 )
-            )
+            }
         }
-        cursor.close()
         return result
     }
 
@@ -3976,10 +3977,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
         getFavorites().filter { it.mediaType == mediaType }
 
     fun getFavoriteCount(): Int {
-        val cursor = readableDatabase.rawQuery("SELECT COUNT(*) FROM $TABLE_FAVORITES", null)
-        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
-        cursor.close()
-        return count
+        // T2.9：cursor 纳入 use 管理（前轮审查登记的泄漏点）
+        readableDatabase.rawQuery("SELECT COUNT(*) FROM $TABLE_FAVORITES", null).use { cursor ->
+            return if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        }
     }
 
     private fun currentTimestamp(): String =
