@@ -2863,23 +2863,82 @@ class BookDatabaseHelper private constructor(val context: Context) :
     fun getAllFullWorkBackups(): List<com.example.readtrace.util.BackupHelper.WorkBackup> {
         val books = getBooks()
         val mindprints = getAllMindprints()
+        // T2.7：六张子表各一次全量查询 + 内存分组，替代每部作品 6 次查询的 N+1（500 部作品 = 7 次查询替代 3500 次）
+        val notesByBook = queryWorksTableGroupedByBook(TABLE_NOTES, includeDeleted = false, { it.toNote() }, { it.bookId })
+        val sessionsByBook = queryWorksTableGroupedByBook(TABLE_READING_SESSIONS, includeDeleted = false, { it.toReadingSession() }, { it.bookId })
+        val charactersByBook = queryWorksTableGroupedByBook(TABLE_BOOK_CHARACTERS, includeDeleted = false, { it.toBookCharacter() }, { it.bookId })
+        val outlinesByBook = queryWorksTableGroupedByBook(TABLE_BOOK_OUTLINES, includeDeleted = false, { it.toBookOutline() }, { it.bookId })
+        val locationsByBook = queryWorksTableGroupedByBook(TABLE_BOOK_LOCATIONS, includeDeleted = false, { it.toBookLocation() }, { it.bookId })
+        val tracksByBook = queryAllAudioTracksGroupedByBook()
         return books.map { book ->
             com.example.readtrace.util.BackupHelper.WorkBackup(
                 book = book,
-                notes = getNotes(book.id),
-                sessions = getReadingSessions(book.id),
-                characters = getCharacters(book.id),
-                outlines = getOutlines(book.id),
-                locations = getLocations(book.id),
+                notes = notesByBook[book.id].orEmpty(),
+                sessions = sessionsByBook[book.id].orEmpty(),
+                characters = charactersByBook[book.id].orEmpty(),
+                outlines = outlinesByBook[book.id].orEmpty(),
+                locations = locationsByBook[book.id].orEmpty(),
                 mindprint = mindprints[book.id],
-                audioTracks = getAudioTracks(book.id),
+                audioTracks = tracksByBook[book.id].orEmpty(),
             )
         }
     }
 
     /**
+     * T2.7：一次性拉取整张子表并按 book_id 分组，替代「每部作品一次查询」的 N+1 模式。
+     * includeDeleted=false 时过滤 is_deleted=0，与各单项查询（getNotes 等）语义一致。
+     */
+    private inline fun <T> queryWorksTableGroupedByBook(
+        table: String,
+        includeDeleted: Boolean,
+        crossinline mapRow: (Cursor) -> T,
+        crossinline bookIdOf: (T) -> Long,
+    ): Map<Long, MutableList<T>> {
+        val selection = if (includeDeleted) null else "$COLUMN_IS_DELETED = 0"
+        val grouped = linkedMapOf<Long, MutableList<T>>()
+        readableDatabase.query(table, null, selection, null, null, null, null).use { cursor ->
+            while (cursor.moveToNext()) {
+                val item = mapRow(cursor)
+                grouped.getOrPut(bookIdOf(item)) { mutableListOf() }.add(item)
+            }
+        }
+        return grouped
+    }
+
+    /** T2.7：audio_tracks 专用分组（该表无 is_deleted 列，与 getAudioTracks 语义一致） */
+    private fun queryAllAudioTracksGroupedByBook(): Map<Long, MutableList<com.example.readtrace.model.AudioTrackItem>> {
+        val grouped = linkedMapOf<Long, MutableList<com.example.readtrace.model.AudioTrackItem>>()
+        readableDatabase.query(
+            TABLE_AUDIO_TRACKS, null, null, null, null, null,
+            "$COLUMN_AUDIO_ORDER ASC, $COLUMN_ID ASC",
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                // 与 getAudioTracks 的 `?: continue` 语义一致：无 URI 的行跳过（非 inline lambda 内用 if 包裹）
+                val fileUri = cursor.getString(4)
+                if (fileUri != null) {
+                    grouped.getOrPut(cursor.getLong(1)) { mutableListOf() }.add(
+                        com.example.readtrace.model.AudioTrackItem(
+                            id = cursor.getLong(0),
+                            bookId = cursor.getLong(1),
+                            trackOrder = cursor.getInt(2),
+                            title = cursor.getString(3) ?: "未命名曲目",
+                            fileUri = fileUri,
+                            durationMs = cursor.getLong(5),
+                        )
+                    )
+                }
+            }
+        }
+        return grouped
+    }
+
+    /**
      * 导入全量备份数据（含作品、笔记与 6 大高阶资产），单事务级联合入并按内容去重
      * @return Pair(成功导入的新增作品数, 成功导入的笔记数)
+     *
+     * T2.7：循环前一次性预载「(标题,作者) → 作品 id」索引与全部子表分组，
+     * 替代循环内每部作品 7 次查询的 N+1；新插入的数据同步写回内存索引/分组，
+     * 与原先「实时查询」的去重语义完全一致。
      */
     fun importFullBackup(items: List<com.example.readtrace.util.BackupHelper.WorkBackup>): Pair<Int, Int> {
         if (items.isEmpty()) return Pair(0, 0)
@@ -2888,10 +2947,25 @@ class BookDatabaseHelper private constructor(val context: Context) :
         var importedWorks = 0
         var importedNotes = 0
         try {
+            val existingBookIds = linkedMapOf<String, Long>()
+            getBooksForList().forEach { b ->
+                val key = bookIndexKey(b.title, b.author)
+                val current = existingBookIds[key]
+                if (current == null || b.id < current) existingBookIds[key] = b.id
+            }
+            val notesByBook = queryWorksTableGroupedByBook(TABLE_NOTES, includeDeleted = false, { it.toNote() }, { it.bookId })
+            val sessionsByBook = queryWorksTableGroupedByBook(TABLE_READING_SESSIONS, includeDeleted = false, { it.toReadingSession() }, { it.bookId })
+            val charactersByBook = queryWorksTableGroupedByBook(TABLE_BOOK_CHARACTERS, includeDeleted = false, { it.toBookCharacter() }, { it.bookId })
+            val outlinesByBook = queryWorksTableGroupedByBook(TABLE_BOOK_OUTLINES, includeDeleted = false, { it.toBookOutline() }, { it.bookId })
+            val locationsByBook = queryWorksTableGroupedByBook(TABLE_BOOK_LOCATIONS, includeDeleted = false, { it.toBookLocation() }, { it.bookId })
+            val tracksByBook = queryAllAudioTracksGroupedByBook()
+            val allMindprints = getAllMindprints().toMutableMap()
+
             items.forEach { work ->
                 val book = work.book
                 // 1. 查找是否存在同名且同作者/创作者的作品
-                val existingBookId = findBookId(db, book.title, book.author)
+                val indexKey = bookIndexKey(book.title, book.author)
+                val existingBookId = existingBookIds[indexKey]
                 val targetBookId = if (existingBookId != null) {
                     // 全量同步备份中作品的状态与全部详情（状态、评分、长评、短评、标签、起止日期、软删除等）
                     val updateValues = book.toContentValues().apply {
@@ -2916,13 +2990,14 @@ class BookDatabaseHelper private constructor(val context: Context) :
                     val newId = db.insert(TABLE_BOOKS, null, values)
                     if (newId > 0) {
                         importedWorks++
+                        existingBookIds[indexKey] = newId
                         newId
                     } else null
                 }
 
                 if (targetBookId != null) {
                     // 2. 导入关联的笔记（避免重复内容）
-                    val existingNotes = getNotes(targetBookId)
+                    val existingNotes = notesByBook[targetBookId] ?: mutableListOf()
                     work.notes.forEach { note ->
                         val isDuplicate = existingNotes.any { it.content.trim() == note.content.trim() }
                         if (!isDuplicate && note.content.isNotBlank()) {
@@ -2934,12 +3009,13 @@ class BookDatabaseHelper private constructor(val context: Context) :
                             }
                             if (db.insert(TABLE_NOTES, null, noteValues) > 0) {
                                 importedNotes++
+                                existingNotes += note.copy(bookId = targetBookId)
                             }
                         }
                     }
 
                     // 3. 阅读打卡记录（按 创建时间 + 时长 去重）
-                    val existingSessions = getReadingSessions(targetBookId)
+                    val existingSessions = sessionsByBook[targetBookId] ?: mutableListOf()
                     work.sessions.forEach { session ->
                         val isDuplicate = existingSessions.any {
                             it.createdAt == session.createdAt && it.durationMinutes == session.durationMinutes
@@ -2948,33 +3024,37 @@ class BookDatabaseHelper private constructor(val context: Context) :
                             insertReadingSession(
                                 session.copy(bookId = targetBookId, isDeleted = false),
                             )
+                            existingSessions += session.copy(bookId = targetBookId, isDeleted = false)
                         }
                     }
 
                     // 4. 人物角色谱（按姓名去重）
-                    val existingCharacters = getCharacters(targetBookId)
+                    val existingCharacters = charactersByBook[targetBookId] ?: mutableListOf()
                     work.characters.forEach { character ->
                         val isDuplicate = existingCharacters.any { it.name.trim() == character.name.trim() }
                         if (!isDuplicate && character.name.isNotBlank()) {
                             insertCharacter(character.copy(bookId = targetBookId, isDeleted = false))
+                            existingCharacters += character.copy(bookId = targetBookId, isDeleted = false)
                         }
                     }
 
                     // 5. 章节大纲（按章节标题去重）
-                    val existingOutlines = getOutlines(targetBookId)
+                    val existingOutlines = outlinesByBook[targetBookId] ?: mutableListOf()
                     work.outlines.forEach { outline ->
                         val isDuplicate = existingOutlines.any { it.title.trim() == outline.title.trim() }
                         if (!isDuplicate && outline.title.isNotBlank() && outline.summary.isNotBlank()) {
                             insertOutline(outline.copy(bookId = targetBookId, isDeleted = false))
+                            existingOutlines += outline.copy(bookId = targetBookId, isDeleted = false)
                         }
                     }
 
                     // 6. 空间地标（按名称去重）
-                    val existingLocations = getLocations(targetBookId)
+                    val existingLocations = locationsByBook[targetBookId] ?: mutableListOf()
                     work.locations.forEach { location ->
                         val isDuplicate = existingLocations.any { it.name.trim() == location.name.trim() }
                         if (!isDuplicate && location.name.isNotBlank()) {
                             insertLocation(location.copy(bookId = targetBookId, isDeleted = false))
+                            existingLocations += location.copy(bookId = targetBookId, isDeleted = false)
                         }
                     }
 
@@ -2982,21 +3062,25 @@ class BookDatabaseHelper private constructor(val context: Context) :
                     // 防止导入旧备份把本地较新的六维评分抹掉（P38-G11）
                     work.mindprint?.let { mindprint ->
                         val incoming = mindprint.copy(bookId = targetBookId)
-                        val existingMindprint = getMindprint(targetBookId)
+                        val existingMindprint = allMindprints[targetBookId]
                         val localUpdatedAt = existingMindprint?.updatedAt.orEmpty()
                         val shouldReplace = existingMindprint == null ||
                             (incoming.updatedAt.isNotBlank() && incoming.updatedAt > localUpdatedAt)
-                        if (shouldReplace) saveMindprint(incoming)
+                        if (shouldReplace) {
+                            saveMindprint(incoming)
+                            allMindprints[targetBookId] = incoming
+                        }
                     }
 
                     // 8. 黑胶关联曲目（按 标题 + 序号 去重；跨机恢复时 content:// 指向的本地文件可能失效，播放层已兜底）
-                    val existingTracks = getAudioTracks(targetBookId)
+                    val existingTracks = tracksByBook[targetBookId] ?: mutableListOf()
                     work.audioTracks.forEach { track ->
                         val isDuplicate = existingTracks.any {
                             it.title.trim() == track.title.trim() && it.trackOrder == track.trackOrder
                         }
                         if (!isDuplicate && track.title.isNotBlank() && track.fileUri.isNotBlank()) {
                             insertAudioTrack(track.copy(bookId = targetBookId))
+                            existingTracks += track.copy(bookId = targetBookId)
                         }
                     }
                 }
@@ -3008,6 +3092,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
             db.endTransaction()
         }
     }
+
+    /** T2.7：导入去重索引键——与 findBookId 的「trim 后标题 + trim 后作者（null/空等价）」匹配语义一致 */
+    private fun bookIndexKey(title: String, author: String?): String =
+        "${title.trim()}\u0001${author?.trim().orEmpty()}"
 
     private fun findBookId(db: SQLiteDatabase, title: String, author: String?): Long? {
         val trimmedTitle = title.trim()
@@ -3411,7 +3499,9 @@ class BookDatabaseHelper private constructor(val context: Context) :
         val finishedBooks = getBooks(BookStatus.FINISHED)
         if (finishedBooks.isEmpty()) return null
 
-        val mindprints = finishedBooks.map { getMindprint(it.id) }
+        // T2.7：一次取全部心智档案后内存索引，替代逐书查询的 N+1（无档案书沿用默认六维语义）
+        val allMindprints = getAllMindprints()
+        val mindprints = finishedBooks.map { allMindprints[it.id] ?: com.example.readtrace.model.BookMindprint(bookId = it.id) }
         val count = mindprints.size.toDouble()
 
         val avgDepth = mindprints.sumOf { it.depthScore } / count

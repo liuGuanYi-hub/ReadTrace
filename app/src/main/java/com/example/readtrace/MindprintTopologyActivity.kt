@@ -110,12 +110,14 @@ class MindprintTopologyActivity : AppCompatActivity(), SensorEventListener {
 
     private fun loadTopologyData() {
         val allBooks = databaseHelper.getBooks()
+        // T2.7：一次取全部心智档案后内存索引，替代 onCreate 内逐书查询的 N+1
+        val allMindprints = databaseHelper.getAllMindprints()
         val mindprintMap = mutableMapOf<Long, BookMindprint>()
         var highestScore = 0.0
         var highestBook: Book? = null
 
         allBooks.forEach { book ->
-            databaseHelper.getMindprint(book.id)?.let { mp ->
+            allMindprints[book.id]?.let { mp ->
                 mindprintMap[book.id] = mp
                 if (mp.averageScore() > highestScore) {
                     highestScore = mp.averageScore()

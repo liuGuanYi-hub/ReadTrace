@@ -28,6 +28,10 @@ object WechatMinappSyncProtocol {
      */
     fun exportToMinappPayload(databaseHelper: BookDatabaseHelper): String {
         val books = databaseHelper.getBooks()
+        // T2.7：一次取全部心智档案后内存索引，替代逐书查询的 N+1；
+        // 同时修正原「getMindprint 非空恒真导致全部作品注入默认六维」的伪造导出——
+        // 仅导出真正拥有心智档案的作品
+        val allMindprints = databaseHelper.getAllMindprints()
         val root = JSONObject()
         root.put("protocol_version", PROTOCOL_VERSION)
         root.put("client", "Android Native")
@@ -49,7 +53,7 @@ object WechatMinappSyncProtocol {
                 put("created_at", book.createdAt)
                 put("updated_at", book.updatedAt)
             }
-            val mindprint = databaseHelper.getMindprint(book.id)
+            val mindprint = allMindprints[book.id]
             if (mindprint != null) {
                 bObj.put("mindprint", JSONObject().apply {
                     put("depth", mindprint.depthScore)
