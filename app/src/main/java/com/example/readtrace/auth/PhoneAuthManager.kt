@@ -2,6 +2,7 @@ package com.example.readtrace.auth
 
 import android.os.Handler
 import android.os.Looper
+import com.example.readtrace.BuildConfig
 import com.example.readtrace.util.AliyunSmsClient
 import java.security.SecureRandom
 import java.util.concurrent.Executors
@@ -9,15 +10,16 @@ import java.util.concurrent.Executors
 /**
  * 手机号 6 位先锋验证码速登管理器
  *
- * 与微信模块一致，采用「沙盒模拟 + 正式通道」的双轨设计：
+ * 采用「沙盒模拟（仅 debug）+ 正式通道」的双轨设计：
  *
- * - **沙盒模式（未配置短信平台时）**：验证码在本地生成，并通过回调直接返回给调用方展示。
+ * - **沙盒模式（仅 debug 构建且未配置短信平台时）**：验证码在本地生成，并通过回调直接返回给调用方展示。
  *   这样在没有短信平台账号的情况下，整条「获取验证码 → 输入 → 校验 → 登录」链路
- *   依然可以在真机上完整跑通并验证。
- * - **正式模式（v1.0.3）**：在 `gradle.properties` 中配置阿里云短信
+ *   依然可以在真机上完整跑通并验证。release 构建不走此通道。
+ * - **正式模式**：在 `gradle.properties` 中配置阿里云短信
  *   （AccessKey / 签名 / 模板）后，`requestCode` 会自动调用
  *   [AliyunSmsClient.sendVerifyCode] 真实下发验证码短信，不再明文回传。
- *   发送失败时自动回退沙盒（明文回传）并附带降级标记，保证链路不中断。
+ *   发送失败一律 fail-closed（拒绝并提示重试），绝不降级回显验证码——
+ *   明文回显等于无校验，正式包不允许。
  *
  * 隐私约束：手机号只在本地参与校验，完整号码不写进任何持久化存储，
  * 落库的只有 `maskPhone()` 产出的脱敏串（如 138****8848）。
@@ -28,14 +30,12 @@ class PhoneAuthManager private constructor() {
     sealed class RequestResult {
         /**
          * 验证码已发出
-         * @param sandboxCode 沙盒模式下回传的明文验证码，正式模式恒为 null
+         * @param sandboxCode 沙盒模式（仅 debug 构建）下回传的明文验证码，正式模式恒为 null
          * @param cooldownSeconds 重新获取需要等待的秒数
-         * @param degraded 正式通道不可用时是否降级到了沙盒回显（true 时 UI 可提示）
          */
         data class Sent(
             val sandboxCode: String?,
             val cooldownSeconds: Int,
-            val degraded: Boolean = false,
         ) : RequestResult()
 
         /** 请求被拒绝 */
@@ -113,22 +113,26 @@ class PhoneAuthManager private constructor() {
             lastRequestAt = now
             pendingFailedAttempts = 0
 
-            // 正式通道（阿里云短信）已配置时真实下发；否则沙盒明文回传。
-            // 正式通道发送失败时自动降级沙盒，保证验证码链路不中断。
+            // 正式通道（阿里云短信）已配置时真实下发，验证码不回传客户端；
+            // 发送失败 fail-closed，绝不降级回显——明文回显等于无校验。
             if (AliyunSmsClient.isConfigured()) {
                 AliyunSmsClient.sendVerifyCode(phone, code) { result ->
                     mainHandler.post {
-                        onResult(
-                            RequestResult.Sent(
-                                sandboxCode = if (result.success) null else code,
-                                cooldownSeconds = COOLDOWN_SECONDS,
-                                degraded = !result.success,
+                        if (result.success) {
+                            onResult(
+                                RequestResult.Sent(
+                                    sandboxCode = null,
+                                    cooldownSeconds = COOLDOWN_SECONDS,
+                                )
                             )
-                        )
+                        } else {
+                            clearPending()
+                            onResult(RequestResult.Rejected("短信发送失败，请稍后重试"))
+                        }
                     }
                 }
-            } else {
-                // 模拟短信通道下发耗时，让加载态在本地也能被真实观察到
+            } else if (BuildConfig.DEBUG) {
+                // 沙盒模式（仅 debug 构建）：模拟短信通道下发耗时，让加载态在本地也能被真实观察到
                 Thread.sleep(SIMULATED_NETWORK_DELAY_MS)
                 mainHandler.post {
                     onResult(
@@ -137,6 +141,12 @@ class PhoneAuthManager private constructor() {
                             cooldownSeconds = COOLDOWN_SECONDS,
                         )
                     )
+                }
+            } else {
+                // release 构建未配置短信平台：fail-closed，不提供任何本地回显登录通道
+                clearPending()
+                mainHandler.post {
+                    onResult(RequestResult.Rejected("短信服务未配置，手机号登录暂不可用"))
                 }
             }
         }
