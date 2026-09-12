@@ -117,6 +117,9 @@ class LibraryFragment : Fragment() {
 
     /** 藏库加载时的全局缓存代际版本（T2.1）：版本变化说明外部页面写过数据，需要重查 */
     private var loadedCacheVersion = -1
+
+    /** T2.6：快速写操作（标记在读/移入回收站/撤销）的单线程执行器——串行化保证撤销顺序与写入顺序一致 */
+    private val quickWriteExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
 
@@ -829,29 +832,36 @@ class LibraryFragment : Fragment() {
     private fun handleQuickMarkReading(book: Book) {
         val oldStatus = book.status
         val updated = book.copy(status = BookStatus.READING)
-        databaseHelper.updateBook(updated)
-        refreshLibrary(forceDbReload = true)
-
         val undoCapsule = view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+        // T2.6：写移入片段级单线程 executor（串行保证 undo 与标记不竞态），落盘后回主线程刷新
+        quickWriteExecutor.execute {
+            databaseHelper.updateBook(updated)
+            view?.post { refreshLibrary(forceDbReload = true) }
+        }
         undoCapsule?.showCapsule(
             message = "已标记《${book.title}》为在读",
             onUndo = {
-                databaseHelper.updateBook(book.copy(status = oldStatus))
-                refreshLibrary(forceDbReload = true)
+                quickWriteExecutor.execute {
+                    databaseHelper.updateBook(book.copy(status = oldStatus))
+                    view?.post { refreshLibrary(forceDbReload = true) }
+                }
             },
         )
     }
 
     private fun handleQuickTrash(book: Book) {
-        databaseHelper.archiveBook(book.id)
-        refreshLibrary(forceDbReload = true)
-
         val undoCapsule = view?.findViewById<com.example.readtrace.widget.UndoCapsuleBar>(R.id.libraryUndoCapsule)
+        quickWriteExecutor.execute {
+            databaseHelper.archiveBook(book.id)
+            view?.post { refreshLibrary(forceDbReload = true) }
+        }
         undoCapsule?.showCapsule(
             message = "已移入回收站《${book.title}》",
             onUndo = {
-                databaseHelper.restoreBook(book.id)
-                refreshLibrary(forceDbReload = true)
+                quickWriteExecutor.execute {
+                    databaseHelper.restoreBook(book.id)
+                    view?.post { refreshLibrary(forceDbReload = true) }
+                }
             },
         )
     }

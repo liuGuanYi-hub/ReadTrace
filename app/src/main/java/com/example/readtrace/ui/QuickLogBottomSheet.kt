@@ -394,21 +394,28 @@ object QuickLogBottomSheet {
         explicitSourceType: String? = subject.source,
         explicitSourceId: String? = subject.id.takeIf { it > 0 }?.toString(),
     ) {
-        // P38-G7：入库前查重，同来源/同媒介同名已收录时直接拦截，杜绝连点与重复速记产生重复条目
-        val duplicate = databaseHelper.findQuickLogDuplicate(
-            title = subject.displayTitle,
-            mediaType = currentMedia,
-            sourceType = explicitSourceType,
-            sourceId = explicitSourceId,
-        )
-        if (duplicate != null) {
-            Toast.makeText(
-                context,
-                "《${duplicate.title}》已在藏库，不重复收录",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
+        // T2.6：查重与落库整体移入后台线程（高频写路径），Toast 等提示回主线程；
+        // 用 application context，避免 Sheet 关闭后 Activity 不可用
+        val appContext = context.applicationContext
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        Thread {
+            // P38-G7：入库前查重，同来源/同媒介同名已收录时直接拦截，杜绝连点与重复速记产生重复条目
+            val duplicate = databaseHelper.findQuickLogDuplicate(
+                title = subject.displayTitle,
+                mediaType = currentMedia,
+                sourceType = explicitSourceType,
+                sourceId = explicitSourceId,
+            )
+            if (duplicate != null) {
+                mainHandler.post {
+                    Toast.makeText(
+                        appContext,
+                        "《${duplicate.title}》已在藏库，不重复收录",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                return@Thread
+            }
 
         val today = LocalDate.now().toString()
         val book = Book(
@@ -442,14 +449,19 @@ object QuickLogBottomSheet {
                 )
                 databaseHelper.saveMindprint(initialMindprint)
             }
-            Toast.makeText(
-                context,
-                "⚡ 已入库《${subject.displayTitle}》· ${status.getDisplayName(currentMedia)}",
-                Toast.LENGTH_SHORT,
-            ).show()
+            mainHandler.post {
+                Toast.makeText(
+                    appContext,
+                    "⚡ 已入库《${subject.displayTitle}》· ${status.getDisplayName(currentMedia)}",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         } else {
-            Toast.makeText(context, "入库失败，请重试", Toast.LENGTH_SHORT).show()
+            mainHandler.post {
+                Toast.makeText(appContext, "入库失败，请重试", Toast.LENGTH_SHORT).show()
+            }
         }
+        }.start()
     }
 
     /** 构造一句话速记置顶行：展示解析结果，点击直接落库 */
