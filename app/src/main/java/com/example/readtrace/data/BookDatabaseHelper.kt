@@ -50,9 +50,16 @@ class BookDatabaseHelper private constructor(val context: Context) :
         DatabaseMigrator.onCreate(database)
     }
 
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        // T2.4：启用 WAL——写事务不再阻塞并发读，
+        // importFullBackup 等大事务期间主线程读不被排队或抛 SQLiteDatabaseLockedException
+        db.enableWriteAheadLogging()
+    }
+
     override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // 跨版本升级（如 v12 → v15）先做文件快照备份，迁移异常可从 bak_v{old} 手动恢复
-        if (newVersion - oldVersion > 1) backupDatabaseFile(oldVersion)
+        // 跨版本升级（如 v12 → v16）先做文件快照备份，迁移异常可从 bak_v{old} 手动恢复
+        if (newVersion - oldVersion > 1) backupDatabaseFile(oldVersion, database)
         DatabaseMigrator.onUpgrade(database, oldVersion, newVersion)
     }
 
@@ -64,14 +71,16 @@ class BookDatabaseHelper private constructor(val context: Context) :
      * 一旦低版本代码真与高版本结构不兼容（如未来删除列），可从 bak_v{old} 文件恢复。
      */
     override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        backupDatabaseFile(oldVersion)
+        backupDatabaseFile(oldVersion, db)
     }
 
     /** 将当前数据库文件复制为 readtrace.db.bak_v{version} 快照（已存在则跳过，失败不阻塞开库） */
-    private fun backupDatabaseFile(version: Int) {
+    private fun backupDatabaseFile(version: Int, db: SQLiteDatabase) {
         runCatching {
             val dbFile = context.getDatabasePath(DATABASE_NAME)
             if (!dbFile.exists()) return
+            // WAL 模式下先做全量检查点，把 -wal 中已提交事务合入主文件，保证快照完整
+            runCatching { db.rawQuery("PRAGMA wal_checkpoint(FULL)", null).use { it.moveToFirst() } }
             val bak = File(dbFile.parentFile, "$DATABASE_NAME.bak_v$version")
             if (!bak.exists()) dbFile.copyTo(bak, overwrite = false)
         }
@@ -3907,7 +3916,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 15
+        const val DATABASE_VERSION = 16
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

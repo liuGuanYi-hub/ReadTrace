@@ -19,6 +19,7 @@ object DatabaseMigrator {
         createMindprintsTable(database)
         createAudioTracksTable(database)
         createFavoritesTable(database)
+        createPerformanceIndexes(database)
     }
 
     fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -163,6 +164,20 @@ object DatabaseMigrator {
                     "AND ($COLUMN_RATING IS NULL OR $COLUMN_RATING <= 6.0)",
             )
         }
+        if (oldVersion < 16) {
+            // v16 (T2.4)：补齐高频查询缺失索引——
+            // books.title：每次开库的预置封面修补与播种期存在性检查均按标题等值查询；
+            // books.updated_at：藏库/全站列表的 ORDER BY updated_at DESC 此前为全表扫描排序；
+            // audio_tracks.book_id：黑胶播放器按作品查曲目，该表此前零索引。
+            createPerformanceIndexes(database)
+        }
+    }
+
+    /** 高频查询性能索引（幂等，onCreate 与 v16 升级共用） */
+    private fun createPerformanceIndexes(database: SQLiteDatabase) {
+        database.execSQL("CREATE INDEX IF NOT EXISTS index_books_title ON $TABLE_BOOKS ($COLUMN_TITLE)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS index_books_updated_at ON $TABLE_BOOKS ($COLUMN_UPDATED_AT)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS index_audio_tracks_book ON $TABLE_AUDIO_TRACKS ($COLUMN_AUDIO_BOOK_ID)")
     }
 
     private fun createBooksTable(database: SQLiteDatabase) {

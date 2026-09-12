@@ -31,7 +31,7 @@ class DowngradeGuardTest {
             it.moveToFirst()
             it.getInt(0)
         }
-        assertEquals("降级后版本号应回落到当前代码版本", 15, version)
+        assertEquals("降级后版本号应回落到当前代码版本", 16, version)
 
         val bak = File(
             context.getDatabasePath(BookDatabaseHelper.DATABASE_NAME).parentFile,
