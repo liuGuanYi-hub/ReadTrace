@@ -3,7 +3,7 @@ dist/
 .vite/
 
 # 本地敏感凭据目录（存放网易云 Cookie 等，绝不入库）
-不要放进git/
+# 不要放进git/
 
 # 构建产物（APK 不入库，仅本地留存）
 *.apk
@@ -35,6 +35,10 @@ backend/readtrace.db
 *.jks
 *.keystore
 keystore.properties
+
+# 大体积本地素材存档（不入库；封面原图与零引用临时图仅本地保留）
+cover_server/covers/
+2k图片.jpeg
 
 # 本地验证截图归档目录（不入库）
 docs/pic/
