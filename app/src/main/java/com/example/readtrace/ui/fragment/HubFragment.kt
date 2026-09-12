@@ -299,10 +299,13 @@ class HubFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        themeToggleButton.setOnClickListener {
-            // setDefaultNightMode 会自动重建全部已启动 Activity（单次重建），
-            // 此处不再显式 recreate——重复重建正是切换时白闪两次、观感不丝滑的原因
-            ThemeHelper.toggleDarkMode(requireContext())
+        themeToggleButton.setOnClickListener { anchor ->
+            // 目标主题背景色从按钮位置圆形向外扩散，铺满后在遮罩下静默重建——
+            // 消除 recreate 的整页跳变感（详见 ThemeTransitionPlayer）
+            com.example.readtrace.util.ThemeTransitionPlayer.toggleWithCircularReveal(
+                requireActivity(),
+                anchor,
+            )
         }
 
         // P11 极简心流：主页「+」直弹 3 秒极速速记半屏 Sheet（高级录入仍可在 Sheet 内进入）
