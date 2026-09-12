@@ -38,16 +38,6 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/btnToggleScrollTheme"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_status_chip"
-            android:gravity="center"
-            android:text="🌓"
-            android:textSize="16sp" />
-
-        <TextView
             android:id="@+id/btnShareScroll"
             android:layout_width="wrap_content"
             android:layout_height="38dp"

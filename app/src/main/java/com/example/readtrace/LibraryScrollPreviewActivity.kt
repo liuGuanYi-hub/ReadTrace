@@ -38,11 +38,9 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
         scrollMainTitle = findViewById(R.id.scrollMainTitle)
         scrollSubTitle = findViewById(R.id.scrollSubTitle)
 
-        val btnToggleScrollTheme = findViewById<TextView>(R.id.btnToggleScrollTheme)
         val btnShareScroll = findViewById<TextView>(R.id.btnShareScroll)
 
         listOf(
-            btnToggleScrollTheme,
             btnShareScroll,
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
 
@@ -67,15 +65,6 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
         libraryScrollView.isDarkMode = com.example.readtrace.util.ThemeHelper.isDarkMode(this)
         libraryScrollView.setLibraryData(books, filterSummary, libraryScrollView.isDarkMode)
         scrollSubTitle.text = "${filterSummary} · 共 ${books.size} 座精神坐标"
-
-        btnToggleScrollTheme.setOnClickListener {
-            libraryScrollView.isDarkMode = !libraryScrollView.isDarkMode
-            Toast.makeText(
-                this,
-                if (libraryScrollView.isDarkMode) "已切换为「暗夜和纸」画卷" else "已切换为「白晶宣纸」画卷",
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
 
         btnShareScroll.setOnClickListener {
             exportAndShareScroll()

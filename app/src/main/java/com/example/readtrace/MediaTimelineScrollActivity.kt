@@ -52,11 +52,9 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         chipGame = findViewById(R.id.chipMediaGame)
         chipMusic = findViewById(R.id.chipMediaMusic)
 
-        val btnToggleScrollTheme = findViewById<TextView>(R.id.btnToggleScrollTheme)
         val btnShareScroll = findViewById<TextView>(R.id.btnShareScroll)
 
         listOf(
-            btnToggleScrollTheme,
             btnShareScroll,
             chipBook,
             chipAnime,
@@ -73,15 +71,6 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
 
         // 同步暗黑模式
         timelineScrollView.isDarkMode = ThemeHelper.isDarkMode(this)
-
-        btnToggleScrollTheme.setOnClickListener {
-            timelineScrollView.isDarkMode = !timelineScrollView.isDarkMode
-            Toast.makeText(
-                this,
-                if (timelineScrollView.isDarkMode) "已切换为「暗夜和纸」画卷" else "已切换为「白晶宣纸」画卷",
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
 
         btnShareScroll.setOnClickListener {
             exportAndShareScroll()
