@@ -4,39 +4,14 @@
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-[![Version](https://img.shields.io/badge/Release-v1.0.12-3A6348.svg)](docs/releases/RELEASE_NOTES_v1.0.12.md)
-[![Architecture](https://img.shields.io/badge/Architecture-Interactive%20Archify-0284c7.svg)](docs/architecture/readtrace-architecture.html)
+![Version](https://img.shields.io/badge/Release-v1.0.12-3A6348.svg)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
 
-> 📢 **v1.0.12 正式版本（P39 极速建库轻量化系统收官）**：🔥 内置 336 部跨媒介殿堂经典离线榜单货架（豆瓣读书/电影 Top250、Bangumi 神作、Steam 百大压倒性好评、滚石 500）、🤫 批量勾选静音化与触觉滑动手势打分、🔮 五大媒介美学情绪胶囊与心智雷达动态联动、⚡ 一键极速建库引导与无缝沉淀闭环。上承 v1.0.10 安全加固五项（WebDAV 凭据加密落盘 / 验证码防暴力 / 小组件后台化）与 v1.0.11 预置评分差异化。详见 [v1.0.12 官方发布说明](docs/releases/RELEASE_NOTES_v1.0.12.md) 与 [系统架构交互全景图](docs/architecture/readtrace-architecture.html)。
-
----
-
-## 📸 美学实机画廊 (Visual Showcase)
-
-<div align="center">
-
-| 🏛️ 策展级记录台首屏 | 📚 藏库书架 (状态/标签/评分) | 💿 音乐藏库 (纯净流无冗余胶囊) |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/36_curatorial_hub.png" width="240" alt="策展记录台首屏"/> | <img src="docs/screenshots/32_library_books.png" width="240" alt="藏库书架"/> | <img src="docs/screenshots/31_library_music.png" width="240" alt="音乐纯净流"/> |
-
-| 🏷️ 详情页状态切换二级弹窗 | 👆 藏库长按极速修改状态 | 💽 3D 拟真黑胶唱机 (23°机械落针) |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/34_status_dialog_modal.png" width="240" alt="状态切换二级弹窗"/> | <img src="docs/screenshots/35_library_longpress_status.png" width="240" alt="藏库长按修改状态"/> | <img src="docs/screenshots/38_vinyl_turntable.png" width="240" alt="3D拟真黑胶唱机"/> |
-
-| 📼 80s 复古磁带卡座 | 🛂 精神巡礼护照盖章簿 | 🎟️ 电影票根 (3D撕票裂变) |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/39_cassette_deck.png" width="240" alt="复古磁带卡座"/> | <img src="docs/screenshots/40_cultural_passport.png" width="240" alt="精神巡礼护照"/> | <img src="docs/screenshots/41_movie_ticket.png" width="240" alt="电影透光票根"/> |
-
-| 🕹️ 游戏白金全息实体卡带 | 🪐 跨媒介心智引力星系 | 📦 数据主权备份与全量恢复 |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/42_game_cartridge.png" width="240" alt="游戏白金全息卡带"/> | <img src="docs/screenshots/43_galaxy_constellation.png" width="240" alt="跨媒介心智星系"/> | <img src="docs/screenshots/10_backup_center.png" width="240" alt="数据主权备份中心"/> |
-
-</div>
+> 📢 **v1.0.12 正式版本（P39 极速建库轻量化系统收官）**：🔥 内置 336 部跨媒介殿堂经典离线榜单货架（豆瓣读书/电影 Top250、Bangumi 神作、Steam 百大压倒性好评、滚石 500）、🤫 批量勾选静音化与触觉滑动手势打分、🔮 五大媒介美学情绪胶囊与心智雷达动态联动、⚡ 一键极速建库引导与无缝沉淀闭环。上承 v1.0.10 安全加固五项（WebDAV 凭据加密落盘 / 验证码防暴力 / 小组件后台化）与 v1.0.11 预置评分差异化。
 
 ---
 
@@ -135,8 +110,6 @@
 ---
 
 ## 🛠️ 系统架构与技术拓扑 (System Architecture)
-
-> 💡 **交互式全景架构图已上线**：支持深浅色自适应主题切换、物理流光动效与 4K 超清矢量导出，点击体验 👉 **[阅痕 ReadTrace 系统架构全景交互图 (Archify)](docs/architecture/readtrace-architecture.html)**
 
 ```mermaid
 graph LR
