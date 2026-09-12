@@ -303,7 +303,6 @@ class HubFragment : Fragment() {
             val ctx = requireContext()
             ThemeHelper.toggleDarkMode(ctx)
             updateThemeToggleIcon()
-            com.example.readtrace.util.ConfettiBurstHelper.burstCenter(requireActivity())
             com.example.readtrace.util.HapticFeedbackEngine.stampImpact(ctx)
             activity?.recreate()
         }
