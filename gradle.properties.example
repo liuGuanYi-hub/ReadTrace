@@ -1,0 +1,25 @@
+# ============================================================
+# ReadTrace 敏感配置模板 —— 本文件仅为键名说明，勿填真实值后提交。
+# ------------------------------------------------------------
+# 真实值请写入【用户级】Gradle 配置（不入库、不进 git 历史）：
+#   Windows:  %GRADLE_USER_HOME%\gradle.properties
+#             （GRADLE_USER_HOME 未设置时为 C:\Users\<你>\.gradle\gradle.properties；
+#               本项目当前 GRADLE_USER_HOME=D:\gradle-home）
+#   macOS/Linux: ~/.gradle/gradle.properties
+# 用户级配置会自动合并进构建，优先级高于项目级 gradle.properties。
+#
+# ⚠️ 占位符字符串（如 YOUR_API_KEY）会让应用误判为「已配置」，
+#    尚未申请到真实凭据时请保持对应键留空或不写。
+# ============================================================
+
+# 微信开放平台 AppID（非机密；可留在项目级 gradle.properties）：
+# 申请地址：https://open.weixin.qq.com
+WECHAT_APP_ID=YOUR_WECHAT_APP_ID
+
+# 阿里云短信服务（手机号验证码登录正式通道；四项缺一不可，否则视为未配置）：
+# 申请地址：https://dysmsapi.aliyuncs.com （短信服务 → 签名管理 + 模板管理）
+# ⚠️ AccessKey 建议使用仅含 AliyunDysmsFullAccess 权限的 RAM 子账号，不要用主账号 AK。
+ALIYUN_SMS_ACCESS_KEY_ID=YOUR_ALIYUN_SMS_ACCESS_KEY_ID
+ALIYUN_SMS_ACCESS_KEY_SECRET=YOUR_ALIYUN_SMS_ACCESS_KEY_SECRET
+ALIYUN_SMS_SIGN_NAME=YOUR_ALIYUN_SMS_SIGN_NAME
+ALIYUN_SMS_TEMPLATE_CODE=YOUR_ALIYUN_SMS_TEMPLATE_CODE
