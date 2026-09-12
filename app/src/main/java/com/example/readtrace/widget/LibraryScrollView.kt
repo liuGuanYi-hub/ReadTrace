@@ -3,6 +3,8 @@ package com.example.readtrace.widget
 import android.content.Context
 import android.graphics.*
 import android.os.Looper
+import android.text.Layout
+import android.text.StaticLayout
 import android.text.TextUtils
 import android.text.TextPaint
 import android.util.AttributeSet
@@ -16,12 +18,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.math.ceil
 import kotlin.math.max
 
 /**
- * 全息藏书长卷：把精神藏库当前筛选结果绘制成宣纸质感的藏书画卷。
+ * 全息藏书长卷：把精神藏库当前筛选结果绘制成宣纸质感的双列藏书画卷。
  * 与 MediaTimelineScrollView 同族——支持现场绘制与离屏导出 1080P 超清长图两条路径；
+ * 卡片为封面在左、文字在右的横向布局，每行两张；
  * 封面复用 CoverImageHelper 三级缓存，导出前以闩锁阻塞预热（仅限后台线程调用导出）。
  */
 class LibraryScrollView @JvmOverloads constructor(
@@ -48,8 +50,9 @@ class LibraryScrollView @JvmOverloads constructor(
 
     // 绘制画笔
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private val titlePaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val cellPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
     private class MediaSection(val media: MediaType, val books: List<Book>)
@@ -142,50 +145,85 @@ class LibraryScrollView @JvmOverloads constructor(
         latch.await(timeoutMs, TimeUnit.MILLISECONDS)
     }
 
-    // ---------------------------------------------------------------- 网格度量
+    // ---------------------------------------------------------------- 卡片度量
 
     private class GridMetrics(
         val columns: Int,
         val margin: Float,
         val gap: Float,
         val rowGap: Float,
-        val cellWidth: Float,
+        val cardWidth: Float,
+        val padX: Float,
+        val padY: Float,
+        val coverWidth: Float,
         val coverHeight: Float,
-        val cellHeight: Float,
         val titleSize: Float,
         val metaSize: Float,
+    ) {
+        /** 封面右侧文本区可用宽度 */
+        val textWidth: Float = cardWidth - padX * 2f - coverWidth - 14f
+    }
+
+    /**
+     * 固定双列排布；仅当藏品规模极大时升到 3 列，
+     * 防止长图高度失控导致 Bitmap 分配超限。
+     */
+    private fun gridMetricsFor(canvasWidth: Float): GridMetrics {
+        val columns = if (bookList.size > 160) 3 else 2
+        val margin = 55f
+        val gap = 22f
+        val rowGap = 24f
+        val cardWidth = (canvasWidth - margin * 2f - gap * (columns - 1)) / columns
+        val coverWidth = (cardWidth * 0.30f).coerceIn(96f, 190f)
+        val titleSize = (cardWidth * 0.056f).coerceIn(20f, 32f)
+        val metaSize = (cardWidth * 0.046f).coerceIn(16f, 24f)
+        return GridMetrics(
+            columns, margin, gap, rowGap, cardWidth,
+            padX = 14f, padY = 16f,
+            coverWidth = coverWidth, coverHeight = coverWidth * 1.5f,
+            titleSize = titleSize, metaSize = metaSize,
+        )
+    }
+
+    private class CardLayout(
+        val titleLayout: StaticLayout,
+        val coverWidth: Float,
+        val coverHeight: Float,
+        val height: Float,
     )
 
-    /** 列数随藏品规模自适应：卷越长排布越紧凑，控制超清长图的高度与内存 */
-    private fun gridMetricsFor(canvasWidth: Float): GridMetrics {
-        val columns = when {
-            bookList.size <= 60 -> 4
-            bookList.size <= 160 -> 5
-            else -> 6
-        }
-        val margin = 55f
-        val gap = 20f
-        val rowGap = 26f
-        val cellWidth = (canvasWidth - margin * 2f - gap * (columns - 1)) / columns
-        val titleSize = (cellWidth * 0.118f).coerceIn(17f, 30f)
-        val metaSize = (cellWidth * 0.098f).coerceIn(14f, 24f)
-        val coverHeight = cellWidth * 1.5f
-        // 文本区三行：藏品名 / 评分·状态 / 作者·分类，与 drawBookCell 的行进公式保持一致
-        val textBlock = 12f + titleSize * 1.30f + 6f + metaSize * 1.20f + 4f + metaSize * 1.20f + 16f
-        val cellHeight = coverHeight + textBlock
-        return GridMetrics(columns, margin, gap, rowGap, cellWidth, coverHeight, cellHeight, titleSize, metaSize)
+    private fun titleLayoutFor(book: Book, m: GridMetrics): StaticLayout {
+        titlePaint.textSize = m.titleSize
+        titlePaint.isFakeBoldText = true
+        return StaticLayout.Builder.obtain(book.title, 0, book.title.length, titlePaint, m.textWidth.toInt().coerceAtLeast(1))
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(3f, 1f)
+            .setMaxLines(2)
+            .setEllipsize(TextUtils.TruncateAt.END)
+            .build()
+    }
+
+    private fun cardLayoutFor(book: Book, m: GridMetrics): CardLayout {
+        val titleLayout = titleLayoutFor(book, m)
+        // 文本区：标题（≤2 行）+ 评分·状态行 + 作者·分类行，行进公式与 drawBookCard 保持一致
+        val textH = titleLayout.height + 8f + m.metaSize * 1.25f + 6f + m.metaSize * 1.2f
+        val height = max(m.coverHeight, textH) + m.padY * 2f
+        return CardLayout(titleLayout, m.coverWidth, m.coverHeight, height)
     }
 
     private fun sectionHeaderHeight(): Float = 64f
 
     private fun calculateContentHeight(canvasWidth: Float): Float {
-        val metrics = gridMetricsFor(canvasWidth)
+        val m = gridMetricsFor(canvasWidth)
         var y = 270f // 头部题字与印章区域
         val grouped = sections.size > 1
         sections.forEach { section ->
             if (grouped) y += sectionHeaderHeight()
-            val rows = ceil(section.books.size / metrics.columns.toDouble()).toInt().coerceAtLeast(1)
-            y += rows * (metrics.cellHeight + metrics.rowGap)
+            section.books.chunked(m.columns).forEach { rowBooks ->
+                var rowMax = 0f
+                rowBooks.forEach { rowMax = max(rowMax, cardLayoutFor(it, m).height) }
+                y += rowMax + m.rowGap
+            }
             if (grouped) y += 26f // 章节底部留白
         }
         y += 210f // 底部结语与印章区域
@@ -240,8 +278,8 @@ class LibraryScrollView @JvmOverloads constructor(
 
         drawCapsuleBadge(canvas, canvasWidth / 2f, 205f, buildStatLine(), accentGold, dark, canvasWidth - 140f)
 
-        // 3. 藏品网格（跨媒介时按媒介分章）
-        val metrics = gridMetricsFor(canvasWidth)
+        // 3. 双列藏品卡片网格（跨媒介时按媒介分章）
+        val m = gridMetricsFor(canvasWidth)
         var currentY = 270f
         val grouped = sections.size > 1
 
@@ -266,12 +304,17 @@ class LibraryScrollView @JvmOverloads constructor(
                 currentY += sectionHeaderHeight()
             }
 
-            section.books.chunked(metrics.columns).forEach { rowBooks ->
+            section.books.chunked(m.columns).forEach { rowBooks ->
+                val layouts = rowBooks.map { cardLayoutFor(it, m) }
+                val rowHeight = layouts.maxOf { it.height }
                 rowBooks.forEachIndexed { col, book ->
-                    val cellLeft = metrics.margin + col * (metrics.cellWidth + metrics.gap)
-                    drawBookCell(canvas, book, cellLeft, currentY, metrics, primaryText, secondaryText, accentGold, dark)
+                    val cardLeft = m.margin + col * (m.cardWidth + m.gap)
+                    drawBookCard(
+                        canvas, book, cardLeft, currentY, rowHeight, layouts[col],
+                        m, primaryText, secondaryText, accentGold, dark,
+                    )
                 }
-                currentY += metrics.cellHeight + metrics.rowGap
+                currentY += rowHeight + m.rowGap
             }
             if (grouped) currentY += 26f
         }
@@ -294,21 +337,35 @@ class LibraryScrollView @JvmOverloads constructor(
         drawChinatownSeal(canvas, canvasWidth / 2f - 28f, currentY + 20f, "阅痕", "永驻")
     }
 
-    // ---------------------------------------------------------------- 单元与部件绘制
+    // ---------------------------------------------------------------- 单卡与部件绘制
 
-    private fun drawBookCell(
+    private fun drawBookCard(
         canvas: Canvas,
         book: Book,
         left: Float,
         top: Float,
+        cardHeight: Float,
+        layout: CardLayout,
         m: GridMetrics,
         primaryText: Int,
         secondaryText: Int,
         accentGold: Int,
         dark: Boolean,
     ) {
-        // 封面（圆角裁切 + 微金边）
-        val coverRect = RectF(left, top, left + m.cellWidth, top + m.coverHeight)
+        // 1. 卡片底色与微边框
+        val cardRect = RectF(left, top, left + m.cardWidth, top + cardHeight)
+        cardPaint.style = Paint.Style.FILL
+        cardPaint.color = if (dark) Color.parseColor("#221D1A") else Color.parseColor("#FFFFFF")
+        cardPaint.alpha = if (dark) 220 else 240
+        canvas.drawRoundRect(cardRect, 14f, 14f, cardPaint)
+
+        cardPaint.style = Paint.Style.STROKE
+        cardPaint.strokeWidth = 1.2f
+        cardPaint.color = if (dark) Color.parseColor("#3D342E") else Color.parseColor("#E8E2D9")
+        canvas.drawRoundRect(cardRect, 14f, 14f, cardPaint)
+
+        // 2. 左侧封面（圆角裁切 + 微金边）
+        val coverRect = RectF(left + m.padX, top + m.padY, left + m.padX + layout.coverWidth, top + m.padY + layout.coverHeight)
         val bmp = book.coverUrl?.trim()?.let { coverBitmaps.get(it) }
         if (bmp != null && !bmp.isRecycled) {
             val roundPath = Path().apply {
@@ -320,64 +377,68 @@ class LibraryScrollView @JvmOverloads constructor(
             canvas.restore()
         } else {
             // 优雅古风占位底色：居中媒介 Emoji 与藏品名前两字
-            cellPaint.style = Paint.Style.FILL
-            cellPaint.color = if (dark) Color.parseColor("#2A2420") else Color.parseColor("#EFECE6")
-            canvas.drawRoundRect(coverRect, 8f, 8f, cellPaint)
+            cardPaint.style = Paint.Style.FILL
+            cardPaint.alpha = 255
+            cardPaint.color = if (dark) Color.parseColor("#2A2420") else Color.parseColor("#EFECE6")
+            canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
 
             textPaint.textAlign = Paint.Align.CENTER
             textPaint.isFakeBoldText = false
             textPaint.color = secondaryText
-            textPaint.textSize = m.cellWidth * 0.30f
+            textPaint.textSize = layout.coverWidth * 0.30f
             canvas.drawText(book.mediaType.emoji, coverRect.centerX(), coverRect.centerY() - 4f, textPaint)
 
-            textPaint.textSize = m.cellWidth * 0.17f
-            canvas.drawText(book.title.take(2), coverRect.centerX(), coverRect.centerY() + m.cellWidth * 0.26f, textPaint)
+            textPaint.textSize = layout.coverWidth * 0.17f
+            canvas.drawText(book.title.take(2), coverRect.centerX(), coverRect.centerY() + layout.coverWidth * 0.26f, textPaint)
         }
-        cellPaint.style = Paint.Style.STROKE
-        cellPaint.strokeWidth = 1f
-        cellPaint.color = if (dark) Color.parseColor("#443830") else Color.parseColor("#DDD4C7")
-        canvas.drawRoundRect(coverRect, 8f, 8f, cellPaint)
+        cardPaint.style = Paint.Style.STROKE
+        cardPaint.strokeWidth = 1f
+        cardPaint.color = if (dark) Color.parseColor("#443830") else Color.parseColor("#DDD4C7")
+        canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
 
-        // 藏品名（单行，超宽省略）
-        var lineTop = top + m.coverHeight + 12f
-        textPaint.textAlign = Paint.Align.LEFT
-        textPaint.isFakeBoldText = true
-        textPaint.textSize = m.titleSize
-        textPaint.color = primaryText
-        val titleCs = TextUtils.ellipsize(book.title, textPaint, m.cellWidth, TextUtils.TruncateAt.END)
-        canvas.drawText(titleCs.toString(), left, lineTop + m.titleSize * 0.98f, textPaint)
-        lineTop += m.titleSize * 1.30f + 6f
+        // 3. 右侧文本区
+        val textLeft = left + m.padX + layout.coverWidth + 14f
+        var textY = top + m.padY
+
+        // 藏品名（StaticLayout 多行自动换行，最多 2 行）
+        titlePaint.color = primaryText
+        canvas.save()
+        canvas.translate(textLeft, textY)
+        layout.titleLayout.draw(canvas)
+        canvas.restore()
+        textY += layout.titleLayout.height + 8f
 
         // 评分（金）+ 状态（素）同行混排
+        textPaint.textAlign = Paint.Align.LEFT
         textPaint.textSize = m.metaSize
-        var cursorX = left
-        val lineBaseline = lineTop + m.metaSize * 0.98f
+        var cursorX = textLeft
+        val metaBaseline = textY + m.metaSize * 0.95f
         book.rating?.let { rating ->
             textPaint.color = accentGold
             textPaint.isFakeBoldText = true
             val ratingStr = "★ ${RATING_FORMAT.format(rating)}"
-            canvas.drawText(ratingStr, cursorX, lineBaseline, textPaint)
+            canvas.drawText(ratingStr, cursorX, metaBaseline, textPaint)
             cursorX += textPaint.measureText(ratingStr) + m.metaSize * 0.5f
         }
         textPaint.isFakeBoldText = false
         textPaint.color = secondaryText
-        val statusMaxW = (left + m.cellWidth - cursorX).coerceAtLeast(0f)
+        val statusMaxW = (left + m.cardWidth - m.padX - cursorX).coerceAtLeast(0f)
         if (statusMaxW > 0f) {
             val statusCs = TextUtils.ellipsize(
                 book.status.getDisplayName(book.mediaType),
                 textPaint, statusMaxW, TextUtils.TruncateAt.END,
             )
-            canvas.drawText(statusCs.toString(), cursorX, lineBaseline, textPaint)
+            canvas.drawText(statusCs.toString(), cursorX, metaBaseline, textPaint)
         }
-        lineTop += m.metaSize * 1.20f + 4f
+        textY += m.metaSize * 1.25f + 6f
 
         // 作者 / 分类（单行，超宽省略）
         textPaint.color = secondaryText
         val authorStr = book.author?.trim().orEmpty()
             .ifEmpty { book.category?.trim().orEmpty() }
             .ifEmpty { book.mediaType.displayName }
-        val authorCs = TextUtils.ellipsize(authorStr, textPaint, m.cellWidth, TextUtils.TruncateAt.END)
-        canvas.drawText(authorCs.toString(), left, lineTop + m.metaSize * 0.98f, textPaint)
+        val authorCs = TextUtils.ellipsize(authorStr, textPaint, m.textWidth, TextUtils.TruncateAt.END)
+        canvas.drawText(authorCs.toString(), textLeft, textY + m.metaSize * 0.95f, textPaint)
     }
 
     /** 头部统计胶囊：单一媒介按状态细分，跨媒介按媒介分布统计 */
@@ -443,15 +504,15 @@ class LibraryScrollView @JvmOverloads constructor(
         val textWidth = textPaint.measureText(text)
         val rect = RectF(cx - textWidth / 2f - 24f, cy - 20f, cx + textWidth / 2f + 24f, cy + 20f)
 
-        cellPaint.style = Paint.Style.FILL
-        cellPaint.color = color
-        cellPaint.alpha = if (dark) 35 else 25
-        canvas.drawRoundRect(rect, 20f, 20f, cellPaint)
+        cardPaint.style = Paint.Style.FILL
+        cardPaint.color = color
+        cardPaint.alpha = if (dark) 35 else 25
+        canvas.drawRoundRect(rect, 20f, 20f, cardPaint)
 
-        cellPaint.style = Paint.Style.STROKE
-        cellPaint.strokeWidth = 1.5f
-        cellPaint.alpha = if (dark) 120 else 90
-        canvas.drawRoundRect(rect, 20f, 20f, cellPaint)
+        cardPaint.style = Paint.Style.STROKE
+        cardPaint.strokeWidth = 1.5f
+        cardPaint.alpha = if (dark) 120 else 90
+        canvas.drawRoundRect(rect, 20f, 20f, cardPaint)
 
         textPaint.color = color
         textPaint.textAlign = Paint.Align.CENTER
