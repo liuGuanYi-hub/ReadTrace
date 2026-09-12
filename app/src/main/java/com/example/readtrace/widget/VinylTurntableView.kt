@@ -404,6 +404,12 @@ class VinylTurntableView @JvmOverloads constructor(
         tonearmAnimator?.cancel()
     }
 
+    /** T2.3：视图不可见（播放页被遮挡/切走）时暂停唱盘旋转，播放不受影响、仅停渲染动画，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) rotationAnimator?.resume() else rotationAnimator?.pause()
+    }
+
     companion object {
         private const val TONEARM_REST_ANGLE = 0f // 待命状态（位于右侧支架）
         private const val TONEARM_PLAY_ANGLE = 23f // 播放状态（落入外圈与中圈音轨）

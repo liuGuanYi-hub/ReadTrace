@@ -6,7 +6,10 @@ import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
@@ -116,6 +119,22 @@ class MindprintConstellationView @JvmOverloads constructor(
     private val labelBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
+    }
+
+    // T2.3：跨媒介弦渐变按边缓存（几何基于固定的世界坐标），每帧仅重设局部矩阵；
+    // 数据重算（setBooksData）时清空重建
+    private val auroraGradientCache = HashMap<ConstellationEdge, LinearGradient>()
+    private val auroraShaderMatrix = Matrix()
+    private val glowShaderMatrix = Matrix()
+
+    /** 四大星区星云中心（世界坐标）与基色，lazy 常量化 */
+    private val nebulaCentersInternal by lazy {
+        listOf(
+            Triple(-dpToPx(380f), -dpToPx(320f), Color.parseColor("#E07A5F")),
+            Triple(dpToPx(380f), -dpToPx(320f), Color.parseColor("#9B5DE5")),
+            Triple(-dpToPx(360f), dpToPx(360f), Color.parseColor("#F4A261")),
+            Triple(dpToPx(380f), dpToPx(340f), Color.parseColor("#00BBF9")),
+        )
     }
 
     // 动画驱动 (深空呼吸与微粒闪烁)
@@ -228,6 +247,12 @@ class MindprintConstellationView @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
+    /** T2.3：视图不可见（页面被遮挡/切走）时暂停星空呼吸动画，省电并释放 GPU；恢复可见时无缝续播 */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator.resume() else animator.pause()
+    }
+
     fun setFilter(filter: ConstellationFilter) {
         activeFilter = filter
         invalidate()
@@ -290,6 +315,7 @@ class MindprintConstellationView @JvmOverloads constructor(
     fun setBooksData(books: List<Book>, mindprintMap: Map<Long, BookMindprint>) {
         stars.clear()
         edges.clear()
+        auroraGradientCache.clear()
         if (books.isEmpty()) {
             invalidate()
             return
@@ -441,13 +467,17 @@ class MindprintConstellationView @JvmOverloads constructor(
         val cx = width / 2f + offsetX
         val cy = height / 2f + offsetY
 
+        // T2.3：世界→屏幕变换矩阵（每帧一次），供缓存的弦渐变重设局部矩阵
+        auroraShaderMatrix.setScale(scaleFactor, scaleFactor)
+        auroraShaderMatrix.postTranslate(cx, cy)
+
         // 2. 绘制深空背景微光星屑 (微弱呼吸，营造星海景深)
         ambientStars.forEach { p ->
             val px = cx + p.x * scaleFactor
             val py = cy + p.y * scaleFactor
             if (px in -20f..(width + 20f) && py in -20f..(height + 20f)) {
                 val twinkle = 0.35f + 0.65f * sin(animPhase * 6.283f * 2.2f + p.phase)
-                particlePaint.color = if (isNight) Color.WHITE else Color.parseColor("#9E9282")
+                particlePaint.color = if (isNight) Color.WHITE else AMBIENT_PARTICLE_DAY
                 particlePaint.alpha = ((p.baseAlpha * twinkle) * (if (isNight) 160 else 70)).toInt().coerceIn(8, 255)
                 canvas.drawCircle(px, py, p.size * scaleFactor.coerceIn(0.6f, 1.4f), particlePaint)
             }
@@ -478,8 +508,15 @@ class MindprintConstellationView @JvmOverloads constructor(
             val isDimmed = selectedStar != null && !isEdgeConnectedToSelected
 
             if (edge.isCrossMedia) {
-                // 跨媒介极光流光弦
-                val shader = LinearGradient(ax, ay, bx, by, edge.nodeA.colorHex, edge.nodeB.colorHex, Shader.TileMode.CLAMP)
+                // 跨媒介极光流光弦：渐变按边缓存（世界坐标几何），每帧仅重设世界→屏幕的局部矩阵
+                val shader = auroraGradientCache.getOrPut(edge) {
+                    LinearGradient(
+                        edge.nodeA.worldX, edge.nodeA.worldY,
+                        edge.nodeB.worldX, edge.nodeB.worldY,
+                        edge.nodeA.colorHex, edge.nodeB.colorHex, Shader.TileMode.CLAMP,
+                    )
+                }
+                shader.setLocalMatrix(auroraShaderMatrix)
                 auroraLinePaint.shader = shader
                 auroraLinePaint.strokeWidth = dpToPx(if (isEdgeConnectedToSelected) 1.8f else 0.9f) * scaleFactor.coerceIn(0.5f, 1.8f)
                 auroraLinePaint.alpha = if (isEdgeConnectedToSelected) (if (isNight) 220 else 180) else (if (isDimmed) 18 else (if (isNight) 110 else 75))
@@ -496,7 +533,7 @@ class MindprintConstellationView @JvmOverloads constructor(
                 }
             } else {
                 // 星座骨架常态连线 (极其克制细腻的淡光)
-                linePaint.color = if (isNight) Color.parseColor("#506072") else Color.parseColor("#BDB2A3")
+                linePaint.color = if (isNight) SKELETON_LINE_NIGHT else SKELETON_LINE_DAY
                 linePaint.strokeWidth = dpToPx(if (isEdgeConnectedToSelected) 1.2f else 0.6f) * scaleFactor.coerceIn(0.5f, 1.5f)
                 linePaint.alpha = if (isEdgeConnectedToSelected) (if (isNight) 180 else 130) else (if (isDimmed) 10 else (if (isNight) 50 else 35))
                 canvas.drawLine(ax, ay, bx, by, linePaint)
@@ -522,7 +559,7 @@ class MindprintConstellationView @JvmOverloads constructor(
             val baseR = if (isSel) dpToPx(9.0f) else if (isNeighbor) dpToPx(6.2f) else star.baseRadius
             val curRadius = baseR * scaleFactor.coerceIn(0.5f, 1.8f) * breathe
 
-            // 发光光晕 (Radial Glow)
+            // 发光光晕 (Radial Glow)：单位渐变 + Matrix 复用 + MODULATE 染色滤镜缓存，零每帧分配
             if (isMatch && (!isDimmed || isSel)) {
                 val glowRadius = curRadius * (if (isSel) 3.6f else if (isNeighbor) 2.4f else 2.0f)
                 val glowAlpha = if (isSel) 190 else if (isNeighbor) 120 else (if (isNight) 70 else 40)
@@ -532,10 +569,12 @@ class MindprintConstellationView @JvmOverloads constructor(
                     Color.green(star.colorHex),
                     Color.blue(star.colorHex),
                 )
-                val transparentGlow = Color.argb(0, Color.red(star.colorHex), Color.green(star.colorHex), Color.blue(star.colorHex))
 
-                val glowShader = RadialGradient(sx, sy, glowRadius, glowColor, transparentGlow, Shader.TileMode.CLAMP)
-                starGlowPaint.shader = glowShader
+                glowShaderMatrix.setScale(glowRadius, glowRadius)
+                glowShaderMatrix.postTranslate(sx, sy)
+                GLOW_UNIT_SHADER.setLocalMatrix(glowShaderMatrix)
+                starGlowPaint.shader = GLOW_UNIT_SHADER
+                starGlowPaint.colorFilter = glowFilterFor(glowColor)
                 canvas.drawCircle(sx, sy, glowRadius, starGlowPaint)
             }
 
@@ -564,24 +603,22 @@ class MindprintConstellationView @JvmOverloads constructor(
     }
 
     private fun drawNebulaGlows(canvas: Canvas, cx: Float, cy: Float, isNight: Boolean) {
-        val nebulaCenters = listOf(
-            Triple(-dpToPx(380f), -dpToPx(320f), Color.parseColor("#E07A5F")),
-            Triple(dpToPx(380f), -dpToPx(320f), Color.parseColor("#9B5DE5")),
-            Triple(-dpToPx(360f), dpToPx(360f), Color.parseColor("#F4A261")),
-            Triple(dpToPx(380f), dpToPx(340f), Color.parseColor("#00BBF9")),
-        )
-
-        nebulaCenters.forEach { (nx, ny, color) ->
+        // T2.3：星云中心/颜色 lazy 常量化，渐变复用单位 shader + Matrix + 染色滤镜（零每帧分配）
+        val glowAlpha = if (isNight) 22 else 12
+        nebulaCentersInternal.forEach { (nx, ny, baseColor) ->
             val gx = cx + nx * scaleFactor
             val gy = cy + ny * scaleFactor
             val radius = dpToPx(280f) * scaleFactor
-            val glowAlpha = if (isNight) 22 else 12
-            val glowColor = Color.argb(glowAlpha, Color.red(color), Color.green(color), Color.blue(color))
-            val glowShader = RadialGradient(gx, gy, radius, glowColor, Color.TRANSPARENT, Shader.TileMode.CLAMP)
-            particlePaint.shader = glowShader
+            val glowColor = Color.argb(glowAlpha, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor))
+            glowShaderMatrix.setScale(radius, radius)
+            glowShaderMatrix.postTranslate(gx, gy)
+            GLOW_UNIT_SHADER.setLocalMatrix(glowShaderMatrix)
+            particlePaint.shader = GLOW_UNIT_SHADER
+            particlePaint.colorFilter = glowFilterFor(glowColor)
             canvas.drawCircle(gx, gy, radius, particlePaint)
         }
         particlePaint.shader = null
+        particlePaint.colorFilter = null
     }
 
     /**
@@ -643,5 +680,26 @@ class MindprintConstellationView @JvmOverloads constructor(
     }
 
     private fun dpToPx(dp: Float): Float = dp * resources.displayMetrics.density
+
+    companion object {
+        // T2.3：onDraw 热路径常量与复用对象——不再每帧 parseColor / new Shader（此前每帧数百次分配）
+
+        private val SKELETON_LINE_NIGHT = Color.parseColor("#506072")
+        private val SKELETON_LINE_DAY = Color.parseColor("#BDB2A3")
+        private val AMBIENT_PARTICLE_DAY = Color.parseColor("#9E9282")
+
+        /**
+         * 单位光晕渐变（半径 1，白→透明）：每帧通过 Matrix 缩放平移复用，
+         * 色彩由 MODULATE 滤镜染色（滤镜按目标色缓存），替代每星每帧 new RadialGradient
+         */
+        private val GLOW_UNIT_SHADER = RadialGradient(0f, 0f, 1f, Color.WHITE, Color.TRANSPARENT, Shader.TileMode.CLAMP)
+
+        private val glowFilterCache = HashMap<Int, PorterDuffColorFilter>()
+
+        private fun glowFilterFor(glowColor: Int): PorterDuffColorFilter =
+            glowFilterCache.getOrPut(glowColor) {
+                PorterDuffColorFilter(glowColor, PorterDuff.Mode.MULTIPLY)
+            }
+    }
 }
 

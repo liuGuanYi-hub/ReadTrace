@@ -298,4 +298,10 @@ class CassetteDeckView @JvmOverloads constructor(
         super.onDetachedFromWindow()
         rotationAnimator?.cancel()
     }
+
+    /** T2.3：视图不可见时暂停磁带卷动动画，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) rotationAnimator?.resume() else rotationAnimator?.pause()
+    }
 }

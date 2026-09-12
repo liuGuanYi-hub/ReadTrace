@@ -13,6 +13,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.SweepGradient
 import android.util.AttributeSet
+import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 
@@ -131,6 +132,12 @@ class BorderBeamFrameLayout @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         stopAnimation()
+    }
+
+    /** T2.3：视图不可见时暂停流光描边动画，恢复可见时继续 */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
     }
 
     private fun startAnimation() {

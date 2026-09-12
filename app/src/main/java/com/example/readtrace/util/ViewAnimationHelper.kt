@@ -24,6 +24,8 @@ object ViewAnimationHelper {
                         .scaleY(targetScale)
                         .setDuration(120L)
                         .setInterpolator(pressInterpolator)
+                        // T2.3：动画期间渲染到离屏硬件层，缩放由 GPU 合成，不触发整棵视图树重绘
+                        .withLayer()
                         .start()
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -32,6 +34,7 @@ object ViewAnimationHelper {
                         .scaleY(1.0f)
                         .setDuration(240L)
                         .setInterpolator(releaseInterpolator)
+                        .withLayer()
                         .start()
                 }
             }

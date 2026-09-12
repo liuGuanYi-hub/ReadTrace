@@ -91,6 +91,12 @@ class FilmGrainOverlayView @JvmOverloads constructor(
         super.onDetachedFromWindow()
     }
 
+    /** T2.3：视图不可见时暂停胶片颗粒动画，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
+    }
+
     override fun onDraw(canvas: Canvas) {
         if (noiseShader != null) {
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), grainPaint)

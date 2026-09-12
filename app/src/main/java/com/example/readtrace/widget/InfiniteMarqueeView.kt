@@ -57,6 +57,9 @@ class InfiniteMarqueeView @JvmOverloads constructor(
     private var isPaused = false
     private var animator: ValueAnimator? = null
 
+    /** T2.3：文本测量矩形复用（onDraw 每帧每项调用 getTextBounds，不再每次 new Rect） */
+    private val measureBounds = Rect()
+
     init {
         applyThemeColors()
         recalculateWidths()
@@ -117,6 +120,12 @@ class InfiniteMarqueeView @JvmOverloads constructor(
         stopAnimation()
     }
 
+    /** T2.3：视图不可见时暂停跑马灯流淌，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
+    }
+
     private fun startAnimation() {
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
@@ -159,7 +168,7 @@ class InfiniteMarqueeView @JvmOverloads constructor(
 
         val fontMetrics = textPaint.fontMetrics
         val baseline = height / 2f - (fontMetrics.ascent + fontMetrics.descent) / 2f
-        val bounds = Rect()
+        val bounds = measureBounds
 
         var drawX = -currentOffset
 

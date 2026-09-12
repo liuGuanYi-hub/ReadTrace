@@ -36,6 +36,15 @@ class MindprintRadarView @JvmOverloads constructor(
     private var animProgress = 1.0f
     private var animator: ValueAnimator? = null
 
+    // T2.3：onDraw 复用对象——蛛网/多边形路径与顶点坐标逐帧 reset 重填，不再逐帧分配
+    private val hexPath = Path()
+    private val dataPath = Path()
+    private val compPath = Path()
+    private val dataDotCoords = FloatArray(12)
+    private val compDotCoords = FloatArray(12)
+    private val LEGEND_PRIMARY = Color.parseColor("#9C5232")
+    private val LEGEND_COMPARE = Color.parseColor("#0284C7")
+
     private val dimensionLabels = arrayOf(
         "🧠 思想",
         "🖋️ 文笔",
@@ -211,10 +220,10 @@ class MindprintRadarView @JvmOverloads constructor(
         // 绘制图例 (若处于对比模式)
         if (compareMindprint != null && !compareTitle.isNullOrBlank()) {
             val legendY = dpToPx(14f)
-            legendPaint.color = Color.parseColor("#9C5232")
+            legendPaint.color = LEGEND_PRIMARY
             canvas.drawText("■ $primaryTitle", cx - dpToPx(65f), legendY, legendPaint)
 
-            legendPaint.color = Color.parseColor("#0284C7")
+            legendPaint.color = LEGEND_COMPARE
             canvas.drawText("■ $compareTitle", cx + dpToPx(65f), legendY, legendPaint)
         }
 
@@ -222,7 +231,7 @@ class MindprintRadarView @JvmOverloads constructor(
         val levels = 4
         for (i in 1..levels) {
             val levelRadius = maxRadius * (i.toFloat() / levels)
-            val hexPath = Path()
+            hexPath.reset()
             for (j in 0 until 6) {
                 val angle = -Math.PI / 2 + j * (Math.PI / 3)
                 val x = (cx + levelRadius * cos(angle)).toFloat()
@@ -285,8 +294,7 @@ class MindprintRadarView @JvmOverloads constructor(
 
         // 3. 绘制对比作品覆盖多边形 (若存在)
         if (compScores != null) {
-            val compPath = Path()
-            val compDots = mutableListOf<Pair<Float, Float>>()
+            compPath.reset()
 
             for (j in 0 until 6) {
                 val angle = -Math.PI / 2 + j * (Math.PI / 3)
@@ -295,7 +303,8 @@ class MindprintRadarView @JvmOverloads constructor(
                 val x = (cx + scoreRadius * cos(angle)).toFloat()
                 val y = (cy + scoreRadius * sin(angle)).toFloat()
 
-                compDots.add(Pair(x, y))
+                compDotCoords[j * 2] = x
+                compDotCoords[j * 2 + 1] = y
                 if (j == 0) compPath.moveTo(x, y) else compPath.lineTo(x, y)
             }
             compPath.close()
@@ -303,15 +312,16 @@ class MindprintRadarView @JvmOverloads constructor(
             canvas.drawPath(compPath, compareFillPaint)
             canvas.drawPath(compPath, compareStrokePaint)
 
-            for ((x, y) in compDots) {
+            for (j in 0 until 6) {
+                val x = compDotCoords[j * 2]
+                val y = compDotCoords[j * 2 + 1]
                 canvas.drawCircle(x, y, dpToPx(3.5f), compareDotPaint)
                 canvas.drawCircle(x, y, dpToPx(3.5f), dotBorderPaint)
             }
         }
 
         // 4. 绘制主作品覆盖多边形
-        val dataPath = Path()
-        val dotCoords = mutableListOf<Pair<Float, Float>>()
+        dataPath.reset()
 
         for (j in 0 until 6) {
             val angle = -Math.PI / 2 + j * (Math.PI / 3)
@@ -320,7 +330,8 @@ class MindprintRadarView @JvmOverloads constructor(
             val x = (cx + scoreRadius * cos(angle)).toFloat()
             val y = (cy + scoreRadius * sin(angle)).toFloat()
 
-            dotCoords.add(Pair(x, y))
+            dataDotCoords[j * 2] = x
+            dataDotCoords[j * 2 + 1] = y
             if (j == 0) dataPath.moveTo(x, y) else dataPath.lineTo(x, y)
         }
         dataPath.close()
@@ -328,7 +339,9 @@ class MindprintRadarView @JvmOverloads constructor(
         canvas.drawPath(dataPath, fillPaint)
         canvas.drawPath(dataPath, strokePaint)
 
-        for ((x, y) in dotCoords) {
+        for (j in 0 until 6) {
+            val x = dataDotCoords[j * 2]
+            val y = dataDotCoords[j * 2 + 1]
             canvas.drawCircle(x, y, dpToPx(4.5f), dotPaint)
             canvas.drawCircle(x, y, dpToPx(4.5f), dotBorderPaint)
         }

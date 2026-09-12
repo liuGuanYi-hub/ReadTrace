@@ -161,4 +161,10 @@ class AudioVisualizerParticleView @JvmOverloads constructor(
         super.onDetachedFromWindow()
         animator?.cancel()
     }
+
+    /** T2.3：视图不可见（被其他页面遮挡/滑出屏幕）时暂停粒子动画，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
+    }
 }

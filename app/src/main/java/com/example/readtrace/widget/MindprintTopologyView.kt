@@ -96,8 +96,18 @@ class MindprintTopologyView @JvmOverloads constructor(
 
     // 画笔系统
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // T2.3：背景渐变按高度缓存（onSizeChanged 时失效重建），色彩常量化
+    private var backgroundGradient: LinearGradient? = null
+    private val SKY_TOP = Color.parseColor("#05070B")
+    private val SKY_BOTTOM = Color.parseColor("#0C111C")
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val gridPath = Path()
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        backgroundGradient = null
+    }
 
     // 手势检测
     private var lastTouchX = 0f
@@ -175,6 +185,12 @@ class MindprintTopologyView @JvmOverloads constructor(
         stopAnimation()
     }
 
+    /** T2.3：视图不可见时暂停 3D 地貌扫描动画，省电并释放 GPU */
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
+    }
+
     private fun startAnimation() {
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
@@ -242,8 +258,10 @@ class MindprintTopologyView @JvmOverloads constructor(
         val cx = w * 0.5f + gyroOffsetX * 25f
         val cy = h * 0.48f + gyroOffsetY * 25f
 
-        // 1. 深邃暗黑星海背景
-        paint.shader = LinearGradient(0f, 0f, 0f, h, Color.parseColor("#05070B"), Color.parseColor("#0C111C"), Shader.TileMode.CLAMP)
+        // 1. 深邃暗黑星海背景（T2.3：渐变按高度缓存，色彩常量化——不再每帧 parseColor + new LinearGradient）
+        paint.shader = backgroundGradient ?: LinearGradient(0f, 0f, 0f, h, SKY_TOP, SKY_BOTTOM, Shader.TileMode.CLAMP).also {
+            if (h > 0f) backgroundGradient = it
+        }
         paint.style = Paint.Style.FILL
         canvas.drawRect(0f, 0f, w, h, paint)
         paint.shader = null
