@@ -2,6 +2,7 @@ package com.example.readtrace.ui
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
@@ -9,9 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.example.readtrace.ChangelogActivity
 import com.example.readtrace.R
 import com.example.readtrace.model.ChangelogRepository
+import com.example.readtrace.util.CrashReporter
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.ViewAnimationHelper
 
@@ -45,6 +48,18 @@ object AboutAppBottomSheet {
             tvVersionBadge.text = versionDesc
         }.onFailure {
             tvVersionBadge.text = "v1.0.12 · 正式发布版"
+        }
+
+        // T3.4：长按版本徽标导出本地崩溃日志（隐藏入口，不占面板空间；无记录时给出空态提示）
+        tvVersionBadge.setOnLongClickListener {
+            HapticFeedbackEngine.lightClick(context)
+            val shareIntent = CrashReporter.buildShareIntent(context)
+            if (shareIntent == null) {
+                Toast.makeText(context, "暂无崩溃记录", Toast.LENGTH_SHORT).show()
+            } else {
+                context.startActivity(Intent.createChooser(shareIntent, "导出崩溃日志"))
+            }
+            true
         }
 
         // 图标弹跳微动效
