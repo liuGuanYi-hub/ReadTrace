@@ -87,11 +87,22 @@ android {
     }
 
     testOptions {
-        unitTests.all { test ->
-            // AGP 9 内置 Kotlin (built_in_kotlinc) 的单测运行时 classpath 缺失测试类输出，
-            // 导致 ClassNotFoundException；将测试类目录打成 jar 显式挂载（本地 JVM 单测专用，不影响 APK 构建）
-            test.dependsOn(unitTestKotlinClassesJar)
-            test.classpath += files(unitTestKotlinClassesJar.flatMap { it.archiveFile })
+        unitTests {
+            // T3.2：Robolectric 沙盒需要清单元数据来构造应用环境
+            isIncludeAndroidResources = true
+            all { test ->
+                // AGP 9 内置 Kotlin (built_in_kotlinc) 的单测运行时 classpath 缺失测试类输出，
+                // 导致 ClassNotFoundException；将测试类目录打成 jar 显式挂载（本地 JVM 单测专用，不影响 APK 构建）
+                test.dependsOn(unitTestKotlinClassesJar)
+                test.classpath += files(unitTestKotlinClassesJar.flatMap { it.archiveFile })
+                // Robolectric 首次运行会把 android-all 运行时（约 130MB）下载进 Maven 本地仓库，
+                // 默认落 C 盘 ~/.m2/repository；通过 maven.repo.local（MavenDependencyResolver 最高优先级）
+                // 重定向到本仓库 build 目录（已被 .gitignore 忽略，D 盘不受空间保护规则约束）
+                test.systemProperty(
+                    "maven.repo.local",
+                    rootProject.layout.buildDirectory.dir("robolectric-maven-repo").get().asFile.absolutePath,
+                )
+            }
         }
     }
 
@@ -113,6 +124,8 @@ dependencies {
     testImplementation(libs.junit)
     // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
     testImplementation("org.json:json:20240303")
+    // T3.2：迁移器 JVM 测试——Robolectric 提供内存版 SQLiteDatabase，CI 无需模拟器即可回归迁移守卫
+    testImplementation("org.robolectric:robolectric:4.17")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
