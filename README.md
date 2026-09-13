@@ -1,17 +1,17 @@
-# 阅痕 ReadTrace v1.0.12 — 个人精神文化印记与美学策展空间
+# 阅痕 ReadTrace v1.0.13 — 个人精神文化印记与美学策展空间
 
 > **Android 原生开发 · 336 部殿堂离线榜单货架 · 极速建库闭环 · 3D 情绪等高线拓扑 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 触觉滑动手势打分 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 年鉴画册与云端展览社区 · 桌面小组件 · 纯本地数据掌控**
 
 [![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-![Version](https://img.shields.io/badge/Release-v1.0.12-3A6348.svg)
+![Version](https://img.shields.io/badge/Release-v1.0.13-3A6348.svg)
 [![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
 
-> 📢 **v1.0.12 正式版本（P39 极速建库轻量化系统收官）**：🔥 内置 336 部跨媒介殿堂经典离线榜单货架（豆瓣读书/电影 Top250、Bangumi 神作、Steam 百大压倒性好评、滚石 500）、🤫 批量勾选静音化与触觉滑动手势打分、🔮 五大媒介美学情绪胶囊与心智雷达动态联动、⚡ 一键极速建库引导与无缝沉淀闭环。上承 v1.0.10 安全加固五项（WebDAV 凭据加密落盘 / 验证码防暴力 / 小组件后台化）与 v1.0.11 预置评分差异化。
+> 📢 **v1.0.13 正式版本（稳定性与工程治理收官）**：🩺 崩溃黑匣子上线——全局未捕获异常自动落盘，「关于阅痕」长按版本徽标一键导出诊断日志；🧪 数据库迁移 v6~v16 全链路回归测试纳入 CI 门禁，外部导入条目永不被误删误改；🚦 Lint 静态检查接入 CI 门禁，存量告警 baseline 豁免、新增代码零告警把关。上承 v1.0.12 安全与性能专项（v14/v15 迁移守卫 / 冷启动播种后台化+事务 / 验证码 fail-closed / exported 收敛 / AI 密钥加密 / v16 索引+WAL）与藏库导出长卷。
 
 ---
 

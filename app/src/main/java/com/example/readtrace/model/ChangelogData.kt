@@ -15,9 +15,21 @@ object ChangelogRepository {
 
     val versionHistory: List<ChangelogVersion> = listOf(
         ChangelogVersion(
+            versionName = "v1.0.13",
+            releaseDate = "2026-09-13",
+            isLatest = true,
+            tagTitle = "🩺 崩溃黑匣子与工程质量门禁收官 (T3)",
+            highlights = listOf(
+                "🩺 崩溃黑匣子上线：全局未捕获异常自动落盘，仅在「关于阅痕」长按版本徽标即可一键导出诊断日志",
+                "🧪 数据库迁移全链路回归门禁：v6~v16 迁移守卫纳入 CI 自动测试，外部导入条目永不被误删误改",
+                "🚦 Lint 静态检查接入 CI 门禁：存量告警登记豁免，新增代码零告警把关",
+                "📦 仓库治理收官：封面原图存档移出版本控制，仓库瘦身 36MB+",
+            ),
+        ),
+        ChangelogVersion(
             versionName = "v1.0.12",
             releaseDate = "2026-09-09",
-            isLatest = true,
+            isLatest = false,
             tagTitle = "🚀 精选热门榜单货架与极速建库轻量化系统 (P39)",
             highlights = listOf(
                 "🔥 精选离线热门榜单货架：内置豆瓣 Top250 书影、Steam Top100、Bangumi 当季新番、滚石 500 经典专辑，一键点选即看",

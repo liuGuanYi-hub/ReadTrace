@@ -41,13 +41,13 @@ object AboutAppBottomSheet {
         val tvVersionBadge = view.findViewById<TextView>(R.id.tvAboutVersionBadge)
         runCatching {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val vName = pInfo.versionName ?: "1.0.12"
+            val vName = pInfo.versionName ?: "1.0.13"
             val vCode = pInfo.longVersionCode
             "v$vName · Code $vCode"
         }.onSuccess { versionDesc ->
             tvVersionBadge.text = versionDesc
         }.onFailure {
-            tvVersionBadge.text = "v1.0.12 · 正式发布版"
+            tvVersionBadge.text = "v1.0.13 · 正式发布版"
         }
 
         // T3.4：长按版本徽标导出本地崩溃日志（隐藏入口，不占面板空间；无记录时给出空态提示）
