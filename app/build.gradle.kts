@@ -94,6 +94,12 @@ android {
             test.classpath += files(unitTestKotlinClassesJar.flatMap { it.archiveFile })
         }
     }
+
+    lint {
+        // T3.1：存量告警一次性登记为 baseline 豁免（由 updateLintBaseline 生成），
+        // 之后 CI 的 lintDebug 只对新增告警把关，避免历史债务堵死流水线。
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {
