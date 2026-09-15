@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.example.readtrace.data.migrator.DatabaseMigrator
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -56,6 +57,23 @@ class DatabaseMigratorJvmTest {
         return db.insert(TABLE_BOOKS, null, cv)
     }
 
+    /** v18 专用：带陈列位置的条目；传 null 表示该字段未设置 */
+    private fun insertBookWithShelf(
+        title: String,
+        shelfLocation: String?,
+        rating: Double? = 5.0,
+    ): Long {
+        val cv = ContentValues().apply {
+            put(COLUMN_TITLE, title)
+            put(COLUMN_MEDIA_TYPE, "game")
+            if (rating != null) put(COLUMN_RATING, rating)
+            if (shelfLocation != null) put(COLUMN_SHELF_LOCATION, shelfLocation)
+            put(COLUMN_CREATED_AT, "2026-01-01 00:00:00")
+            put(COLUMN_UPDATED_AT, "2026-01-01 00:00:00")
+        }
+        return db.insert(TABLE_BOOKS, null, cv)
+    }
+
     private fun insertNote(bookId: Long) {
         val cv = ContentValues().apply {
             put(COLUMN_BOOK_ID, bookId)
@@ -98,6 +116,16 @@ class DatabaseMigratorJvmTest {
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?",
             arrayOf(tableName),
         ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+
+    /** 读取陈列位置；列值为 NULL 时返回 null，以区分「未设置」与「空串」 */
+    private fun shelfOf(id: Long): String? =
+        db.rawQuery(
+            "SELECT $COLUMN_SHELF_LOCATION FROM $TABLE_BOOKS WHERE $COLUMN_ID = ?",
+            arrayOf(id.toString()),
+        ).use {
+            assertTrue("bookId=$id 应存在", it.moveToFirst())
+            if (it.isNull(0)) null else it.getString(0)
+        }
 
     // ---------- onCreate 建表完整性 ----------
 
@@ -198,6 +226,63 @@ class DatabaseMigratorJvmTest {
         ).forEach { index ->
             assertEquals("重复执行 v16 后索引 $index 仍应只有一条", 1, indexCount(index))
         }
+    }
+
+    // ---------- v18 陈列位置文案刷新（T4.5-A） ----------
+
+    /**
+     * v18 语义守卫：「展厅第N层」→「馆藏第N层」只允许刷新仍等于预设原文的行。
+     * 用户自行改写过的陈列位置、以及从未设置该字段的作品，必须零接触。
+     * 同时验证评分不被顺带改写（本文件 v14/v15 守卫的同一关切）。
+     */
+    @Test
+    fun v18仅刷新预置陈列位置不得覆盖用户手填值() {
+        val animePreset = insertBookWithShelf("预置番剧", "展厅第3层 · 经典番剧回廊")
+        val moviePreset = insertBookWithShelf("预置电影", "展厅第4层 · 影音光影展区")
+        val gamePreset = insertBookWithShelf("预置游戏", "展厅第5层 · 电子游戏神作馆")
+        val userCustom = insertBookWithShelf("用户自填", "书房第二层书架", rating = 4.2)
+        val userEmpty = insertBookWithShelf("用户留空", null)
+
+        DatabaseMigrator.onUpgrade(db, 17, 18)
+
+        assertEquals(
+            "番剧预置应刷新为馆藏文案",
+            "馆藏第3层 · 经典番剧回廊",
+            shelfOf(animePreset),
+        )
+        assertEquals(
+            "电影预置应刷新为馆藏文案",
+            "馆藏第4层 · 影音光影展区",
+            shelfOf(moviePreset),
+        )
+        assertEquals(
+            "游戏预置应刷新为馆藏文案",
+            "馆藏第5层 · 电子游戏神作馆",
+            shelfOf(gamePreset),
+        )
+        assertEquals(
+            "用户手改过的陈列位置绝不得被覆盖",
+            "书房第二层书架",
+            shelfOf(userCustom),
+        )
+        assertEquals("刷新时评分不得被顺带改写", 4.2, ratingOf(userCustom), 0.0001)
+        assertNull("未设置陈列位置的作品应保持未设置", shelfOf(userEmpty))
+    }
+
+    @Test
+    fun v18迁移幂等重复执行不叠加改动() {
+        val preset = insertBookWithShelf("预置游戏", "展厅第5层 · 电子游戏神作馆")
+        val userCustom = insertBookWithShelf("用户自填", "客厅茶几上")
+
+        DatabaseMigrator.onUpgrade(db, 17, 18)
+        DatabaseMigrator.onUpgrade(db, 17, 18)
+
+        assertEquals(
+            "重复执行后仍应为单条馆藏文案，不得叠加或二重替换",
+            "馆藏第5层 · 电子游戏神作馆",
+            shelfOf(preset),
+        )
+        assertEquals("重复执行不得波及用户手填值", "客厅茶几上", shelfOf(userCustom))
     }
 
     // ---------- v6 数据迁移语义 ----------

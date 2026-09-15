@@ -171,6 +171,29 @@ object DatabaseMigrator {
             // audio_tracks.book_id：黑胶播放器按作品查曲目，该表此前零索引。
             createPerformanceIndexes(database)
         }
+        if (oldVersion < 18) {
+            // v18 (T4.5-A)：预置作品的陈列位置文案「展厅第N层」改为「馆藏第N层」。
+            // 3D 私人展厅（Gallery3DActivity / SpatialParallaxGalleryActivity）已下线，
+            // 「展厅第几层」这一空间隐喻不再成立；该字段在详情页「实体馆藏」区直接展示。
+            //
+            // 安全约束：WHERE 精确匹配旧预设原文，只刷新「仍等于预设默认值」的行。
+            // 用户自行改写过陈列位置的作品（如「书房第二层书架」）不在匹配集内，绝对不被覆盖。
+            // 与预设数据源 assets/preset_all.json 同步修改（137 条，已校验）。
+            val oldToNew = arrayOf(
+                "展厅第3层 · 经典番剧回廊" to "馆藏第3层 · 经典番剧回廊",
+                "展厅第4层 · 影音光影展区" to "馆藏第4层 · 影音光影展区",
+                "展厅第5层 · 电子游戏神作馆" to "馆藏第5层 · 电子游戏神作馆",
+            )
+            oldToNew.forEach { (from, to) ->
+                runCatching {
+                    database.execSQL(
+                        "UPDATE $TABLE_BOOKS SET $COLUMN_SHELF_LOCATION = ? " +
+                            "WHERE $COLUMN_SHELF_LOCATION = ?",
+                        arrayOf<Any>(to, from),
+                    )
+                }
+            }
+        }
     }
 
     /** 高频查询性能索引（幂等，onCreate 与 v16 升级共用） */

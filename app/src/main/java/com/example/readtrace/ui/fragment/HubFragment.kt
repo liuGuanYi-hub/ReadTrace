@@ -27,6 +27,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.BackupHelper
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
@@ -506,7 +507,7 @@ class HubFragment : Fragment() {
                 ?: run { heroBookTitle.text = "《${featuredBook.title}》" }
             heroBookAuthor.text = featuredBook.author?.ifBlank { "未知作者" } ?: "未知作者"
             heroBtnRead.text = when (featuredBook.mediaType) {
-                MediaType.BOOK -> "📖 3D 沉浸翻阅"
+                MediaType.BOOK -> "📖 回看阅读痕迹"
                 MediaType.ANIME -> "🌸 追番入境签证"
                 MediaType.MOVIE -> "🎟️ 透光电影票根"
                 MediaType.GAME -> "🕹️ 全息白金卡带"
@@ -592,20 +593,17 @@ class HubFragment : Fragment() {
     }
 
     private fun showImportCsvDialog() {
+        // 2026-09-14：精简为三项。
+        // 原「导入预设名著经典 / 追番史 / 经典电影 / 游戏神作」四个分媒介入口已移除——
+        // 它们的并集（54+71+11+69=205 部）就是「一键全量合入」的内容，重复且易误操作；
+        // 且 CSV 格式无法携带六维心智档案，单走 CSV 会让双生共鸣链路缺少数据。
+        // 现统一由「一键全量合入」从内置 preset_all.json（218 部，含完整 mindprint）导入。
         val options = listOf(
-            "📚  导入预设名著经典 (54 本)",
-            "🌸  导入预设追番史 (71 部)",
-            "🎬  导入预设经典电影 (11 部)",
-            "🎮  导入预设游戏神作 (69 款)",
-            "🌟  一键全量合入 (205 部神作)",
+            "🌟  一键全量合入（全库 218 部）",
             "📂  选择本地 CSV 文件...",
             "🎨  选择本地富内容 JSON 文件...",
         )
         val actions: List<() -> Unit> = listOf(
-            { importAssetCsv("preset_books.csv", MediaType.BOOK, "名著书单") },
-            { importAssetCsv("preset_anime.csv", MediaType.ANIME, "追番清单") },
-            { importAssetCsv("preset_movies.csv", MediaType.MOVIE, "电影清单") },
-            { importAssetCsv("preset_games.csv", MediaType.GAME, "游戏清单") },
             { importAllPresetCsvs() },
             { selectCsvLauncher.launch(arrayOf("text/*", "text/comma-separated-values", "application/csv")) },
             { selectRichJsonLauncher.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
@@ -628,7 +626,7 @@ class HubFragment : Fragment() {
         }
         container.addView(titleView)
         container.addView(TextView(requireContext()).apply {
-            text = "选一份预设书单，或从本地 CSV 带回你的记录"
+            text = "一键带回全部预设作品，或从本地文件恢复你的记录"
             textSize = 11.5f
             setTextColor(requireContext().getColor(R.color.readtrace_muted))
             setPadding(0, dp(4), 0, dp(6))
@@ -712,24 +710,52 @@ class HubFragment : Fragment() {
         }
     }
 
+    /**
+     * 一键全量合入：从内置资产 `preset_all.json` 导入全库 218 部作品及其富内容。
+     *
+     * 2026-09-14 改造：原先遍历 4 个 preset_*.csv（books 54 + anime 71 + movies 11 + games 69 = 205 部），
+     * 存在两个缺陷——① 缺少 11 部音乐；② CSV 格式无法承载六维心智档案（mindprint），
+     * 导致导入后 `book_mindprints` 仍为空，双生共鸣（跨媒介星弦）拿不到任何数据。
+     *
+     * 现改为读取 JSON 并走 [BookDatabaseHelper.importFullBackup] 链路——
+     * 该链路支持作品 + 笔记 + 打卡 + 角色谱 + 大纲 + 地标 + 音频 + **心智档案** 的完整导入，
+     * 去重键为「标题 + 作者」，重复执行不会产生副本。
+     *
+     * 资产 1.3MB 且含批量事务写入，整体放后台线程，完成后回主线程提示。
+     */
     private fun importAllPresetCsvs() {
-        var total = 0
-        val presets = listOf(
-            "preset_books.csv" to MediaType.BOOK,
-            "preset_anime.csv" to MediaType.ANIME,
-            "preset_movies.csv" to MediaType.MOVIE,
-            "preset_games.csv" to MediaType.GAME,
-        )
-        presets.forEach { (assetFile, media) ->
-            try {
-                requireContext().assets.open(assetFile).use { stream ->
-                    val records = BookCsvParser.parseRecords(stream, media)
-                    total += databaseHelper.importParsedRecords(records)
+        Thread {
+            val result = runCatching {
+                val jsonText = requireContext().assets.open("preset_all.json")
+                    .use { it.bufferedReader(Charsets.UTF_8).readText() }
+                val (items, _) = BackupHelper.parseJsonBackup(jsonText)
+                if (items.isEmpty()) return@runCatching Pair(0, 0)
+                databaseHelper.importFullBackup(items)
+            }.getOrElse { Pair(-1, -1) }
+
+            requireActivity().runOnUiThread {
+                if (isAdded.not() || isDetached) return@runOnUiThread
+                val (works, _) = result
+                when {
+                    works > 0 -> Toast.makeText(
+                        requireContext(),
+                        "全量合入完成，共新增 $works 部作品（含心智档案）！",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    works == 0 -> Toast.makeText(
+                        requireContext(),
+                        "未发现新作品，库中已全部存在",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    else -> Toast.makeText(
+                        requireContext(),
+                        "导入失败：内置全量数据解析异常",
+                        Toast.LENGTH_LONG,
+                    ).show()
                 }
-            } catch (_: Exception) {}
-        }
-        Toast.makeText(requireContext(), "全量预设导入完成，共新增 $total 部作品！", Toast.LENGTH_LONG).show()
-        refreshDashboard()
+                refreshDashboard()
+            }
+        }.start()
     }
 
     /**

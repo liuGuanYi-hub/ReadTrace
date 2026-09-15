@@ -5,7 +5,12 @@ package com.example.readtrace.data
  * 包含顶级常量与 DatabaseSchema 契约门面，解耦自原 BookDatabaseHelper 巨石。
  */
 const val DATABASE_NAME = "readtrace.db"
-const val DATABASE_VERSION = 15
+
+// T4.8：此处原有一个 `const val DATABASE_VERSION = 15`，与实际生效的
+// `BookDatabaseHelper.DATABASE_VERSION` 构成长期双真值（15 vs 17/18）。
+// 它的引用数已实测为 0，且本包被 `DatabaseMigrator` 以 `import ...data.*` 通配导入，
+// 保留它存在被误用的真实风险，因此删除。数据库版本的单一真值为
+// `BookDatabaseHelper.DATABASE_VERSION`，本文件底部门面亦转发至它。
 
 // 预设播种持久化标记
 const val SEED_PREF = "readtrace_seed"
@@ -102,7 +107,8 @@ const val COLUMN_FAVORITE_CUSTOM_TAGLINE = "custom_tagline"
 
 object DatabaseSchema {
     const val DATABASE_NAME = com.example.readtrace.data.DATABASE_NAME
-    const val DATABASE_VERSION = com.example.readtrace.data.DATABASE_VERSION
+    /** 单一真值转发：见文件顶部 T4.8 说明，版本定义在 `BookDatabaseHelper` */
+    const val DATABASE_VERSION = BookDatabaseHelper.DATABASE_VERSION
     const val SEED_PREF = com.example.readtrace.data.SEED_PREF
     const val KEY_SEED_VERSION = com.example.readtrace.data.KEY_SEED_VERSION
     const val TABLE_BOOKS = com.example.readtrace.data.TABLE_BOOKS

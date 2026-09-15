@@ -72,6 +72,10 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
     companion object {
+        // T4.1：离屏长图尺寸上限与基准宽度（与 LibraryScrollView 一致）
+        private const val EXPORT_BASE_WIDTH_PX = 1080f
+        private const val MAX_EXPORT_HEIGHT_PX = 8192f
+
         /** 标题字号相对画布宽度的比例 */
         private const val TITLE_TEXT_RATIO = 0.030f
 
@@ -809,14 +813,30 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
     }
 
     /**
-     * 离屏生成 1080P 超清宣纸画卷长图 Bitmap
+     * 离屏生成超清宣纸画卷长图 Bitmap
+     *
+     * T4.1 内存保护：原实现高度由条目数累加且无任何封顶（连下限也没有），
+     * ARGB_8888 下单张可达上百 MB，追番/影音条目多时必 OOM。
+     * 超过高度上限时对整张图等比降采样，与年度精神年鉴 exportChronicle 及
+     * LibraryScrollView 采用同一套策略（本 View 的文字尺寸按 canvasWidth 比例计算）。
      */
     fun exportUltraHdBitmap(): Bitmap {
-        val targetWidth = 1080
-        val targetHeight = calculateContentHeight(targetWidth.toFloat()).toInt()
+        val rawWidth = EXPORT_BASE_WIDTH_PX
+        val rawHeight = calculateContentHeight(rawWidth).coerceAtLeast(800f)
+        val scale = if (rawHeight > MAX_EXPORT_HEIGHT_PX) MAX_EXPORT_HEIGHT_PX / rawHeight else 1f
+        val targetWidth = (rawWidth * scale).toInt().coerceAtLeast(1)
+        val targetHeight = (rawHeight * scale).toInt().coerceAtLeast(1)
+
         val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        drawScrollContent(canvas, targetWidth.toFloat(), targetHeight.toFloat())
+        if (scale < 1f) canvas.scale(scale, scale)
+        // 绘制始终传入未缩放的逻辑尺寸，由 canvas.scale 统一映射到位图
+        drawScrollContent(canvas, rawWidth, rawHeight)
         return bitmap
+    }
+
+    /** 导出结束后释放封面位图缓存（位图可能仍被 CoverImageHelper 共享持有，只逐出不 recycle） */
+    fun releaseCovers() {
+        coverBitmaps.evictAll()
     }
 }

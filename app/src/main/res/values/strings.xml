@@ -279,5 +279,5 @@
     <string name="widget_reading_timer_name">阅痕 · 今日专注打卡</string>
     <string name="widget_reading_timer_desc">今日专注时长统计与连胜天数，支持桌面一键进入计时器与 +15m 快捷打卡</string>
     <string name="widget_currently_reading_name">阅痕 · 在读作品进度</string>
-    <string name="widget_currently_reading_desc">展示当前在读书目与进度条，支持一键直达 3D 拟真翻阅</string>
+    <string name="widget_currently_reading_desc">展示当前在读书目与进度条，支持一键直达作品详情</string>
 </resources>

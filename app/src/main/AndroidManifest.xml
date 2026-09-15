@@ -142,8 +142,11 @@
         </activity>
 
         <!-- 2x2 每日金句/灵感便签轮播小组件 -->
+        <!-- T4.12：appwidget 在桌面选择器中的名称取自 <receiver> 的 android:label，
+             原先缺失导致展示为自动推导的类名，而非已定义的友好中文名 -->
         <receiver
             android:name=".widget.DailyQuoteWidgetProvider"
+            android:label="@string/widget_daily_quote_name"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -157,6 +160,7 @@
         <!-- 4x2 在读作品进度卡片小组件 -->
         <receiver
             android:name=".widget.CurrentlyReadingWidgetProvider"
+            android:label="@string/widget_currently_reading_name"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

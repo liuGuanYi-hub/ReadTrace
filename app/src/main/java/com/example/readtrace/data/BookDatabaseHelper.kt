@@ -963,7 +963,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_START_DATE, if (anime.status == "finished" && seedYear != null) "$seedYear-01-01" else null)
                         put(COLUMN_FINISH_DATE, if (anime.status == "finished" && seedYear != null) "$seedYear-12-31" else null)
                         put(COLUMN_BUY_CHANNEL, "Bilibili / 官方正版番剧")
-                        put(COLUMN_SHELF_LOCATION, "展厅第3层 · 经典番剧回廊")
+                        put(COLUMN_SHELF_LOCATION, "馆藏第3层 · 经典番剧回廊")
                         put(COLUMN_BINDING_TYPE, "TV / 剧场版动画")
                         put(COLUMN_CREATED_AT, now)
                         put(COLUMN_UPDATED_AT, now)
@@ -1203,7 +1203,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_START_DATE, "2026-07-01")
                         put(COLUMN_FINISH_DATE, "2026-07-15")
                         put(COLUMN_BUY_CHANNEL, "院线公映 · 影院观影")
-                        put(COLUMN_SHELF_LOCATION, "展厅第4层 · 影音光影展区")
+                        put(COLUMN_SHELF_LOCATION, "馆藏第4层 · 影音光影展区")
                         put(COLUMN_BINDING_TYPE, "IMAX / 杜比影院")
                         put(COLUMN_CREATED_AT, now)
                         put(COLUMN_UPDATED_AT, now)
@@ -1398,7 +1398,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
                         put(COLUMN_START_DATE, "2026-07-15")
                         put(COLUMN_FINISH_DATE, "2026-08-10")
                         put(COLUMN_BUY_CHANNEL, game.buyChannel)
-                        put(COLUMN_SHELF_LOCATION, "展厅第5层 · 电子游戏神作馆")
+                        put(COLUMN_SHELF_LOCATION, "馆藏第5层 · 电子游戏神作馆")
                         put(COLUMN_BINDING_TYPE, game.bindingType)
                         put(COLUMN_CREATED_AT, now)
                         put(COLUMN_UPDATED_AT, now)
@@ -1996,7 +1996,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
                 tags = listOf("神作番剧", "机甲科幻", "哲学心智", "治愈成长"),
                 coverUrl = "covers/bgm_29883_jQ4Hz.jpg",
                 buyChannel = "Bilibili 番剧 · 正版特装",
-                shelfLocation = "展厅第3层 · 经典番剧回廊",
+                shelfLocation = "馆藏第3层 · 经典番剧回廊",
                 bindingType = "BD 蓝光典藏全集",
                 buyPrice = 128.0,
                 mediaType = "anime",
@@ -4010,7 +4010,26 @@ class BookDatabaseHelper private constructor(val context: Context) :
         const val COLUMN_AUDIO_TITLE = "title"
         const val COLUMN_AUDIO_URI = "file_uri"
         const val COLUMN_AUDIO_DURATION = "duration_ms"
-        const val DATABASE_VERSION = 16
+        /**
+         * 数据库版本号。注意它同时兼任「播种版本号」——`runPresetSeedsOnce` 以
+         * `KEY_SEED_VERSION != DATABASE_VERSION` 作为重播种触发条件，两者被
+         * `putInt(KEY_SEED_VERSION, DATABASE_VERSION)` 绑死，因此提升本值会同时
+         * 触发一次数据重播种。
+         *
+         * v17（2026-09-14）：结构零变更，仅为触发重播种以补齐预置的 22 条心智档案
+         * （movie 11 + music 11）。此前 v16 期间 `book_mindprints` 表为空，
+         * 导致双生共鸣（跨媒介星弦）无数据可用。
+         * 影响评估见 `docs/db_upgrade_v16_to_v17_assessment.md`：
+         * `DatabaseMigrator.onUpgrade` 最高分支为 `oldVersion < 16`，16→17 全部跳过；
+         * 且两个 rating 相关分支（`previousSeedVersion < 15` / `== 0`）均不命中，评分不受影响。
+         *
+         * v18（2026-09-15）：无表结构变更。新增 `oldVersion < 18` 数据迁移，将预置作品的
+         * 陈列位置由「展厅第N层」改为「馆藏第N层」（3D 展厅已下线，隐喻不再成立）。
+         * 该 UPDATE 的 WHERE 精确匹配旧预设原文，用户手改过的值不会被覆盖。
+         * 同时因播种版本号与本值绑死，本次升版会额外触发一次重播种（单事务包裹，
+         * 写入安全约束同 v17：不改写评分、封面仅在为空时写入）。
+         */
+        const val DATABASE_VERSION = 18
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

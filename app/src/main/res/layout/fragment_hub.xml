@@ -546,7 +546,7 @@
                         android:focusable="true"
                         android:fontFamily="sans"
                         android:gravity="center"
-                        android:text="📖 3D 沉浸翻阅"
+                        android:text="📖 回看阅读痕迹"
                         android:textColor="@color/white"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />

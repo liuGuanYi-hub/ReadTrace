@@ -108,16 +108,30 @@ class LibraryScrollView @JvmOverloads constructor(
     }
 
     /**
-     * 离屏生成 1080P 超清宣纸藏书长图 Bitmap。
+     * 离屏生成超清宣纸藏书长图 Bitmap。
      * 内部会阻塞预热全部封面，必须在后台线程调用。
+     *
+     * T4.1 内存保护：原实现高度直接由藏品数累加且无上限，ARGB_8888 下
+     * 1080×30000 单张即约 123MB，大库必 OOM。
+     * 超过高度上限时对整张图等比降采样，与年度精神年鉴 exportChronicle 采用
+     * 同一套已验证策略（本 View 的文字尺寸本就按 canvasWidth 比例计算，
+     * 因此降宽重排与等比缩放等价，不如直接用后者）。代价是超大库导出的
+     * 图尺寸会相应变小，但不会 OOM、也不会裁掉尾部藏品。
      */
     fun exportUltraHdBitmap(): Bitmap {
         preloadCoversBlocking()
-        val targetWidth = 1080
-        val targetHeight = calculateContentHeight(targetWidth.toFloat()).toInt().coerceAtLeast(800)
+
+        val rawWidth = EXPORT_BASE_WIDTH_PX
+        val rawHeight = calculateContentHeight(rawWidth).coerceAtLeast(800f)
+        val scale = if (rawHeight > MAX_EXPORT_HEIGHT_PX) MAX_EXPORT_HEIGHT_PX / rawHeight else 1f
+        val targetWidth = (rawWidth * scale).toInt().coerceAtLeast(1)
+        val targetHeight = (rawHeight * scale).toInt().coerceAtLeast(1)
+
         val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        drawScrollContent(canvas, targetWidth.toFloat(), targetHeight.toFloat())
+        if (scale < 1f) canvas.scale(scale, scale)
+        // 绘制始终传入未缩放的逻辑尺寸，由 canvas.scale 统一映射到位图
+        drawScrollContent(canvas, rawWidth, rawHeight)
         return bitmap
     }
 
@@ -540,6 +554,10 @@ class LibraryScrollView @JvmOverloads constructor(
     }
 
     companion object {
+        // T4.1：离屏长图尺寸上限。软件位图无 4096 硬限，但 1080×N 的 ARGB_8888
+        // 每 1000px 高约 4.2MB，8192 上限对应约 34MB 峰值，可安全承载数百藏品。
+        private const val EXPORT_BASE_WIDTH_PX = 1080f
+        private const val MAX_EXPORT_HEIGHT_PX = 8192f
         private val RATING_FORMAT = DecimalFormat("0.#")
     }
 }

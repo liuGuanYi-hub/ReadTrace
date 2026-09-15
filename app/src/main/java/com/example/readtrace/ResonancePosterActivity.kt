@@ -133,14 +133,31 @@ class ResonancePosterActivity : AppCompatActivity() {
     }
 
     private fun calculateSimilarity(mpA: BookMindprint?, mpB: BookMindprint?): Int {
-        if (mpA == null || mpB == null) return 92
-        val diff1 = kotlin.math.abs(mpA.depthScore - mpB.depthScore)
-        val diff2 = kotlin.math.abs(mpA.artistryScore - mpB.artistryScore)
-        val diff3 = kotlin.math.abs(mpA.emotionScore - mpB.emotionScore)
-        val diff4 = kotlin.math.abs(mpA.logicScore - mpB.logicScore)
-        val diff5 = kotlin.math.abs(mpA.healingScore - mpB.healingScore)
+        // 至少一方持有真实心智档案才计算；双方均无档案时不给出"假共鸣"数值
+        val aHas = mpA != null && hasMindprintData(mpA)
+        val bHas = mpB != null && hasMindprintData(mpB)
+        if (!aHas && !bHas) return NO_DATA_SIMILARITY
+        // 仅一方有档案：以有档案的一方为基准，给一个中性偏低的可信区间
+        if (!aHas || !bHas) return ONE_SIDE_SIMILARITY
+
+        val ma = mpA!!
+        val mb = mpB!!
+        val diff1 = kotlin.math.abs(ma.depthScore - mb.depthScore)
+        val diff2 = kotlin.math.abs(ma.artistryScore - mb.artistryScore)
+        val diff3 = kotlin.math.abs(ma.emotionScore - mb.emotionScore)
+        val diff4 = kotlin.math.abs(ma.logicScore - mb.logicScore)
+        val diff5 = kotlin.math.abs(ma.healingScore - mb.healingScore)
         val avgDiff = (diff1 + diff2 + diff3 + diff4 + diff5) / 5.0
-        return (100.0 - avgDiff * 8.0).toInt().coerceIn(65, 99)
+        // 满量程 2.6：与星系视图 dynamicTrait 保持同一套刻度，避免同一对作品在两处给出不同数字
+        return (99.0 - (avgDiff / 2.6) * 30.0).toInt().coerceIn(65, 99)
+    }
+
+    /** 判断心智档案是否携带真实数据（五维全为默认 8.0 且难度为 5.0 时视为未录入） */
+    private fun hasMindprintData(mp: BookMindprint): Boolean {
+        val defaults = mp.depthScore == 8.0 && mp.artistryScore == 8.0 &&
+            mp.emotionScore == 8.0 && mp.logicScore == 8.0 &&
+            mp.difficultyScore == 5.0 && mp.healingScore == 8.0
+        return !defaults
     }
 
     private fun determineResonanceTrait(bookA: Book, bookB: Book, mpA: BookMindprint?, mpB: BookMindprint?): String {
@@ -317,6 +334,12 @@ class ResonancePosterActivity : AppCompatActivity() {
         const val EXTRA_BOOK_B_ID = "extra_book_b_id"
         const val EXTRA_SIMILARITY = "extra_similarity"
         const val EXTRA_RESONANCE_TRAIT = "extra_resonance_trait"
+
+        /** 双方均未录入心智档案：不给虚构契合度，用 0 表示"暂无可比数据" */
+        private const val NO_DATA_SIMILARITY = 0
+
+        /** 仅一方有档案：给中性偏低值，明确暗示数据不完整 */
+        private const val ONE_SIDE_SIMILARITY = 78
 
         fun createIntent(
             context: Context,

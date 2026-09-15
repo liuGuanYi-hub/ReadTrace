@@ -75,13 +75,17 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
         Toast.makeText(this, "正在离屏渲染 1080P 全息藏书长卷...", Toast.LENGTH_SHORT).show()
 
         Thread {
+            // T4.2：离屏大位图必须无论成功还是失败都回收。放在 runCatching 外，
+            // 否则 compress/FileProvider 抛异常时这张上百 MB 的位图会始终悬在堆里。
+            var bitmap: Bitmap? = null
             runCatching {
-                val bitmap = libraryScrollView.exportUltraHdBitmap()
+                val bmp = libraryScrollView.exportUltraHdBitmap()
+                bitmap = bmp
                 val cacheDir = File(cacheDir, "scrolls").apply { if (!exists()) mkdirs() }
                 val file = File(cacheDir, "readtrace_library_scroll_${System.currentTimeMillis()}.png")
 
                 FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
 
                 val uri: Uri = FileProvider.getUriForFile(
@@ -91,6 +95,8 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
                 )
 
                 runOnUiThread {
+                    // T4.4：导出耗时较长时用户可能已退出本页，回主线程后必须先校验存活
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "image/png"
                         putExtra(Intent.EXTRA_STREAM, uri)
@@ -105,10 +111,22 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
                 }
             }.onFailure {
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     Toast.makeText(this, "导出长卷失败: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
+            runCatching { bitmap?.takeIf { it.isRecycled.not() }?.recycle() }
         }.start()
+    }
+
+    override fun onDestroy() {
+        // T4.2：释放在导出期间逐张累积的封面位图缓存。
+        // 用 isInitialized 守卫：lateinit 在 setContentView 阶段异常时可能未被赋值，
+        // 而 onDestroy 仍会被调用，直访会抛 UninitializedPropertyAccessException。
+        if (::libraryScrollView.isInitialized) {
+            libraryScrollView.releaseCovers()
+        }
+        super.onDestroy()
     }
 
     companion object {

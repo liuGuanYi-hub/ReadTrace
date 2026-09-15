@@ -165,14 +165,18 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         Toast.makeText(this, "正在离屏渲染 1080P 超清${mediaName}画卷...", Toast.LENGTH_SHORT).show()
 
         Thread {
+            // T4.2：离屏大位图无论成功失败都回收；写在 runCatching 外，
+            // 否则压缩/FileProvider 抛异常时这张上百 MB 的位图会一直悬在堆里。
+            var bitmap: Bitmap? = null
             runCatching {
-                val bitmap = timelineScrollView.exportUltraHdBitmap()
+                val bmp = timelineScrollView.exportUltraHdBitmap()
+                bitmap = bmp
                 val cacheDir = File(cacheDir, "scrolls").apply { if (!exists()) mkdirs() }
                 val mediaTag = selectedMediaType.databaseValue
                 val file = File(cacheDir, "readtrace_${mediaTag}_timeline_${System.currentTimeMillis()}.png")
 
                 FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
 
                 val uri: Uri = FileProvider.getUriForFile(
@@ -201,6 +205,8 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
                 }
 
                 runOnUiThread {
+                    // T4.4：导出耗时较长时用户可能已退出本页，回主线程后先校验存活
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "image/png"
                         putExtra(Intent.EXTRA_STREAM, uri)
@@ -214,13 +220,20 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
                 }
             }.onFailure {
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     Toast.makeText(this, "导出画卷失败: ${it.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
+            runCatching { bitmap?.takeIf { it.isRecycled.not() }?.recycle() }
         }.start()
     }
 
     override fun onDestroy() {
+        // T4.2：释放导出期间逐张累积的封面位图缓存。
+        // isInitialized 守卫：onCreate 早期异常时 lateinit 可能未赋值而 onDestroy 仍会被调用。
+        if (::timelineScrollView.isInitialized) {
+            timelineScrollView.releaseCovers()
+        }
         super.onDestroy()
     }
 

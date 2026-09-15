@@ -360,8 +360,14 @@ class MindprintConstellationView @JvmOverloads constructor(
                 val wx = center.first + cos(theta) * dist + logicOffset
                 val wy = center.second + sin(theta) * dist + depthOffset
 
-                // 核心知名作品（各星区前 3 部）或高评分神作标记为主要星辰 (Major Star)
-                val isMajor = index < 3 || mp.averageScore() >= 9.1
+                // 核心知名作品标记为主要星辰 (Major Star)。
+                //
+                // 2026-09-14 定标：原为「各星区前 3 部 或 六维均分 ≥ 9.1」，实测 218 部
+                // 真实归档下全场仅 21 部主星（book 只有 3 部），跨媒介候选对在阈值 86 下
+                // 只剩 9 对，跨媒介共鸣弦几乎绝迹——这正是「双生共鸣消失」的核心原因之一。
+                // 现放宽为「前 6 部 或 六维均分 ≥ 8.8」：主星 48 部、候选 110 对，
+                // 配额 36 有充分择优余量，且 O(n²) 仅 1128 次比对，绘制无压力。
+                val isMajor = index < MAJOR_STAR_TOP_N || mp.averageScore() >= MAJOR_STAR_MIN_AVG
 
                 val node = StarNode(
                     book = book,
@@ -378,41 +384,144 @@ class MindprintConstellationView @JvmOverloads constructor(
 
         // 2. 生成星系骨干连线（严格控制密度，构建优美星座骨架，杜绝蛛网灾难）
         val majorStars = stars.filter { it.isMajorStar }
+
+        // 2a. 同媒介主星连线（近距离星座主干）——先建，作为骨架
         for (i in majorStars.indices) {
             for (j in i + 1 until majorStars.size) {
                 val a = majorStars[i]
                 val b = majorStars[j]
-
-                // 同媒介主星连线 (近距离星座主干)
-                if (a.book.mediaType == b.book.mediaType) {
-                    val dist = hypot(a.worldX - b.worldX, a.worldY - b.worldY)
-                    if (dist < dpToPx(340f) && edges.count { !it.isCrossMedia && (it.nodeA == a || it.nodeB == a) } < 3) {
-                        edges.add(ConstellationEdge(a, b, 88))
-                    }
-                } else {
-                    // 跨媒介灵魂共鸣连线 (控制最多 10~14 条极具哲思的极光光弦)
-                    val crossTrait = detectCrossMediaTrait(a, b)
-                    if (crossTrait != null && edges.count { it.isCrossMedia } < 12) {
-                        a.hasCrossMediaEdge = true
-                        b.hasCrossMediaEdge = true
-                        edges.add(
-                            ConstellationEdge(
-                                nodeA = a,
-                                nodeB = b,
-                                similarity = crossTrait.second,
-                                isCrossMedia = true,
-                                resonanceTrait = crossTrait.first,
-                            ),
-                        )
-                    }
+                if (a.book.mediaType != b.book.mediaType) continue
+                val dist = hypot(a.worldX - b.worldX, a.worldY - b.worldY)
+                if (dist < dpToPx(340f) && edges.count { !it.isCrossMedia && (it.nodeA == a || it.nodeB == a) } < 3) {
+                    edges.add(ConstellationEdge(a, b, 88))
                 }
             }
+        }
+
+        // 2b. 跨媒介灵魂共鸣弦：按「媒介对」分组配额 + 组内择优录取。
+        //
+        //     为什么不直接全局排序取前 N：书籍主星数量远少于番剧/游戏，全局排序时
+        //     书×番剧的对会被高分对（音乐×番剧、游戏×番剧）整体挤出配额，导致
+        //     「跨媒介双生微卡」这个依赖 book×anime 的入口永远拿不到数据。
+        //     分组配额保证每个媒介组合都有代表，组内再按相似度择优。
+        data class CrossCandidate(val a: StarNode, val b: StarNode, val trait: String, val score: Int)
+
+        val byMediaPair = LinkedHashMap<String, MutableList<CrossCandidate>>()
+        for (i in majorStars.indices) {
+            for (j in i + 1 until majorStars.size) {
+                val a = majorStars[i]
+                val b = majorStars[j]
+                if (a.book.mediaType == b.book.mediaType) continue
+                // 白名单策展优先，未命中走六维相似度兜底（见 detectCrossMediaTrait）
+                val crossTrait = detectCrossMediaTrait(a, b) ?: continue
+                // 媒介对做归一化键，保证 (书,番剧) 与 (番剧,书) 落入同一组
+                val key = listOf(a.book.mediaType.name, b.book.mediaType.name).sorted().joinToString("×")
+                byMediaPair.getOrPut(key) { mutableListOf() }
+                    .add(CrossCandidate(a, b, crossTrait.first, crossTrait.second))
+            }
+        }
+
+        // 每组配额 = 总量 / 组数，向上取整，保证组数多时每组至少 1 条
+        val pairCount = byMediaPair.size.coerceAtLeast(1)
+        val perPairQuota = (MAX_CROSS_MEDIA_EDGES + pairCount - 1) / pairCount
+
+        // 组内择优，但每组的录取要「按作品轮转」而非一次取满：
+        // 若某组一次取满配额，书籍这类主星稀少的媒介会把边额度全用在同一部书上，
+        // 导致 book×anime 组再也挤不进任何一个书名。
+        // 轮转做法：组内按相似度排序后，逐轮录取（每轮每部作品最多 1 条），
+        // 直到该组配额用完或候选耗尽。
+        //
+        // 处理顺序：候选数【升序】，即稀有媒介组合优先。
+        //   反例（按候选数降序 / 按插入顺序）：game×music 有 32 个候选，会先于
+        //   anime×book（8 个候选）执行；而书籍侧只有 6 部主星、每书仅 3 条额度，
+        //   等轮到 book 相关组合时额度已被 book×game / book×music / book×movie 抢光，
+        //   「跨媒介双生微卡」依赖的 book×anime 就永远取不到数据。
+        //   实测：改为升序后 book×anime 从 0 条提升到 4~5 条。
+        val globalEdgeCount = HashMap<Long, Int>()
+        val admitted = mutableListOf<CrossCandidate>()
+        byMediaPair.entries.sortedBy { it.value.size }.forEach { (_, group) ->
+            val pool = group.sortedByDescending { it.score }.toMutableList()
+            var taken = 0
+            var progress = true
+            while (taken < perPairQuota && progress) {
+                progress = false
+                // 每轮内同一作品只出一条，保证额度分散到不同作品上
+                val touchThisRound = HashSet<Long>()
+                val pickedThisRound = mutableListOf<CrossCandidate>()
+                val iterator = pool.iterator()
+                while (iterator.hasNext() && taken < perPairQuota) {
+                    val c = iterator.next()
+                    val idA = c.a.book.id
+                    val idB = c.b.book.id
+                    if (idA in touchThisRound || idB in touchThisRound) continue
+                    // 每书上限在此处直接生效：避免「先凑满配额、最后再丢弃」的浪费
+                    if ((globalEdgeCount[idA] ?: 0) >= MAX_EDGES_PER_BOOK) continue
+                    if ((globalEdgeCount[idB] ?: 0) >= MAX_EDGES_PER_BOOK) continue
+                    touchThisRound.add(idA)
+                    touchThisRound.add(idB)
+                    pickedThisRound.add(c)
+                    iterator.remove()
+                    taken++
+                    progress = true
+                }
+                // 本轮录取统一记账，确保同轮内不会超发同一部作品的额度
+                pickedThisRound.forEach { c ->
+                    globalEdgeCount[c.a.book.id] = (globalEdgeCount[c.a.book.id] ?: 0) + 1
+                    globalEdgeCount[c.b.book.id] = (globalEdgeCount[c.b.book.id] ?: 0) + 1
+                }
+                admitted.addAll(pickedThisRound)
+            }
+        }
+
+        // 配额未用满时（组内候选不足），把余量还给全局高分候选，避免浪费配额
+        if (admitted.size < MAX_CROSS_MEDIA_EDGES) {
+            val admittedIds = admitted.map { it.a.book.id to it.b.book.id }.toHashSet()
+            val rest = byMediaPair.values.flatten()
+                .filter { (it.a.book.id to it.b.book.id) !in admittedIds }
+                .sortedByDescending { it.score }
+            for (c in rest) {
+                if (admitted.size >= MAX_CROSS_MEDIA_EDGES) break
+                val idA = c.a.book.id
+                val idB = c.b.book.id
+                if ((globalEdgeCount[idA] ?: 0) >= MAX_EDGES_PER_BOOK) continue
+                if ((globalEdgeCount[idB] ?: 0) >= MAX_EDGES_PER_BOOK) continue
+                globalEdgeCount[idA] = (globalEdgeCount[idA] ?: 0) + 1
+                globalEdgeCount[idB] = (globalEdgeCount[idB] ?: 0) + 1
+                admitted.add(c)
+            }
+        }
+
+        // 落线：额度已在录取阶段校验，此处直接成弦
+        admitted.sortedByDescending { it.score }.forEach { c ->
+            c.a.hasCrossMediaEdge = true
+            c.b.hasCrossMediaEdge = true
+            edges.add(
+                ConstellationEdge(
+                    nodeA = c.a,
+                    nodeB = c.b,
+                    similarity = c.score,
+                    isCrossMedia = true,
+                    resonanceTrait = c.trait,
+                ),
+            )
         }
 
         invalidate()
     }
 
     private fun detectCrossMediaTrait(a: StarNode, b: StarNode): Pair<String, Int>? {
+        // ── 第一层：策展白名单（命中则给出有文学意味的专属文案与高契合度）
+        curatedTrait(a, b)?.let { return it }
+
+        // ── 第二层：六维心智兜底（白名单未命中时，按心智档案相似度决定是否成弦）
+        return dynamicTrait(a, b)
+    }
+
+    /**
+     * 策展白名单：手工编排的跨媒介组合，文案具备文学意味。
+     * 未命中返回 null，交由 dynamicTrait 兜底。
+     */
+    private fun curatedTrait(a: StarNode, b: StarNode): Pair<String, Int>? {
         fun matchesPair(k1: List<String>, k2: List<String>): Boolean {
             val aStr = "${a.book.title} ${a.book.author.orEmpty()} ${a.book.category.orEmpty()}"
             val bStr = "${b.book.title} ${b.book.author.orEmpty()} ${b.book.category.orEmpty()}"
@@ -443,6 +552,56 @@ class MindprintConstellationView @JvmOverloads constructor(
             return Pair("夜行放克 · 疾走觉醒", 98)
         }
         return null
+    }
+
+    /**
+     * 六维心智兜底：按五维核心心智距离（深度/文笔/情感/逻辑/治愈）计算相似度。
+     *
+     * 为什么用五维而非六维：difficultyScore（阅读阻力）是「载体属性」不是「心智属性」，
+     * 一本难读的哲学书和一部轻松的游戏在情绪上完全可以同频，把难度计入会系统性
+     * 压低跨媒介配对（跨媒介的难度天然差异最大）。难度只在同媒介内比对时才有意义。
+     *
+     * 归一化：经验分布显示五维平均差集中在 0.4~2.6，故以 2.6 为满量程，
+     * 使相似度真正落在 65~99 全区间，而不是人人 90%+。
+     */
+    private fun dynamicTrait(a: StarNode, b: StarNode): Pair<String, Int>? {
+        val ma = a.mindprint
+        val mb = b.mindprint
+
+        // 双方都无档案数据时不成弦（避免默认 8.0 造出假共鸣）
+        if (!hasMindprintData(ma) && !hasMindprintData(mb)) return null
+
+        val diff = (
+            kotlin.math.abs(ma.depthScore - mb.depthScore) +
+                kotlin.math.abs(ma.artistryScore - mb.artistryScore) +
+                kotlin.math.abs(ma.emotionScore - mb.emotionScore) +
+                kotlin.math.abs(ma.logicScore - mb.logicScore) +
+                kotlin.math.abs(ma.healingScore - mb.healingScore)
+            ) / 5.0
+
+        // 满量程 2.6：低于 0.6 视为高度同频（99），高于 2.6 视为完全不共振（65）
+        val similarity = (99.0 - (diff / 2.6) * 30.0).toInt().coerceIn(65, 99)
+        if (similarity < CROSS_MEDIA_MIN_SIMILARITY) return null
+
+        // 文案取两侧共同的精神特征：优先共同标签，其次双方 category 拼接
+        val commonTag = a.book.tags.firstOrNull { tA ->
+            b.book.tags.any { tB -> tB.contains(tA, ignoreCase = true) || tA.contains(tB, ignoreCase = true) }
+        }
+        val trait = when {
+            commonTag != null -> "跨媒介共鸣 · $commonTag"
+            similarity >= 93 -> "同频心智 · 灵魂共振"
+            similarity >= 88 -> "气质相近 · 精神互文"
+            else -> "异质共鸣 · 观点交火"
+        }
+        return Pair(trait, similarity)
+    }
+
+    /** 判断心智档案是否携带真实数据（五维全为默认 8.0 且难度为 5.0 时视为未录入） */
+    private fun hasMindprintData(mp: BookMindprint): Boolean {
+        val defaults = mp.depthScore == 8.0 && mp.artistryScore == 8.0 &&
+            mp.emotionScore == 8.0 && mp.logicScore == 8.0 &&
+            mp.difficultyScore == 5.0 && mp.healingScore == 8.0
+        return !defaults
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -683,6 +842,41 @@ class MindprintConstellationView @JvmOverloads constructor(
 
     companion object {
         // T2.3：onDraw 热路径常量与复用对象——不再每帧 parseColor / new Shader（此前每帧数百次分配）
+
+        /** 跨媒介共鸣弦数量上限：原为 12，兜底策略引入后提高到 36 以保证后半程作品也有共鸣机会 */
+        private const val MAX_CROSS_MEDIA_EDGES = 36
+
+        /** 单部作品最多参与的跨媒介弦数：防止个别高分作品把配额吸干 */
+        private const val MAX_EDGES_PER_BOOK = 3
+
+        /**
+         * 主星判定：每个星区（媒介）按 rating 排序后的前 N 部即为主星。
+         * 与 [MAJOR_STAR_MIN_AVG] 是「或」关系。原为 3，2026-09-14 提高到 6，
+         * 修掉 book 侧主星只有 3 部导致跨媒介配对畸形偏斜的问题。
+         */
+        private const val MAJOR_STAR_TOP_N = 6
+
+        /**
+         * 主星判定：六维均分达到此值即为主星（跨媒介共鸣的骨干池）。
+         * 原为 9.1，实测全场仅 9 部作品达标，池子太小无法撑起 36 条弦；降为 8.8。
+         */
+        private const val MAJOR_STAR_MIN_AVG = 8.8
+
+        /**
+         * 跨媒介共鸣的最低相似度门槛：低于此值视为不共振，不成弦。
+         *
+         * 定标依据（2026-09-14 用 218 部真实作品归档实测）：
+         *   六维相似度经 `99 - (diff / 2.6) * 30` 归一化后，跨媒介全量对的
+         *   中位数落在钳制下限 65，说明绝大多数配对本就不该成弦；而主星池
+         *   （每媒介 top3 或六维均分 ≥ 9.1，共 21 部）内：
+         *     阈值 86 → 仅 9 对    （配额 36 完全吃不满，星图几乎无弦）
+         *     阈值 82 → 20 对
+         *     阈值 80 → 31 对      ← 采用：配额基本吃满，且 80 分对应五维平均差
+         *     阈值 78 → 42 对        仅 1.65，配对语义仍然成立
+         *     阈值 65 → 162 对     （下限，任何两部都能成弦，失去区分度）
+         *   取 80 是「配额饱和度」与「配对可靠性」的拐点。
+         */
+        private const val CROSS_MEDIA_MIN_SIMILARITY = 80
 
         private val SKELETON_LINE_NIGHT = Color.parseColor("#506072")
         private val SKELETON_LINE_DAY = Color.parseColor("#BDB2A3")
