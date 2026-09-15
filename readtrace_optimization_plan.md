@@ -21,7 +21,7 @@
 >   - **T3.4**：新增 `util/CrashReporter`——Application 最早时机安装全局未捕获异常处理器，崩溃现场同步落盘 `filesDir/crash_reports/`（应用版本/设备/线程/堆栈）后交还系统默认处理器，下次启动自动清理仅留最新 5 份；「关于阅痕」长按版本徽标以系统分享导出，无记录时空态提示。
 
 > **✅ 第三轮审查已完成（2026-09-15）→ 新增 T4 梯队**
-> T0~T3 的结论本身**依然成立**，但复查发现两件事：① **T3 收官之后新增的功能**（藏库导出长卷、全息长卷预览、年鉴工作室）引入了 3 项 P1 级稳定性缺陷，从未进入任何一轮审查；② 历史功能删除后**残留 40 处文本不一致**，其中 5 处会真实显示给用户（含 1 个点击无反应的死按钮）。此外本文档的基线数据已漂移，详见 **T4.0**。
+> T0~T3 的结论本身**依然成立**，但复查发现两件事：① **T3 收官之后新增的功能**（藏库导出长卷、全息长卷预览、年鉴工作室）引入了 3 项 P1 级稳定性缺陷，从未进入任何一轮审查；② 历史功能删除后**残留 42 处文本不一致**，其中 4 处会真实显示给用户。（本轮曾把社区展厅的「🏛️ 3D 漫游」误判为死按钮，已由编译报错揭穿并推翻，详见 T4.5-A #2）。此外本文档的基线数据已漂移，详见 **T4.0**。
 > **另有一项机制性失败必须记录**：`app/lint-baseline.xml` 的问题清单中**包含 `UnusedResources`** —— 即 T3.1 生成 baseline 时，那 23 条僵尸字符串**已被 lint 识别**，随后被永久豁免。门禁建成了，但把这一项的告警吞掉了。详见 T4.9。
 >
 > **🔬 T4.9 数据采集轮已完成（同日）**：临时移出 baseline 跑全量 `lintDebug` 交叉校验后，**人工 23 条字符串结论被 100% 确认（零假阳性）**，但 lint 额外暴露了 **112 项未使用资源**（人工仅覆盖 23）与 **12 个孤儿布局/drawable 文件**。因此本文件头的「无悬空布局/drawable 引用」一类结论**已被推翻并回改**，详见 T4.5-E 与 §11。baseline 本身未被修改（SHA256 前后比对一致）。
@@ -639,7 +639,7 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 
 ---
 
-### T4.5 僵尸文本清理（人工 43 处 + lint 追加 112 项）🔴 清单型任务
+### T4.5 僵尸文本清理（人工 42 处 + lint 追加 112 项）🔴 清单型任务
 
 **问题等级**：P1（用户可感知的错误信息）+ P2（维护误导）
 
@@ -655,12 +655,12 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 | `activity_community_gallery.xml` | ✅ 存活 |
 | 「防 OLED 烧屏」（`StandByZenDeskActivity:21`）、主题「曜石黑金」、「Obsidian Markdown 导出」、`DioramaBoxView` 标本盒、伴读钟 | ✅ 均存活，**不在清理范围** |
 
-#### A 组：会真实显示给用户的 5 处（最高优先）
+#### A 组：会真实显示给用户的 4 处（原 5 处，#2 已推翻）
 
 | # | 位置 | 用户看到 | 实际行为 | 改法 |
 |:--:|:---|:---|:---|:---|
 | 1 | `ui/fragment/HubFragment.kt:509-515` | 主页首屏 Hero 大按钮 **「📖 3D 沉浸翻阅」**（`MediaType.BOOK` 分支） | `:329` 实跳 `BookDetailActivity` | 改中性文案（如「📖 进入详情」）。**注：此为硬编码字面量，不走 string 资源，故躲过了 lint 的 `UnusedResources`** |
-| 2 | `res/layout/activity_exhibition_detail.xml:32-46` | 展览详情页顶部**金色实心按钮「🏛️ 3D 漫游」**，`id=detail3DExploreBtn` | 全项目 Kotlin **引用数 0** → **点击无任何反应**。该页经 `CommunityActivity:172/201` 可达 | **整块删除该 TextView**（首选），或接回真实目的地 |
+| 2 | ~~`res/layout/activity_exhibition_detail.xml:32-46`~~ | ❌ **本条已推翻，不得改** | 原报「`detail3DExploreBtn` 全项目引用数 0 → 点击无反应」。**错**。它实现在 `community/ui/ExhibitionDetailActivity.kt:75-77`，跳转到 `CommunityGalleryActivity`（社区 3D 展厅，存活）。因此「🏛️ 3D 漫游」文案**成立且功能正常** | **不动**。保留原样 |
 | 3 | `data/BookDatabaseHelper.kt:966/1206/1401/1999` + `assets/preset_all.json` 约 200 条 | 详情页「陈列位置」显示 **「展厅第5层 · 电子游戏神作馆」** | 经 `BookDetailActivity:258` 的 `detailShelfLocation` 真实渲染。**展厅已不存在，却告知用户藏品在展厅第几层** | 改中性表述（如「馆藏第5层」）。**⚠️ 涉及存量数据，见 §10 决策 #8** |
 | 4 | `model/ChangelogData.kt:107/109` | App 内「版本演进纪要」：**「OLED 曜石真黑熄屏模式上线」**、**「2.5D visionOS 空间标本盒展厅，与经典 3D 展厅双模共存」**（另 `:147` 3D 陀螺仪视差画廊） | 三功能均已删。纪要在向用户介绍**不存在的能力** | 历史条目保留但需标注「已于 vX 移除」，见 §10 决策 #9 |
 | 5 | `res/xml/widget_currently_reading_info.xml:3` | 桌面小部件选择器：**「支持一键直达 3D 拟真翻阅」** | 3D 翻阅阅读器已删 | 去掉「3D 拟真翻阅」描述 |
@@ -768,7 +768,9 @@ widget_reading_timer_name
 $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object { $_.message }
 ```
 
-**验证方式**：`assembleDebug` 通过；逐一手动过主页 Hero / 社区展览详情 / 任意预设作品详情页 / 版本纪要 / 小部件选择器五处，确认无指向不存在功能的描述。E 组删除后跑 `./gradlew :app:testDebugUnitTest` 确认无测试通过资源名引用这些项。
+**验证方式**：`assembleDebug` 通过；逐一手动过主页 Hero / 任意预设作品详情页 / 版本纪要 / 小部件选择器四处，确认无指向不存在功能的描述。E 组删除后跑 `./gradlew :app:testDebugUnitTest` 确认无测试通过资源名引用这些项。
+
+**⚠️ 检索方法论告警（本轮实际踩的坑）**：A 组 #2 这条假阳性，根因是用 `readtrace\*.kt` 这种**非递归通配符**统计引用数，漏掉了 `community\ui\` 等嵌套目录，导致把一个正常控件误判为死代码，**且已差点被删除** —— 最终由 `compileDebugKotlin` 报 `Unresolved reference 'detail3DExploreBtn'` 才暴露。同类结论已全部改用递归检索（ripgrep / `Get-ChildItem -Recurse`）重测。**规则：任何「引用数 = 0」的断言必须来自递归检索，且删除前必须跑一次编译。**
 
 **⚠️ E 组执行约束**：lint 的 `UnusedResources` 不扫 `androidTest`/`test` 源码目录，且若资源被 `values-night`/`-land`/`-sw600dp` 等限定符变体引用，删主定义前必须逐个确认变体。**每删一组必跑 `assembleDebug`**。
 
@@ -1022,7 +1024,7 @@ T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 |:---|:---|
 | 3D 私人展厅 / 2.5D 视差展厅 / 3D 翻书阅读器 均已不存在 | ✅ `Test-Path` 逐个确认文件不存在；`git log` 定位到 `0543c4c`、`1339482`、`4d31a77`、`910a84a`、`b00e19d`、`da6855b` |
 | 23 条 string 零引用 | ✅ **属实**。脚本逐个统计 `R.string.x` 与 `@string/x` 两种形式，命中数均为 0 |
-| `detail3DExploreBtn`（🏛️ 3D 漫游）是死按钮 | ✅ **属实且可达**。Kotlin 引用数 0，而 `ExhibitionDetailActivity` 经 `CommunityActivity:172/201` 正常拉起 → **用户能看到并点击，但无任何反应** |
+| `detail3DExploreBtn`（🏛️ 3D 漫游）是死按钮 | ❌ **假阳性，已推翻**。本条原用的是 `readtrace\*.kt` 非递归通配，漏了嵌套目录。实现在 `community/ui/ExhibitionDetailActivity.kt:75-77`，跳向存活的 `CommunityGalleryActivity` —— **控件正常，文案成立**。差点被删，由 `compileDebugKotlin` 报 `Unresolved reference` 拦下。已全量改用递归检索重测同类结论 |
 | 主页「📖 3D 沉浸翻阅」名实不符 | ✅ 属实（`HubFragment:510` 设文案，`:329` 实跳 `BookDetailActivity`） |
 | 「展厅第N层」会显示给用户 | ✅ 属实（`BookDetailActivity:258` → `detailShelfLocation`） |
 | `action_3d_read` 永不可见 | ✅ 属实（`BookDetailActivity:1399-1486` 五分支：BOOK→`GONE`，其余四个均运行时改 `.text`） |
