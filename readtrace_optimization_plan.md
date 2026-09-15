@@ -20,6 +20,12 @@
 >   - **T3.3**：`cover_server/` 整目录删除（README 出库 + 磁盘 36.5MB 原图存档清除，历史 blob 仍可从 git 历史找回）；`.workbuddy/memory/` 6 个「既跟踪又命中忽略」文件解除跟踪（磁盘保留）；README 失效 docs 链接与 LICENSE 缺失已在更早的 `148cca8` 完成，本轮核验 11 个现存链接全部有效。
 >   - **T3.4**：新增 `util/CrashReporter`——Application 最早时机安装全局未捕获异常处理器，崩溃现场同步落盘 `filesDir/crash_reports/`（应用版本/设备/线程/堆栈）后交还系统默认处理器，下次启动自动清理仅留最新 5 份；「关于阅痕」长按版本徽标以系统分享导出，无记录时空态提示。
 
+> **✅ 第三轮审查已完成（2026-09-15）→ 新增 T4 梯队**
+> T0~T3 的结论本身**依然成立**，但复查发现两件事：① **T3 收官之后新增的功能**（藏库导出长卷、全息长卷预览、年鉴工作室）引入了 3 项 P1 级稳定性缺陷，从未进入任何一轮审查；② 历史功能删除后**残留 40 处文本不一致**，其中 5 处会真实显示给用户（含 1 个点击无反应的死按钮）。此外本文档的基线数据已漂移，详见 **T4.0**。
+> **另有一项机制性失败必须记录**：`app/lint-baseline.xml` 的问题清单中**包含 `UnusedResources`** —— 即 T3.1 生成 baseline 时，那 23 条僵尸字符串**已被 lint 识别**，随后被永久豁免。门禁建成了，但把这一项的告警吞掉了。详见 T4.9。
+>
+> **🔬 T4.9 数据采集轮已完成（同日）**：临时移出 baseline 跑全量 `lintDebug` 交叉校验后，**人工 23 条字符串结论被 100% 确认（零假阳性）**，但 lint 额外暴露了 **112 项未使用资源**（人工仅覆盖 23）与 **12 个孤儿布局/drawable 文件**。因此本文件头的「无悬空布局/drawable 引用」一类结论**已被推翻并回改**，详见 T4.5-E 与 §11。baseline 本身未被修改（SHA256 前后比对一致）。
+
 > **⚠️ 行数口径说明**：本计划所有文件行数统一采用**非空行**口径（PowerShell `Measure-Object -Line`）。
 > 若某处引用的是**含空行**口径，会显式标注。两套口径的换算参考：
 > `BookDetailActivity` 非空 2,305 / 含空行 2,529；`VinylCassettePlayerActivity` 1,707 / 1,833；
@@ -29,13 +35,13 @@
 
 ## 0. 计划来源与核验状态
 
-本计划基于三轮并行只读审查（数据层与并发 / UI 与渲染 / 工程化与安全）汇总而成。
+本计划基于三轮并行只读审查（数据层与并发 / UI 与渲染 / 工程化与安全）汇总而成；2026-09-15 追加第四轮专项审查（新增功能稳定性 / 文本一致性）。
 
 | 审查维度 | 状态 | 说明 |
 |:---|:---:|:---|
 | 数据层与并发/线程模型 | ✅ 已完成并核验 | 6 项核心指控：5 项完全属实，1 项经二次复核确认；已修正其 2 处行号偏差 |
 | 工程化与安全 | ✅ 已完成并核验 | 6 项核心指控全部属实 |
-| UI 与渲染性能 | ⏳ 进行中 | 未纳入本计划，待补充后追加为 T2.9~T2.11 |
+| UI 与渲染性能 | ✅ 已完成并核验 | 原「⏳ 进行中」为陈旧状态；已于 2026-09-12 闭环，结论见 §5 末与本文件头。**但该次闭环早于两个长卷功能的诞生**，未覆盖 T4.1~T4.4 |
 
 **核验方式**：全部结论均通过实际读取源码、`git` 元数据核查、全量 grep 交叉验证得出，每条任务均附 `文件:行号`。
 
@@ -71,6 +77,7 @@
 | **T1** | 发布与安全加固 | 5 | 小 | 逐项提交，1 天 |
 | **T2** | 性能优化（用户可感知） | 8 | 中 | 分批提交，3~5 天 |
 | **T3** | 工程质量与仓库治理 | 5 | 中~大 | 按需分批 |
+| **T4** | 新增功能稳定性 + 文本一致性 | 12 | 每项 ≤ 10 行（T4.5 为大清单除外） | 分批，1~2 天 |
 
 **提交规约**：遵循「完成一个可独立验证的小阶段 → 验证 → 中文 commit → push」。每项任务独立一次 commit，禁止堆积到最后统一提交。
 
@@ -537,7 +544,351 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 
 ---
 
-## 7. 执行顺序建议
+## 7. T4 梯队：新增功能稳定性与文本一致性
+
+> **来源**：2026-09-15 第三轮只读审查。本梯队问题**全部产生于 T0~T3 收官之后**——要么是新增功能引入（藏库导出长卷 `b3225e8`/`8421a19`/`595354b`、全息长卷预览、年鉴工作室），要么是历史功能删除后的文案残骸。
+> **核验声明**：本轮 40 条文本不一致与 8 项性能/架构缺陷，**每一条均经当前代码实测复核**（`Select-String` 统计引用数 + `Test-Path` 确认文件存在 + 实读上下文）。未采信任何仅来自旧文档或仅来自子代理的行号与数字；子代理报的 `getInstance` 51 处已按实测 65 处修正。
+
+### T4.0 基线漂移订正（先读这条，避免误用旧数据）
+
+| 本文档原有记录 | 2026-09-15 实测 | 影响 |
+|:---|:---|:---|
+| `BookDatabaseHelper` 3,805 非空行 | **4,047 非空行 / 120 个 `fun`** | T3.5 的拆分量化清单需按新值重估 |
+| 「45 处 Activity 级裸 `Thread`」 | **71 处** | 且新增实例连守卫都没带（见 T4.4） |
+| `Color.parseColor` 512 处 | **518 处** | 增量集中在 T2.3 之后新增的两个长卷 View |
+| T2.7「消灭五处 N+1」 | 存在**第 6 处**（`AnnualChronicleStudioActivity.kt:101`） | 见 T4.6 |
+| T2.9~T2.11「大 Bitmap 依赖延迟 GC，非泄漏，登记为已知债」 | 对**详情页长图 / 心选长卷**仍成立；对**新增两个长卷不成立** | 无上限 + 不 recycle + 无守卫 = 即时 OOM，单列 T4.1~T4.2 |
+| T3.5「建议做薄 `BookRepository`」 | 至今引用数 **0**；UI 层 `BookDatabaseHelper.getInstance(` 达 **65 处** | 降级为触发条件制（见 T4.11） |
+| `DATABASE_VERSION = 15`（T0.7 记录） | 现为 **17**，但 `DatabaseSchema.kt:8` 仍停在 15 | 见 T4.8 |
+| 技术栈现状 | `ViewModel` `LiveData` `StateFlow` `Room` `@Dao` 命中数**全部为 0**；`Dispatchers.` 仅 4 处 | 与 T3.5 判断一致，不作为任务 |
+
+**正面确认（避免后续误报）**：以下项实测**确已按 plan 修好**，不在 T4 范围——`CoverImageHelper` 有 LruCache + `inSampleSize` + `RGB_565` 降采样 + 有界线程池；全工程 `.commit()` 为 **0**（均 `apply()`）；五个网络客户端均有超时且无重复建 client；`data` 包**不 import 任何 ui/widget**（无循环依赖）；单例持 `applicationContext`（**无 Context 泄漏**）；`getAllFullWorkBackups()` 已批量；AndroidManifest 无悬空组件。
+
+> ❌ **本行原写「无失效 `@layout/`/`@drawable/` 引用」，已被 lint 实测推翻** —— 确实存在 3 个孤儿布局与 9 个孤儿 drawable。详见 T4.5-E。
+
+---
+
+### T4.1 两个长卷导出 Bitmap 无尺寸上限 🔴 最高优先
+
+**问题等级**：P1 — 大库必然 OOM
+
+**证据**：
+- `widget/LibraryScrollView.kt:114-121`
+  ```kotlin
+  val targetHeight = calculateContentHeight(targetWidth.toFloat()).toInt().coerceAtLeast(800)  // 只有下限
+  val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+  ```
+- `widget/MediaTimelineScrollView.kt:816-817` 同构，且**连 `coerceAtLeast` 下限都没有**。
+- 高度完全由藏品数量累加决定，无 MAX 封顶。ARGB_8888 单像素 4 字节，1080×30000 ≈ **123MB 单张 Bitmap**，超 Canvas 上限即 OOM。
+- **同项目内即有正确范例**：`AnnualChronicleStudioActivity.kt:319-325` 写了 `val maxDimension = 4096f` → `val scale = if (rawHeight > maxDimension) maxDimension / rawHeight else 1.0f` 后按比例缩放，且 `:358` 显式 `bitmap.recycle()`。两个长卷缺的正是这两步。
+
+**修复方案**：在两处 `exportUltraHdBitmap()` 内引入 `maxHeightPx`（建议 8192；如与年鉴一致取 4096 则长卷可读性下降，需权衡），`val scale = (maxHeightPx.toFloat() / targetHeight).coerceAtMost(1f)`，`createBitmap` 用缩放后高度，`drawScrollContent` 前 `canvas.scale(scale, scale)`。与年鉴对齐。
+
+**验证方式**：构造超大规模藏书（≥300 条）走一次导出，确认不崩、且 `bitmap.byteCount` 在预期量级；小库场景确认缩放为 1.0（画质无回退）。
+
+**改动量**：每文件 6~8 行，低风险
+
+---
+
+### T4.2 长卷 Bitmap 不 recycle + `releaseCovers()` 死方法 🔴
+
+**问题等级**：P1 — 与 T4.1 叠加构成即时 OOM（非良性的延迟 GC）
+
+**证据**：
+- `LibraryScrollPreviewActivity.kt` 实测 grep `recycle|isFinishing|isDestroyed|onDestroy|releaseCovers` → **命中 0 条**。生成大位图、压缩写盘后直接丢弃不回收，连 `onDestroy` 都未重写。
+- `MediaTimelineScrollActivity.kt:223-224` 的 `onDestroy` 为**空实现**（仅 `super`）。
+- `widget/LibraryScrollView.kt:106-108` 的 `releaseCovers()` 全项目命中数 **1（仅定义处）** → 导出后封面 LruCache（该 View 自建，`:42` 堆 1/8）永不释放。
+- 对照正确范例：`QuotePosterActivity.kt:252/285`、`AnnualChronicleStudioActivity.kt:358` 均显式 recycle。
+
+**修复方案**：两处 `exportAndShareScroll()` 写盘完成后无条件 `bitmap.recycle()`（放 `runCatching` 外，照年鉴写法）；两个 Activity 的 `onDestroy()` 调 `scrollView.releaseCovers()`。
+
+**验证方式**：连续导出两次不崩；Profiler 看导出后堆内存回落。
+
+**改动量**：4~6 行，低风险
+
+---
+
+### T4.3 备份导出全程在主线程 🔴
+
+**问题等级**：P1 — 大库必然 ANR
+
+**证据**：`BackupActivity.kt:232-249` 的 `exportDataToFile()` 由 `:27`/`:33`/`:39` 三个 `registerForActivityResult(CreateDocument)` 回调**直接调用 → 主线程**。函数内串行：`:233` `getAllFullWorkBackups()`（全表 + 六阶维度）→ `:235-237` 三种格式纯 CPU 序列化 → `:243` `content.toByteArray()`（整包再拷一份）→ `:242` 写盘。**零线程切换**。
+- **同文件内即有正确范例**：`importDataFromFile()` 从 `:254` 起已正确 `Thread{}` 后台化并带 `:262` 守卫。**导入导出一边做了一遍没做**。
+
+**修复方案**：将 `:233-249` 整体包进 `Thread { … runOnUiThread { if (isFinishing || isDestroyed) return@runOnUiThread; Toast } }`，照抄导入范式。SAF 回调内即时取到的 `uri` 无需 `takePersistableUriPermission`。
+
+**验证方式**：大库导出时不弹 ANR；失败 Toast 仍在主线程弹出。
+
+**改动量**：约 8 行包裹，低~中风险（需把 Toast 回主线程）
+
+---
+
+### T4.4 新增长卷 `runOnUiThread` 无生命周期守卫 🟡
+
+**问题等级**：P1 — 特定路径崩溃
+
+**证据**：`LibraryScrollPreviewActivity.kt:93`（内含 `:104` `startActivity(shareIntent)`）与 `:107`、`MediaTimelineScrollActivity.kt:203` —— 后台导出完成后**无条件**回主线程 `startActivity`，**无 `isFinishing || isDestroyed` 判断**。对比 `ResonancePosterActivity.kt:279/311`、`AnnualChronicleStudioActivity.kt:360`、`BackupActivity.kt:262` 均有守卫。
+
+**净效果**：导出耗时较长时用户退出页面 → Activity 销毁后回调 `startActivity`。
+
+**说明**：plan 登记的「45 处裸 Thread 按需迁移」已涨至 **71 处**，且**新增实例连守卫都没带上**——即「按需」部分在新增代码上未落实。
+
+**修复方案**：每处 `runOnUiThread {` 首行补 `if (isFinishing || isDestroyed) return@runOnUiThread`。
+
+**改动量**：每处 1 行，极低风险
+
+---
+
+### T4.5 僵尸文本清理（人工 43 处 + lint 追加 112 项）🔴 清单型任务
+
+**问题等级**：P1（用户可感知的错误信息）+ P2（维护误导）
+
+**判定基准**（已 `Test-Path` 确认**已物理删除**）：`Gallery3DActivity.kt`・`SpatialParallaxGalleryActivity.kt`・`BookDetailActivity 内 3D 阅读器入口`・`Book3DReaderActivity.kt`・`ReadingTimerActivity.kt`・`ObsidianPureBlackEngine.kt`・`activity_gallery_3d.xml`。即 **3D 私人展厅 + 2.5D 视差展厅 + 3D 翻书阅读器三者全部不存在**。
+
+#### 🚨 红线：以下「展厅」存活，不得连带清理
+
+| 项 | 状态 |
+|:---|:---|
+| `community/ui/CommunityGalleryActivity.kt` | ✅ **实测存在**，社区展厅是活功能 |
+| `gallery3d/Gallery3DRenderer.kt` | ✅ **实测存在**，被社区展厅使用（OpenGL ES 渲染未删） |
+| `fragment_profile.xml:259`「漫游探访同频策展人的 **3D 虚拟展厅**」 | ✅ **正常文案**，指向社区展厅 |
+| `activity_community_gallery.xml` | ✅ 存活 |
+| 「防 OLED 烧屏」（`StandByZenDeskActivity:21`）、主题「曜石黑金」、「Obsidian Markdown 导出」、`DioramaBoxView` 标本盒、伴读钟 | ✅ 均存活，**不在清理范围** |
+
+#### A 组：会真实显示给用户的 5 处（最高优先）
+
+| # | 位置 | 用户看到 | 实际行为 | 改法 |
+|:--:|:---|:---|:---|:---|
+| 1 | `ui/fragment/HubFragment.kt:509-515` | 主页首屏 Hero 大按钮 **「📖 3D 沉浸翻阅」**（`MediaType.BOOK` 分支） | `:329` 实跳 `BookDetailActivity` | 改中性文案（如「📖 进入详情」）。**注：此为硬编码字面量，不走 string 资源，故躲过了 lint 的 `UnusedResources`** |
+| 2 | `res/layout/activity_exhibition_detail.xml:32-46` | 展览详情页顶部**金色实心按钮「🏛️ 3D 漫游」**，`id=detail3DExploreBtn` | 全项目 Kotlin **引用数 0** → **点击无任何反应**。该页经 `CommunityActivity:172/201` 可达 | **整块删除该 TextView**（首选），或接回真实目的地 |
+| 3 | `data/BookDatabaseHelper.kt:966/1206/1401/1999` + `assets/preset_all.json` 约 200 条 | 详情页「陈列位置」显示 **「展厅第5层 · 电子游戏神作馆」** | 经 `BookDetailActivity:258` 的 `detailShelfLocation` 真实渲染。**展厅已不存在，却告知用户藏品在展厅第几层** | 改中性表述（如「馆藏第5层」）。**⚠️ 涉及存量数据，见 §10 决策 #8** |
+| 4 | `model/ChangelogData.kt:107/109` | App 内「版本演进纪要」：**「OLED 曜石真黑熄屏模式上线」**、**「2.5D visionOS 空间标本盒展厅，与经典 3D 展厅双模共存」**（另 `:147` 3D 陀螺仪视差画廊） | 三功能均已删。纪要在向用户介绍**不存在的能力** | 历史条目保留但需标注「已于 vX 移除」，见 §10 决策 #9 |
+| 5 | `res/xml/widget_currently_reading_info.xml:3` | 桌面小部件选择器：**「支持一键直达 3D 拟真翻阅」** | 3D 翻阅阅读器已删 | 去掉「3D 拟真翻阅」描述 |
+
+#### B 组：`strings.xml` 零引用死文案 23 条
+
+已用脚本逐个统计 `R.string.x` 与 `@string/x` 两种引用，**以下 23 条引用数确认为 0**：
+- **已删 3D 私人展厅专用（11 条）** `strings.xml:253-263`：`home_gallery_title`（🏛️ 3D 私人展厅）、`home_gallery_desc`、`home_gallery_badge_format`、`gallery_activity_title`、`gallery_activity_subtitle`（360° 环视…精神殿堂）、`gallery_theme_midnight/warm/zen`、`gallery_focus_view_detail`、`gallery_empty_title`（展厅尚在虚席以待）、`gallery_empty_desc`
+- **已删 3D 翻书阅读器专用（10 条）** `:264-273`：`reader_activity_title`、`reader_action_import_txt`（导入 TXT 全文）、`reader_import_txt_success`、`reader_import_txt_failed`、`reader_theme_parchment/mint/night`、`reader_btn_add_excerpt`、`reader_excerpt_added_toast`、`reader_page_indicator_format`
+- **已删阅读计时器小组件专用（2 条）** `:279-280`：`widget_reading_timer_name`（今日专注打卡）、`widget_reading_timer_desc`
+
+另有 1 条**被引用但永不可见**：`:274 action_3d_read`（📖 3D 沉浸阅览）—— 仅作 `activity_book_detail.xml:208` `detailRead3DButton` 默认值。已实测 `BookDetailActivity:1399-1486` 五个分支：BOOK 走 `visibility=GONE`（`:1402`），其余四个均运行时改 `.text`（`:1419/1442/1463/1486`）→ **该默认值永不呈现**，属纯僵尸资源。
+
+#### C 组：死代码与孤儿资产（7 处）
+
+**历史成因（2026-09-15 补录）**：后 3 项来自 **2026-09-14 那次未提交的「双生共鸣算法重构」会话**（HEAD 为 `5d4b4af` 于 09-13 11:50，四个文件 mtime 均在 09-14 13:22~14:41）。该次会话把数据来路从 4 个分媒介 CSV 改为单一 `preset_all.json`（因 CSV 格式无法携带六维心智档案），**在文档中有完整记录**，但**没同步清理旧链路的残留** —— 正好命中 T4.10 清单的第 1、5 两面。
+
+| 位置 | 实测证据 |
+|:---|:---|
+| `data/BookDatabaseHelper.kt:3117-3120` | `getGalleryFeaturedWorks()` 及其 KDoc「获取 3D 私人展厅陈列精选作品」—— 全项目**调用点 0**，为已删展厅取数 |
+| `widget/LibraryScrollView.kt:106-108` | `releaseCovers()` **命中 1（仅定义）** → 零调用（T4.2 会接线，接线后不再是死代码） |
+| `MainActivity.kt:218` | `preloadRemainingTabs()` **零调用** —— T0.x 播种后台化后的配套 Tab 预热根本没接线。**需决策：接线还是删除** |
+| `data/UserPreferencesManager.kt:216-227` + `BookDatabaseHelper.kt:3165-3173` | `getReadingPage`/`saveReadingPage` 阅读页码存取，为已删 3D 阅读器服务，无外部调用方（仅内部互相委托） |
+| ⬅ 新 `ui/fragment/HubFragment.kt:696` | `importAssetCsv()` 现**仅剩定义、零调用**（四个调用点已在 09-14 被删除）。当时的判断是「保留定义未删，避免过度改动」——**现在它正式成为待清项** |
+| ⬅ 新 `assets/preset_books.csv` / `preset_anime.csv` / `preset_movies.csv` / `preset_games.csv` | 四个旧数据源（共 205 部）在全部 Kotlin 中**引用数 0** → **整体孤儿资产**。⚠️ **lint 不扫 `assets/`**，这类只能人工发现（再次印证 T4.5-E 的「混合信号桶」结论）。处置时需决：删文件 / 还是保留作 CSV 导入的格式范例 |
+| ⬅ 新 仓库根 `912.json` / `912_filled.json` | 均为**未跟踪**调试产物（前者是原始导出，后者是 `tools/backfill_mindprint.py` 的输出，已 `cp` 为 `preset_all.json`）。中间产物无需长期留在根目录 |
+
+#### D 组：文档层
+
+| 位置 | 残留 |
+|:---|:---|
+| `README.md:119`、`:158` | 「Web 微卡 / DeepLink」「+ Web 微卡深链」—— `InteractiveWebCardExporter` 已删（`910a84a`），仅 `readtrace://` 深链存活 |
+| `readtrace_project_plan.md:1073-1074` | 「3D 展厅到阅读器的破壁穿梭转场…在 3D 私人展厅中点击某部作品」—— 展厅与阅读器均已删 |
+| `readtrace_project_plan.md:1477/1480/1497/1514-1518/1537` | 整节描述已删的 `ClipboardSnifferHelper`（`da6855b` 删）、`IsbnScannerActivity`（`b00e19d` 删）、ML Kit 本地扫码 |
+| `readtrace_project_plan.md:72-83/523-599` | 「Python + FastAPI」「GET /api/books」等后端章节 —— 描述已归档的 `archive/fastapi-backend`；现架构为 Local-First SQLite + WebDAV |
+| `ui/QuickLogBottomSheet.kt:168` | 注释「剪贴板嗅探预填」—— `ClipboardSnifferHelper` 已删，实际用入参 `prefillTitle`。命名残留，**低优先** |
+
+#### E 组：lint 全量交叉校验揭示的额外僵尸资源（112 项）🔴
+
+**本节为 T4.9 先于 T4.5-B 执行的直接回报**。方法：不改动 21,181 行的 baseline，而是**临时将其移出**（SHA256 校验已确认逐字节还原），跑 `lintDebug` 取全量报告后解析。
+
+**可信度前提（已实测）**：全工程 `getIdentifier` / `resources.get*` 反射取资源**零命中** → lint 的 `UnusedResources` 在本项目**不存在误报机制**，112 项均为真未引用。
+
+| 类别 | 数量 | 明细 |
+|:---|:--:|:---|
+| `strings.xml` | **94** | 含人工清单的全部 23 条，另 **71 条为人工漏网** |
+| 孤儿布局 | **3** | `layout_dialog_clipboard_sniffer.xml`（对应已删的 `da6855b`）、`item_reading_session.xml`（对应已删的阅读计时/3D 阅读器）、`activity_anime_timeline_scroll.xml`（已被通用 `MediaTimelineScrollActivity` 取代） |
+| 孤儿 drawable | **9** | `bg_cloud_music_icon_circle_dark` / `bg_cloud_music_picker_sheet` / `bg_cloud_music_picker_item`（云音乐选单三件套）、`bg_stat_bar`、`bg_scrollbar_thumb`、`bg_picker_selected_pill`、`bg_widget_progress_track`、`default_curator_avatar.png`、`ic_launcher_foreground_bitmap.png` |
+| 孤儿 xml 规则 | **2** | ⚠️ `backup_rules.xml` + `data_extraction_rules.xml` —— **这是 T0.6 将 `allowBackup` 改 `false` 后直接变死的资源**。即 T0 自己制造了 2 个僵尸，且其「TODO 模板未改」证据注释仍留在文件里 |
+| 孤儿 color / style | **3 + 1** | `R.color.black`、`readtrace_scrollbar_thumb`、`readtrace_soft_shadow`；`R.style.StarPickItem` |
+| **合计** | **112** | 与 baseline 中被豁免的 `UnusedResources` 条目数（112）**完全一致** → 印证这批告警自 T3.1 起就被整批吞掉 |
+
+**对我上轮结论的修正**：我曾报「Manifest/布局/drawable 未发现问题」—— **错**。硬引用（`@layout/xxx` 这样的声明式引用）确实干净，但**整个文件本身已无人加载**的孤儿布局/drawable 有 12 个，这类只有脱离 baseline 跑全量 lint 才能发现。
+
+**本轮方法论收获（写进 §9 作为后续依据）**：「未使用资源」是一个**混合信号桶**，里面既有真垃圾，也有「**写了但忘接线**」的缺陷。只靠人工按功能删改历史去查（我的 23 条），**必然错过后者** —— 因为 `widget_*_name` 与任何已删功能都无关，不在推理链上。这正是门禁优于人工排查的地方。
+
+**额外发现（人工模式天然漏）**：71 条漏网 string 中包含整族筛选标签（`status_all/reading/finished/paused/dropped/wishlist`、`tag_all`、`media_type_all`）与整族主页标题（`home_stat_*`、`home_badge_*`、`home_shelf_*`）—— 说明**历次 UI 重写把文案改成了布局内硬编码**，资源定义被整体抛弃。这同时是一笔 `HardcodedText` 债，不属本轮范围但应登记。
+
+**🚨 关键分类：112 项不等于「全删」**。本轮顺带挖出一个**真实存在的用户可见缺陷**：
+
+> `strings.xml:277/279/281` 定义了三个友好名称 —— 「阅痕 · 每日金句书签」、「阅痕 · 今日专注打卡」、「阅痕 · 在读书目卡片」，但实测 `@string/widget_*_name` 与 `R.string.widget_*_name` **全工程引用数为 0**，且 `AndroidManifest.xml:145/158/170` 三个 `<receiver>` **均无 `android:label`**。
+> **净效果**：用户在桌面小组件选择器里看到的是**自动生成的类名**（如 `DailyQuoteWidgetProvider`），而不是已经写好的中文名。
+> 这三个资源**不是垃圾，是漏接线**。因此：
+
+| 处置 | 项 | 动作 |
+|:---|:---|:---|
+| **接线，不删** | `widget_daily_quote_name`、`widget_currently_reading_name` | 给 `AndroidManifest.xml:145`/`:158` 两个 `<receiver>` 补 `android:label="@string/widget_…_name"`（共 2 行，可直接用户感知收益） |
+| **删** | `widget_reading_timer_name` / `_desc` | 对应的 `ReadingTimerWidgetProvider` 已删且 Manifest 未注册，**无 receiver 可接**，属真僵尸 |
+| **待定** | `backup_rules.xml` / `data_extraction_rules.xml` | 因 `allowBackup="false"` 而失效。删之干净，留之无害；**建议保留**并在文件头加一行注释说明为何保留，避开下次又被当成遗漏 |
+
+**全量 94 条未使用 string（按名排序，可直接作为删除清单）**：
+
+```
+action_backup, action_cancel, archive_failed, archive_success, badge_progress_format,
+book_detail_hint, book_meta_format, book_save_failed, book_saved, book_update_failed,
+book_updated, decorative_book, discover_batch_done, discover_cache_note,
+discover_selected_mark, discover_summary_source, edit_book_subtitle, edit_book_title,
+empty_filter_body, empty_filter_title, empty_shelf_action, empty_shelf_body, empty_shelf_title,
+error_rating, field_creator, gallery_activity_subtitle, gallery_activity_title,
+gallery_empty_desc, gallery_empty_title, gallery_focus_view_detail, gallery_theme_midnight,
+gallery_theme_warm, gallery_theme_zen, hard_delete_book_failed, hard_delete_book_success,
+hard_delete_confirm_message, hard_delete_confirm_title, hint_category, hint_rating, home_add,
+home_average_empty, home_badge_summary_format, home_badge_title, home_badge_view_all,
+home_gallery_badge_format, home_gallery_desc, home_gallery_title, home_insight_title,
+home_memory_title, home_monthly_stat_empty, home_monthly_stat_title, home_search_hint,
+home_shelf_count_format, home_shelf_filtered_count_format, home_shelf_section,
+home_stat_average, home_stat_finished, home_stat_reading, home_stat_total, home_subtitle,
+import_failed, import_no_new_books, import_preset_confirm_message, import_preset_confirm_title,
+import_success_format, media_type_all, reader_action_import_txt, reader_activity_title,
+reader_btn_add_excerpt, reader_excerpt_added_toast, reader_import_txt_failed,
+reader_import_txt_success, reader_page_indicator_format, reader_theme_mint, reader_theme_night,
+reader_theme_parchment, restore_book_failed, restore_book_success, search_clear, search_hint,
+search_no_results, status_all, status_dropped, status_finished, status_paused, status_reading,
+status_wishlist, tag_all, today_reflection_body, today_reflection_title,
+widget_currently_reading_name, widget_daily_quote_name, widget_reading_timer_desc,
+widget_reading_timer_name
+```
+
+> ⚠️ 其中 `widget_currently_reading_name` 与 `widget_daily_quote_name` **属于上表「接线」类，不得删**。剔除这 2 条后实删 **92 条**。
+
+**取全量清单（重建报告时用，名单已固化在上方，无需重跑即可执行）**：
+```powershell
+# 临时移出 baseline → 跑 lint → 还原后解析
+[xml]$x = Get-Content app/build/reports/lint-results-debug.xml -Encoding UTF8 -Raw
+$x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object { $_.message }
+```
+
+**验证方式**：`assembleDebug` 通过；逐一手动过主页 Hero / 社区展览详情 / 任意预设作品详情页 / 版本纪要 / 小部件选择器五处，确认无指向不存在功能的描述。E 组删除后跑 `./gradlew :app:testDebugUnitTest` 确认无测试通过资源名引用这些项。
+
+**⚠️ E 组执行约束**：lint 的 `UnusedResources` 不扫 `androidTest`/`test` 源码目录，且若资源被 `values-night`/`-land`/`-sw600dp` 等限定符变体引用，删主定义前必须逐个确认变体。**每删一组必跑 `assembleDebug`**。
+
+**改动量**：A 组约 10 行；B 组 23 条 → **应扩至 E 组的 94 条一并处理**（同源同性质，分两次做纯浪费）；C 组 7 处；D 组文档编辑；E 组为 12 个文件删除 + 94 条资源。
+**建议拆为 4 次 commit**：A（用户可见）/ B+E（全量僵尸资源，含孤儿文件）/ C（死代码）/ D（文档）。
+
+---
+
+### T4.6 数据访问主线程残余（合并 3 项）🟡
+
+| 子项 | 位置 | 证据 |
+|:---|:---|:---|
+| a. 主线程 `getBooks()`（`SELECT *` 含长正文） | `MediaTimelineScrollActivity.kt:129`、`ResonancePosterActivity.kt:197`、`BackupActivity.kt:112` | `getBooks()`（`BookDatabaseHelper.kt:2210`）projection 传 `null` = SELECT *。**`BackupActivity:112` 拖全表只为取 `works.size`（`:114`），而 `getTotalBooksCount()` 早已存在** |
+| b. 第 6 处 N+1 | `AnnualChronicleStudioActivity.kt:101` | `allBooks.sumOf { dbHelper.getNotes(b.id)… }` 每书一次 SQL；T2.7 列举的五处**不含此处**（`:143` 已置后台，不 ANR 但仍慢） |
+| c. CSV 导入写库在主线程 | `BackupActivity.kt:306-340` | 与 `:252-304` 已后台化的 JSON 导入路径**不对称** |
+
+**修复方案**：a 项——`BackupActivity:112` 改调 `getTotalBooksCount()`；另两处改用已有的 `getBooksForList()`（`:2233` 列白名单）并移出主线程。b 项——新增 `getAllNotesLite()` 批量取 `book_id, created_at` 后内存聚合。c 项——照抄 JSON 导入范式。
+
+**改动量**：每子项 1~10 行，低风险
+
+---
+
+### T4.7 长卷预览 O(N²) 重绘 与 PDF 后台绘制 View 树 🟡
+
+- **预览重绘**：`widget/LibraryScrollView.kt:238-241`（`onDraw` → `drawScrollContent`）内 `:308` 逐卡 `cardLayoutFor`、`:195-204` `titleLayoutFor` 每次 `StaticLayout.Builder.build()`，叠加 `:358/364/382/396` 多次 `Color.parseColor` 字面量；`setLibraryData:89-99` 每张封面异步回调各 `postInvalidate()` 一次 → **N 张封面 = N 次整卷重绘**，单次成本又含 N 次 StaticLayout 构建。这两个 View 晚于 UI 专项审查（`d0cc750`）诞生，故逃过 T2.3。改法：`LinkedHashMap` 缓存 layout、颜色提为成员预解析常量、封面回改用 `postInvalidateOnAnimation()` 合并。
+- **PDF 导出**：`AnnualChronicleStudioActivity.kt:382` `Thread {` 内 `:401` `content.draw(canvas)`，`content` 是**已 attach 的屏幕 View 树**（含 `CulturalTreeRingsView`/`MindprintRadarView`）。非 UI 线程绘制 View 树属未定义行为（可能空白/错乱/「Only the original thread…」）。改法：取图阶段回主线程离屏绘成 Bitmap，再后台写 PDF 流。
+
+**改动量**：预览约 30~50 行/文件（中）；PDF 需重排 `:382-405`（中）
+
+---
+
+### T4.8 `DATABASE_VERSION` 双真值（17 vs 15）🟡
+
+**问题等级**：P1 — 平时不炸，一旦误用即静默的版本判断错误
+
+**证据**（实测全量定义）：
+- `data/BookDatabaseHelper.kt:4026` → `const val DATABASE_VERSION = 17` ✅ **实际生效**（`:29-30` 构造解析到 companion）
+- `data/DatabaseSchema.kt:8` → 顶级 `const val DATABASE_VERSION = 15` ❌ 陈旧
+- `data/DatabaseSchema.kt:105` → 门面 `const val DATABASE_VERSION = com.example.readtrace.data.DATABASE_VERSION`（= 15）❌
+- `DatabaseSchema.DATABASE_VERSION` 的**引用数为 0** → 死代码，但它是**名义上的「schema 门面」**，新代码很可能优先取它。
+
+**修复方案**：删除 `DatabaseSchema.kt:8` 与 `:105` 的 15，或由门面代理到 `BookDatabaseHelper.DATABASE_VERSION`，保证**单一真值**。
+
+**验证方式**：`assembleDebug` 通过 + 现有 `DatabaseMigratorGuardTest`/`DatabaseMigratorJvmTest` 全绿。
+
+**改动量**：2 行，极低风险
+
+---
+
+### T4.9 机制项：把 `UnusedResources` 从 baseline 豁免中摘出 🔵
+
+**问题等级**：P1（治本）— 不修这条，T4.5 做完三个月后同样问题必然复发
+
+**根因**：四个**手工维护的文字面**（`strings.xml` / `ChangelogData.kt` / `README.md` / `assets/preset_all.json`）与代码之间**零约束**。任何功能删改都不会触发它们的告警。
+
+**关键事实**：`app/lint-baseline.xml` 的问题清单中**已包含 `UnusedResources`**（与 `HardcodedText`、`DrawAllocation`、`UselessParent` 等共 38 类）。即 T3.1 生成 baseline 时 lint **已经知道**那 23 条字符串未使用，随后被永久豁免。**门禁建成了，但把这一项的告警吞进了 baseline。**
+
+**修复方案（采保守版）**：
+1. **不跑** `updateLintBaseline`（那会把 T3.1 之后新积累的存量告警一并豁免）。改为**手工从 `lint-baseline.xml` 中删除 `UnusedResources` 那一节**，使其单独以告警形式生效。
+2. `app/build.gradle.kts:109-113` 的 `lint { }` 中补 `error += "UnusedResources"`（或 `warningsAsErrors` 仅对该项收敛），确保 CI `lintDebug` 真能拦。
+3. **顺带修一处构建脚本僵尸注释**：`app/build.gradle.kts:123` `// P14 Web 微卡二维码生成（纯 JVM 核心，无额外传递依赖）` 现错挂在 `:124` `testImplementation(libs.junit)` 上方。实测 `zxing|QRCode|BitMatrix` 在全部 Kotlin 中**零命中** → 二维码依赖已随 `InteractiveWebCardExporter` 删除，**注释留下并误导读者以为 junit 是二维码库**。删除该注释。
+
+**⚠️ 涉及构建系统改动，执行前需用户明确同意。**
+
+**验证方式**：~~先跑 `./gradlew lintDebug` 取得全量清单并与 B 组交叉比对~~ → **✅ 已于 2026-09-15 完成**，结果见 T4.5-E：lint 确认了人工 23 条的全部（**零假阳性**），并额外暴露 **89 项人工漏网**（含 12 个孤儿布局/drawable/xml 文件）。本任务的**数据采集部分已闭环**，剩余仅余门禁配置。
+
+**本任务尚余两步（待 §10 决策 #11 授权）**：
+1. 从 `lint-baseline.xml` 中删除那 112 条 `UnusedResources` 豁免条目（使该项恢复告警）；
+2. 清完 T4.5-B+E 后再跑 `lintDebug` 确认零告警，并把 `UnusedResources` 固化进 §9 DoD。
+
+**⚠️ 方法建议**：删豁免时**不要跑 `updateLintBaseline`**（会把 T3.1 之后新积累的存量告警一并豁免）。本轮采集用的是更安全的做法：**不动 baseline 内容**，而是 `Move-Item` 临时移出→跑 lint→`finally` 移回，并用 **SHA256 前后比对**证明逐字节还原（实测 `HASH_MATCH=True`）。建议沿用此法。
+
+**收益**：做完这一条，B 组 23 条僵尸字符串**以后根本不需要人工排查**，CI 直接报。另 `HardcodedText` 也值得看一眼——主页那个「📖 3D 沉浸翻阅」是硬编码字面量，正因如此才躲过了所有静态检查。
+
+---
+
+### T4.10 提交规约：功能删除六面同步清单 🔵
+
+追加至 §9「禁止事项」之后，作为**正向规约**（成本 6 行）：
+
+> **删除任何功能时，必须同步清理以下 6 个面**，否则视为未完成：
+> 1. 类文件与 Manifest 注册；2. `strings.xml`（含 `values-night`）与布局内硬编码文案；3. `model/ChangelogData.kt` 条目（需标「已移除」而非直接删，保留历史真实性）；4. `README.md` 功能列表与架构图节点；5. `assets/preset_all.json` 与 `BookDatabaseHelper` 播种数据；6. `app/build.gradle.kts` 依赖行及其上方注释。
+
+**依据**：本轮 40 处僵尸正好大致均匀地落在这 6 个面上，而**硬引用（import/调用/Manifest/布局悬空）已清理干净**——说明删除动作本身做得好，缺的只是「同步清理清单」这一纸约定。
+
+---
+
+### T4.11 明确暂不做（触发条件制）
+
+沿用 T3.5 的写法：**只记条件，不记任务**。以下三项已知但该做，**不列入 T4 执行范围**：
+
+| 项 | 实测规模 | 重启条件 |
+|:---|:---|:---|
+| 抽 `object ImageExporter` 统一导出/存相册/分享 | `Bitmap.createBitmap(` 散在 **17 个文件**、`getUriForFile` 在 **11 个**、MediaStore 存图 **6 个** | **T4.1~T4.4 修完后紧迫性大幅下降**（四个 P1 本质是同一条缺陷的不同症状）。当出现**第 4 份**分叉实现时应重启，而非继续加点 |
+| 薄 `BookRepository` | UI 层 `getInstance(` **65 处** | 当需要替换存储（Room）或需对数据层做单测时重启。目前 `data` 包无循环依赖、无 Context 泄漏，分层缺失只付「维护成本」，未付稳定性代价 |
+| 拆 `PresetSeeder` / `StatsQueries` | `BookDatabaseHelper` **4,047 行**；13 个播种方法签名全为 `fun x(db: SQLiteDatabase)` 且**不依赖实例字段**（8 个统计方法同理） | **拆分条件极低成本高**（可纯机械搬移减 1000+ 行）。仅在下一次必须改播种逻辑时顺手做，不单独立项 |
+
+---
+
+### T4.12 桌面小组件名称未接线 🟡（T4.5-E 副产品，真实缺陷）
+
+**问题等级**：P2 — 用户可见的粗糙观感，与功能无关，**2 行可修**
+
+**证据**：
+- `res/values/strings.xml:277` `widget_daily_quote_name` = 阅痕 · 每日金句书签
+- `:281` `widget_currently_reading_name` = 阅痕 · 在读书目卡片
+- 两个名称的全工程引用数 = **0**（`@string/widget_*_name` 与 `R.string.widget_*_name` 均零命中）
+- `AndroidManifest.xml:145`（`DailyQuoteWidgetProvider`）与 `:158`（`CurrentlyReadingWidgetProvider`）两个 `<receiver>` **均无 `android:label`**；全 Manifest 仅 `:15` 应用级 `android:label="@string/app_name"` 一处
+
+**净效果**：长按桌面 → 小组件选择器时，这两个组件显示的是**自动推导名**而非已写好的中文名。
+
+**修复方案**：给两个 `<receiver>` 各补一行 `android:label="@string/widget_…_name"`。建议**先于 T4.5-B 的批量删除执行**，否则名称资源会被当作未使用而删掉，缺陷反而永久固化。
+
+**验证方式**：`assembleDebug` → 安装 → 长按桌面图标→ 小组件→ 确认列表里显示「阅痕 · 每日金句书签」与「阅痕 · 在读书目卡片」。
+
+**改动量**：2 行，极低风险。**这是本轮唯一「新增收益型」修复，建议排在 T4 第一批做。**
+
+---
+
+## 8. 执行顺序建议
 
 ```
 T0.1 迁移守卫（2 行）        ← 最优先，正在破坏用户数据
@@ -556,13 +907,34 @@ T2.1 藏库强制重查（高收益低风险）
 T2.2~T2.8 性能纵深
   ↓
 T3.1~T3.4 工程治理
+  ↓
+T4.1 长卷尺寸封顶 → T4.2 recycle → T4.4 补守卫   ← 三项同为即时 OOM/崩溃，改动极小
+T4.3 备份导出后台化                                ← ANR
+T4.5-A 用户可见僵尸文案（10 行）                  ← 用户可直接感知，零功能风险
+T4.12 小组件名称接线（2 行）                      ← 唯一新增收益型修复；**必须先于 T4.5-B**，否则名称资源会被连带删除
+  ↓
+T4.5-B+C 删 23 条僵尸 string 与 4 处死代码（建议与 T4.5-A 分开 commit）
+T4.6 数据访问主线程残余（3 子项）
+T4.8 DATABASE_VERSION 双真值（2 行）
+  ↓
+T4.9 lint UnusedResources 摘出 baseline（需确认）→ 再清 T4.5-B，顺序不可颠倒
+T4.10 提交规约六面同步（6 行）
+T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 ```
 
 **为什么 T0.1 排第一**：改动仅 2 行、可独立验证，但性质是**正在静默破坏用户数据且不可逆**，比性能问题严重一个量级。
 
+**T4 内部为何是这个顺序**：
+1. **T4.1 → T4.2 → T4.4 必须连做**：它们叠加才构成即时 OOM/崩溃，单修任何一个都不完整。
+2. **T4.5-A 先于其余全部僵尸清理**：那 5 处是**用户正在看到的错误信息**（含一个点了没反应的按钮），且只需改文案；而 B/C 组是纯内部卫生，用户无感。
+3. **T4.9 必须在 T4.5-B 之前**：先解除豁免才拿得到 lint 的**全量未使用资源清单**，用它交叉校对我人工统计的 23 条（预期 lint 命中集 ⊇ 23，能暴露本轮漏网项），再统一清。顺序颠倒则 B 组只能靠人工，且无法防复发。
+   → **已验证**：实际执行后 lint 命中集确实 ⊇ 23，且额外暴露 89 项（含 12 个孤儿文件与 2 个应接线而非删的名称资源）。见 T4.5-E。
+4. **T4.12 必须先于 T4.5-B**：它两个名称资源在 lint 眼里就是「未使用」，先批量删除会把缺陷永久固化。
+5. **T4.11 不占顺序**：只记条件，不执行。
+
 ---
 
-## 8. 验证与提交规约
+## 9. 验证与提交规约
 
 ### 每项任务的完成定义（DoD）
 1. 代码修改完成，且**仅修改本任务相关文件**（遵循最小修改原则）。
@@ -571,6 +943,11 @@ T3.1~T3.4 工程治理
    - **T0.3**：StrictMode 冷启动检查 + 埋点计时
    - **T1.x**：`assembleRelease` 通过 + 签名校验
    - **T2.x**：Profiler 对比 / `EXPLAIN QUERY PLAN` / 布局层级对比
+   - **T4.1 / T4.2**：构造≥300 条藏书库走一次长卷导出，确认不崩、`bitmap.byteCount` 在预期量级、导出后堆内存回落；**必须在模拟器上实跑**，不得只靠静态推导结案
+   - **T4.3 / T4.4 / T4.6**：大库导出/导入无 ANR；导出期间退出页面不崩溃
+   - **T4.5**：`assembleDebug` 通过 + **逐一手验五处**（主页 Hero / 社区展览详情 / 预设作品详情页 / 版本纪要 / 小部件选择器）；B 组删除后必须确认 `values-night` 无同名残留
+   - **T4.8 / T4.9**：`assembleDebug` + 现有 `DatabaseMigratorGuardTest`/`DatabaseMigratorJvmTest` 全绿 + `lintDebug` 通过
+   - ⚠️ **T4 的性能数字均为静态分析得出，未经 Profiler/systrace 实测**；带 🔴 的项不得以「编译通过」作为完成证明
 3. 全量 `./gradlew testDebugUnitTest` 通过（**首次运行会往 C 盘写 Gradle 发行包约 150 MB 及 `build/` 产物，需用户事先授权**）。
 4. 中文 commit（格式 `类型：修改内容`，如 `修复：解决迁移器丢失source_type守卫导致用户评分被篡改`）。
 5. Push 到当前远程分支。
@@ -581,9 +958,24 @@ T3.1~T3.4 工程治理
 - 禁止在没有验证的情况下声称「已完全解决」。
 - 任何涉及**删除、覆盖、历史重写**的操作，执行前必须获得用户明确允许。
 
+### 正向规约：功能删除六面同步清单（T4.10）
+
+> 本规约为 T4.5 排查的直接产出。**删除任何功能时，必须同步清理以下 6 个面**，否则视为未完成：
+>
+> | # | 同步面 | 本轮对应的漏清实例 |
+> |:--:|:---|:---|
+> | 1 | 类文件与 `AndroidManifest` 注册 | ✅ 这一面**已清理干净**（无 import/调用/组件残留） |
+> | 2 | `strings.xml`（含 `values-night`）与布局内**硬编码文案** | ❌ 23 条零引用 string + `activity_exhibition_detail.xml:43` 死按钮 + `HubFragment:510` 硬编码字面量 |
+> | 3 | `model/ChangelogData.kt` 条目 | ❌ `:107/:109/:147` 仍向用户介绍已删能力。**注：应标「已于 vX 移除」而非直接删，保留历史真实性** |
+> | 4 | `README.md` 功能列表与架构图节点 | ❌ `:119/:158` 仍写「Web 微卡」 |
+> | 5 | `assets/preset_all.json` 与 `BookDatabaseHelper` 播种数据 | ❌ 约 200 条 `shelfLocation` 仍写「展厅第N层」 |
+> | 6 | `app/build.gradle.kts` 依赖行**及其上方注释** | ❌ `:123` 二维码注释已孤儿化，错挂在 `:124` junit 上 |
+>
+> **为何有效**：40 处僵尸大致均匀落在这 6 个面上，而硬引用完全干净——说明**删除动作本身做得好，缺的只是这一纸清单**。属流程问题而非能力问题，故可用规约收敛。
+
 ---
 
-## 9. 待用户决策清单
+## 10. 待用户决策清单
 
 > **2026-09-13 落实结果**：#3 已解决（用户授权「计划内完成」后 Gradle 测试/构建常态化执行，全量单测 69 个全绿）；#4 已解决（`cover_server/` 经用户确认整目录删除）；#5 已解决（README 失效链接与 LICENSE 已在 `148cca8` 处理，本轮核验通过）；#6 已解决（小程序端已有独立仓库，保持独立版本控制，不入主库）；#7 已解决（核验发现 `targetSdk` 实际已为 36，且 Android 17 (API 37) 已于 2026-06-16 发布稳定版，原「beta 轨道」顾虑失效）；#2 维持 T0 阶段方案（敏感键值留空 + example 模板，`gradle.properties` 模板文件继续入库）。**#1 仍待决策**：已被 v15 随机改写评分的存量数据是否做补偿。
 
@@ -596,10 +988,14 @@ T3.1~T3.4 工程治理
 | 5 | `docs/` 目录是恢复还是摘除 README 链接？是否补 `LICENSE` 文件？ | T3.3 | 文档完整性 | ✅ 已解决 |
 | 6 | `mp-readtrace/` 小程序端是否纳入版本控制？ | T3.3 | 代码备份 | ✅ 已有独立仓库，维持现状 |
 | 7 | `targetSdk = 37` 是否回退到稳定版 36？ | 未列入 T1 | 发布策略 | ✅ 已是 36，无需回退 |
+| 8 | 「展厅第N层」是否**迁移存量数据**？仅改新增文案需一次 `UPDATE` 才能影响已入库记录，而该字段用户可手改，UPDATE 会覆盖 | T4.5-A #3 | 用户数据 + 预设 CSV/JSON | ⚠️ **待决策** |
+| 9 | `ChangelogData` 历史条目如何处理？（它们是**当时真实上过线**的记录，直接删 = 抹历史；保留 = 向用户介绍不存在的能力） | T4.5-A #4 | 版本纪要可信度 | ⚠️ **待决策**（本计划建议：保留 + 标「已移除」） |
+| 10 | `MainActivity.preloadRemainingTabs()` 是**接线**还是**删除**？（零调用，但它是 T0.3 播种后台化后配套的冷启动预热，接线可能仍有收益） | T4.5-C | 冷启动性能 | ⚠️ **待决策** |
+| 11 | 是否授权改动构建系统（`build.gradle.kts` 的 `lint {}` 块 + 手工改 `lint-baseline.xml`）？ | T4.9 | CI 门禁行为 | ⚠️ **待决策**（建议：**不跑** `updateLintBaseline`，只手工删 `UnusedResources` 一节） |
 
 ---
 
-## 10. 附：本次审查的核验记录
+## 11. 附：本次审查的核验记录
 
 | 审查方结论 | 核验结果 |
 |:---|:---|
@@ -619,6 +1015,36 @@ T3.1~T3.4 工程治理
 | 工程化：`targetSdk=37` 处 beta 轨道 | ⚠️ **未核验**（需联网确认 Android 17 发布状态） |
 | 全部：单测是否全绿、CI 能否跑通 | ⚠️ **未核验**（未执行构建） |
 | 全部：播种耗时 1.5~3.5s | ⚠️ **未实测**（理论估算） |
+
+### 第三轮审查（2026-09-15）核验记录
+
+| 审查结论 | 核验方式与结果 |
+|:---|:---|
+| 3D 私人展厅 / 2.5D 视差展厅 / 3D 翻书阅读器 均已不存在 | ✅ `Test-Path` 逐个确认文件不存在；`git log` 定位到 `0543c4c`、`1339482`、`4d31a77`、`910a84a`、`b00e19d`、`da6855b` |
+| 23 条 string 零引用 | ✅ **属实**。脚本逐个统计 `R.string.x` 与 `@string/x` 两种形式，命中数均为 0 |
+| `detail3DExploreBtn`（🏛️ 3D 漫游）是死按钮 | ✅ **属实且可达**。Kotlin 引用数 0，而 `ExhibitionDetailActivity` 经 `CommunityActivity:172/201` 正常拉起 → **用户能看到并点击，但无任何反应** |
+| 主页「📖 3D 沉浸翻阅」名实不符 | ✅ 属实（`HubFragment:510` 设文案，`:329` 实跳 `BookDetailActivity`） |
+| 「展厅第N层」会显示给用户 | ✅ 属实（`BookDetailActivity:258` → `detailShelfLocation`） |
+| `action_3d_read` 永不可见 | ✅ 属实（`BookDetailActivity:1399-1486` 五分支：BOOK→`GONE`，其余四个均运行时改 `.text`） |
+| **社区 3D 展厅仍存活** | ✅ `CommunityGalleryActivity.kt` 与 `gallery3d/Gallery3DRenderer.kt` 均存在 → `fragment_profile.xml:259` 的「3D 虚拟展厅」是**正常文案，不得清理** |
+| 长卷无尺寸封顶 | ✅ 属实，且**同项目内即有正确范例**（年鉴 `:319` `maxDimension=4096f`） |
+| 备份导出在主线程 | ✅ 属实（`exportDataToFile` 由 `:27/:33/:39` 三个 SAF 回调直调） |
+| `DATABASE_VERSION` 双真值 | ✅ 属实（17 vs 15）；且 `DatabaseSchema.DATABASE_VERSION` **引用数 0** → 死代码 |
+| 裸 `Thread` 45 → 71 处 | ✅ 属实（实测 `Thread \{` 计数 71） |
+| `getInstance` UI 层 51 处 | ⚠️ **子代理报 51，实测为 65**，已按实测值修正；`ViewModel`/`LiveData`/`StateFlow`/`Room`/`@Dao` 均为 **0** |
+| `UnusedResources` 已在 baseline 中被豁免 | ✅ 属实（`lint-baseline.xml` 含 38 类 issue，其中包含此项） |
+| T4 各项性能数字的实际影响幅度 | ⚠️ **未实测**（本轮全程只读，未跑 Gradle 构建、未上 Profiler、未连设备）——所有 🔴 项的严重程度基于代码结构与同项目对照推断 |
+
+### T4.9 数据采集轮（2026-09-15）核验记录
+
+| 结论 | 核验方式与结果 |
+|:---|:---|
+| 人工 23 条全部为真未使用 | ✅ **lint 全量报告 100% 确认，零假阳性**（「在我清单中但未被 lint 报出」= 空集） |
+| lint 可用作本项目僵尸资源的**单一可信源** | ✅ 属实。前提已实测：全工程 `getIdentifier`/`resources.get*` **零命中** → 不存在反射访问导致的误报 |
+| 上轮「无失效 `@layout/`/`@drawable/` 引用」结论 | ❌ **被推翻**。存在 3 个孤儿布局 + 9 个孤儿 drawable + 2 个孤儿 xml 规则。已回改 T4.0 正面确认清单并在该处留修正痕迹 |
+| 孤儿布局确实无人加载 | ✅ `layout_dialog_clipboard_sniffer` / `item_reading_session` / `activity_anime_timeline_scroll` 在全部 `.kt`+`.xml` 的**内容**中引用数为 0 |
+| 豁免数与实际告警数的关系 | ✅ **完全相等（112 = 112）** → 印证这批告警自 T3.1 生成 baseline 起就被整批吞掉，未发生漏抓 |
+| 用户数据与配置安全 | ✅ baseline **未被修改**（移出/还原 + SHA256 比对）；`build.gradle.kts` 未动；本轮无构建产物写入 C 盘（均在各模块 `build/` 下，属既有目录） |
 
 ---
 
