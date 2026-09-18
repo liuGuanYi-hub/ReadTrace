@@ -36,18 +36,22 @@
 > | T4.2 长卷 Bitmap 回收 | 待做 🔴 | ✅ **已完成**。两个预览 Activity 写盘后均 `runCatching { recycle() }`；`releaseCovers()` 已从「零调用」接线上两个 Activity 的 `onDestroy`（现命中 4 处） |
 > | T4.3 备份导出后台化 | 待做 🔴 | ✅ **已完成（2026-09-18，本轮）** |
 > | T4.4 `runOnUiThread` 生命周期守卫 | 待做 🟡 | ✅ **已完成**。长卷预览两处、时间轴长卷两处、备份两处均带 `isFinishing \|\| isDestroyed` |
-> | T4.5 僵尸文本清理 | 待做 🔴 | 🔶 **A 组已完成；B / C / D / E 全部未做**，见该条《A 组完成记录》与《剩余范围》 |
+> | T4.5 僵尸文本清理 | 待做 🔴 | ✅ **已完成**。A 组 4 处用户可见文案（2026-09-18 第一批），B/C/D/E 同日完成——清 110 项僵尸资源 + 14 个孤儿文件 + 3 处死代码 + 文档层标注 |
 > | T4.6 数据访问主线程残余 | 待做 🟡 | ✅ **已完成（2026-09-18，本轮）**。计划内三子项全部落地，另查出计划未列的第 4 处同类项 |
 > | T4.7 长卷重绘 / PDF 后台绘 View 树 | 待做 🟡 | ✅ **已完成（2026-09-18，本轮）**。长卷预览三处热路径问题一并处理；年鉴 PDF 绘制回归主线程 |
 > | T4.8 `DATABASE_VERSION` 双真值 | 待做 🟡 | ✅ **已完成**。`DatabaseSchema` 已改为代理 `BookDatabaseHelper.DATABASE_VERSION`，单一真值，当前为 **18** |
-> | T4.9 lint 摘 `UnusedResources` 豁免 | 待做 🔵 | ⬜ **未做**（`lint-baseline.xml` 仍含 112 条豁免，门禁对该项仍失效） |
+> | T4.9 lint 摘 `UnusedResources` 豁免 | 待做 🔵 | ✅ **已完成（2026-09-18）**。手工剥离 112 条豁免（未跑 `updateLintBaseline`）并提升为 error，门禁实测拦下 110 errors |
 > | T4.10 功能删除六面同步清单 | 待做 🔵 | ✅ **已完成**（已写入 §9） |
 > | T4.11 明确暂不做（触发条件制） | — | 维持原判，不执行 |
 > | T4.12 桌面小组件名称接线 | 待做 🟡 | ✅ **已完成**。`AndroidManifest` 两个 `<receiver>` 已补 `android:label="@string/widget_*_name"` |
 >
-> **结论（2026-09-18 二次回填）**：T4 十二项中 **9 项已完成**（T4.1 / 4.2 / 4.3 / 4.4 / 4.6 / 4.7 / 4.8 / 4.10 / 4.12），T4.5 完成 A 组（4 处用户可见错误信息）。**剩余可执行工作收敛为 2 项**：**T4.5-B/C/D/E**（僵尸资源与死代码清理）与 **T4.9**（lint 摘豁免）。其中 **T4.9 必须先于 T4.5-B/E**（顺序理由见 §8）。
+> **结论（2026-09-18 最终回填）**：**T4 梯队 12 项全部收官**。
+> - 代码与工程修复 9 项：T4.1 / 4.2 / 4.3 / 4.4 / 4.6 / 4.7 / 4.8 / 4.10 / 4.12
+> - T4.5 五个子组全部完成：A 组 4 处用户可见文案（首批）；B+E 清 110 项僵尸资源与 14 个孤儿文件；C 删 3 处死代码；D 文档层标注
+> - T4.9 门禁改造完成并**实测生效**——摘除豁免后 lintDebug 立即报出 110 errors 并中断构建，清理完成后重新归零
+> - 仅 **T4.11**（明确暂不做）按触发条件制保留；T4.5-C 中的 `preloadRemainingTabs` 因有真实收益，转为独立决策项（见 §10 决策 #10）
 >
-> **⚠️ 与 T0~T3 的一个不同点：T4 这批改动做了真机/模拟器实测**。区别于之前「性能数字均为静态推断」的状况，本轮在模拟器（Medium_Phone，debug 包）上实测了 T4.6 与 T4.7 的关键路径，结果见各任务条目内的《实测记录》。**未实测项**：T4.6-c 的 CSV 导入（SAF 文件选择器无法用 adb 自动化）、以及所有「大库（≥300 条）ANR」类断言（模拟器仅 227 条藏品）。
+> **⚠️ 与 T0~T3 的一个不同点：T4 这批改动做了模拟器实测**。区别于之前「性能数字均为静态推断」的状况，本轮在模拟器（Medium_Phone，debug 包）上实测了 T4.6 / T4.7 的关键路径，结果见各任务条目内的《实测记录》。**未实测项**：T4.6-c 的 CSV 导入（SAF 文件选择器无法用 adb 自动化）、以及所有「大库（≥300 条）ANR」类断言（模拟器仅 227 条藏品）。
 
 > **⚠️ 行数口径说明**：本计划所有文件行数统一采用**非空行**口径（PowerShell `Measure-Object -Line`）。
 > 若某处引用的是**含空行**口径，会显式标注。两套口径的换算参考：
@@ -685,11 +689,18 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 > | 4 | `ChangelogData` 历史条目 | 已按本计划建议**保留历史 + 标注移除**，而非删除：`〔已下线〕` / `〔扫码已下线〕` / `〔熄屏模式已下线〕` / `〔两种展厅均已下线〕` / `〔视差画廊已下线〕` |
 > | 5 | 桌面小部件选择器描述 | 硬编码「支持一键直达 3D 拟真翻阅」已改为资源引用，现文案为「展示当前在读书目与进度条，支持一键直达作品详情」 |
 >
-> **⬜ 剩余范围（2026-09-18 实测，全部未做）**
-> - **B 组 + E 组**：94 条零引用 string 全在（抽查 `home_gallery_title` / `reader_activity_title` / `widget_reading_timer_name` / `status_all` 引用数均为 0；`action_3d_read` 仅剩布局默认值 1 处）；**3 个孤儿布局在**：`activity_anime_timeline_scroll.xml`、`item_reading_session.xml`、`layout_dialog_clipboard_sniffer.xml`；`assets/preset_*.csv` 四个旧数据源仍在。
-> - **C 组**：`getGalleryFeaturedWorks`（命中 1，仅定义）、`importAssetCsv`（命中 1，仅定义）、`getReadingPage` / `saveReadingPage`（各 3，仅内部互委托）均为零外部调用的死代码。**`releaseCovers()` 已因 T4.2 接线不再是死代码**，从待清项中划除。
-> - **D 组**：文档层残留未清（README「Web 微卡」、`readtrace_project_plan.md` 已删功能章节等）。
-> - **前置约束不变**：**必须先完成 T4.9**（摘掉 `UnusedResources` 豁免）→ 再跑一次 `lintDebug` 取全量清单 → 然后才批量清 B/E。顺序颠倒会失去「防复发」这一最大收益。
+> **✅ B / C / D / E 组已完成（2026-09-18 同日）**
+>
+> | 组 | 实际完成内容 |
+> |:---|:---|
+> | **B + E** | 按 lint 全量报告清 **110 项**：92 条 string（`strings.xml` 278 → 186）、9 个 drawable、3 个布局、3 个颜色、1 个 style、2 个失效 xml 规则。其中两个无引用 PNG（398KB + 250KB）顺带减小 APK 体积。<br>**清单来源是 lint 而非人工清单**——计划原备的人工 23 条已作废：人工只能发现「与已删功能相关」的资源，会漏掉「写了但忘接线」的一类 |
+> | **C** | 删 3 处死代码：`getGalleryFeaturedWorks`、`getReadingPage` / `saveReadingPage`（含 `UserPreferencesManager` 实现与 2 个常量及 KDoc 行）、`importAssetCsv`。`preloadRemainingTabs` **未删**——它有真实收益，转为 §10 决策 #10 |
+> | **D** | README「Web 微卡 / 深链」→ DeepLink；`readtrace_project_plan.md` 新增文首《阅读须知》+ 三处就地标注（第 10/13 章的 FastAPI 已归档至 `archive/fastapi-backend`、第 27 章 P11 的剪贴板嗅探与 ISBN 扫码已下线）；`QuickLogBottomSheet:168` 注释修正 |
+>
+> **⚠️ 执行中新踩的坑（恰是 §T4.5-E 约束警告过的那一条）**：首轮只检查了 `values*/strings.xml` 的变体，**漏查 colors 的夜间变体**，导致 `values-night/colors.xml` 里三个同名颜色变成「只有变体、没有基础声明」，lintDebug 报出 6 条 `MissingDefaultResource`（3 条该规则 + 3 条 `UnusedResources`）。一并删除夜间变体中的同名定义及专属注释后归零。
+> **教训**：删除 values 类资源前必须扫描**所有** `values*/` 变体，不能只查字符串那一层——把「检查了某一类的变体」误当成「检查了所有类的变体」，正是本次疏漏的成因。同类风险修完后应即时复查整面（如 `ls -d res/values*/` 后逐个 grep），而不是等下一次报错。
+>
+> **未处理（lint 不扫 `assets/`，只能人工发现）**：`assets/preset_books|anime|movies|games.csv` 四个旧数据源（共 205 部、84KB）在全部 Kotlin 中引用数为 0，属孤儿资产，处置（删 / 留作 CSV 格式范例）需单独决定。
 
 **问题等级**：P1（用户可感知的错误信息）+ P2（维护误导）
 
@@ -914,6 +925,15 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 
 ### T4.9 机制项：把 `UnusedResources` 从 baseline 豁免中摘出 🔵
 
+> **✅ 已完成（2026-09-18）**
+> 1. 用逐块解析脚本从 `app/lint-baseline.xml` 中按 `id` 精确剥离 **112 条** `UnusedResources` 条目（2118 → 2006 条豁免），**未跑 `updateLintBaseline`**，其余告警豁免逐字节保留（脚本运行前后打印计数与 SHA256）。
+> 2. `app/build.gradle.kts` 的 `lint {}` 中补 `error += "UnusedResources"`——仅摘豁免不够，该项默认级别是 warning，不会让 `lintDebug` 失败。
+> 3. 顺带删除该文件中一处僵尸注释（「P14 Web 微卡二维码生成」错挂在 junit 依赖上方）。
+>
+> **实测成效**：摘除豁免后**立即**跑 `lintDebug`，报出 **110 errors** 并中断构建（首条即 `activity_anime_timeline_scroll.xml` 未使用）——门禁真实拦住了。资源清理完成后重跑 `assembleDebug : app:lintDebug`，`BUILD SUCCESSFUL` 且该项**归零**。至此「僵尸资源」从"靠人工季度排查"变为"CI 当场拦截"。
+>
+> **附带发现（未处理，留作后续）**：gradle 提示 baseline 中有 **45 条**已登记但在工程中不存在的问题，即过期豁免。清理它们可进一步收紧 baseline（本次未做，避免扩大改动面）。
+
 **问题等级**：P1（治本）— 不修这条，T4.5 做完三个月后同样问题必然复发
 
 **根因**：四个**手工维护的文字面**（`strings.xml` / `ChangelogData.kt` / `README.md` / `assets/preset_all.json`）与代码之间**零约束**。任何功能删改都不会触发它们的告警。
@@ -929,9 +949,9 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 
 **验证方式**：~~先跑 `./gradlew lintDebug` 取得全量清单并与 B 组交叉比对~~ → **✅ 已于 2026-09-15 完成**，结果见 T4.5-E：lint 确认了人工 23 条的全部（**零假阳性**），并额外暴露 **89 项人工漏网**（含 12 个孤儿布局/drawable/xml 文件）。本任务的**数据采集部分已闭环**，剩余仅余门禁配置。
 
-**本任务尚余两步（待 §10 决策 #11 授权）**：
-1. 从 `lint-baseline.xml` 中删除那 112 条 `UnusedResources` 豁免条目（使该项恢复告警）；
-2. 清完 T4.5-B+E 后再跑 `lintDebug` 确认零告警，并把 `UnusedResources` 固化进 §9 DoD。
+**~~本任务尚余两步~~ → ✅ 两步均已完成（2026-09-18）**：
+1. ~~从 `lint-baseline.xml` 中删除那 112 条 `UnusedResources` 豁免条目（使该项恢复告警）~~ → 已按 id 精确剥离；
+2. ~~清完 T4.5-B+E 后再跑 `lintDebug` 确认零告警，并把 `UnusedResources` 固化进 §9 DoD~~ → 已确认归零，并已在 §9 的 DoD 中新增一条资源类改动的完成标准。
 
 **⚠️ 方法建议**：删豁免时**不要跑 `updateLintBaseline`**（会把 T3.1 之后新积累的存量告警一并豁免）。本轮采集用的是更安全的做法：**不动 baseline 内容**，而是 `Move-Item` 临时移出→跑 lint→`finally` 移回，并用 **SHA256 前后比对**证明逐字节还原（实测 `HASH_MATCH=True`）。建议沿用此法。
 
@@ -1020,20 +1040,26 @@ T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 
 ### 实际执行记录（2026-09-18 回填）
 
-上述顺序在 T0~T3 被完整执行；**T4 的实际执行偏离了它**——T4.1 / 4.2 / 4.4 / 4.8 / 4.12 与 T4.5-A 均已完成，但既未回填状态，也把紧随其后的 T4.3、T4.6、T4.7 与 T4.5-B/C/E、T4.9 一并搁置了。**2026-09-18 当日已补做 T4.3 / T4.6 / T4.7 三项并全部实测，同时回填本文件全部进度。**
+上述顺序在 T0~T3 被完整执行；**T4 的实际执行偏离了它**——T4.1 / 4.2 / 4.4 / 4.8 / 4.12 与 T4.5-A 均已完成，但既未回填状态，也把紧随其后的 T4.3、T4.6、T4.7 与 T4.5-B/C/E、T4.9 一并搁置了。**2026-09-18 当日全部补做完毕**：T4.3 / T4.6 / T4.7 完成并做了模拟器实测；T4.9 + T4.5-B/C/D/E 一次清完，本文件进度同步回填。**T4 梯队至此收官。**
 
-**T4 剩余 2 项的建议顺序（顺序不可颠倒）**：
+**实际执行顺序（与建议顺序一致，且验证了"T4.9 必须先行"这一条的必要性）**：
 
 ```
-T4.9 摘 UnusedResources 豁免（需 §10 决策 #11 授权，勿跑 updateLintBaseline）
+T4.9 摘 UnusedResources 豁免（112 条）并提升为 error
+  ↓  lintDebug 立刻报出 110 errors —— 门禁生效的直接证据
+按 lint 报告逐项清理资源（B + E）
+  ↓  变体检查在此步不可省：首轮漏查 values-night/colors.xml
+     → 6 条 MissingDefaultResource → 补删夜间变体同名定义后归零
+T4.5-C 死代码（3 处，preloadRemainingTabs 转决策项）
+T4.5-D 文档层（README / 项目计划标注 / 注释修正）
   ↓
-lintDebug 取全量未使用资源清单（逐个确认 values-night 与限定符变体）
-  ↓
-T4.5-B+E 批量清 94 条 string 与 12 个孤儿文件（豁免 widget_*_name 两条名称资源）
-  ↓
-T4.5-C 死代码 4 项（releaseCovers 已由 T4.2 接线，不再列入）
-T4.5-D 文档层
+assembleDebug + lintDebug 双验证通过
 ```
+
+> **⚠️ 本次唯一一次返工就发生在这条链上**：清理脚本里只做了 `values*/strings.xml` 的变体检查，
+> 而待删项里还包含 3 个颜色。**"检查了某一类的变体"≠"检查了所有类的变体"**——
+> 这个疏漏被 `lintDebug` 的 `MissingDefaultResource` 规则捕获，未流入生产。
+> 结论：**变体检查必须按资源类型逐类做**，且修完一类后应即时复查整个 `values*/` 目录面。
 
 > **📌 可复用的验证手法（本轮跑通，建议沉淀）**：非 exported 的 Activity 无法 `am start`，但仍可自动化验证——
 > ① `dumpsys activity top` 输出含 View Hierarchy，其中的 `l,t-r,b` 是**相对父容器的布局坐标**（且不含 ScrollView 的 scrollY），按缩进建树累加祖先链即得屏幕绝对坐标（脚本已固化为 `tools/dumpsys_coords.py`，2026-09-18 新增，**当前为工作区文件、尚未纳入版本控制**）；
@@ -1069,6 +1095,10 @@ T4.5-D 文档层
 3. 全量 `./gradlew testDebugUnitTest` 通过（**首次运行会往 C 盘写 Gradle 发行包约 150 MB 及 `build/` 产物，需用户事先授权**）。
 4. 中文 commit（格式 `类型：修改内容`，如 `修复：解决迁移器丢失source_type守卫导致用户评分被篡改`）。
 5. Push 到当前远程分支。
+6. **（T4.9 起新增）资源类改动的完成标准**：凡涉及删除 / 新增 `res/` 资源的改动，除编译通过外必须：
+   - 删除前扫描**所有** `values*/` 限定符变体（不能只查 `strings.xml` 那一层）——本次即因漏查 `values-night/colors.xml` 而在首轮验证时报出 6 条 `MissingDefaultResource`；
+   - 跑 `./gradlew :app:assembleDebug :app:lintDebug`（一次 Gradle 启动跑两个任务），确认 `lintDebug` 通过且未新增 `UnusedResources` / `MissingDefaultResource` 告警；
+   - 清单来源以 **lint 为准**，不以人工按功能排查的清单为准——人工只能发现「与已删功能相关」的资源，会漏掉「写了但没接线」的一类。
 
 ### 禁止事项
 - 禁止为了「顺手」重构无关代码、格式化整个项目、升级无关依赖。
@@ -1097,7 +1127,7 @@ T4.5-D 文档层
 
 > **2026-09-13 落实结果**：#3 已解决（用户授权「计划内完成」后 Gradle 测试/构建常态化执行，全量单测 69 个全绿）；#4 已解决（`cover_server/` 经用户确认整目录删除）；#5 已解决（README 失效链接与 LICENSE 已在 `148cca8` 处理，本轮核验通过）；#6 已解决（小程序端已有独立仓库，保持独立版本控制，不入主库）；#7 已解决（核验发现 `targetSdk` 实际已为 36，且 Android 17 (API 37) 已于 2026-06-16 发布稳定版，原「beta 轨道」顾虑失效）；#2 维持 T0 阶段方案（敏感键值留空 + example 模板，`gradle.properties` 模板文件继续入库）。**#1 仍待决策**：已被 v15 随机改写评分的存量数据是否做补偿。
 >
-> **2026-09-18 落实结果**：#8 已解决（改走 `DatabaseMigrator` v18 精确匹配迁移，非一次性 `UPDATE`）；#9 已解决（历史条目保留 + 标「〔已下线〕」）。**仍待决策**：#1（v15 评分补偿）、#10（`preloadRemainingTabs` 接线或删除）、#11（lint 构建系统改动授权，**已是 T4 剩余项的前置条件**）。
+> **2026-09-18 落实结果**：#8 已解决（改走 `DatabaseMigrator` v18 精确匹配迁移，非一次性 `UPDATE`）；#9 已解决（历史条目保留 + 标「〔已下线〕」）；**#11 已解决**（用户授权后完成 T4.9 门禁改造，未跑 `updateLintBaseline`）。**仍待决策**：#1（v15 评分补偿）、#10（`preloadRemainingTabs` 接线或删除——T4.5-C 已清完其余死代码，仅此项因其有真实收益而保留待定）。
 
 | # | 决策项 | 关联任务 | 影响 | 状态 |
 |:--:|:--|:--|:--|:--:|
@@ -1111,7 +1141,7 @@ T4.5-D 文档层
 | 8 | 「展厅第N层」是否**迁移存量数据**？仅改新增文案需一次 `UPDATE` 才能影响已入库记录，而该字段用户可手改，UPDATE 会覆盖 | T4.5-A #3 | 用户数据 + 预设 CSV/JSON | ✅ **已解决（2026-09-18）**：改走 `DatabaseMigrator` v18，`WHERE` 精确匹配三档预设原文、仅刷新仍等于默认值的行，用户改写的陈列位置零覆盖；`preset_all.json` 同步 137 条 |
 | 9 | `ChangelogData` 历史条目如何处理？（它们是**当时真实上过线**的记录，直接删 = 抹历史；保留 = 向用户介绍不存在的能力） | T4.5-A #4 | 版本纪要可信度 | ✅ **已解决（2026-09-18）**：采纳本计划建议——保留历史 + 逐条标「〔已下线〕」，不删条目 |
 | 10 | `MainActivity.preloadRemainingTabs()` 是**接线**还是**删除**？（零调用，但它是 T0.3 播种后台化后配套的冷启动预热，接线可能仍有收益） | T4.5-C | 冷启动性能 | ⚠️ **待决策**（2026-09-18 复测仍为零调用，仅 `MainActivity:218` 定义处命中） |
-| 11 | 是否授权改动构建系统（`build.gradle.kts` 的 `lint {}` 块 + 手工改 `lint-baseline.xml`）？ | T4.9 | CI 门禁行为 | ⚠️ **待决策，且已成 T4 剩余项的前置条件**（建议：**不跑** `updateLintBaseline`，只手工删 `UnusedResources` 一节） |
+| 11 | 是否授权改动构建系统（`build.gradle.kts` 的 `lint {}` 块 + 手工改 `lint-baseline.xml`）？ | T4.9 | CI 门禁行为 | ✅ **已解决（2026-09-18，用户授权）**：按建议方案执行——**未跑** `updateLintBaseline`，只按 id 精确剥离 112 条 `UnusedResources` 豁免，并补 `error += "UnusedResources"` 使门禁真实生效 |
 
 ---
 
