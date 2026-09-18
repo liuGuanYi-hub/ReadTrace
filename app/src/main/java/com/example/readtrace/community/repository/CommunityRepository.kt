@@ -56,15 +56,16 @@ object CommunityRepository {
         return memoryExhibitions.firstOrNull { it.id == id }
     }
 
+    /**
+     * 点亮 / 取消共鸣。
+     *
+     * V3：**不再改动 [CommunityExhibition.likeCount]**——该字段语义是编辑部推荐指数，
+     * 不应被单个用户的行为影响；用户的共鸣只是一个布尔状态。
+     * 这样「数字」与「状态」彻底分离，页面上不再出现无法溯源的社交证明数字。
+     */
     fun toggleLike(id: String, context: Context? = null): Boolean {
         val exhibition = getExhibitionById(id) ?: return false
-        if (exhibition.isLiked) {
-            exhibition.likeCount = (exhibition.likeCount - 1).coerceAtLeast(0)
-            exhibition.isLiked = false
-        } else {
-            exhibition.likeCount += 1
-            exhibition.isLiked = true
-        }
+        exhibition.isLiked = !exhibition.isLiked
         persistLikes(context)
         return exhibition.isLiked
     }
@@ -172,9 +173,9 @@ object CommunityRepository {
                 themeDescription = "精选加缪、圣埃克苏佩里与毛姆的代表作。在荒谬的世界中寻得内心的平静与热爱。",
                 curatedBooks = booksGroup1,
                 tags = listOf("哲学", "经典", "存在主义"),
-                likeCount = 382,
+                likeCount = 92,
                 isLiked = false,
-                commentCount = 28,
+                commentCount = 2,
                 createdAt = "2026-08-20 18:30",
                 featuredTheme = "星空漫想",
             )
@@ -189,9 +190,9 @@ object CommunityRepository {
                 themeDescription = "奥威尔与加缪笔下的极权预言与人道抗争，让人在沉思中保持清醒。",
                 curatedBooks = booksGroup2,
                 tags = listOf("科幻", "小说", "思辨"),
-                likeCount = 296,
+                likeCount = 88,
                 isLiked = false,
-                commentCount = 19,
+                commentCount = 0,
                 createdAt = "2026-08-21 14:15",
                 featuredTheme = "暖木书房",
             )
@@ -206,9 +207,9 @@ object CommunityRepository {
                 themeDescription = "从极致黑暗的《白夜行》到极致治愈的《解忧杂货店》，探索人性的两极。",
                 curatedBooks = booksGroup3,
                 tags = listOf("悬疑", "治愈", "小说"),
-                likeCount = 451,
+                likeCount = 95,
                 isLiked = false,
-                commentCount = 36,
+                commentCount = 1,
                 createdAt = "2026-08-22 09:40",
                 featuredTheme = "禅意绿洲",
             )
@@ -223,9 +224,9 @@ object CommunityRepository {
                 themeDescription = "从富贵到圣地亚哥，看普通生命如何在命运巨浪中活出不屈尊严。",
                 curatedBooks = booksGroup4,
                 tags = listOf("历史", "经典", "小说"),
-                likeCount = 217,
+                likeCount = 84,
                 isLiked = false,
-                commentCount = 15,
+                commentCount = 0,
                 createdAt = "2026-08-23 10:20",
                 featuredTheme = "星空漫想",
             )
@@ -294,8 +295,8 @@ object CommunityRepository {
      * **合并规则（本地用户状态优先，绝不被远端冲掉）**：
      * - 按 `id` 匹配命中的展厅，**只取远端的内容字段**（标题 / 描述 / 书籍 / 标签 / 封面主题），
      *   用户状态按下述方式保留：
-     *   · `isLiked` 原样保留
-     *   · `likeCount` = 远端基础值 + 本地点赞增量（0 或 1）
+     *   · `isLiked` 原样保留（用户的共鸣状态）
+     *   · `likeCount` **直接取远端值** —— V3 起它是编辑部推荐指数，与用户行为无关
      *   · `commentCount` = max(远端值, 本地值)，保证用户留言计数不因合并而回退
      * - 远端未收录、且非用户自发布的展厅**保留**——内容只增不减，
      *   避免远端内容不完整导致展厅凭空消失
@@ -325,7 +326,7 @@ object CommunityRepository {
             } else {
                 remote.copy(
                     isLiked = local.isLiked,
-                    likeCount = remote.likeCount + if (local.isLiked) 1 else 0,
+                    // V3：likeCount 已是编辑部推荐指数，与用户状态无关，直接取远端值
                     commentCount = maxOf(remote.commentCount, local.commentCount),
                 )
             }
@@ -349,10 +350,8 @@ object CommunityRepository {
         val liked = prefs.getStringSet(KEY_LIKED, emptySet()) ?: emptySet()
         if (liked.isNotEmpty()) {
             memoryExhibitions.forEach { ex ->
-                if (ex.id in liked && !ex.isLiked) {
-                    ex.isLiked = true
-                    ex.likeCount += 1
-                }
+                // V3：只恢复布尔状态。likeCount 是编辑部推荐指数，不随用户行为变化
+                if (ex.id in liked) ex.isLiked = true
             }
         }
         // 2. 用户发布的展厅回放（user- 前缀）

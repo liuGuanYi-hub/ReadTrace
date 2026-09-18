@@ -17,6 +17,9 @@ import com.example.readtrace.R
 import com.example.readtrace.community.model.CommunityExhibition
 import com.example.readtrace.community.repository.CommunityRepository
 import com.example.readtrace.util.FloatingBack
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class ExhibitionDetailActivity : AppCompatActivity() {
 
@@ -78,7 +81,8 @@ class ExhibitionDetailActivity : AppCompatActivity() {
 
         detailLikeBtn.setOnClickListener {
             CommunityRepository.toggleLike(exhibition!!.id, this)
-            detailLikeBtn.text = if (exhibition!!.isLiked) "❤️ ${exhibition!!.likeCount} 共鸣" else "🤍 ${exhibition!!.likeCount} 共鸣"
+            // V3：共鸣是纯状态，不再展示无法溯源的数字
+            detailLikeBtn.text = if (exhibition!!.isLiked) "❤️ 已共鸣" else "🤍 留下一份共鸣"
         }
 
         commentSendBtn.setOnClickListener {
@@ -97,11 +101,21 @@ class ExhibitionDetailActivity : AppCompatActivity() {
     private fun renderExhibitionInfo() {
         detailAvatar.text = exhibition!!.authorAvatar
         detailAuthor.text = exhibition!!.authorName
-        detailDate.text = "策展于 ${exhibition!!.createdAt}"
+        detailDate.text = "策展于 ${exhibition!!.createdAt} · 已收录 ${curatedDaysLabel(exhibition!!.createdAt)}"
         detailTitle.text = exhibition!!.title
         detailDesc.text = exhibition!!.themeDescription
-        detailLikeBtn.text = if (exhibition!!.isLiked) "❤️ ${exhibition!!.likeCount} 共鸣" else "🤍 ${exhibition!!.likeCount} 共鸣"
+        // V3：共鸣是纯状态，不再展示无法溯源的数字
+        detailLikeBtn.text = if (exhibition!!.isLiked) "❤️ 已共鸣" else "🤍 留下一份共鸣"
     }
+
+    /**
+     * V3：把「策展于某日」补成「已收录 N 天」——这是**完全真实**的数据（直接从 createdAt 推算），
+     * 用来替代原先那些无法溯源的社交证明数字。解析失败时退化为「—」，不抛异常。
+     */
+    private fun curatedDaysLabel(createdAt: String): String = runCatching {
+        val dt = LocalDateTime.parse(createdAt, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        "${ChronoUnit.DAYS.between(dt, LocalDateTime.now()).coerceAtLeast(0)} 天"
+    }.getOrDefault("—")
 
     private fun renderBooksList() {
         booksListContainer.removeAllViews()

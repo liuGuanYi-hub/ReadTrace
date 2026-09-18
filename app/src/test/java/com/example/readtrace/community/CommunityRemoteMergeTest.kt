@@ -90,8 +90,25 @@ class CommunityRemoteMergeTest {
 
         val after = CommunityRepository.getExhibitionById(id)!!
         assertTrue("【验收标准】用户点赞状态必须保留", after.isLiked)
-        assertEquals("点赞数应为「远端基础值 + 本地点赞增量」", 501, after.likeCount)
+        // V3 起 likeCount 语义为「编辑部推荐指数」，不再叠加用户点赞增量
+        assertEquals("推荐指数应直接取远端值，不随用户点赞变化", 500, after.likeCount)
         assertEquals("内容字段应被远端覆盖", "远端改过的标题", after.title)
+    }
+
+    @Test
+    fun `用户点赞不会改变编辑部推荐指数`() {
+        val id = "ex-002"
+        val before = CommunityRepository.getExhibitionById(id)!!
+        val scoreBefore = before.likeCount
+        val likedBefore = before.isLiked
+
+        CommunityRepository.toggleLike(id, context)
+        val afterToggle = CommunityRepository.getExhibitionById(id)!!
+        assertEquals("V3：点赞只改状态，不得改动推荐指数", scoreBefore, afterToggle.likeCount)
+        assertTrue("状态应已翻转", afterToggle.isLiked != likedBefore)
+
+        // 还原，避免影响后续用例
+        CommunityRepository.toggleLike(id, context)
     }
 
     @Test

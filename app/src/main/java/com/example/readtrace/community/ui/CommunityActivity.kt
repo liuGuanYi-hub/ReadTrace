@@ -153,7 +153,9 @@ class CommunityActivity : AppCompatActivity() {
             val card = inflater.inflate(R.layout.item_community_featured, featuredContainer, false)
             card.findViewById<TextView>(R.id.featuredAvatar).text = exhibition.authorAvatar
             card.findViewById<TextView>(R.id.featuredAuthor).text = exhibition.authorName
-            card.findViewById<TextView>(R.id.featuredLikes).text = "🔥 ${exhibition.likeCount} 共鸣"
+            // V3：原为「🔥 ${exhibition.likeCount} 共鸣」——读起来像"N 人点过共鸣"，
+            // 实为内置种子的虚构基础值。改口径为编辑部推荐指数（真实策展评价，非社交证明）。
+            card.findViewById<TextView>(R.id.featuredLikes).text = "✦ 编辑部推荐 ${exhibition.likeCount}"
             card.findViewById<TextView>(R.id.featuredTitle).text = exhibition.title
             card.findViewById<TextView>(R.id.featuredDesc).text = exhibition.themeDescription
 
@@ -190,10 +192,12 @@ class CommunityActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.exhibitionTags).text = tagsText
 
             val likeBtn = item.findViewById<TextView>(R.id.exhibitionLikeBtn)
-            likeBtn.text = if (exhibition.isLiked) "❤️ ${exhibition.likeCount}" else "🤍 ${exhibition.likeCount}"
+            // V3：共鸣是纯状态，不再展示无法溯源的数字
+            likeBtn.text = if (exhibition.isLiked) "❤️ 已共鸣" else "🤍 共鸣"
             likeBtn.setOnClickListener {
                 CommunityRepository.toggleLike(exhibition.id, this)
-                likeBtn.text = if (exhibition.isLiked) "❤️ ${exhibition.likeCount}" else "🤍 ${exhibition.likeCount}"
+                // V3：不再显示数字——共鸣是纯状态，原先那个数字无法溯源
+                likeBtn.text = if (exhibition.isLiked) "❤️ 已共鸣" else "🤍 共鸣"
             }
 
             item.findViewById<TextView>(R.id.exhibitionCommentBtn).apply {

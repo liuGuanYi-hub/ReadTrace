@@ -124,7 +124,7 @@
                         android:textColor="@color/readtrace_ink"
                         android:textSize="13sp"
                         android:textStyle="bold"
-                        tools:text="❤️ 382 共鸣" />
+                        tools:text="❤️ 已共鸣" />
                 </LinearLayout>
 
                 <TextView
