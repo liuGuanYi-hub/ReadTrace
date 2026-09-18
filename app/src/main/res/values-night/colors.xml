@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="readtrace_background">#121412</color>
     <color name="readtrace_glass">#1C201C</color>
@@ -17,13 +16,10 @@
     <color name="readtrace_chip_selected_stroke">#665E9E71</color>
     <color name="readtrace_book_cover">#2A3028</color>
     <color name="readtrace_book_cover_stroke">#33FFFFFF</color>
-    <color name="readtrace_soft_shadow">#66000000</color>
     <color name="readtrace_parchment">#1F241F</color>
     <color name="readtrace_parchment_stroke">#40D4AF37</color>
     <color name="readtrace_gold_accent">#E5C07B</color>
     <color name="readtrace_gold_soft">#26E5C07B</color>
-    <!-- 主页竖向滚动条滑块（夜间：暖白高不透明，常驻显示，在深色背景上清晰可见） -->
-    <color name="readtrace_scrollbar_thumb">#CCD8D4C8</color>
     <color name="picker_surface_start">#231D2E</color>
     <color name="picker_surface_center">#16121D</color>
     <color name="picker_surface_end">#0C0A11</color>
