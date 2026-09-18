@@ -55,6 +55,63 @@ class LibraryScrollView @JvmOverloads constructor(
     private val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
+    /**
+     * T4.7：预解析色板。原先 10 处 Color.parseColor 十六进制字面量都在 onDraw 热路径上，
+     * 每次整卷重绘都要重新解析字符串；现按明暗两套预先解析为 Int 常量。
+     */
+    private class ScrollPalette(
+        val background: Int,
+        val frameGold: Int,
+        val primaryText: Int,
+        val secondaryText: Int,
+        val accentGold: Int,
+        val cardBackground: Int,
+        val cardBorder: Int,
+        val emptyCoverBackground: Int,
+        val emptyCoverBorder: Int,
+    ) {
+        companion object {
+            val LIGHT = ScrollPalette(
+                background = 0xFFFAF8F3.toInt(),
+                frameGold = 0xFF8C6D46.toInt(),
+                primaryText = 0xFF2C241E.toInt(),
+                secondaryText = 0xFF7A6E65.toInt(),
+                accentGold = 0xFF996515.toInt(),
+                cardBackground = 0xFFFFFFFF.toInt(),
+                cardBorder = 0xFFE8E2D9.toInt(),
+                emptyCoverBackground = 0xFFEFECE6.toInt(),
+                emptyCoverBorder = 0xFFDDD4C7.toInt(),
+            )
+
+            val DARK = ScrollPalette(
+                background = 0xFF151210.toInt(),
+                frameGold = 0xFFD4AF37.toInt(),
+                primaryText = 0xFFF5F0E6.toInt(),
+                secondaryText = 0xFFA89F91.toInt(),
+                accentGold = 0xFFE6C265.toInt(),
+                cardBackground = 0xFF221D1A.toInt(),
+                cardBorder = 0xFF3D342E.toInt(),
+                emptyCoverBackground = 0xFF2A2420.toInt(),
+                emptyCoverBorder = 0xFF443830.toInt(),
+            )
+        }
+    }
+
+    /** 印章朱砂：不随明暗切换，单次预解析即可 */
+    private val sealRed = 0xFFC62828.toInt()
+
+    /**
+     * T4.7：卡片布局缓存。StaticLayout.Builder.build() 是重活，而原实现中
+     * onMeasure（calculateContentHeight）与 onDraw（drawScrollContent）各逐卡构建一次，
+     * 单次「测量 + 绘制」即每卡构建 2 次；N 张封面的异步回调又各触发一次整卷重绘，
+     * 于是整体退化为 O(N²) 次 StaticLayout 构建。此处以
+     * (id, 标题, 字号, 文本宽) 为键缓存，数据或尺寸变化时整体清空。
+     */
+    private val cardLayoutCache = object : LinkedHashMap<String, CardLayout>(256, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CardLayout>?): Boolean =
+            size > MAX_CACHED_CARD_LAYOUTS
+    }
+
     private class MediaSection(val media: MediaType, val books: List<Book>)
     private var sections: List<MediaSection> = emptyList()
 
@@ -84,6 +141,8 @@ class LibraryScrollView @JvmOverloads constructor(
         filterSummary = summary
         isDarkMode = darkMode
         rebuildSections()
+        // T4.7：数据变化即整体失效布局缓存
+        cardLayoutCache.clear()
 
         // 异步预加载封面（现场绘制路径）；导出路径另有阻塞预热兜底
         bookList.forEach { book ->
@@ -92,7 +151,9 @@ class LibraryScrollView @JvmOverloads constructor(
                 CoverImageHelper.loadCoverBitmap(context, url, 200, 300) { bmp ->
                     if (bmp != null) {
                         coverBitmaps.put(url, bmp)
-                        postInvalidate()
+                        // T4.7：原为 postInvalidate()，N 张封面即触发 N 次整卷重绘；
+                        // postInvalidateOnAnimation 会把同一帧内的多次请求合并为一次。
+                        postInvalidateOnAnimation()
                     }
                 }
             }
@@ -217,12 +278,26 @@ class LibraryScrollView @JvmOverloads constructor(
             .build()
     }
 
+    /**
+     * 卡片布局（T4.7 缓存版）。
+     * 注意：titlePaint 的 textSize / isFakeBoldText 仍每次赋值——StaticLayout 持有的是
+     * 传入 TextPaint 的**引用**（非副本），绘制期与构建期的画笔状态必须一致；这两行属廉价赋值，
+     * 真正昂贵且被缓存下来的是 StaticLayout.Builder.build()。
+     */
     private fun cardLayoutFor(book: Book, m: GridMetrics): CardLayout {
+        titlePaint.textSize = m.titleSize
+        titlePaint.isFakeBoldText = true
+
+        val cacheKey = "${book.id}|${book.title}|${m.titleSize}|${m.textWidth}"
+        cardLayoutCache[cacheKey]?.let { return it }
+
         val titleLayout = titleLayoutFor(book, m)
         // 文本区：标题（≤2 行）+ 评分·状态行 + 作者·分类行，行进公式与 drawBookCard 保持一致
         val textH = titleLayout.height + 8f + m.metaSize * 1.25f + 6f + m.metaSize * 1.2f
         val height = max(m.coverHeight, textH) + m.padY * 2f
-        return CardLayout(titleLayout, m.coverWidth, m.coverHeight, height)
+        return CardLayout(titleLayout, m.coverWidth, m.coverHeight, height).also {
+            cardLayoutCache[cacheKey] = it
+        }
     }
 
     private fun sectionHeaderHeight(): Float = 64f
@@ -259,10 +334,12 @@ class LibraryScrollView @JvmOverloads constructor(
      */
     fun drawScrollContent(canvas: Canvas, canvasWidth: Float, canvasHeight: Float) {
         val dark = isDarkMode
+        // T4.7：色板取预解析常量，替代原先散落在热路径上的 Color.parseColor 字面量
+        val palette = if (dark) ScrollPalette.DARK else ScrollPalette.LIGHT
 
         // 1. 宣纸 / 和纸质感基底与典雅双重金线
-        canvas.drawColor(if (dark) Color.parseColor("#151210") else Color.parseColor("#FAF8F3"))
-        val goldColor = if (dark) Color.parseColor("#D4AF37") else Color.parseColor("#8C6D46")
+        canvas.drawColor(palette.background)
+        val goldColor = palette.frameGold
         linePaint.style = Paint.Style.STROKE
         linePaint.color = goldColor
         linePaint.strokeWidth = 2f
@@ -271,9 +348,9 @@ class LibraryScrollView @JvmOverloads constructor(
         linePaint.alpha = if (dark) 40 else 30
         canvas.drawRect(30f, 30f, canvasWidth - 30f, canvasHeight - 30f, linePaint)
 
-        val primaryText = if (dark) Color.parseColor("#F5F0E6") else Color.parseColor("#2C241E")
-        val secondaryText = if (dark) Color.parseColor("#A89F91") else Color.parseColor("#7A6E65")
-        val accentGold = if (dark) Color.parseColor("#E6C265") else Color.parseColor("#996515")
+        val primaryText = palette.primaryText
+        val secondaryText = palette.secondaryText
+        val accentGold = palette.accentGold
 
         // 2. 头部题字与朱砂印章
         textPaint.textAlign = Paint.Align.CENTER
@@ -325,7 +402,7 @@ class LibraryScrollView @JvmOverloads constructor(
                     val cardLeft = m.margin + col * (m.cardWidth + m.gap)
                     drawBookCard(
                         canvas, book, cardLeft, currentY, rowHeight, layouts[col],
-                        m, primaryText, secondaryText, accentGold, dark,
+                        m, palette,
                     )
                 }
                 currentY += rowHeight + m.rowGap
@@ -361,21 +438,24 @@ class LibraryScrollView @JvmOverloads constructor(
         cardHeight: Float,
         layout: CardLayout,
         m: GridMetrics,
-        primaryText: Int,
-        secondaryText: Int,
-        accentGold: Int,
-        dark: Boolean,
+        palette: ScrollPalette,
     ) {
+        // T4.7：色值改由预解析色板提供，函数体内不再出现 Color.parseColor 热路径解析
+        val primaryText = palette.primaryText
+        val secondaryText = palette.secondaryText
+        val accentGold = palette.accentGold
+        val dark = isDarkMode
+
         // 1. 卡片底色与微边框
         val cardRect = RectF(left, top, left + m.cardWidth, top + cardHeight)
         cardPaint.style = Paint.Style.FILL
-        cardPaint.color = if (dark) Color.parseColor("#221D1A") else Color.parseColor("#FFFFFF")
+        cardPaint.color = palette.cardBackground
         cardPaint.alpha = if (dark) 220 else 240
         canvas.drawRoundRect(cardRect, 14f, 14f, cardPaint)
 
         cardPaint.style = Paint.Style.STROKE
         cardPaint.strokeWidth = 1.2f
-        cardPaint.color = if (dark) Color.parseColor("#3D342E") else Color.parseColor("#E8E2D9")
+        cardPaint.color = palette.cardBorder
         canvas.drawRoundRect(cardRect, 14f, 14f, cardPaint)
 
         // 2. 左侧封面（圆角裁切 + 微金边）
@@ -393,7 +473,7 @@ class LibraryScrollView @JvmOverloads constructor(
             // 优雅古风占位底色：居中媒介 Emoji 与藏品名前两字
             cardPaint.style = Paint.Style.FILL
             cardPaint.alpha = 255
-            cardPaint.color = if (dark) Color.parseColor("#2A2420") else Color.parseColor("#EFECE6")
+            cardPaint.color = palette.emptyCoverBackground
             canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
 
             textPaint.textAlign = Paint.Align.CENTER
@@ -407,7 +487,7 @@ class LibraryScrollView @JvmOverloads constructor(
         }
         cardPaint.style = Paint.Style.STROKE
         cardPaint.strokeWidth = 1f
-        cardPaint.color = if (dark) Color.parseColor("#443830") else Color.parseColor("#DDD4C7")
+        cardPaint.color = palette.emptyCoverBorder
         canvas.drawRoundRect(coverRect, 8f, 8f, cardPaint)
 
         // 3. 右侧文本区
@@ -541,7 +621,7 @@ class LibraryScrollView @JvmOverloads constructor(
         val sealPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         sealPaint.style = Paint.Style.STROKE
         sealPaint.strokeWidth = 2.5f
-        sealPaint.color = Color.parseColor("#C62828")
+        sealPaint.color = sealRed
         val rect = RectF(x, y, x + size, y + size)
         canvas.drawRoundRect(rect, 8f, 8f, sealPaint)
 
@@ -558,6 +638,11 @@ class LibraryScrollView @JvmOverloads constructor(
         // 每 1000px 高约 4.2MB，8192 上限对应约 34MB 峰值，可安全承载数百藏品。
         private const val EXPORT_BASE_WIDTH_PX = 1080f
         private const val MAX_EXPORT_HEIGHT_PX = 8192f
+
+        // T4.7：卡片布局缓存上限。单个 CardLayout 持有一个 ≤2 行的 StaticLayout，开销小；
+        // 512 足以覆盖数百藏品的长卷，同时保证缓存不会无界增长。
+        private const val MAX_CACHED_CARD_LAYOUTS = 512
+
         private val RATING_FORMAT = DecimalFormat("0.#")
     }
 }

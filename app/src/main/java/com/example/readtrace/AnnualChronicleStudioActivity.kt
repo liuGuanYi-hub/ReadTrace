@@ -375,6 +375,12 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
 
     /**
      * F8: 将 6 页年鉴按 A4 标准分页导出为多页高清矢量 PDF 画册
+     *
+     * T4.7：原实现在后台线程调用 `content.draw(canvas)`。`content` 是 ScrollView 内**已 attach
+     * 的屏幕 View 树**，View.draw 在非 UI 线程执行属未定义行为——可能绘出空白/错乱，
+     * 或直接抛 "Only the original thread that created a view hierarchy can touch its views"。
+     * 现改为两段式：**分页绘制留在主线程**（View 树只能在 UI 线程绘制，且此举保留了矢量输出），
+     * **仅把 PDF 落盘与 MediaStore 写入移交后台**。
      */
     private fun exportChronicleAsPdf() {
         val scroll = findViewById<ScrollView>(R.id.chronicleScroll)
@@ -385,31 +391,45 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         }
         Toast.makeText(this, "正在生成多页矢量 PDF 画册…", Toast.LENGTH_SHORT).show()
 
+        // ① 主线程：分页绘制
+        val pdfDocument = android.graphics.pdf.PdfDocument()
+        var prepareError: Exception? = null
+
+        try {
+            // A4 标准比例 (1 : 1.414)
+            val pageWidth = content.width
+            val pageHeight = (pageWidth * 1.414f).toInt().coerceAtLeast(600)
+            val totalPages = Math.ceil(content.height.toDouble() / pageHeight).toInt().coerceAtLeast(1)
+
+            for (pageIndex in 0 until totalPages) {
+                val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageIndex + 1).create()
+                val page = pdfDocument.startPage(pageInfo)
+                val canvas = page.canvas
+
+                canvas.save()
+                canvas.translate(0f, -pageIndex * pageHeight.toFloat())
+                content.draw(canvas)
+                canvas.restore()
+
+                pdfDocument.finishPage(page)
+            }
+        } catch (e: Exception) {
+            prepareError = e
+        }
+
+        if (prepareError != null) {
+            pdfDocument.close()
+            Toast.makeText(this, "PDF 导出失败，请重试", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // ② 后台：PDF 落盘（上方已在主线程写完全部页面，此处仅顺序使用该 PdfDocument）
         Thread {
             var success = false
             var fileUri: android.net.Uri? = null
             val filename = "ReadTrace_AnnualChronicle_${year}_${System.currentTimeMillis()}.pdf"
-            val pdfDocument = android.graphics.pdf.PdfDocument()
 
             try {
-                // A4 标准比例 (1 : 1.414)
-                val pageWidth = content.width
-                val pageHeight = (pageWidth * 1.414f).toInt().coerceAtLeast(600)
-                val totalPages = Math.ceil(content.height.toDouble() / pageHeight).toInt().coerceAtLeast(1)
-
-                for (pageIndex in 0 until totalPages) {
-                    val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageIndex + 1).create()
-                    val page = pdfDocument.startPage(pageInfo)
-                    val canvas = page.canvas
-
-                    canvas.save()
-                    canvas.translate(0f, -pageIndex * pageHeight.toFloat())
-                    content.draw(canvas)
-                    canvas.restore()
-
-                    pdfDocument.finishPage(page)
-                }
-
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                     val resolver = contentResolver
                     val values = android.content.ContentValues().apply {
