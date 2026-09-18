@@ -37,15 +37,17 @@
 > | T4.3 备份导出后台化 | 待做 🔴 | ✅ **已完成（2026-09-18，本轮）** |
 > | T4.4 `runOnUiThread` 生命周期守卫 | 待做 🟡 | ✅ **已完成**。长卷预览两处、时间轴长卷两处、备份两处均带 `isFinishing \|\| isDestroyed` |
 > | T4.5 僵尸文本清理 | 待做 🔴 | 🔶 **A 组已完成；B / C / D / E 全部未做**，见该条《A 组完成记录》与《剩余范围》 |
-> | T4.6 数据访问主线程残余 | 待做 🟡 | ⬜ **未做**（`BackupActivity:112` 仍拖全表只为取 `size`） |
-> | T4.7 长卷重绘 / PDF 后台绘 View 树 | 待做 🟡 | ⬜ **未做**（`AnnualChronicleStudioActivity:401` 仍在 `Thread{}` 内绘已 attach 的屏幕 View 树） |
+> | T4.6 数据访问主线程残余 | 待做 🟡 | ✅ **已完成（2026-09-18，本轮）**。计划内三子项全部落地，另查出计划未列的第 4 处同类项 |
+> | T4.7 长卷重绘 / PDF 后台绘 View 树 | 待做 🟡 | ✅ **已完成（2026-09-18，本轮）**。长卷预览三处热路径问题一并处理；年鉴 PDF 绘制回归主线程 |
 > | T4.8 `DATABASE_VERSION` 双真值 | 待做 🟡 | ✅ **已完成**。`DatabaseSchema` 已改为代理 `BookDatabaseHelper.DATABASE_VERSION`，单一真值，当前为 **18** |
 > | T4.9 lint 摘 `UnusedResources` 豁免 | 待做 🔵 | ⬜ **未做**（`lint-baseline.xml` 仍含 112 条豁免，门禁对该项仍失效） |
 > | T4.10 功能删除六面同步清单 | 待做 🔵 | ✅ **已完成**（已写入 §9） |
 > | T4.11 明确暂不做（触发条件制） | — | 维持原判，不执行 |
 > | T4.12 桌面小组件名称接线 | 待做 🟡 | ✅ **已完成**。`AndroidManifest` 两个 `<receiver>` 已补 `android:label="@string/widget_*_name"` |
 >
-> **结论**：T4 十二项中 **7 项已完成**（T4.1/4.2/4.3/4.4/4.8/4.10/4.12），T4.5 完成 A 组（4 处用户可见错误信息）。**剩余可执行工作收敛为 4 项**：T4.5-B/C/D/E、T4.6、T4.7、T4.9。其中 **T4.9 必须先于 T4.5-B/E**（顺序理由见 §8）。
+> **结论（2026-09-18 二次回填）**：T4 十二项中 **9 项已完成**（T4.1 / 4.2 / 4.3 / 4.4 / 4.6 / 4.7 / 4.8 / 4.10 / 4.12），T4.5 完成 A 组（4 处用户可见错误信息）。**剩余可执行工作收敛为 2 项**：**T4.5-B/C/D/E**（僵尸资源与死代码清理）与 **T4.9**（lint 摘豁免）。其中 **T4.9 必须先于 T4.5-B/E**（顺序理由见 §8）。
+>
+> **⚠️ 与 T0~T3 的一个不同点：T4 这批改动做了真机/模拟器实测**。区别于之前「性能数字均为静态推断」的状况，本轮在模拟器（Medium_Phone，debug 包）上实测了 T4.6 与 T4.7 的关键路径，结果见各任务条目内的《实测记录》。**未实测项**：T4.6-c 的 CSV 导入（SAF 文件选择器无法用 adb 自动化）、以及所有「大库（≥300 条）ANR」类断言（模拟器仅 227 条藏品）。
 
 > **⚠️ 行数口径说明**：本计划所有文件行数统一采用**非空行**口径（PowerShell `Measure-Object -Line`）。
 > 若某处引用的是**含空行**口径，会显式标注。两套口径的换算参考：
@@ -829,6 +831,26 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 
 ### T4.6 数据访问主线程残余（合并 3 项）🟡
 
+> **✅ 已完成（2026-09-18，本轮）**
+>
+> | 子项 | 实际落地改法 |
+> |:---|:---|
+> | a-1 | `BackupActivity.refreshStats` 改调 `getTotalBooksCount()`（单行 `COUNT(*)`），不再 `SELECT *` 拖出 description/review |
+> | a-2 | `MediaTimelineScrollActivity.loadTimelineData` 改用 `getBooksForList()`（列白名单）并整体移出主线程；以 `requestedType` 与当前 `selectedMediaType` 比对实现过期结果守卫（沿用年鉴 `buildChronicle` 范式）。**`timelineScrollView.extractYearInt()` 是 View 方法，仍留在主线程执行**，后台只做 DB 查询 |
+> | a-3 | `ResonancePosterActivity.loadData` 同法改造，守卫为 `requestedA/requestedB`。作品详情仍由 `getBook(id)` 单查（含 review，`ResonancePosterView:611` 确实消费该字段），语义不变。顺带消除一处同 id 重复的 `getMindprint` 查询 |
+> | a-4 | **计划未列出的第 4 处同类项**：`ResonancePosterActivity.showSelectWorkADialog` 亦用 `getBooks()` 全表。经核验 `WorkPickerBottomSheet` 不消费 description/review（搜索用 title/author/category/tags，展示用封面/评分/状态），同样改用列白名单；此处保持同步调用（点击触发的低频操作，弹窗需在主线程即时呈现） |
+> | b | 新增 `BookDatabaseHelper.getAllNotesLite()` 一次批量取 `(bookId, createdAt)`，`collectStats` 改为内存聚合。**语义等价保障**：原实现只统计未删除作品的笔记，故新增 `liveBookIds` 过滤 |
+> | c | `importCsvFromFile` 照 `importDataFromFile` 范式对齐：解析入后台 → 确认弹窗回主线程 → 落库再入后台。三种失败提示（解析异常 / 无法读取 / 无有效记录）与原实现逐一对应 |
+>
+> **实测记录（模拟器 Medium_Phone，debug 包）**
+> - 备份页统计文本读出：**「当前本地共存储 227 部作品 · 458 条随想痕迹」** —— 非 0、非异常值，证明 `getTotalBooksCount()` 替换正确
+> - 时间轴页首屏读出：**「2026 年 · 共收录 64 本藏书」**；切到番剧后读出：**「1995 ~ 2026 · 共收录 72 部番剧」** —— 数字与主页五媒介统计（书籍 64 / 动画 72）逐项吻合，且年份跨度计算正确，证明异步化与竞态守卫均按预期工作、未误伤正常切换
+> - 年鉴页读出 **「✍️ 留下随想与笔记：458 条」**，与备份页笔记数一致 —— 证明 `getAllNotesLite()` 的存活作品过滤语义等价
+> - 连续快速切换媒介 + monkey 800 次事件，crash buffer 与应用层异常均为空
+> - **未实测**：CSV 导入（c 项）需 SAF 文件选择器交互，无法用 adb 自动化
+
+**问题等级**：P2 — 单次操作几十毫秒量级，大库下影响可感知但非崩溃
+
 | 子项 | 位置 | 证据 |
 |:---|:---|:---|
 | a. 主线程 `getBooks()`（`SELECT *` 含长正文） | `MediaTimelineScrollActivity.kt:129`、`ResonancePosterActivity.kt:197`、`BackupActivity.kt:112` | `getBooks()`（`BookDatabaseHelper.kt:2210`）projection 传 `null` = SELECT *。**`BackupActivity:112` 拖全表只为取 `works.size`（`:114`），而 `getTotalBooksCount()` 早已存在** |
@@ -842,6 +864,26 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 ---
 
 ### T4.7 长卷预览 O(N²) 重绘 与 PDF 后台绘制 View 树 🟡
+
+> **✅ 已完成（2026-09-18，本轮）**
+>
+> **一、`LibraryScrollView` 长卷预览（三处热路径问题一并处理）**
+> 1. 新增 `ScrollPalette` 预解析色板（`LIGHT` / `DARK` 两套 + 印章朱砂常量），`drawScrollContent` 与 `drawBookCard` 全部改为色板取值；`drawBookCard` 签名由 `(primaryText, secondaryText, accentGold, dark)` 四参收敛为 `palette` 一参。**10 处 `Color.parseColor` 全部从 onDraw 路径清除**。
+> 2. 新增 `cardLayoutCache`（`LinkedHashMap` accessOrder = true，上限 `MAX_CACHED_CARD_LAYOUTS = 512`），键为 `(id, 标题, 字号, 文本宽)`，`setLibraryData` 时整体 `clear()`。
+> 3. 封面异步回调由 `postInvalidate()` 改为 `postInvalidateOnAnimation()`，同帧内多次请求合并为一次。
+>
+> **⚠️ 实现要点（易踩坑）**：`titlePaint` 的 `textSize` / `isFakeBoldText` **仍每次赋值**，不可一并缓存——`StaticLayout` 持有的是传入 `TextPaint` 的**引用而非副本**（正因如此原代码才靠 `:418 titlePaint.color = primaryText` 给标题上色）。若缓存命中时跳过画笔状态设置，绘制期与构建期状态可能不一致。被缓存的只有昂贵的 `Builder.build()`，赋值本身是廉价操作。
+>
+> **二、年鉴 PDF 绘制（方案与原计划的偏离）**
+> 原计划建议「取图阶段回主线程离屏绘成 **Bitmap**，再后台写 PDF 流」。**实际未采用**，因为该功能定位就是「多页高清**矢量** PDF 画册」，转位图会丢失矢量特性，且整册位图有额外内存压力。
+> 实际改为**两段式**：分页绘制（`startPage` / `content.draw` / `finishPage` 循环）回归主线程，仅 `writeTo` 落盘与 MediaStore 写入留在后台。同样满足「View 树只能在 UI 线程绘制」这一硬约束，同时保留矢量输出。绘制阶段异常时提前 `close()` 并提示，不再进入后台。
+>
+> **实测记录（模拟器 Medium_Phone，debug 包）**
+> - 长卷预览页：**227 部藏品三列网格渲染完整**，标题、封面（含占位降级）、评分、状态、深色色板全部正常——证明布局缓存未破坏绘制、缓存键失效逻辑正确
+> - 年鉴 PDF：点击「⬇️ 4K 长图」→ 弹窗选「📄 导出多页矢量画册 (PDF)」→ 实际导出成功，`/sdcard/Documents/ReadTrace/` 生成 **536 KB** PDF；**无崩溃、无 `Only the original thread that created a view hierarchy can touch its views` 异常**
+> - 该 PDF 从年鉴页进入前显示的统计为「227 部作品 / 122 部读完 / 11 小时 1 分钟 / 458 条笔记」，数据链路完整
+
+**问题等级**：P2 — 预览路径退化为 O(N²) 次 StaticLayout 构建；PDF 路径属未定义行为（潜在空白/崩溃）
 
 - **预览重绘**：`widget/LibraryScrollView.kt:238-241`（`onDraw` → `drawScrollContent`）内 `:308` 逐卡 `cardLayoutFor`、`:195-204` `titleLayoutFor` 每次 `StaticLayout.Builder.build()`，叠加 `:358/364/382/396` 多次 `Color.parseColor` 字面量；`setLibraryData:89-99` 每张封面异步回调各 `postInvalidate()` 一次 → **N 张封面 = N 次整卷重绘**，单次成本又含 N 次 StaticLayout 构建。这两个 View 晚于 UI 专项审查（`d0cc750`）诞生，故逃过 T2.3。改法：`LinkedHashMap` 缓存 layout、颜色提为成员预解析常量、封面回改用 `postInvalidateOnAnimation()` 合并。
 - **PDF 导出**：`AnnualChronicleStudioActivity.kt:382` `Thread {` 内 `:401` `content.draw(canvas)`，`content` 是**已 attach 的屏幕 View 树**（含 `CulturalTreeRingsView`/`MindprintRadarView`）。非 UI 线程绘制 View 树属未定义行为（可能空白/错乱/「Only the original thread…」）。改法：取图阶段回主线程离屏绘成 Bitmap，再后台写 PDF 流。
@@ -978,23 +1020,25 @@ T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 
 ### 实际执行记录（2026-09-18 回填）
 
-上述顺序在 T0~T3 被完整执行；**T4 的实际执行偏离了它**——T4.1 / 4.2 / 4.4 / 4.8 / 4.12 与 T4.5-A 均已完成，但既未回填状态，也把紧随其后的 T4.3 与 T4.5-B/C/E、T4.6、T4.7、T4.9 一并搁置了。2026-09-18 补做 T4.3 并回填全部进度（见文件头）。
+上述顺序在 T0~T3 被完整执行；**T4 的实际执行偏离了它**——T4.1 / 4.2 / 4.4 / 4.8 / 4.12 与 T4.5-A 均已完成，但既未回填状态，也把紧随其后的 T4.3、T4.6、T4.7 与 T4.5-B/C/E、T4.9 一并搁置了。**2026-09-18 当日已补做 T4.3 / T4.6 / T4.7 三项并全部实测，同时回填本文件全部进度。**
 
-**T4 剩余 4 项的建议顺序**：
+**T4 剩余 2 项的建议顺序（顺序不可颠倒）**：
 
 ```
 T4.9 摘 UnusedResources 豁免（需 §10 决策 #11 授权，勿跑 updateLintBaseline）
   ↓
 lintDebug 取全量未使用资源清单（逐个确认 values-night 与限定符变体）
   ↓
-T4.6 主线程数据访问残余（3 子项，低风险）
-T4.7 长卷重绘去分配 + PDF 移出后台绘 View 树
-  ↓
 T4.5-B+E 批量清 94 条 string 与 12 个孤儿文件（豁免 widget_*_name 两条名称资源）
   ↓
 T4.5-C 死代码 4 项（releaseCovers 已由 T4.2 接线，不再列入）
 T4.5-D 文档层
 ```
+
+> **📌 可复用的验证手法（本轮跑通，建议沉淀）**：非 exported 的 Activity 无法 `am start`，但仍可自动化验证——
+> ① `dumpsys activity top` 输出含 View Hierarchy，其中的 `l,t-r,b` 是**相对父容器的布局坐标**（且不含 ScrollView 的 scrollY），按缩进建树累加祖先链即得屏幕绝对坐标（脚本已固化为 `tools/dumpsys_coords.py`，2026-09-18 新增，**当前为工作区文件、尚未纳入版本控制**）；
+> ② 用 `adb shell input tap <x> <y>` 进入目标页；
+> ③ 页面内容用 `uiautomator dump` 读取——**静态页有效**（备份页/时间轴页/年鉴页均成功），主页因常驻自绘动画仍会 `could not get idle state`。
 
 **为什么 T0.1 排第一**：改动仅 2 行、可独立验证，但性质是**正在静默破坏用户数据且不可逆**，比性能问题严重一个量级。
 
