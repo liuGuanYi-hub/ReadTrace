@@ -229,24 +229,33 @@ class BackupActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * T4.3：全表取数（含六阶维度）+ 三种格式纯 CPU 序列化 + 整包 toByteArray 再拷一份 + 写盘，
+     * 原先由三个 SAF 回调直接调用而全程留在主线程，大库必然 ANR。
+     * 现照 [importDataFromFile] 的既有范式移入后台线程，提示回主线程并带生命周期守卫。
+     */
     private fun exportDataToFile(uri: Uri, format: String) {
-        val fullWorks = databaseHelper.getAllFullWorkBackups()
-        val content = when (format) {
-            "json" -> BackupHelper.generateJsonBackup(fullWorks)
-            "md" -> BackupHelper.generateMarkdownArchive(fullWorks)
-            "csv" -> BackupHelper.generateCsvExport(fullWorks)
-            else -> ""
-        }
-
-        runCatching {
-            contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(content.toByteArray(Charsets.UTF_8))
-                outputStream.flush()
+        Thread {
+            val writeResult = runCatching {
+                val fullWorks = databaseHelper.getAllFullWorkBackups()
+                val content = when (format) {
+                    "json" -> BackupHelper.generateJsonBackup(fullWorks)
+                    "md" -> BackupHelper.generateMarkdownArchive(fullWorks)
+                    "csv" -> BackupHelper.generateCsvExport(fullWorks)
+                    else -> ""
+                }
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(content.toByteArray(Charsets.UTF_8))
+                    outputStream.flush()
+                }
             }
-            Toast.makeText(this, R.string.backup_export_success, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            Toast.makeText(this, R.string.backup_export_failed, Toast.LENGTH_SHORT).show()
-        }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                val tip = if (writeResult.isSuccess) R.string.backup_export_success
+                else R.string.backup_export_failed
+                Toast.makeText(this, tip, Toast.LENGTH_SHORT).show()
+            }
+        }.start()
     }
 
     private fun importDataFromFile(uri: Uri) {
