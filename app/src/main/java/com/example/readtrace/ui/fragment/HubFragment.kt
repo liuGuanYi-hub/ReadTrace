@@ -693,23 +693,6 @@ class HubFragment : Fragment() {
         importDialog.show()
     }
 
-    private fun importAssetCsv(assetFileName: String, defaultMedia: MediaType, categoryName: String) {
-        val count = try {
-            requireContext().assets.open(assetFileName).use { stream ->
-                val records = BookCsvParser.parseRecords(stream, defaultMedia)
-                databaseHelper.importParsedRecords(records)
-            }
-        } catch (e: Exception) {
-            0
-        }
-        if (count > 0) {
-            Toast.makeText(requireContext(), "成功导入 $count 部 $categoryName！", Toast.LENGTH_SHORT).show()
-            refreshDashboard()
-        } else {
-            Toast.makeText(requireContext(), "未发现新作品或已全部存在", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     /**
      * 一键全量合入：从内置资产 `preset_all.json` 导入全库 218 部作品及其富内容。
      *

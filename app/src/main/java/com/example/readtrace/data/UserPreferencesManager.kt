@@ -11,7 +11,6 @@ import com.example.readtrace.model.MediaType
  * - readtrace_prefs       → 视图模式（书架/各媒介 Hub 的网格开关）
  * - readtrace_theme_prefs → 夜间模式
  * - readtrace_version_prefs → What's New 上次展示版本
- * - readtrace_reader_prefs → 各作品阅读页码
  *
  * 内部仍按原文件名路由：历史数据零迁移、零破坏；
  *策展人账号 / 播放器 / 预置种子等单归属偏好仍保留在各域管理器内部。
@@ -21,13 +20,11 @@ object UserPreferencesManager {
     private const val PREFS_MAIN = "readtrace_prefs"
     private const val PREFS_THEME = "readtrace_theme_prefs"
     private const val PREFS_VERSION = "readtrace_version_prefs"
-    private const val PREFS_READER = "readtrace_reader_prefs"
 
     private const val KEY_PREFIX_GRID_LIBRARY = "pref_is_grid_view_library"
     private const val KEY_PREFIX_GRID_HUB = "pref_is_grid_view_hub_"
     private const val KEY_NIGHT_MODE = "night_mode"
     private const val KEY_LAST_SHOWN_VERSION = "key_last_shown_version"
-    private const val KEY_PREFIX_BOOK_PAGE = "book_page_"
 
     // --- 🌗 夜间模式 (readtrace_theme_prefs) ---
 
@@ -213,16 +210,4 @@ object UserPreferencesManager {
             .edit().putString(KEY_AI_MODEL, model.trim()).apply()
     }
 
-    // --- 📖 阅读页码 (readtrace_reader_prefs) ---
-
-    fun getReadingPage(context: Context, bookId: Long): Int =
-        context.getSharedPreferences(PREFS_READER, Context.MODE_PRIVATE)
-            .getInt(KEY_PREFIX_BOOK_PAGE + bookId, 0)
-
-    fun saveReadingPage(context: Context, bookId: Long, pageIndex: Int) {
-        context.getSharedPreferences(PREFS_READER, Context.MODE_PRIVATE)
-            .edit()
-            .putInt(KEY_PREFIX_BOOK_PAGE + bookId, pageIndex)
-            .apply()
-    }
 }
