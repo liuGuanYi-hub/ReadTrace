@@ -2699,6 +2699,28 @@ class BookDatabaseHelper private constructor(val context: Context) :
             }
         }
 
+    /**
+     * T4.6-b：批量取出全部有效笔记的 (bookId, createdAt) 轻量对，供跨作品的时间维度聚合使用
+     * （如年度年鉴的笔记计数），替代「逐作品 getNotes(b.id)」的 N+1 查询。
+     * 只取两列，不携带笔记正文。
+     */
+    fun getAllNotesLite(): List<Pair<Long, String>> =
+        readableDatabase.query(
+            TABLE_NOTES,
+            arrayOf(COLUMN_BOOK_ID, COLUMN_CREATED_AT),
+            "$COLUMN_IS_DELETED = ?",
+            arrayOf("0"),
+            null,
+            null,
+            null,
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.getLong(0) to (cursor.getString(1) ?: ""))
+                }
+            }
+        }
+
     fun getNote(noteId: Long): Note? =
         readableDatabase.query(
             TABLE_NOTES,

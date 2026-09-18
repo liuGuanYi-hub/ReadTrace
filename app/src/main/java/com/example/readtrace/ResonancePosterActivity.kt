@@ -91,7 +91,11 @@ class ResonancePosterActivity : AppCompatActivity() {
     }
 
     private fun showSelectWorkADialog() {
-        val allWorks = databaseHelper.getBooks()
+        // T4.6-a（本轮核验新发现的第 4 处同类项，计划原只列 3 处）：
+        // 选择器只消费标题/作者/分类/标签/封面/评分/状态，不涉及 description/review，
+        // 故同样改用列白名单。此处保持同步调用——点击触发的低频操作，
+        // 且弹窗需在主线程即时呈现。
+        val allWorks = databaseHelper.getBooksForList()
         if (allWorks.size < 2) {
             Toast.makeText(this, "书库中至少需要 2 部作品才能生成双生共鸣微卡", Toast.LENGTH_SHORT).show()
             return
@@ -193,43 +197,70 @@ class ResonancePosterActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * T4.6-a：原在主线程做全表 getBooks()（SELECT *，含 description/review 长文），
+     * 而本页对该结果只消费两项——「作品数 ≥ 2」与「默认取前两部作品 id」。
+     * 遂改用列白名单 getBooksForList() 并把查询移出主线程。
+     * 作品详情仍由 getBook(id) 单查（含 review，ResonancePosterView 确实消费该字段），语义不变。
+     * 守卫：以 requestedA/requestedB 与当前 bookAId/bookBId 比对，用户在选择器里改了作品时丢弃过期结果。
+     */
     private fun loadData() {
-        val allBooks = databaseHelper.getBooks()
-        if (allBooks.size < 2) {
-            Toast.makeText(this, "书库中作品不足 2 部，无法生成双生共鸣微卡", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
+        val requestedA = bookAId
+        val requestedB = bookBId
 
-        if (bookAId <= 0 || bookBId <= 0 || bookAId == bookBId) {
-            bookAId = allBooks[0].id
-            bookBId = allBooks[1].id
-            val mpA = databaseHelper.getMindprint(bookAId)
-            val mpB = databaseHelper.getMindprint(bookBId)
-            similarity = calculateSimilarity(mpA, mpB)
-            resonanceTrait = determineResonanceTrait(allBooks[0], allBooks[1], mpA, mpB)
-        }
+        Thread {
+            val allBooks = databaseHelper.getBooksForList()
 
-        val bookA = databaseHelper.getBook(bookAId)
-        val bookB = databaseHelper.getBook(bookBId)
+            val needDefault = requestedA <= 0 || requestedB <= 0 || requestedA == requestedB
+            val idA = if (needDefault) allBooks.getOrNull(0)?.id ?: -1L else requestedA
+            val idB = if (needDefault) allBooks.getOrNull(1)?.id ?: -1L else requestedB
 
-        if (bookA == null || bookB == null) {
-            Toast.makeText(this, "未找到双生共鸣作品数据", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
+            // 注：原实现在 needDefault 分支与后文各取一次心智档案，同 id 重复查询，此处合并为一次
+            val mpA = if (idA > 0) databaseHelper.getMindprint(idA) else null
+            val mpB = if (idB > 0) databaseHelper.getMindprint(idB) else null
+            val bookA = if (idA > 0) databaseHelper.getBook(idA) else null
+            val bookB = if (idB > 0) databaseHelper.getBook(idB) else null
 
-        val mpA = databaseHelper.getMindprint(bookAId)
-        val mpB = databaseHelper.getMindprint(bookBId)
+            val computedSimilarity = calculateSimilarity(mpA, mpB)
+            val computedTrait = if (needDefault && allBooks.size >= 2) {
+                determineResonanceTrait(allBooks[0], allBooks[1], mpA, mpB)
+            } else {
+                null
+            }
 
-        resonancePosterView.setData(
-            bookA = bookA,
-            mindprintA = mpA,
-            bookB = bookB,
-            mindprintB = mpB,
-            similarity = similarity,
-            resonanceTrait = resonanceTrait,
-        )
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (requestedA != bookAId || requestedB != bookBId) return@runOnUiThread
+
+                if (allBooks.size < 2) {
+                    Toast.makeText(this, "书库中作品不足 2 部，无法生成双生共鸣微卡", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@runOnUiThread
+                }
+                if (bookA == null || bookB == null) {
+                    Toast.makeText(this, "未找到双生共鸣作品数据", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@runOnUiThread
+                }
+
+                // 仅默认选片路径改写状态；由选择器指定作品的路径保留调用方（onSelected）已算好的值
+                if (needDefault) {
+                    bookAId = idA
+                    bookBId = idB
+                    similarity = computedSimilarity
+                    computedTrait?.let { resonanceTrait = it }
+                }
+
+                resonancePosterView.setData(
+                    bookA = bookA,
+                    mindprintA = mpA,
+                    bookB = bookB,
+                    mindprintB = mpB,
+                    similarity = similarity,
+                    resonanceTrait = resonanceTrait,
+                )
+            }
+        }.start()
     }
 
     private fun savePosterToGallery() {

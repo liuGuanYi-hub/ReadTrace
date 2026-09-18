@@ -98,7 +98,13 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
         val finished = allBooks.filter { it.finishDate?.startsWith(prefix) == true }
         val allSessions = dbHelper.getAllReadingSessions().filter { it.createdAt.startsWith(prefix) }
         val minutes = allSessions.sumOf { it.durationMinutes }
-        val notes = allBooks.sumOf { b -> dbHelper.getNotes(b.id).count { it.createdAt.startsWith(prefix) } }
+        // T4.6-b：原为逐作品 getNotes(b.id) 的 N+1 查询（T2.7 列举五处之外的第 6 处），
+        // 改为一次批量取 (bookId, createdAt) 后内存聚合。
+        // 语义等价：原实现只统计未删除作品的笔记，故此处按存活作品 id 集过滤。
+        val liveBookIds = allBooks.mapTo(HashSet<Long>(allBooks.size)) { it.id }
+        val notes = dbHelper.getAllNotesLite().count { (bookId, createdAt) ->
+            bookId in liveBookIds && createdAt.startsWith(prefix)
+        }
 
         val tagStats = dbHelper.getAllUniqueTags()
         val best = finished.filter { it.rating != null }

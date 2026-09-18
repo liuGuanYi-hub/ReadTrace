@@ -109,9 +109,11 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun refreshStats() {
-        val works = databaseHelper.getBooks()
+        // T4.6-a：原用 getBooks()（SELECT *，含 description/review 长文）仅为取作品条数，
+        // 改调既有的 getTotalBooksCount()——单行 COUNT 查询，不拖出任何文本列。
+        val totalWorksCount = databaseHelper.getTotalBooksCount()
         val totalNotesCount = databaseHelper.getTotalNotesCount()
-        backupStatSummary.text = getString(R.string.backup_stat_summary_format, works.size, totalNotesCount)
+        backupStatSummary.text = getString(R.string.backup_stat_summary_format, totalWorksCount, totalNotesCount)
     }
 
     /**
@@ -312,13 +314,36 @@ class BackupActivity : AppCompatActivity() {
     }.start()
     }
 
+    /**
+     * T4.6-c：CSV 解析与落库原先全程留在主线程，与已后台化的 JSON 导入路径不对称。
+     * 现照 [importDataFromFile] 范式对齐：解析入后台 → 确认弹窗回主线程 → 落库再入后台。
+     */
     private fun importCsvFromFile(uri: Uri) {
-        runCatching {
-            contentResolver.openInputStream(uri)?.use { inputStream ->
-                val records = com.example.readtrace.util.BookCsvParser.parseRecords(inputStream)
+        Thread {
+            val parseOutcome = runCatching {
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    com.example.readtrace.util.BookCsvParser.parseRecords(inputStream)
+                }
+            }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+
+                if (parseOutcome.isFailure) {
+                    Toast.makeText(
+                        this,
+                        "解析 CSV 失败: ${parseOutcome.exceptionOrNull()?.message}",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    return@runOnUiThread
+                }
+                val records = parseOutcome.getOrNull()
+                if (records == null) {
+                    Toast.makeText(this, "无法读取 CSV 文件", Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
                 if (records.isEmpty()) {
                     Toast.makeText(this, "未能从 CSV 解析出有效记录", Toast.LENGTH_SHORT).show()
-                    return
+                    return@runOnUiThread
                 }
 
                 ElegantConfirmDialog.show(
@@ -328,24 +353,25 @@ class BackupActivity : AppCompatActivity() {
                     confirmText = "立即导入",
                     isDanger = false,
                     onConfirm = {
-                        val count = databaseHelper.importParsedRecords(records)
-                        refreshStats()
-                        ElegantConfirmDialog.show(
-                            activity = this,
-                            title = "🎉 导入完成",
-                            message = "成功合入/更新 $count 部作品记录！",
-                            confirmText = "我知道了",
-                            showCancel = false,
-                            onConfirm = {},
-                        )
+                        Thread {
+                            val count = databaseHelper.importParsedRecords(records)
+                            runOnUiThread {
+                                if (isFinishing || isDestroyed) return@runOnUiThread
+                                refreshStats()
+                                ElegantConfirmDialog.show(
+                                    activity = this,
+                                    title = "🎉 导入完成",
+                                    message = "成功合入/更新 $count 部作品记录！",
+                                    confirmText = "我知道了",
+                                    showCancel = false,
+                                    onConfirm = {},
+                                )
+                            }
+                        }.start()
                     },
                 )
-            } ?: run {
-                Toast.makeText(this, "无法读取 CSV 文件", Toast.LENGTH_SHORT).show()
             }
-        }.onFailure {
-            Toast.makeText(this, "解析 CSV 失败: ${it.message}", Toast.LENGTH_LONG).show()
-        }
+        }.start()
     }
 
     private fun getTimestampForFile(): String =

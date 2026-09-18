@@ -125,39 +125,53 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * T4.6-a：全表查询原在主线程，且用 getBooks()（SELECT *，含 description/review 长文），
+     * 而时间轴只消费基础字段与日期年份 → 改用列白名单 getBooksForList() 并把查询移出主线程。
+     * 快速连续切换媒介时以 requestedType 比对丢弃过期结果（沿用年鉴 buildChronicle 的守卫范式）。
+     * 注意：extractYearInt 是 View 的方法，仍留在主线程执行，后台只做 DB 查询。
+     */
     private fun loadTimelineData() {
-        val filteredBooks = databaseHelper.getBooks().filter { it.mediaType == selectedMediaType }
+        val requestedType = selectedMediaType
+        Thread {
+            val filteredBooks = databaseHelper.getBooksForList().filter { it.mediaType == requestedType }
 
-        // 更新顶部标题
-        scrollMainTitle.text = when (selectedMediaType) {
-            MediaType.BOOK -> "📜 阅历编年史 · 文学画卷"
-            MediaType.ANIME -> "📜 追番编年史 · 心智画卷"
-            MediaType.MOVIE -> "📜 光影编年史 · 影画长卷"
-            MediaType.GAME -> "📜 游戏编年史 · 征程画卷"
-            MediaType.MUSIC -> "📜 乐音编年史 · 旋律画卷"
-        }
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                if (requestedType != selectedMediaType) return@runOnUiThread
 
-        // 计算年份跨度
-        val allYears = filteredBooks.mapNotNull { timelineScrollView.extractYearInt(it) }
-        val minYear = allYears.minOrNull()
-        val maxYear = allYears.maxOrNull()
+                // 更新顶部标题
+                scrollMainTitle.text = when (requestedType) {
+                    MediaType.BOOK -> "📜 阅历编年史 · 文学画卷"
+                    MediaType.ANIME -> "📜 追番编年史 · 心智画卷"
+                    MediaType.MOVIE -> "📜 光影编年史 · 影画长卷"
+                    MediaType.GAME -> "📜 游戏编年史 · 征程画卷"
+                    MediaType.MUSIC -> "📜 乐音编年史 · 旋律画卷"
+                }
 
-        val unitName = when (selectedMediaType) {
-            MediaType.BOOK -> "本藏书"
-            MediaType.MOVIE -> "部光影"
-            MediaType.GAME -> "款神作"
-            MediaType.MUSIC -> "首曲目"
-            MediaType.ANIME -> "部番剧"
-        }
+                // 计算年份跨度
+                val allYears = filteredBooks.mapNotNull { timelineScrollView.extractYearInt(it) }
+                val minYear = allYears.minOrNull()
+                val maxYear = allYears.maxOrNull()
 
-        val timeSpanStr = if (minYear != null && maxYear != null) {
-            if (minYear == maxYear) "$minYear 年" else "$minYear ~ $maxYear"
-        } else {
-            "全景时光"
-        }
+                val unitName = when (requestedType) {
+                    MediaType.BOOK -> "本藏书"
+                    MediaType.MOVIE -> "部光影"
+                    MediaType.GAME -> "款神作"
+                    MediaType.MUSIC -> "首曲目"
+                    MediaType.ANIME -> "部番剧"
+                }
 
-        scrollSubTitle.text = "$timeSpanStr · 共收录 ${filteredBooks.size} $unitName"
-        timelineScrollView.setTimelineData(filteredBooks, selectedMediaType)
+                val timeSpanStr = if (minYear != null && maxYear != null) {
+                    if (minYear == maxYear) "$minYear 年" else "$minYear ~ $maxYear"
+                } else {
+                    "全景时光"
+                }
+
+                scrollSubTitle.text = "$timeSpanStr · 共收录 ${filteredBooks.size} $unitName"
+                timelineScrollView.setTimelineData(filteredBooks, requestedType)
+            }
+        }.start()
     }
 
     private fun exportAndShareScroll() {
