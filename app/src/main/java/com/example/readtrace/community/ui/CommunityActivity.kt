@@ -65,7 +65,8 @@ class CommunityActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         FloatingBack.install(this)
-        findViewById<View>(R.id.communityRefreshBtn).setOnClickListener { refreshData() }
+        // 用户主动点刷新 → 强刷（跳过 24h 缓存 TTL 与版本号判断）
+        findViewById<View>(R.id.communityRefreshBtn).setOnClickListener { refreshData(forceRefresh = true) }
         findViewById<View>(R.id.publishFab).setOnClickListener {
             startActivity(Intent(this, PublishExhibitionActivity::class.java))
         }
@@ -104,9 +105,38 @@ class CommunityActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshData() {
+    /**
+     * 刷新社区内容。
+     *
+     * V0：先用本地数据（内置种子 / 磁盘缓存）**立即渲染**，保证界面马上有内容；
+     * 随后在后台向内容仓库拉取远端策展内容，成功应用后再重绘一次。
+     *
+     * 远端不可用时（断网 / 仓库尚未发布 / 24h 内无更新）本方法行为与改造前完全一致——
+     * 社区页永远可用，只是内容不自更新。
+     *
+     * @param forceRefresh 用户主动点刷新时传 true，跳过 24h 缓存 TTL 与版本号判断
+     */
+    private fun refreshData(forceRefresh: Boolean = false) {
         renderFeaturedExhibitions()
         renderExhibitionsList()
+
+        Thread {
+            val remote = runCatching {
+                CommunityRepository.fetchRemoteExhibitionsSync(applicationContext, forceRefresh)
+            }.getOrNull() ?: return@Thread
+
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                // 合并只能在主线程做：memoryExhibitions 同时被渲染路径遍历
+                val applied = runCatching {
+                    CommunityRepository.applyRemoteExhibitions(remote, applicationContext, forceRefresh)
+                }.getOrDefault(false)
+                if (!applied) return@runOnUiThread
+
+                renderFeaturedExhibitions()
+                renderExhibitionsList()
+            }
+        }.start()
     }
 
     private fun renderFeaturedExhibitions() {

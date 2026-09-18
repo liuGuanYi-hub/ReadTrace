@@ -7,6 +7,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.ContentRepoClient
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDateTime
@@ -239,6 +240,105 @@ object CommunityRepository {
         )
 
         restoreUserData()
+    }
+
+    // ===== V0 远端内容合并（「仓库即 CMS」）=====
+
+    /** 已应用的远端内容版本号（用于跳过无变更的重复合并） */
+    private const val KEY_REMOTE_VERSION = "applied_remote_version"
+
+    /**
+     * **后台线程**：从内容仓库拉取展厅 JSON。
+     *
+     * 本方法只做网络与解析，**绝不触碰内存列表**——合并被刻意拆到
+     * [applyRemoteExhibitions] 并在主线程执行，避免与渲染线程并发修改 `memoryExhibitions`。
+     *
+     * @return 远端与缓存都不可用时返回 null（调用方保持内置种子不变，即断网冷启动正常）
+     */
+    fun fetchRemoteExhibitionsSync(context: Context, forceRefresh: Boolean = false): JSONObject? =
+        ContentRepoClient.fetchJsonSync(context, ContentRepoClient.PATH_EXHIBITIONS, forceRefresh)
+
+    /**
+     * **主线程**：把远端内容合并进内存列表。
+     *
+     * 降级行为：远端不可用（root 为 null）或版本未推进时直接返回 false，
+     * 展厅列表保持内置种子 / 磁盘缓存不变。
+     *
+     * @param forceRefresh 用户主动强刷时传 true，跳过版本号判断
+     * @return true 表示本次确实应用了远端内容
+     */
+    fun applyRemoteExhibitions(
+        root: JSONObject?,
+        context: Context? = null,
+        forceRefresh: Boolean = false,
+    ): Boolean {
+        if (root == null) return false
+        ensureSeedData()
+
+        val remoteVersion = ContentRepoClient.versionOf(root)
+        val prefs = userPrefs(context)
+        val appliedVersion = prefs?.getInt(KEY_REMOTE_VERSION, 0) ?: 0
+
+        // 版本未推进且非强刷 → 无更新，省去一次合并
+        if (!forceRefresh && remoteVersion in 1..appliedVersion) return false
+
+        if (!mergeRemote(root)) return false
+
+        runCatching { prefs?.edit()?.putInt(KEY_REMOTE_VERSION, remoteVersion)?.apply() }
+        return true
+    }
+
+    /**
+     * 把远端展厅合并进内存列表。
+     *
+     * **合并规则（本地用户状态优先，绝不被远端冲掉）**：
+     * - 按 `id` 匹配命中的展厅，**只取远端的内容字段**（标题 / 描述 / 书籍 / 标签 / 封面主题），
+     *   用户状态按下述方式保留：
+     *   · `isLiked` 原样保留
+     *   · `likeCount` = 远端基础值 + 本地点赞增量（0 或 1）
+     *   · `commentCount` = max(远端值, 本地值)，保证用户留言计数不因合并而回退
+     * - 远端未收录、且非用户自发布的展厅**保留**——内容只增不减，
+     *   避免远端内容不完整导致展厅凭空消失
+     * - 用户自发布展厅（`user-` 前缀）**永不参与合并**，始终置顶
+     *
+     * @return true 表示确实产生了合并
+     */
+    private fun mergeRemote(root: JSONObject): Boolean {
+        val arr = root.optJSONArray("exhibitions") ?: return false
+        if (arr.length() == 0) return false
+
+        val remoteList = mutableListOf<CommunityExhibition>()
+        for (i in 0 until arr.length()) {
+            runCatching {
+                arr.optJSONObject(i)?.let { remoteList.add(parseExhibition(it)) }
+            }
+        }
+        if (remoteList.isEmpty()) return false
+
+        val existingById = memoryExhibitions.associateBy { it.id }
+        val remoteIds = remoteList.mapTo(HashSet()) { it.id }
+
+        val merged = remoteList.map { remote ->
+            val local = existingById[remote.id]
+            if (local == null) {
+                remote
+            } else {
+                remote.copy(
+                    isLiked = local.isLiked,
+                    likeCount = remote.likeCount + if (local.isLiked) 1 else 0,
+                    commentCount = maxOf(remote.commentCount, local.commentCount),
+                )
+            }
+        }
+
+        val userPublished = memoryExhibitions.filter { it.id.startsWith(USER_EXHIBITION_PREFIX) }
+        val localOnly = memoryExhibitions.filter {
+            it.id !in remoteIds && !it.id.startsWith(USER_EXHIBITION_PREFIX)
+        }
+
+        memoryExhibitions.clear()
+        memoryExhibitions.addAll(userPublished + merged + localOnly)
+        return true
     }
 
     // ===== 持久化实现 =====
