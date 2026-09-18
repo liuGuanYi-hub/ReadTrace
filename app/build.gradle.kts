@@ -110,6 +110,15 @@ android {
         // T3.1：存量告警一次性登记为 baseline 豁免（由 updateLintBaseline 生成），
         // 之后 CI 的 lintDebug 只对新增告警把关，避免历史债务堵死流水线。
         baseline = file("lint-baseline.xml")
+
+        // T4.9：UnusedResources 曾被整批写进 baseline 永久豁免（112 条），导致「僵尸资源」
+        // 这类真实维护债不会被任何门禁发现——功能已删干净，字符串与布局却留在仓库里，
+        // 且四个手工维护的文字面（strings / ChangelogData / README / preset_all.json）
+        // 与代码之间零约束，删完必然复发。现将该项从豁免中摘出并提升为 error：
+        // 它不再是「历史债务」，而是必须当场拦下的新增问题。
+        // ⚠️ 如需重建 baseline，不要跑 updateLintBaseline——那会把 T3.1 之后新积累的
+        // 存量告警一并豁免，等于把刚摘出来的洞重新堵上。
+        error += "UnusedResources"
     }
 }
 
@@ -120,7 +129,6 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    // P14 Web 微卡二维码生成（纯 JVM 核心，无额外传递依赖）
     testImplementation(libs.junit)
     // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
     testImplementation("org.json:json:20240303")
