@@ -116,7 +116,7 @@ graph LR
     subgraph Client [终端触达与交互层]
         UA[Android 策展端 Native]
         UMP[微信小程序端 Uni-App]
-        UWEB[Web 微卡 / DeepLink]
+        UWEB[DeepLink 深链]
     end
 
     subgraph Presentation [展示与工坊层]
@@ -155,7 +155,7 @@ graph LR
 ```
 
 ### 🏛️ 核心技术矩阵
-- **终端与 UI 架构**：Android Native (Kotlin 100% / API 31+) + 微信小程序端 (Uni-App / Vue 3 / TypeScript) + Web 微卡深链
+- **终端与 UI 架构**：Android Native (Kotlin 100% / API 31+) + 微信小程序端 (Uni-App / Vue 3 / TypeScript) + `readtrace://` DeepLink 深链
 - **3D 渲染与声光系统**：OpenGL ES 3.0/2.0 社区展厅画廊渲染器（`Gallery3DRenderer`） + 纯 PCM 程序化实时双耳空间音频/白噪音合成器 + 物理线性马达触觉矩阵 (`HapticFeedbackEngine`)
 - **智能计算引擎**：自然语言速记分词器 (`NaturalQuickAddParser`) + GB2312 拼音首字母模糊秒搜 (`PinyinSearchHelper`) + 六维心智复合势能拓扑 (`MindprintTopologyView`) + 双链概念网 (`[[Concept]]`)
 - **Local-First 数据主权**：SQLite 单例防误关（多张子表单事务级联物理安全） + WebDAV 双向增量同步（坚果云 / NAS / Nextcloud 12h 静默自动校验）

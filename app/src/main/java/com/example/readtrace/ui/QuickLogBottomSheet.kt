@@ -165,7 +165,7 @@ object QuickLogBottomSheet {
 
         view.tag = dialog
         dialog.show()
-        // 剪贴板嗅探预填：进入弹窗即自动触发联想搜索
+        // 标题预填（由调用方经 prefillTitle 传入）：进入弹窗即自动触发联想搜索
         prefillTitle?.takeIf { it.isNotBlank() }?.let { prefill ->
             searchInput.setText(prefill)
             searchInput.setSelection(prefill.length)
