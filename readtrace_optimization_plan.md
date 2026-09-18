@@ -26,6 +26,27 @@
 >
 > **🔬 T4.9 数据采集轮已完成（同日）**：临时移出 baseline 跑全量 `lintDebug` 交叉校验后，**人工 23 条字符串结论被 100% 确认（零假阳性）**，但 lint 额外暴露了 **112 项未使用资源**（人工仅覆盖 23）与 **12 个孤儿布局/drawable 文件**。因此本文件头的「无悬空布局/drawable 引用」一类结论**已被推翻并回改**，详见 T4.5-E 与 §11。baseline 本身未被修改（SHA256 前后比对一致）。
 
+> **✅ T4 执行进度回填（2026-09-18，逐项代码实测）**
+>
+> 本区块由 2026-09-18 全量通读补齐。此前头部只更新到「T4 立项」，**T4 各任务的实际落地情况从未回填**——结果是已修好的战果无记录、未修的项无人催，文档与代码事实脱节。下表为逐文件 `grep` + 实读源码后的真实状态（**不采信任何中间过程记录**）。
+>
+> | 任务 | 原状态 | 2026-09-18 代码实测 |
+> |:---|:---:|:---|
+> | T4.1 长卷导出尺寸封顶 | 待做 🔴 | ✅ **已完成**。`LibraryScrollView.MAX_EXPORT_HEIGHT_PX` + 等比 `canvas.scale`，`MediaTimelineScrollView` 同构改造；策略与年鉴一致 |
+> | T4.2 长卷 Bitmap 回收 | 待做 🔴 | ✅ **已完成**。两个预览 Activity 写盘后均 `runCatching { recycle() }`；`releaseCovers()` 已从「零调用」接线上两个 Activity 的 `onDestroy`（现命中 4 处） |
+> | T4.3 备份导出后台化 | 待做 🔴 | ✅ **已完成（2026-09-18，本轮）** |
+> | T4.4 `runOnUiThread` 生命周期守卫 | 待做 🟡 | ✅ **已完成**。长卷预览两处、时间轴长卷两处、备份两处均带 `isFinishing \|\| isDestroyed` |
+> | T4.5 僵尸文本清理 | 待做 🔴 | 🔶 **A 组已完成；B / C / D / E 全部未做**，见该条《A 组完成记录》与《剩余范围》 |
+> | T4.6 数据访问主线程残余 | 待做 🟡 | ⬜ **未做**（`BackupActivity:112` 仍拖全表只为取 `size`） |
+> | T4.7 长卷重绘 / PDF 后台绘 View 树 | 待做 🟡 | ⬜ **未做**（`AnnualChronicleStudioActivity:401` 仍在 `Thread{}` 内绘已 attach 的屏幕 View 树） |
+> | T4.8 `DATABASE_VERSION` 双真值 | 待做 🟡 | ✅ **已完成**。`DatabaseSchema` 已改为代理 `BookDatabaseHelper.DATABASE_VERSION`，单一真值，当前为 **18** |
+> | T4.9 lint 摘 `UnusedResources` 豁免 | 待做 🔵 | ⬜ **未做**（`lint-baseline.xml` 仍含 112 条豁免，门禁对该项仍失效） |
+> | T4.10 功能删除六面同步清单 | 待做 🔵 | ✅ **已完成**（已写入 §9） |
+> | T4.11 明确暂不做（触发条件制） | — | 维持原判，不执行 |
+> | T4.12 桌面小组件名称接线 | 待做 🟡 | ✅ **已完成**。`AndroidManifest` 两个 `<receiver>` 已补 `android:label="@string/widget_*_name"` |
+>
+> **结论**：T4 十二项中 **7 项已完成**（T4.1/4.2/4.3/4.4/4.8/4.10/4.12），T4.5 完成 A 组（4 处用户可见错误信息）。**剩余可执行工作收敛为 4 项**：T4.5-B/C/D/E、T4.6、T4.7、T4.9。其中 **T4.9 必须先于 T4.5-B/E**（顺序理由见 §8）。
+
 > **⚠️ 行数口径说明**：本计划所有文件行数统一采用**非空行**口径（PowerShell `Measure-Object -Line`）。
 > 若某处引用的是**含空行**口径，会显式标注。两套口径的换算参考：
 > `BookDetailActivity` 非空 2,305 / 含空行 2,529；`VinylCassettePlayerActivity` 1,707 / 1,833；
@@ -570,6 +591,8 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 
 ### T4.1 两个长卷导出 Bitmap 无尺寸上限 🔴 最高优先
 
+> **✅ 已完成（2026-09-18 核验）**：`LibraryScrollView.exportUltraHdBitmap()` 已引入 `MAX_EXPORT_HEIGHT_PX` 上限，`rawHeight > MAX` 时按 `MAX / rawHeight` 对整个 Canvas 等比缩放，`drawScrollContent` 始终接收未缩放的逻辑尺寸由 `canvas.scale` 统一映射——与年鉴 `maxDimension` 同策略（保留尾部藏品，不裁切）。`MediaTimelineScrollView` 同构改造完成。
+
 **问题等级**：P1 — 大库必然 OOM
 
 **证据**：
@@ -592,6 +615,8 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 
 ### T4.2 长卷 Bitmap 不 recycle + `releaseCovers()` 死方法 🔴
 
+> **✅ 已完成（2026-09-18 核验）**：`LibraryScrollPreviewActivity:118` 与 `MediaTimelineScrollActivity:227` 均在写盘后 `runCatching { bitmap?.takeIf { it.isRecycled.not() }?.recycle() }`（置于异常路径外，照年鉴写法）；`releaseCovers()` 已由「仅定义处命中 1」变为 4 处命中——两个 Activity 的 `onDestroy` 各调一次，封面 LruCache 不再常驻。
+
 **问题等级**：P1 — 与 T4.1 叠加构成即时 OOM（非良性的延迟 GC）
 
 **证据**：
@@ -610,6 +635,12 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 
 ### T4.3 备份导出全程在主线程 🔴
 
+> **✅ 已完成（2026-09-18，本轮修复）**
+> 改法：`exportDataToFile()` 整体包入 `Thread { … }`，全表取数 + 三种格式序列化 + 写盘全部落后台；`runCatching` 结果经 `runOnUiThread` 回主线程提示，并按 T4.4 规约补 `if (isFinishing || isDestroyed) return@runOnUiThread` 守卫。导入导出两侧现为同一范式（此前导入已后台化、导出漏做）。
+> **未改动**：三个 SAF 回调（`:29/:35/:41`）的调用形式保持不变——异步化收敛在函数内部，调用点零改动。
+> **行为等价性**：`openOutputStream` 返回 null 时原实现即静默提示"成功"（`?.use` 不执行且不抛异常），本次修复**保持该行为不变**，未夹带语义变更。
+> **验证**：`assembleDebug` 编译通过（2026-09-18）；大库 ANR 实测仍需真机/模拟器构造 ≥300 条藏库（见 §9 DoD 对 T4 性能数字的实测要求）。
+
 **问题等级**：P1 — 大库必然 ANR
 
 **证据**：`BackupActivity.kt:232-249` 的 `exportDataToFile()` 由 `:27`/`:33`/`:39` 三个 `registerForActivityResult(CreateDocument)` 回调**直接调用 → 主线程**。函数内串行：`:233` `getAllFullWorkBackups()`（全表 + 六阶维度）→ `:235-237` 三种格式纯 CPU 序列化 → `:243` `content.toByteArray()`（整包再拷一份）→ `:242` 写盘。**零线程切换**。
@@ -624,6 +655,8 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 ---
 
 ### T4.4 新增长卷 `runOnUiThread` 无生命周期守卫 🟡
+
+> **✅ 已完成（2026-09-18 核验）**：计划列举的四处守卫全部补齐——`LibraryScrollPreviewActivity:99/:114`、`MediaTimelineScrollActivity:209/:223`，另 `BackupActivity:262/:288` 早有；本轮 T4.3 修复的后台回调亦按本条规约补上守卫。新增代码不再出现「连守卫都没带」的情况。
 
 **问题等级**：P1 — 特定路径崩溃
 
@@ -640,6 +673,21 @@ UI 与渲染专项审查仍在进行，返回后追加（预期覆盖：传感�
 ---
 
 ### T4.5 僵尸文本清理（人工 42 处 + lint 追加 112 项）🔴 清单型任务
+
+> **✅ A 组已完成（2026-09-18 核验）：用户可见的 4 处错误信息全部修正**
+>
+> | # | 位置 | 实际落地改法 |
+> |:--:|:---|:---|
+> | 1 | `HubFragment` Hero 按钮 | BOOK 分支文案已由「📖 3D 沉浸翻阅」改为 **「📖 回看阅读痕迹」**（五媒介分支均已名实相符：追番入境签证 / 透光电影票根 / 全息白金卡带 / 共鸣双生微卡） |
+> | 3 | 「展厅第N层」存量数据 | **未采用一次性 `UPDATE`，改走迁移器**——新增 `DatabaseMigrator` v18 分支，`WHERE shelf_location = <旧预设原文>` 精确匹配三档（第3/4/5层），**只刷新仍等于预设默认值的行**，用户自行改写的陈列位置零覆盖。同时同步 `assets/preset_all.json`（137 条）。这比原计划建议的「改中性表述」更彻底，且规避了 §10 决策 #8 指出的覆盖风险 |
+> | 4 | `ChangelogData` 历史条目 | 已按本计划建议**保留历史 + 标注移除**，而非删除：`〔已下线〕` / `〔扫码已下线〕` / `〔熄屏模式已下线〕` / `〔两种展厅均已下线〕` / `〔视差画廊已下线〕` |
+> | 5 | 桌面小部件选择器描述 | 硬编码「支持一键直达 3D 拟真翻阅」已改为资源引用，现文案为「展示当前在读书目与进度条，支持一键直达作品详情」 |
+>
+> **⬜ 剩余范围（2026-09-18 实测，全部未做）**
+> - **B 组 + E 组**：94 条零引用 string 全在（抽查 `home_gallery_title` / `reader_activity_title` / `widget_reading_timer_name` / `status_all` 引用数均为 0；`action_3d_read` 仅剩布局默认值 1 处）；**3 个孤儿布局在**：`activity_anime_timeline_scroll.xml`、`item_reading_session.xml`、`layout_dialog_clipboard_sniffer.xml`；`assets/preset_*.csv` 四个旧数据源仍在。
+> - **C 组**：`getGalleryFeaturedWorks`（命中 1，仅定义）、`importAssetCsv`（命中 1，仅定义）、`getReadingPage` / `saveReadingPage`（各 3，仅内部互委托）均为零外部调用的死代码。**`releaseCovers()` 已因 T4.2 接线不再是死代码**，从待清项中划除。
+> - **D 组**：文档层残留未清（README「Web 微卡」、`readtrace_project_plan.md` 已删功能章节等）。
+> - **前置约束不变**：**必须先完成 T4.9**（摘掉 `UnusedResources` 豁免）→ 再跑一次 `lintDebug` 取全量清单 → 然后才批量清 B/E。顺序颠倒会失去「防复发」这一最大收益。
 
 **问题等级**：P1（用户可感知的错误信息）+ P2（维护误导）
 
@@ -804,6 +852,8 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 
 ### T4.8 `DATABASE_VERSION` 双真值（17 vs 15）🟡
 
+> **✅ 已完成（2026-09-18 核验）**：采用「门面代理」而非删值——`DatabaseSchema.kt:111` 现为 `const val DATABASE_VERSION = BookDatabaseHelper.DATABASE_VERSION`，`DatabaseSchema` 保留名义门面地位且不再可能取到陈旧值。当前单一真值 = **18**（v18 即 T4.5-A#3 的陈列位置迁移）。
+
 **问题等级**：P1 — 平时不炸，一旦误用即静默的版本判断错误
 
 **证据**（实测全量定义）：
@@ -872,6 +922,8 @@ $x.issues.issue | Where-Object { $_.id -eq "UnusedResources" } | ForEach-Object 
 
 ### T4.12 桌面小组件名称未接线 🟡（T4.5-E 副产品，真实缺陷）
 
+> **✅ 已完成（2026-09-18 核验）**：`AndroidManifest.xml:149`（`DailyQuoteWidgetProvider`）与 `:163`（`CurrentlyReadingWidgetProvider`）两个 `<receiver>` 均已补 `android:label="@string/widget_daily_quote_name"` / `"@string/widget_currently_reading_name"`，并留注释说明 appwidget 选择器名称取自 `<receiver>` 的 `android:label`。两个名称资源因此不再是「未使用」，**T4.5-B 批量删除时须豁免这两条**（清单里已注明）。
+
 **问题等级**：P2 — 用户可见的粗糙观感，与功能无关，**2 行可修**
 
 **证据**：
@@ -924,11 +976,31 @@ T4.10 提交规约六面同步（6 行）
 T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 ```
 
+### 实际执行记录（2026-09-18 回填）
+
+上述顺序在 T0~T3 被完整执行；**T4 的实际执行偏离了它**——T4.1 / 4.2 / 4.4 / 4.8 / 4.12 与 T4.5-A 均已完成，但既未回填状态，也把紧随其后的 T4.3 与 T4.5-B/C/E、T4.6、T4.7、T4.9 一并搁置了。2026-09-18 补做 T4.3 并回填全部进度（见文件头）。
+
+**T4 剩余 4 项的建议顺序**：
+
+```
+T4.9 摘 UnusedResources 豁免（需 §10 决策 #11 授权，勿跑 updateLintBaseline）
+  ↓
+lintDebug 取全量未使用资源清单（逐个确认 values-night 与限定符变体）
+  ↓
+T4.6 主线程数据访问残余（3 子项，低风险）
+T4.7 长卷重绘去分配 + PDF 移出后台绘 View 树
+  ↓
+T4.5-B+E 批量清 94 条 string 与 12 个孤儿文件（豁免 widget_*_name 两条名称资源）
+  ↓
+T4.5-C 死代码 4 项（releaseCovers 已由 T4.2 接线，不再列入）
+T4.5-D 文档层
+```
+
 **为什么 T0.1 排第一**：改动仅 2 行、可独立验证，但性质是**正在静默破坏用户数据且不可逆**，比性能问题严重一个量级。
 
 **T4 内部为何是这个顺序**：
 1. **T4.1 → T4.2 → T4.4 必须连做**：它们叠加才构成即时 OOM/崩溃，单修任何一个都不完整。
-2. **T4.5-A 先于其余全部僵尸清理**：那 5 处是**用户正在看到的错误信息**（含一个点了没反应的按钮），且只需改文案；而 B/C 组是纯内部卫生，用户无感。
+2. **T4.5-A 先于其余全部僵尸清理**：那 4 处是**用户正在看到的错误信息**（原列 5 处，#2 已由编译报错推翻），且只需改文案；而 B/C 组是纯内部卫生，用户无感。**✅ 已于 2026-09-18 完成**，且其中「展厅第N层」一项超出原计划——未改文案而是走 v18 迁移，连存量数据一并修正。
 3. **T4.9 必须在 T4.5-B 之前**：先解除豁免才拿得到 lint 的**全量未使用资源清单**，用它交叉校对我人工统计的 23 条（预期 lint 命中集 ⊇ 23，能暴露本轮漏网项），再统一清。顺序颠倒则 B 组只能靠人工，且无法防复发。
    → **已验证**：实际执行后 lint 命中集确实 ⊇ 23，且额外暴露 89 项（含 12 个孤儿文件与 2 个应接线而非删的名称资源）。见 T4.5-E。
 4. **T4.12 必须先于 T4.5-B**：它两个名称资源在 lint 眼里就是「未使用」，先批量删除会把缺陷永久固化。
@@ -980,6 +1052,8 @@ T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 ## 10. 待用户决策清单
 
 > **2026-09-13 落实结果**：#3 已解决（用户授权「计划内完成」后 Gradle 测试/构建常态化执行，全量单测 69 个全绿）；#4 已解决（`cover_server/` 经用户确认整目录删除）；#5 已解决（README 失效链接与 LICENSE 已在 `148cca8` 处理，本轮核验通过）；#6 已解决（小程序端已有独立仓库，保持独立版本控制，不入主库）；#7 已解决（核验发现 `targetSdk` 实际已为 36，且 Android 17 (API 37) 已于 2026-06-16 发布稳定版，原「beta 轨道」顾虑失效）；#2 维持 T0 阶段方案（敏感键值留空 + example 模板，`gradle.properties` 模板文件继续入库）。**#1 仍待决策**：已被 v15 随机改写评分的存量数据是否做补偿。
+>
+> **2026-09-18 落实结果**：#8 已解决（改走 `DatabaseMigrator` v18 精确匹配迁移，非一次性 `UPDATE`）；#9 已解决（历史条目保留 + 标「〔已下线〕」）。**仍待决策**：#1（v15 评分补偿）、#10（`preloadRemainingTabs` 接线或删除）、#11（lint 构建系统改动授权，**已是 T4 剩余项的前置条件**）。
 
 | # | 决策项 | 关联任务 | 影响 | 状态 |
 |:--:|:--|:--|:--|:--:|
@@ -990,10 +1064,10 @@ T4.5-D 文档层・T4.7 预览重绘与 PDF（中改动，可后排）
 | 5 | `docs/` 目录是恢复还是摘除 README 链接？是否补 `LICENSE` 文件？ | T3.3 | 文档完整性 | ✅ 已解决 |
 | 6 | `mp-readtrace/` 小程序端是否纳入版本控制？ | T3.3 | 代码备份 | ✅ 已有独立仓库，维持现状 |
 | 7 | `targetSdk = 37` 是否回退到稳定版 36？ | 未列入 T1 | 发布策略 | ✅ 已是 36，无需回退 |
-| 8 | 「展厅第N层」是否**迁移存量数据**？仅改新增文案需一次 `UPDATE` 才能影响已入库记录，而该字段用户可手改，UPDATE 会覆盖 | T4.5-A #3 | 用户数据 + 预设 CSV/JSON | ⚠️ **待决策** |
-| 9 | `ChangelogData` 历史条目如何处理？（它们是**当时真实上过线**的记录，直接删 = 抹历史；保留 = 向用户介绍不存在的能力） | T4.5-A #4 | 版本纪要可信度 | ⚠️ **待决策**（本计划建议：保留 + 标「已移除」） |
-| 10 | `MainActivity.preloadRemainingTabs()` 是**接线**还是**删除**？（零调用，但它是 T0.3 播种后台化后配套的冷启动预热，接线可能仍有收益） | T4.5-C | 冷启动性能 | ⚠️ **待决策** |
-| 11 | 是否授权改动构建系统（`build.gradle.kts` 的 `lint {}` 块 + 手工改 `lint-baseline.xml`）？ | T4.9 | CI 门禁行为 | ⚠️ **待决策**（建议：**不跑** `updateLintBaseline`，只手工删 `UnusedResources` 一节） |
+| 8 | 「展厅第N层」是否**迁移存量数据**？仅改新增文案需一次 `UPDATE` 才能影响已入库记录，而该字段用户可手改，UPDATE 会覆盖 | T4.5-A #3 | 用户数据 + 预设 CSV/JSON | ✅ **已解决（2026-09-18）**：改走 `DatabaseMigrator` v18，`WHERE` 精确匹配三档预设原文、仅刷新仍等于默认值的行，用户改写的陈列位置零覆盖；`preset_all.json` 同步 137 条 |
+| 9 | `ChangelogData` 历史条目如何处理？（它们是**当时真实上过线**的记录，直接删 = 抹历史；保留 = 向用户介绍不存在的能力） | T4.5-A #4 | 版本纪要可信度 | ✅ **已解决（2026-09-18）**：采纳本计划建议——保留历史 + 逐条标「〔已下线〕」，不删条目 |
+| 10 | `MainActivity.preloadRemainingTabs()` 是**接线**还是**删除**？（零调用，但它是 T0.3 播种后台化后配套的冷启动预热，接线可能仍有收益） | T4.5-C | 冷启动性能 | ⚠️ **待决策**（2026-09-18 复测仍为零调用，仅 `MainActivity:218` 定义处命中） |
+| 11 | 是否授权改动构建系统（`build.gradle.kts` 的 `lint {}` 块 + 手工改 `lint-baseline.xml`）？ | T4.9 | CI 门禁行为 | ⚠️ **待决策，且已成 T4 剩余项的前置条件**（建议：**不跑** `updateLintBaseline`，只手工删 `UnusedResources` 一节） |
 
 ---
 
