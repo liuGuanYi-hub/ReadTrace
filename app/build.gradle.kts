@@ -129,6 +129,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    // V1 每日节律：后台周期刷新内容仓库（WorkManager 为 Jetpack 官方库，dex 占用小）
+    implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
     // 单元测试使用 JVM 版 org.json 实现（Android SDK 中的 org.json 在本地单测中被 stub）
     testImplementation("org.json:json:20240303")

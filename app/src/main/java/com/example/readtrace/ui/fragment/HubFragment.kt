@@ -28,6 +28,8 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.BackupHelper
+import com.example.readtrace.util.ContentRepoClient
+import com.example.readtrace.util.DailyRotationHelper
 import com.example.readtrace.util.BookCsvParser
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
@@ -347,10 +349,14 @@ class HubFragment : Fragment() {
 
         // 📜 羊皮纸便签轮播交互
         btnRefreshParchmentQuote.setOnClickListener {
+            // V1：用户主动换签后，不再让「今日一读」接管，避免顶掉他刚翻出来的那句
+            hasUserFlippedQuote = true
             renderParchmentQuote(excludeQuote = currentParchmentQuoteText)
             ViewAnimationHelper.playCardBounce(parchmentQuoteRibbon)
         }
         parchmentQuoteRibbon.setOnClickListener {
+            // V1：用户主动换签后，不再让「今日一读」接管，避免顶掉他刚翻出来的那句
+            hasUserFlippedQuote = true
             renderParchmentQuote(excludeQuote = currentParchmentQuoteText)
             ViewAnimationHelper.playCardBounce(parchmentQuoteRibbon)
         }
@@ -437,6 +443,9 @@ class HubFragment : Fragment() {
 
         renderHeroCuratorialCard(allBooks)
         renderParchmentQuote()
+        // V1：先用「自己收藏里的金句」把便签渲染出来（界面立刻有内容），
+        // 再后台取「今日一读」；拿到后由 loadDailyQuoteAsync 内部触发一次重绘。
+        loadDailyQuoteAsync()
 
         renderMemoryCard()
         renderFavoriteStrip()
@@ -533,7 +542,24 @@ class HubFragment : Fragment() {
     }
 
 
+    /**
+     * 渲染羊皮纸便签。
+     *
+     * V1 每日节律：**首次展示优先用内容仓库的「今日一读」**——它按日期取条目，
+     * 同一天进来永远是同一句，而不是每次打开都换（随机翻页留给用户主动点「换一句」）。
+     * 远端不可用或当日无条目时，完全回退到原有的「从自己收藏里随机/顺延」逻辑。
+     */
     private fun renderParchmentQuote(excludeQuote: String? = null) {
+        // excludeQuote == null 表示这是首次渲染（非用户主动换签），此时才用今日份
+        val today = if (excludeQuote == null) dailyQuoteCache else null
+        if (today != null) {
+            currentParchmentQuoteText = today.text
+            val formatted = if (today.text.startsWith("“")) today.text else "“${today.text}”"
+            parchmentQuoteText.setEditorialText(formatted)
+            parchmentQuoteSource.text = "—— 今日一读 · ${today.source}"
+            return
+        }
+
         val (book, quote) = databaseHelper.getRandomOrNextQuote(excludeQuote)
         currentParchmentQuoteText = quote
         val formattedQuote = if (quote.startsWith("“")) quote else "“$quote”"
@@ -542,6 +568,56 @@ class HubFragment : Fragment() {
         val titlePart = book?.title?.let { "《$it》" } ?: "《阅痕 ReadTrace》"
         parchmentQuoteSource.text = "—— $titlePart$authorPart"
     }
+
+    /** 今日一读（来自内容仓库 `daily/index.json`）；未加载到则为 null */
+    private var dailyQuoteCache: DailyQuote? = null
+
+    private data class DailyQuote(val text: String, val source: String)
+
+    /**
+     * V1：后台拉取「今日一读」。
+     *
+     * `ContentRepoClient.fetchJsonSync` 是阻塞网络调用，**绝不能在渲染路径上同步取**，
+     * 因此这里放后台线程，拿到后再触发一次便签重绘（仅当用户还没主动换过签时才重绘，
+     * 以免把用户手动翻出来的那句顶掉）。
+     */
+    private fun loadDailyQuoteAsync() {
+        val ctx = context?.applicationContext ?: return
+        Thread {
+            val root = runCatching {
+                ContentRepoClient.fetchJsonSync(ctx, ContentRepoClient.PATH_DAILY)
+            }.getOrNull() ?: return@Thread
+
+            val entries = root.optJSONArray("entries") ?: return@Thread
+            val parsed = buildList {
+                for (i in 0 until entries.length()) {
+                    val o = entries.optJSONObject(i) ?: continue
+                    val date = o.optString("date")
+                    val body = o.optString("body").trim()
+                    if (date.isBlank() || body.isBlank()) continue
+                    add(Triple(date, body, o.optString("source").trim()))
+                }
+            }
+            if (parsed.isEmpty()) return@Thread
+
+            val todayKey = DailyRotationHelper.todayKey()
+            val picked = parsed.firstOrNull { it.first == todayKey }
+                ?: DailyRotationHelper.pickToday(parsed)   // 当日无条目 → 稳定挑一条（同一天不变）
+                ?: return@Thread
+
+            val quote = DailyQuote(picked.second, picked.third.ifBlank { "阅痕编辑部" })
+
+            activity?.runOnUiThread {
+                if (isAdded.not() || isDetached) return@runOnUiThread
+                dailyQuoteCache = quote
+                // 只在用户尚未手动换签时接管，避免覆盖他刚翻出来的那句
+                if (!hasUserFlippedQuote) renderParchmentQuote()
+            }
+        }.start()
+    }
+
+    /** 用户是否主动点过「换一句」 */
+    private var hasUserFlippedQuote = false
 
 
     private fun renderMemoryCard() {

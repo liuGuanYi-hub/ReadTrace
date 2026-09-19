@@ -24,6 +24,9 @@ class ReadTraceApplication : Application() {
         // 避免主线程首帧后的首次查询触发首次开库长事务导致冷启动 ANR。
         Thread { BookDatabaseHelper.getInstance(this).writableDatabase }.start()
         com.example.readtrace.sync.WebDavSyncEngine.performAutoSyncIfDue(this)
+        // V1 每日节律：注册内容仓库的后台每日刷新。
+        // 幂等（ExistingPeriodicWorkPolicy.KEEP），进程反复重启也不会堆积任务。
+        com.example.readtrace.work.ContentRefreshWorker.schedule(this)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityResumed(activity: Activity) {
                 // 唱机在其他页面持续播放时，悬浮「返回唱机」胶囊随页面自动挂载

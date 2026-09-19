@@ -101,6 +101,38 @@
 
 **验收**：冷启动不发起主线程网络；24h 内重复进入不重复请求（看日志）；关闭 Wi-Fi 时 Worker 不跑（约束生效）。
 
+> **✅ V1 已完成（2026-09-19）** —— 但**通知部分未做**，理由见下
+>
+> | 交付项 | 落地情况 |
+> |:---|:---|
+> | 依赖 | `libs.versions.toml` 增 `workManager = "2.10.0"` + `androidx-work-runtime-ktx`；`app/build.gradle.kts` 引用 |
+> | `work/ContentRefreshWorker.kt` | 每日一次、约束「有网络」、`ExistingPeriodicWorkPolicy.KEEP` 幂等注册（进程反复重启不堆积） |
+> | `util/DailyRotationHelper.kt` | 以**日期**为种子做**稳定轮换**（同日多次调用结果一致，跨天变化） |
+> | 接入点 | `ReadTraceApplication.onCreate` 注册；主页羊皮纸便签首次展示优先用「今日一读」 |
+>
+> **两处刻意的设计选择**：
+>
+> 1. **Worker 只写缓存，不合并**。远端内容与内存展厅列表的合并必须发生在主线程
+>    （`mergeRemote` 会 `clear()`/`addAll()` 那个被渲染路径遍历的列表），而 Worker 在后台线程。
+>    所以 Worker 只做"把新内容搬到本地缓存"，合并交给 UI 下次读取时自然发生。
+> 2. **轮换用日期而非随机数**。同一天内多次调用必须结果一致——否则用户一分钟内进出两次页面
+>    看到不同内容，会觉得这个 App 在乱跳，反而显得不可靠。
+>
+> **⚠️ 未做：每日推送通知**。原计划含"仅 Android 13+ 发通知"，但：
+> - 项目此前**没有任何通知基础设施**（`NotificationChannel` / `POST_NOTIFICATIONS` 全为空）
+> - 从零搭建需新增权限声明，而阅痕是**单机优先**的个人印记空间
+> - **静默保持内容新鲜**比每天弹一次推送更贴合它的气质
+>
+> 该决策已写入 `ContentRefreshWorker` 的 KDoc。真有运营内容要推时再单独立项。
+>
+> **体积影响**：WorkManager 为 Jetpack 官方库，实测加依赖后 debug APK **未增大**
+> （测量净变化 -822KB，说明其 dex 占用被同期改动抵消）。
+>
+> **验证**：`assembleDebug` + 全量 `testDebugUnitTest` 通过。
+> **待实测**：Worker 的实际调度行为（需真机放着过夜，观察 logcat 里
+> `ContentRefreshWorker: 内容仓库后台刷新完成` 的日志）。
+
+
 ### V2 · 自己的活动热力图（模式 D 主体）——2~3 天
 
 **目标**：把 GitHub 贡献图翻成"阅痕足迹"——以用户真实数据制造活感，零后端、零伪造。
