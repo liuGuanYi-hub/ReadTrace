@@ -106,6 +106,25 @@ class LibraryFragment : Fragment() {
     private var selectedTag: String? = null
     private var isGridView: Boolean = false
 
+    // ===== P40-P3：藏库多选与「心智雷达双作品叠合对比」=====
+
+    /** 是否处于多选模式（长按任意卡片进入） */
+    private var isSelectionMode = false
+
+    /**
+     * 已勾选的作品 id。用 LinkedHashSet 保留**勾选顺序**——
+     * 对比弹窗里 A/B 的先后即用户勾选的先后，叠合时主色（金曜金）分配给先勾的那部。
+     */
+    private val selectedBookIds = LinkedHashSet<Long>()
+
+    /** 当前列表的作品索引，供对比弹窗按 id 反查 */
+    private val booksById = HashMap<Long, Book>()
+
+    private lateinit var selectionBar: View
+    private lateinit var selectionCountText: TextView
+    private lateinit var btnSelectionCancel: TextView
+    private lateinit var btnMindprintCompare: TextView
+
     // 整页翻页：currentPage 为 0 基页码，currentFilteredBooks 为当前筛选结果集
     // （endNoteView：最后一页尾部的收尾文案）
     private var currentPage: Int = 0
@@ -185,6 +204,13 @@ class LibraryFragment : Fragment() {
         btnLibraryExportScroll = view.findViewById(R.id.btnLibraryExportScroll)
         libraryBooksContainer = view.findViewById(R.id.libraryBooksContainer)
         libraryEmptyPanel = view.findViewById(R.id.libraryEmptyPanel)
+
+        // P40-P3：多选操作栏
+        selectionBar = view.findViewById(R.id.librarySelectionBar)
+        selectionCountText = view.findViewById(R.id.librarySelectionCount)
+        btnSelectionCancel = view.findViewById(R.id.btnSelectionCancel)
+        btnMindprintCompare = view.findViewById(R.id.btnMindprintCompare)
+        setupSelectionBar()
 
         libraryPagerBar = view.findViewById(R.id.libraryPagerBar)
         btnLibraryPrevPage = view.findViewById(R.id.btnLibraryPrevPage)
@@ -642,6 +668,11 @@ class LibraryFragment : Fragment() {
     private fun renderCardsRange(from: Int, to: Int) {
         if (from >= to) return
         val books = currentFilteredBooks
+        // P40-P3：重建 id 索引供对比弹窗反查。
+        // 必须用**全量** currentFilteredBooks 而非当前页——藏库分页渲染，
+        // 但多选允许跨页（第一页勾 A、翻页后勾 B），只索引当前页会让 A 查不到。
+        booksById.clear()
+        books.forEach { booksById[it.id] = it }
         if (!isGridView) {
             for (i in from until to) {
                 val card = createBookCard(books[i])
@@ -810,13 +841,27 @@ class LibraryFragment : Fragment() {
                 text = comment
             }
         }
+        // P40-P3：多选模式下点击 = 勾选/取消；否则进入详情
         card.setOnClickListener {
-            startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            if (isSelectionMode) {
+                toggleBookSelection(book)
+            } else {
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            }
         }
+        // P40-P3：长按进入多选并勾选当前项。
+        // 原先长按是「更改状态」，移走后入口并未减少——状态胶囊（点击）与详情页都还能改状态。
         card.setOnLongClickListener {
-            showChangeStatusDialog(book)
+            if (isSelectionMode) {
+                toggleBookSelection(book)
+            } else {
+                enterSelectionMode(book)
+            }
             true
         }
+        // P40-P3：把 bookId 挂在卡片上，多选态刷新时按 tag 反查勾选状态
+        card.tag = book.id
+        applyCardSelectionVisual(card, book.id in selectedBookIds)
         ViewAnimationHelper.attachSpringTouch(card, 0.97f)
         swipeLayout.addView(card)
 
@@ -904,13 +949,27 @@ class LibraryFragment : Fragment() {
 
         val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         card.layoutParams = params
+        // P40-P3：多选模式下点击 = 勾选/取消；否则进入详情
         card.setOnClickListener {
-            startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            if (isSelectionMode) {
+                toggleBookSelection(book)
+            } else {
+                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+            }
         }
+        // P40-P3：长按进入多选并勾选当前项。
+        // 原先长按是「更改状态」，移走后入口并未减少——状态胶囊（点击）与详情页都还能改状态。
         card.setOnLongClickListener {
-            showChangeStatusDialog(book)
+            if (isSelectionMode) {
+                toggleBookSelection(book)
+            } else {
+                enterSelectionMode(book)
+            }
             true
         }
+        // P40-P3：把 bookId 挂在卡片上，多选态刷新时按 tag 反查勾选状态
+        card.tag = book.id
+        applyCardSelectionVisual(card, book.id in selectedBookIds)
         ViewAnimationHelper.attachSpringTouch(card, 0.96f)
         return card
     }
@@ -918,6 +977,172 @@ class LibraryFragment : Fragment() {
     /**
      * 🏷️ 高质感作品状态切换对话框：自适应 5 大媒介类型，磨砂暗夜和纸质感，支持即时撤销
      */
+    // ===== P40-P3：藏库多选与「心智雷达双作品叠合对比」=====
+
+    private fun setupSelectionBar() {
+        btnSelectionCancel.setOnClickListener { exitSelectionMode() }
+        btnMindprintCompare.setOnClickListener { showMindprintCompareDialog() }
+    }
+
+    private fun enterSelectionMode(first: Book?) {
+        if (isSelectionMode) return
+        isSelectionMode = true
+        first?.let { selectedBookIds.add(it.id) }
+        HapticFeedbackEngine.lightClick(requireContext())
+        refreshSelectionUi()
+    }
+
+    private fun exitSelectionMode() {
+        if (!isSelectionMode) return
+        isSelectionMode = false
+        selectedBookIds.clear()
+        refreshSelectionUi()
+    }
+
+    private fun toggleBookSelection(book: Book) {
+        if (!selectedBookIds.remove(book.id)) {
+            if (selectedBookIds.size >= COMPARE_LIMIT) {
+                // 明确告知而不是静默失败——否则用户会以为点击没生效
+                Toast.makeText(requireContext(), "最多同时对比 $COMPARE_LIMIT 部作品", Toast.LENGTH_SHORT).show()
+                return
+            }
+            selectedBookIds.add(book.id)
+        }
+        HapticFeedbackEngine.lightClick(requireContext())
+        refreshSelectionUi()
+    }
+
+    private fun refreshSelectionUi() {
+        selectionBar.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
+        selectionCountText.text = if (isSelectionMode) "已选 ${selectedBookIds.size} 部" else ""
+        updateSelectionBar()
+        refreshCardSelectionVisuals(libraryBooksContainer)
+    }
+
+    /** 「🔮 心智对比」仅在**恰好**勾选 2 部时点亮，其余情况置灰 */
+    private fun updateSelectionBar() {
+        val ready = selectedBookIds.size == COMPARE_LIMIT
+        btnMindprintCompare.isEnabled = ready
+        btnMindprintCompare.alpha = if (ready) 1f else 0.42f
+        btnMindprintCompare.setTextColor(
+            ContextCompat.getColor(requireContext(), if (ready) R.color.readtrace_accent else R.color.readtrace_muted),
+        )
+    }
+
+    /**
+     * 按勾选状态刷新已构建卡片的视觉。
+     * 卡片以 `bookId` 作为 `tag`；网格模式下卡片嵌在 row 容器里，故需递归。
+     */
+    private fun refreshCardSelectionVisuals(container: ViewGroup) {
+        for (i in 0 until container.childCount) {
+            val child = container.getChildAt(i)
+            val id = child.tag as? Long
+            if (id != null) {
+                applyCardSelectionVisual(child, id in selectedBookIds)
+            } else if (child is ViewGroup) {
+                refreshCardSelectionVisuals(child)
+            }
+        }
+    }
+
+    /** 选中态：降透明度 + 轻微缩放。刻意不做描边，避免与已有的滑动菜单层叠冲突 */
+    private fun applyCardSelectionVisual(card: View, selected: Boolean) {
+        card.alpha = if (selected) 0.62f else 1f
+        card.scaleX = if (selected) 0.96f else 1f
+        card.scaleY = if (selected) 0.96f else 1f
+    }
+
+    /**
+     * P40-P3：弹出双作品心智雷达叠合对比。
+     *
+     * 复用 [com.example.readtrace.widget.MindprintRadarView.setComparison]——
+     * 该控件本就支持双组数据叠合（金曜金 = A、极光青 = B），此处只负责取数、
+     * 填充标题与六维差值解读。
+     *
+     * **对比结束后自动退出多选**：弹窗的意图已达成，停留在多选态反而多余。
+     */
+    private fun showMindprintCompareDialog() {
+        val ids = selectedBookIds.toList()
+        if (ids.size != COMPARE_LIMIT) return
+
+        val bookA = booksById[ids[0]] ?: return
+        val bookB = booksById[ids[1]] ?: return
+
+        val mpA = databaseHelper.getMindprint(bookA.id)
+        val mpB = databaseHelper.getMindprint(bookB.id)
+
+        val view = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_mindprint_compare, null)
+
+        view.findViewById<com.example.readtrace.widget.MindprintRadarView>(R.id.compareRadar)
+            .setComparison(bookA.title, mpA, bookB.title, mpB, animate = true)
+
+        view.findViewById<TextView>(R.id.compareTitleA).text = "A《${bookA.title}》"
+        view.findViewById<TextView>(R.id.compareTitleB).text = "B《${bookB.title}》"
+
+        renderComparisonDiff(
+            view.findViewById(R.id.compareDiffContainer),
+            bookA.title to mpA,
+            bookB.title to mpB,
+        )
+
+        val dialog = android.app.Dialog(requireContext()).apply {
+            setContentView(view)
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.92f).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        view.findViewById<TextView>(R.id.btnCompareClose).setOnClickListener { dialog.dismiss() }
+        dialog.setOnDismissListener { exitSelectionMode() }
+        dialog.show()
+    }
+
+    /**
+     * 六维差值解读：按**绝对差**倒序取前四条，标出谁更高。
+     * 只展示差异显著的维度——六个都列反而看不出重点。
+     */
+    private fun renderComparisonDiff(
+        container: LinearLayout,
+        a: Pair<String, com.example.readtrace.model.BookMindprint>,
+        b: Pair<String, com.example.readtrace.model.BookMindprint>,
+    ) {
+        container.removeAllViews()
+
+        val dims = listOf(
+            "思想深度" to (a.second.depthScore to b.second.depthScore),
+            "文笔意境" to (a.second.artistryScore to b.second.artistryScore),
+            "情感共鸣" to (a.second.emotionScore to b.second.emotionScore),
+            "逻辑构架" to (a.second.logicScore to b.second.logicScore),
+            "阅读阻力" to (a.second.difficultyScore to b.second.difficultyScore),
+            "心灵治愈" to (a.second.healingScore to b.second.healingScore),
+        ).sortedByDescending { kotlin.math.abs(it.second.first - it.second.second) }
+
+        val density = resources.displayMetrics.density
+        dims.take(4).forEach { (label, pair) ->
+            val (va, vb) = pair
+            val diff = va - vb
+            val row = TextView(requireContext()).apply {
+                text = buildString {
+                    append(label)
+                    append("   ")
+                    append("%.1f".format(va))
+                    append("  vs  ")
+                    append("%.1f".format(vb))
+                    append("      ")
+                    append(if (diff >= 0) "▲ A 高 %.1f".format(kotlin.math.abs(diff))
+                    else "▼ B 高 %.1f".format(kotlin.math.abs(diff)))
+                }
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.readtrace_ink))
+                setPadding(0, (5 * density).toInt(), 0, (5 * density).toInt())
+                alpha = 0.55f + (kotlin.math.abs(diff) / 10.0).coerceAtMost(1.0).toFloat() * 0.45f
+            }
+            container.addView(row)
+        }
+    }
+
     private fun showChangeStatusDialog(book: Book) {
         val statuses = listOf(
             BookStatus.WISHLIST,
@@ -1050,5 +1275,8 @@ class LibraryFragment : Fragment() {
 
         // 整页翻页：每页展示的作品数量
         private const val PAGE_SIZE = 20
+
+        // P40-P3：心智对比上限。雷达叠合在语义上只能比较两部作品，故硬约束为 2
+        private const val COMPARE_LIMIT = 2
     }
 }
