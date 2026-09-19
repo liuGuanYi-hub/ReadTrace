@@ -587,6 +587,10 @@
       P40-P3：多选操作栏。仅在多选模式下可见（默认 gone）。
       「🔮 心智对比」胶囊按计划要求**仅在恰好勾选 2 部时点亮**，
       其余情况保持置灰不可点——因为雷达叠合在语义上只能比较两部作品。
+
+      ⚠️ marginBottom 取 88dp 与同文件的 UndoCapsuleBar 保持一致：
+      底部导航栏占据屏幕最下方（Tab 容器 y 约 2190~2358），
+      贴底会被 Tab 覆盖——实测点击会穿透到 Tab 上把页面切走。
     -->
     <LinearLayout
         android:id="@+id/librarySelectionBar"
@@ -594,7 +598,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="14dp"
         android:layout_marginEnd="14dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginBottom="88dp"
         android:background="@drawable/bg_elegant_dialog"
         android:elevation="12dp"
         android:gravity="center_vertical"
