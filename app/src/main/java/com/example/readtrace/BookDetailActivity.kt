@@ -1950,6 +1950,10 @@ class BookDetailActivity : AppCompatActivity() {
         countView.text = getString(R.string.notes_count_format, notes.size)
         flipButton.visibility = View.VISIBLE
         flipButton.setOnClickListener {
+            // 诊断日志（2026-09-21 加）：用户反馈「点翻书直接退回上一级」。
+            // 本类这行是唯一入口，记录实际传出的 bookId 与作品标题，
+            // 与 FlipNotesActivity 侧的日志配对即可定位链路哪一环出的问题。
+            android.util.Log.i(TAG, "点击翻书：传出 bookId=$bookId, notes=${notes.size}, title=${currentBook?.title}")
             startActivity(FlipNotesActivity.createIntent(this, bookId, 0))
         }
         container.visibility = View.VISIBLE
@@ -2515,6 +2519,7 @@ class BookDetailActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "BookDetailActivity"
         const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"
         private const val NO_BOOK_ID = -1L
         private const val DESCRIPTION_COLLAPSED_LINES = 3

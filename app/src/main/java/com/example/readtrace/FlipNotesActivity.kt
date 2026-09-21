@@ -46,6 +46,9 @@ class FlipNotesActivity : AppCompatActivity() {
         initialPosition = intent.getIntExtra(EXTRA_INITIAL_POSITION, 0)
 
         if (bookId == NO_BOOK_ID) {
+            // 诊断日志（2026-09-20 加）：用户反馈「点翻书直接退回上一级」，
+            // 本类只有两条路径会 finish，这是其一。记录清楚以便复现时定位。
+            android.util.Log.w(TAG, "翻书页退出：intent 未携带有效 bookId（收到 $bookId）")
             Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -64,6 +67,7 @@ class FlipNotesActivity : AppCompatActivity() {
     private fun loadDataAndSetup() {
         val book = databaseHelper.getBook(bookId)
         if (book == null) {
+            android.util.Log.w(TAG, "翻书页退出：bookId=$bookId 在数据库中查不到（可能已被删除）")
             Toast.makeText(this, R.string.book_not_found, Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -107,6 +111,7 @@ class FlipNotesActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "FlipNotesActivity"
         const val EXTRA_BOOK_ID = "com.example.readtrace.extra.FLIP_BOOK_ID"
         const val EXTRA_INITIAL_POSITION = "com.example.readtrace.extra.FLIP_INITIAL_POSITION"
         private const val NO_BOOK_ID = -1L
