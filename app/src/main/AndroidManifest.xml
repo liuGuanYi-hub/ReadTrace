@@ -85,9 +85,6 @@
             android:name=".TrashActivity"
             android:exported="false" />
         <activity
-            android:name=".FlipNotesActivity"
-            android:exported="false" />
-        <activity
             android:name=".ChangelogActivity"
             android:exported="false" />
         <activity

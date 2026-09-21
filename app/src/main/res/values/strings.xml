@@ -122,11 +122,6 @@
     <string name="note_archive_success">已归档</string>
     <string name="note_archive_failed">归档失败，请稍后再试</string>
     <string name="home_import_preset">导入书单</string>
-    <string name="action_flip_notes">📖 翻书</string>
-    <string name="flip_notes_title">翻书漫忆</string>
-    <string name="flip_notes_page_format">%1$d / %2$d</string>
-    <string name="flip_notes_empty">暂无摘录与随想</string>
-    <string name="flip_hint">左右滑动翻页 · 沉浸回味</string>
     <string name="home_trash">回收站</string>
     <string name="trash_title">回收站</string>
     <string name="trash_subtitle">已归档的书籍与痕迹，可随时恢复或彻底删除。</string>
