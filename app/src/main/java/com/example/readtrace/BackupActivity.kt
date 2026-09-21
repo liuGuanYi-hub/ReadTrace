@@ -94,10 +94,6 @@ class BackupActivity : AppCompatActivity() {
             openJsonLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
         }
 
-        findViewById<View>(R.id.migrationHubCard).setOnClickListener {
-            startActivity(DataMigrationActivity.createIntent(this))
-        }
-
         findViewById<View>(R.id.wipeDataCard).setOnClickListener {
             showWipeDataDialog()
         }

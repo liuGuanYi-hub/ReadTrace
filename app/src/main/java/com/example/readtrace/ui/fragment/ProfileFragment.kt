@@ -222,11 +222,6 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), TrashActivity::class.java))
         }
 
-        val profileMigrationPanel = view?.findViewById<View>(R.id.profileMigrationPanel)
-        profileMigrationPanel?.setOnClickListener {
-            startActivity(com.example.readtrace.DataMigrationActivity.createIntent(requireContext()))
-        }
-
         val profileChangelogPanel = view?.findViewById<View>(R.id.profileChangelogPanel)
         profileChangelogPanel?.setOnClickListener {
             startActivity(com.example.readtrace.ChangelogActivity.createIntent(requireContext()))
@@ -240,7 +235,7 @@ class ProfileFragment : Fragment() {
 
         listOfNotNull<View>(
             profileCommunityPanel,
-            profileBadgePanel, profileMigrationPanel, profileBackupPanel, profileTrashPanel,
+            profileBadgePanel, profileBackupPanel, profileTrashPanel,
             profileChangelogPanel, profileVersionPanel
         ).forEach { ViewAnimationHelper.attachSpringTouch(it) }
     }
