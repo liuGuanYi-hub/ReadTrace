@@ -42,6 +42,9 @@ cover_server/covers/
 
 # 本地验证截图归档目录（不入库）
 docs/pic/
+
+# 改版前基线截图（2026-09-22 留档，用于改版后人工对比；6.3MB 故不入库）
+docs/改版前截图/
 mp-readtrace/
 cloudfunctions/
 .workbuddy/
