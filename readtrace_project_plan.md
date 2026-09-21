@@ -3413,4 +3413,22 @@ CREATE INDEX index_notes_created ON notes(created_at);
 | **Phase 1：安装包极致瘦身** | ① 预置封面图片批量 WebP 压制；<br>② `CoverImageHelper` 适配 WebP 资源管线；<br>③ 开启 R8/ProGuard 混淆与资源收缩。 | Release APK 体积 ≤ 16MB（减重超 40%），全预置封面离线显示完整清晰。 |
 | **Phase 2：货架二级筛选与微光体验** | ① 专题网格增加流派/年代筛选胶囊；<br>② 封面异步流加入微光骨架屏动画；<br>③ 内存过滤算法防抖与平滑切换。 | 336 部榜单内点击分类胶囊瞬时过滤；列表滑动流畅无卡顿，无网络闪白。 |
 | **Phase 3：心智对比与单测加固** | ① 藏库双选心智雷达叠合对比弹窗；<br>② `VibeChipEngineTest` 算法单测；<br>③ `CuratedShelfRepositoryTest` 资产完整性测试。 | 勾选 2 部作品可生成双色叠合雷达；JVM 单元测试全绿通过。 |
+
+> **📌 执行状态标注（2026-09-20 回填）**
+>
+> | 子项 | 状态 |
+> | :--- | :--- |
+> | ① 藏库双选心智雷达叠合对比弹窗 | ✅ **已完成**（提交 `f142535`，修复 `2d72bc8`）。**实现范围比原文更大**：藏库此前完全没有多选能力，故先补了整个多选框架（长按进入 / 点击勾选 / 上限 2 / 选中态），再叠加对比弹窗。弹窗复用 `MindprintRadarView.setComparison()` 双色叠合 + 六维差值解读。已模拟器实测：底栏显隐、胶囊仅在恰好 2 部时点亮、弹窗内容与数据均正确、全程无崩溃 |
+> | ② `VibeChipEngineTest` | ✅ 早已存在（5 用例） |
+> | ③ `CuratedShelfRepositoryTest` | ✅ 早已存在（3 用例） |
+>
+> ⚠️ **实测中发现并修复的缺陷**：底栏原贴屏幕底部（`marginBottom=14dp`），
+> 与底部导航栏（y≈2190~2358）重叠，导致点击胶囊**穿透到 Tab 上**、
+> 页面被切到「纪念创享工坊」。改为 88dp（与同文件 `UndoCapsuleBar` 一致）后正常。
+>
+> **Phase 2 说明**：经核实 **Phase 2（货架二级筛选 + 微光骨架屏）早已完成**——
+> 实现是通用的 `ShelfFilter` 谓词（`DiscoverActivity.setupSecondaryFilters` +
+> `CuratedShelfRepository.getFiltersForShelf`），而非按主题硬编码分类名。
+> 此前把它列为待做属误判：grep 了具体分类文案而没有 grep 架构性标识符。
+
 | **Phase 4：数据库巨石类解耦** | ① 提取 `DatabaseMigrator` 与 `PresetSeedManager`；<br>② 拆分 `BookDao`、`NoteDao`、`MindprintDao`；<br>③ 全量回归冒烟验证。 | `BookDatabaseHelper` 瘦身至 < 1500 行；现有读写、导出、备份、统计全流程功能零破坏。 |
