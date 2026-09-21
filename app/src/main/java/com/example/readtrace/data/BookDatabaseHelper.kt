@@ -3155,60 +3155,23 @@ class BookDatabaseHelper private constructor(val context: Context) :
         return tagCountMap.toList().sortedByDescending { it.second }
     }
 
-    /**
-     * 获取已读完书籍总数
-     */
-    fun getTotalFinishedBooksCount(): Int {
-        val cursor = readableDatabase.rawQuery(
-            "SELECT COUNT(*) FROM $TABLE_BOOKS WHERE $COLUMN_STATUS = ? AND $COLUMN_IS_DELETED = 0",
-            arrayOf(BookStatus.FINISHED.databaseValue),
-        )
-        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
-    }
+    // --- 📊 统计查询 ---
+    // P40 Phase 4：实现已抽至 StatsQueries，此处仅保留对外入口（签名不变，调用方零改动）。
 
-    /**
-     * 获取有效书籍总数
-     */
-    fun getTotalBooksCount(): Int {
-        val cursor = readableDatabase.rawQuery(
-            "SELECT COUNT(*) FROM $TABLE_BOOKS WHERE $COLUMN_IS_DELETED = 0",
-            null,
-        )
-        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
-    }
+    /** 获取已读完书籍总数 */
+    fun getTotalFinishedBooksCount(): Int = StatsQueries.totalFinishedBooks(readableDatabase)
 
-    /**
-     * 获取有效笔记总数
-     */
-    fun getTotalNotesCount(): Int {
-        val cursor = readableDatabase.rawQuery(
-            "SELECT COUNT(*) FROM $TABLE_NOTES WHERE $COLUMN_IS_DELETED = 0",
-            null,
-        )
-        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
-    }
+    /** 获取有效书籍总数 */
+    fun getTotalBooksCount(): Int = StatsQueries.totalBooks(readableDatabase)
 
-    /**
-     * 获取不同书籍分类总数
-     */
-    fun getUniqueCategoriesCount(): Int {
-        val cursor = readableDatabase.rawQuery(
-            "SELECT COUNT(DISTINCT $COLUMN_CATEGORY) FROM $TABLE_BOOKS WHERE $COLUMN_CATEGORY IS NOT NULL AND TRIM($COLUMN_CATEGORY) != '' AND $COLUMN_IS_DELETED = 0",
-            null,
-        )
-        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
-    }
+    /** 获取有效笔记总数 */
+    fun getTotalNotesCount(): Int = StatsQueries.totalNotes(readableDatabase)
 
-    /**
-     * 获取 9.0 分及以上的高分好评书籍数量
-     */
-    fun getHighRatingBooksCount(): Int {
-        val cursor = readableDatabase.rawQuery(
-            "SELECT COUNT(*) FROM $TABLE_BOOKS WHERE $COLUMN_RATING >= 9.0 AND $COLUMN_IS_DELETED = 0",
-            null,
-        )
-        return cursor.use { if (it.moveToFirst()) it.getInt(0) else 0 }
-    }
+    /** 获取不同书籍分类总数 */
+    fun getUniqueCategoriesCount(): Int = StatsQueries.uniqueCategories(readableDatabase)
+
+    /** 获取 9.0 分及以上的高分好评书籍数量 */
+    fun getHighRatingBooksCount(): Int = StatsQueries.highRatingBooks(readableDatabase)
 
     // --- ⏱️ 阅读打卡日志 (Reading Sessions) ---
 
