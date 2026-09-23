@@ -3432,3 +3432,18 @@ CREATE INDEX index_notes_created ON notes(created_at);
 > 此前把它列为待做属误判：grep 了具体分类文案而没有 grep 架构性标识符。
 
 | **Phase 4：数据库巨石类解耦** | ① 提取 `DatabaseMigrator` 与 `PresetSeedManager`；<br>② 拆分 `BookDao`、`NoteDao`、`MindprintDao`；<br>③ 全量回归冒烟验证。 | `BookDatabaseHelper` 瘦身至 < 1500 行；现有读写、导出、备份、统计全流程功能零破坏。 |
+
+> **✅ P40 Phase 4 执行记录（2026-09-24 闭环，分 5 阶段提交）**
+>
+> | 阶段 | 内容 | 提交 |
+> |:---:|:---|:---:|
+> | 1 | 摸底：3998 行 / 102 方法分组清单与外部调用点计数，产出 `docs/p40_phase4_split_inventory.md` | — |
+> | 2 | A 组（预置播种/富内容/封面修复/wipe，1981 行）→ `PresetSeedManager`；helper 3998→2050 | `2865e46` |
+> | 3 | B+D 组（books CRUD/查询/导入/音频轨 + 阅读时长/人物/大纲/地点 + 映射函数，1011 行）→ `dao/BookDao.kt`；helper 2050→1176 | `2c79ed1` |
+> | 4 | C 组（notes/回收站/整库备份）→ `dao/NoteDao.kt`；E 组（心智/人格/streak/金句）→ `dao/MindprintDao.kt`；helper 1176→502 | `825c1b9` |
+> | 5 | 删除 8 条 grep 归零的死委托；helper **502→479 行**；仪器测试复跑；本记录回填 | 本提交 |
+>
+> **验收对照**：目标 <1500 行 → 实际 **479 行**（阶段 3 起即达标）。迁移约定全程执行：Dao 为 object + 显式传 db（对齐 `StatsQueries` 形态）、helper 保留同签名委托使 65+ 调用点零改动、books 内存缓存与失效时机留在 helper 委托层、播种调用线程与事务结构零改动。
+> **回归证据**：每阶段 `testDebugUnitTest` 全绿 + 仪器测试 `WipeUserDataTest`/`RichContentJsonImportTest`/`DowngradeGuardTest` 10/10 + 模拟器冒烟（主页重播种、藏库 224 部、详情、备份页、我的页雷达/人格）零崩溃。
+> **顺手修复**：`DowngradeGuardTest` 断言写死 16（`DATABASE_VERSION` 已是 18）的既有陈旧测试，改引用常量。
+> **过程险情（已闭环）**：阶段 4 删除区间一度吞掉 `CuratorFavoriteItem` 数据类，编译期发现后从备份取回；详见拆分清单文档。

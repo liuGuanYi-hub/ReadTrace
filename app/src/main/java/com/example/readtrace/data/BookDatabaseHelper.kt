@@ -143,9 +143,6 @@ class BookDatabaseHelper private constructor(val context: Context) :
     fun deleteAudioTrack(trackId: Long) =
         BookDao.deleteAudioTrack(writableDatabase, trackId).also { invalidateBookCache() }
 
-    fun deleteAudioTracksOfBook(bookId: Long) =
-        BookDao.deleteAudioTracksOfBook(writableDatabase, bookId).also { invalidateBookCache() }
-
     fun restoreBook(bookId: Long): Boolean =
         BookDao.restoreBook(writableDatabase, bookId).also { invalidateBookCache() }
 
@@ -157,13 +154,7 @@ class BookDatabaseHelper private constructor(val context: Context) :
     fun importParsedRecords(records: List<com.example.readtrace.util.BookCsvParser.ParsedBookRecord>): Int =
         BookDao.importParsedRecords(writableDatabase, records).also { if (it > 0) invalidateBookCache() }
 
-    fun importBooks(books: List<Book>): Int =
-        BookDao.importBooks(writableDatabase, books).also { if (it > 0) invalidateBookCache() }
-
     fun getMemoryBook(): Pair<Book, String>? = BookDao.getMemoryBook(readableDatabase)
-
-    fun getMonthlyFinishedStats(limit: Int = 6): List<MonthlyReadingStat> =
-        BookDao.getMonthlyFinishedStats(readableDatabase, limit)
 
     // ---------------------------------------------------------------- 阅读时长/人物/大纲/地点 委托
 
@@ -173,14 +164,8 @@ class BookDatabaseHelper private constructor(val context: Context) :
     fun getReadingSessions(bookId: Long): List<ReadingSession> =
         BookDao.getReadingSessions(readableDatabase, bookId)
 
-    fun getTotalReadingMinutes(bookId: Long): Int =
-        BookDao.getTotalReadingMinutes(readableDatabase, bookId)
-
     fun getAllReadingSessions(): List<ReadingSession> =
         BookDao.getAllReadingSessions(readableDatabase)
-
-    fun deleteReadingSession(sessionId: Long): Boolean =
-        BookDao.deleteReadingSession(writableDatabase, sessionId)
 
     fun insertCharacter(character: BookCharacter): Long =
         BookDao.insertCharacter(writableDatabase, character)
@@ -252,9 +237,6 @@ class BookDatabaseHelper private constructor(val context: Context) :
     fun clearAllTrash(): Pair<Int, Int> =
         NoteDao.clearAllTrash(writableDatabase).also { invalidateBookCache() }
 
-    fun getAllWorksWithNotes(): List<Pair<Book, List<Note>>> =
-        NoteDao.getAllWorksWithNotes(readableDatabase)
-
     fun getAllFullWorkBackups(): List<com.example.readtrace.util.BackupHelper.WorkBackup> =
         NoteDao.getAllFullWorkBackups(readableDatabase)
 
@@ -275,15 +257,10 @@ class BookDatabaseHelper private constructor(val context: Context) :
 
     fun getTodayTotalReadingMinutes(): Int = MindprintDao.getTodayTotalReadingMinutes(readableDatabase)
 
-    fun getConsecutiveReadingDays(): Int = MindprintDao.getConsecutiveReadingDays(readableDatabase)
-
     fun getRandomOrNextQuote(excludeQuote: String? = null): Pair<Book?, String> =
         MindprintDao.getRandomOrNextQuote(readableDatabase, excludeQuote)
 
     fun getLatestReadingBook(): Book? = MindprintDao.getLatestReadingBook(readableDatabase)
-
-    fun quickRecordReadingSession(bookId: Long, minutes: Int = 15): Long =
-        MindprintDao.quickRecordReadingSession(writableDatabase, bookId, minutes)
 
     fun getAllUniqueTags(): List<Pair<String, Int>> {
         val tagCountMap = mutableMapOf<String, Int>()
