@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.readtrace.MainActivity
 import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.QuietMode
 
 /**
  * 🏛️ 极简画刊 · 人文微缩呼吸启动揭幕系统 (Editorial Magazine Splash Overlay)
@@ -84,6 +85,12 @@ object EditorialSplashOverlay {
         val targetTab = activity.intent?.getIntExtra(MainActivity.EXTRA_TAB_INDEX, -1) ?: -1
         if (targetTab in 0..4 && targetTab != MainActivity.TAB_HUB) {
             // 外部显式指定非首页 Tab（如直达书架/回忆录），直接放行
+            onDismiss?.invoke()
+            return
+        }
+
+        // 安静模式（默认开启）：不做 1800ms 画刊揭幕与 460ms 纸张微震，直接进主界面
+        if (QuietMode.isQuiet()) {
             onDismiss?.invoke()
             return
         }

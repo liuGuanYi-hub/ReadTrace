@@ -39,6 +39,25 @@ object UserPreferencesManager {
             .apply()
     }
 
+    // --- 🤫 安静模式 (readtrace_prefs) ---
+
+    private const val KEY_QUIET_MODE = "quiet_mode"
+
+    /**
+     * 安静模式：关掉震动、拟音与常驻流动动画。
+     * **默认开启**——气质基线是「空灵 · 宁静 · 舒服」，安静是默认态而非可选项。
+     */
+    fun isQuietMode(context: Context): Boolean =
+        context.getSharedPreferences(PREFS_MAIN, Context.MODE_PRIVATE)
+            .getBoolean(KEY_QUIET_MODE, true)
+
+    fun setQuietMode(context: Context, quiet: Boolean) {
+        context.getSharedPreferences(PREFS_MAIN, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_QUIET_MODE, quiet)
+            .apply()
+    }
+
     // --- 🗂️ 视图模式 (readtrace_prefs) ---
 
     fun isLibraryGridView(context: Context): Boolean =

@@ -11,6 +11,7 @@ import android.graphics.Paint
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
+import com.example.readtrace.util.QuietMode
 import kotlin.random.Random
 
 /**
@@ -34,6 +35,11 @@ class FilmGrainOverlayView @JvmOverloads constructor(
     private var noiseShader: BitmapShader? = null
     private val shaderMatrix = Matrix()
     private var animator: ValueAnimator? = null
+
+    /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) stopGrainAnimation() else startGrainAnimation()
+    }
 
     init {
         setWillNotDraw(false)
@@ -60,6 +66,8 @@ class FilmGrainOverlayView @JvmOverloads constructor(
     }
 
     fun startGrainAnimation() {
+        // 安静模式：噪点不再每帧随机位移，颗粒层静止
+        if (QuietMode.isQuiet()) return
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofInt(0, 100).apply {
             duration = 1000L
@@ -83,10 +91,12 @@ class FilmGrainOverlayView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        QuietMode.addListener(quietModeListener)
         startGrainAnimation()
     }
 
     override fun onDetachedFromWindow() {
+        QuietMode.removeListener(quietModeListener)
         stopGrainAnimation()
         super.onDetachedFromWindow()
     }

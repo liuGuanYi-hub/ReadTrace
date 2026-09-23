@@ -11,6 +11,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.example.readtrace.util.QuietMode
 
 /**
  * 🌊 无缝平滑 60fps 跑马灯流视图 (InfiniteMarqueeView)
@@ -29,6 +30,11 @@ class InfiniteMarqueeView @JvmOverloads constructor(
 
     var speedPxPerSec: Float = 65f
     var itemSpacing: Float = 48f
+
+    /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) stopAnimation() else startAnimation()
+    }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 34f
@@ -111,11 +117,13 @@ class InfiniteMarqueeView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        QuietMode.addListener(quietModeListener)
         applyThemeColors()
         startAnimation()
     }
 
     override fun onDetachedFromWindow() {
+        QuietMode.removeListener(quietModeListener)
         super.onDetachedFromWindow()
         stopAnimation()
     }
@@ -127,6 +135,8 @@ class InfiniteMarqueeView @JvmOverloads constructor(
     }
 
     private fun startAnimation() {
+        // 安静模式：跑马灯不流淌，停在起始位置
+        if (QuietMode.isQuiet()) return
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 1000L

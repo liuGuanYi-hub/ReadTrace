@@ -5,6 +5,7 @@ import android.app.Application
 import android.os.Bundle
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.CrashReporter
+import com.example.readtrace.util.QuietMode
 import com.example.readtrace.util.ThemeHelper
 import com.example.readtrace.util.VinylNowPlayingFloat
 
@@ -19,6 +20,8 @@ class ReadTraceApplication : Application() {
         super.onCreate()
         // 最早时机安装崩溃采集：此后任何阶段的未捕获异常都会落盘，可在「关于阅痕」长按版本徽标导出
         CrashReporter.install(applicationContext)
+        // 安静模式总闸：必须早于任何自绘 View 与感官引擎初始化
+        QuietMode.init(this)
         ThemeHelper.applyTheme(this)
         // 后台线程预开库：onOpen 中的播种/修补（数百次写入）默认在本线程完成，
         // 避免主线程首帧后的首次查询触发首次开库长事务导致冷启动 ANR。

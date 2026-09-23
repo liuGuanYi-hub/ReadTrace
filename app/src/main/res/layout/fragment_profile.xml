@@ -301,6 +301,49 @@
             android:textSize="16.5sp" />
 
 
+        <!-- 安静模式：一行文字 + 一个开关，不做卡片、不做说明弹窗 -->
+        <LinearLayout
+            android:id="@+id/profileQuietModePanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_glass_panel"
+            android:elevation="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans"
+                    android:text="安静模式"
+                    android:textColor="@color/readtrace_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans"
+                    android:text="关闭震动、拟音与常驻流动动画，版面保持静止"
+                    android:textColor="@color/readtrace_muted"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchQuietMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <!-- 备份与恢复 -->
         <LinearLayout
             android:id="@+id/profileBackupPanel"

@@ -32,6 +32,7 @@ object SpatialAudioEngine {
      * 1. 🛂 护照盖印沉重钝响
      */
     fun playStampThud(pan: Float = 0f) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 120
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -58,6 +59,7 @@ object SpatialAudioEngine {
      * 2. 🎟️ 电影票打孔撕开清脆声
      */
     fun playTicketTear(pan: Float = 0f) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 90
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -85,6 +87,7 @@ object SpatialAudioEngine {
      * 3. 📖 拟真纸张翻页摩擦沙沙声
      */
     fun playPageTurn(pan: Float = 0f) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 140
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -111,6 +114,7 @@ object SpatialAudioEngine {
      * 4. 💽 黑胶落针触盘微爆音
      */
     fun playNeedleDrop(pan: Float = 0f) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 80
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -137,6 +141,7 @@ object SpatialAudioEngine {
      * 5. 🕹️ 游戏卡带插入卡扣清脆声
      */
     fun playCartridgeSnap(pan: Float = 0f) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 100
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()
@@ -164,6 +169,7 @@ object SpatialAudioEngine {
      * 🎵 P14 宇宙引力琴：按评分分级——高分天体奏 528Hz，低分奏 432Hz 宇宙基准频率
      */
     fun playCelestialTone(pan: Float = 0f, frequencyHz: Double = 528.0) {
+        if (QuietMode.isQuiet()) return
         audioExecutor.execute {
             val durationMs = 280
             val numSamples = (SAMPLE_RATE * (durationMs / 1000.0)).toInt()

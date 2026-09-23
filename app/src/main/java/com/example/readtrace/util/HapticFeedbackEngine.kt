@@ -39,6 +39,8 @@ object HapticFeedbackEngine {
     }
 
     private inline fun safeVibrate(context: Context, action: (Vibrator) -> Unit) {
+        // 安静模式总闸：8 个触感入口全部经此收口，一处早退即覆盖全部 147 个调用点
+        if (QuietMode.isQuiet()) return
         try {
             val vibrator = getVibrator(context) ?: return
             if (!vibrator.hasVibrator()) return

@@ -12,6 +12,7 @@ import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.example.readtrace.util.QuietMode
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -24,6 +25,11 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     private val orbPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var animator: ValueAnimator? = null
     private var time = 0f
+
+    /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) stopAnimation() else startAnimation()
+    }
 
     // 默认日间高雅流体极光调色盘 (文艺草木绿、晨曦金曜、薄雾浅蓝、暖粉霞光)
     private var colors = intArrayOf(
@@ -87,10 +93,12 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        QuietMode.addListener(quietModeListener)
         startAnimation()
     }
 
     override fun onDetachedFromWindow() {
+        QuietMode.removeListener(quietModeListener)
         stopAnimation()
         super.onDetachedFromWindow()
     }
@@ -105,6 +113,8 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     }
 
     fun startAnimation() {
+        // 安静模式：极光停在首帧成为静态渐变，不做 20s 无限流淌
+        if (QuietMode.isQuiet()) return
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 20000L // 20 秒缓慢周期流淌，极致舒缓优雅

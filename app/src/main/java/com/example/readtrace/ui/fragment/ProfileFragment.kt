@@ -14,6 +14,7 @@ import com.example.readtrace.TrashActivity
 import com.example.readtrace.community.ui.CommunityActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.util.MilestoneBadgeHelper
+import com.example.readtrace.util.QuietMode
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 
@@ -220,6 +221,13 @@ class ProfileFragment : Fragment() {
 
         profileTrashPanel.setOnClickListener {
             startActivity(Intent(requireContext(), TrashActivity::class.java))
+        }
+
+        // 安静模式：先设状态、再挂监听，避免初始化时把偏好回写一遍
+        val quietModeSwitch = view?.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchQuietMode)
+        quietModeSwitch?.isChecked = QuietMode.isQuiet()
+        quietModeSwitch?.setOnCheckedChangeListener { _, isChecked ->
+            QuietMode.setQuiet(requireContext(), isChecked)
         }
 
         val profileChangelogPanel = view?.findViewById<View>(R.id.profileChangelogPanel)

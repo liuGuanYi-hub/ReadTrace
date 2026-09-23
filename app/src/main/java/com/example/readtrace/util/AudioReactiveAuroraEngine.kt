@@ -23,6 +23,8 @@ object AudioReactiveAuroraEngine {
      * 开始随着音乐节奏产生低频声光脉冲
      */
     fun startAudioSync() {
+        // 安静模式：不做随 Bass 律动的声光脉冲
+        if (QuietMode.isQuiet()) return
         if (isPlayingAudio) return
         isPlayingAudio = true
 

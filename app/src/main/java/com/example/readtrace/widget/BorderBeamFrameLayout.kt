@@ -16,6 +16,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
+import com.example.readtrace.util.QuietMode
 
 /**
  * 🌈 极光流光边框环绕脉冲布局 (BorderBeamFrameLayout)
@@ -122,14 +123,21 @@ class BorderBeamFrameLayout @JvmOverloads constructor(
         borderPaint.shader = sweepShader
     }
 
+    /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) stopAnimation() else if (isBeamEnabled) startAnimation()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        QuietMode.addListener(quietModeListener)
         if (isBeamEnabled) {
             startAnimation()
         }
     }
 
     override fun onDetachedFromWindow() {
+        QuietMode.removeListener(quietModeListener)
         super.onDetachedFromWindow()
         stopAnimation()
     }
@@ -141,6 +149,8 @@ class BorderBeamFrameLayout @JvmOverloads constructor(
     }
 
     private fun startAnimation() {
+        // 安静模式：流光描边不自旋，只留静态基底边框
+        if (QuietMode.isQuiet()) return
         if (animator?.isRunning == true) return
         animator = ValueAnimator.ofFloat(0f, 360f).apply {
             duration = beamDuration
