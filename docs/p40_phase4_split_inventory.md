@@ -87,3 +87,13 @@ getAllUniqueTags 3142(2) · stats 委托 5 个 3162-3177(各 1~3，已走 StatsQ
 > | 委托 | helper 保留 37 条同签名转发；**缓存失效在委托层补回**（9 条无条件 `.also { invalidateBookCache() }`，`importParsedRecords`/`importBooks` 按返回条数条件失效），与 HEAD 的失效时机等价 |
 > | 与清单的偏差 | 共享扩展（`parseTags`/`getNullable*`/`putNullable`）未按清单另建 `CursorExt.kt`，而是作为 dao 包顶层 internal 函数放在 `BookDao.kt` 尾部——同包可见，helper 的 `toNote`/`Note.toContentValues` 直接复用，少一个文件 |
 > | 验证 | 编译干净；`testDebugUnitTest` 全绿；仪器测试 10/10；模拟器冒烟：藏库 224 部完整渲染（getBooks/toBook/parseTags 路径）、备份页打开、logcat 零崩溃 |
+
+> **✅ 阶段 4 已完成（2026-09-24）**
+>
+> | 项 | 结果 |
+> |:---|:---|
+> | 抽出 | `data/dao/NoteDao.kt`（notes/回收站/整库备份读写 + `toNote`/`Note.toContentValues`）、`data/dao/MindprintDao.kt`（六维心智/年度人格/时长/streak/金句 + `toBookMindprint`）；helper **1176 → 502 行** |
+> | 委托 | helper 保留 23 条同签名转发；`clearAllTrash` 的 books 缓存失效在委托层补回（与 HEAD 时机一致）；`importFullBackup` 保持原语义**不**失效缓存 |
+> | 跨 Dao 调用 | `NoteDao`/`MindprintDao` 内部对 books 的查询与写入改走 `BookDao.*`，年度人格对心智档案的批量取数改走 `MindprintDao.getAllMindprints(db)` |
+> | 过程中的险情（已闭环） | 删除区间一度吞掉 favorites 的 `CuratorFavoriteItem` 数据类（它夹在 `Note.toContentValues` 与 `addFavorite` 之间），编译期发现后从备份 `/tmp/helper_backup_stage4.kt` 取回原位 |
+> | 验证 | 编译干净；`testDebugUnitTest` 全绿；仪器测试 10/10；模拟器冒烟：我的页雷达与年度人格渲染一致、番剧详情打开、logcat 零崩溃 |
