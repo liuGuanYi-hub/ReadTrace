@@ -1,198 +1,209 @@
-# 阅痕 ReadTrace v1.0.13 — 个人精神文化印记与美学策展空间
+# 阅痕 ReadTrace
 
-> **Android 原生开发 · 336 部殿堂离线榜单货架 · 极速建库闭环 · 3D 情绪等高线拓扑 · 3D 拟真黑胶/磁带播放器 · 线性马达触觉引擎 · 触觉滑动手势打分 · 双耳空间音频 · 陀螺仪全息视差 · 极光流体着色器 · 年鉴画册与云端展览社区 · 桌面小组件 · 纯本地数据掌控**
+> 一个以本地优先为核心的个人文化档案 Android 应用，用来记录、整理和回看读过的书、看过的动画与电影、玩过的游戏以及听过的音乐。
 
-[![Build CI](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?color=3A6348&logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
-![Version](https://img.shields.io/badge/Release-v1.0.13-3A6348.svg)
-[![Android](https://img.shields.io/badge/Platform-Android%2012%2B-green.svg?logo=android)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-blue.svg?logo=kotlin)](https://kotlinlang.org)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Build](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml/badge.svg)](https://github.com/liuGuanYi-hub/ReadTrace/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/liuGuanYi-hub/ReadTrace?logo=github)](https://github.com/liuGuanYi-hub/ReadTrace/releases)
+[![Android](https://img.shields.io/badge/Android-12%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
 
-《阅痕 ReadTrace》是一个专为爱书人、影迷、ACGN 爱好者与深度思考者打造的 **个人精神文化印记空间与美学策展空间**。它打破了传统记录工具的扁平刻板，融合了 **美术馆策展级杂志排版、3D 高斯势能等高线地形图、3D 拟真黑胶唱机与磁带卡座、物理线性马达触觉引擎、陀螺仪双耳空间音频、陀螺仪全息视差与桌面微缩视窗**，让每一次翻阅、追番、观影、通关与聆听都成为一场触手可及的艺术漫游。
+读过的东西往往分散在不同平台。阅痕把作品、状态、评分、标签、短评、摘录和个人心智维度放进一个可搜索、可备份、可回看的私人档案。核心记录可以离线运行，外部服务按需启用。
 
-> 📢 **v1.0.13 正式版本（稳定性与工程治理收官）**：🩺 崩溃黑匣子上线——全局未捕获异常自动落盘，「关于阅痕」长按版本徽标一键导出诊断日志；🧪 数据库迁移 v6~v16 全链路回归测试纳入 CI 门禁，外部导入条目永不被误删误改；🚦 Lint 静态检查接入 CI 门禁，存量告警 baseline 豁免、新增代码零告警把关。上承 v1.0.12 安全与性能专项（v14/v15 迁移守卫 / 冷启动播种后台化+事务 / 验证码 fail-closed / exported 收敛 / AI 密钥加密 / v16 索引+WAL）与藏库导出长卷。
+当前版本为 `v1.0.13`。项目仍在持续开发，第三方数据源、音频服务和云端社区功能可能随服务方规则变化。
 
----
+## 目录
 
-## ✨ 核心特性矩阵
+- [产品定位](#产品定位)
+- [核心能力](#核心能力)
+- [快速开始](#快速开始)
+- [可选服务配置](#可选服务配置)
+- [技术架构](#技术架构)
+- [仓库结构](#仓库结构)
+- [参与开发](#参与开发)
+- [许可证](#许可证)
 
-### 1. 🏛️ 策展级记录台与五媒介藏库
-- **杂志封面式记录台首屏**：PERSONAL ARCHIVE 眉标、五媒介统计网格、一键添加 / 导入 / 备份 / 回收站，探索内容自然下沉第二页，首屏永远清爽。
-- **第二页探索长廊**：StandBy 禅意桌面、番剧 / 全媒介时间轴、灵感翻页便签（`FlipNotesActivity`）等探索模块自然下探，随滚动渐次进场。
-- **精神藏库多维筛选流**：书籍 / 番剧 / 影视 / 游戏 / 音乐五媒介分表，全文拼音首字母模糊秒搜（`PinyinSearchHelper`），状态分段 + 动态标签白名单过滤，双列长卷与导出长卷一键切换。
-- **🏷️ 高质感状态切换与二级弹窗**：在详情页轻触状态胶囊或在藏库列表中长按任意卡片，即刻唤起与 App 视觉规范高度一致的高质感暗调毛玻璃状态选择弹窗（在看/看完/想看/暂停/弃看），操作链路极大缩短。
-- **💿 音乐媒介纯净沉浸模式**：针对音乐无需按“听完/弃听”打卡的特殊媒介心理，切换至音乐分类时状态栏自动简化为唯美的单「全部」按钮，作品卡片自动隐去状态胶囊，呈现黑胶与唱片封面本身的纯粹艺术感。
-- **策展主位与羊皮纸金句**：主页自动推举镇馆之作，跑马灯流光播报、灵感随想羊皮纸笺即时换签。
+## 产品定位
 
-### 2. 💽 3D 拟真黑胶唱机与复古磁带卡座系统
-- **3D 拟真黑胶转盘 (`VinylTurntableView`)**：铝合金底座、微沟槽碳纤维质感、中心 Cover Label 艺术图、双极各向异性径向同心圆高光、23° 金属唱臂物理落针/抬针。
-- **复古透明磁带卡座 (`CassetteDeckView`)**：80 年代高透亚克力外壳、双六角白色自旋齿轮、供带轮/收带轮磁带厚度动态消长、复古网格手写标签贴纸与 A/B 面无缝翻转。
-- **环形流体声波与歌词流淌 (`AudioVisualizerParticleView`)**：音频自发光反应粒子与羊皮纸金句歌词同步流淌。
-- **网易云音源接入**：内置夜鹿 (Yorushika)、永远是深夜有多好 (ZUTOMAYO) 等 16 首高光曲目歌单，支持歌单切换与会员曲目 30 秒试听。
+阅痕关注一件事
 
-### 3. 🎧 触觉马达振动引擎与双耳空间音频联动系统
-- **物理线性马达专属触觉引擎 (`HapticFeedbackEngine`)**：
-  - 🛂 `stampImpact`：精神护照盖印时的重沉打击感与高频微颤；
-  - 🎟️ `ticketTearRipped`：电影票打孔连续 4 段撕裂齿轮顿挫震感；
-  - 💽 `needleDropCrackle` / `cartridgeSnap`：黑胶落针微震与卡带卡扣弹跳；
-  - 🌌 `celestialResonancePulse`：星系引力脉冲。
-- **程序化 PCM 实时双耳空间音频 (`SpatialAudioEngine`)**：0MB 内存占用，实时数学正弦波与滤波白噪音合成；结合手机陀螺仪偏航角（Roll）动态计算左右声道增益因子（Binaural Panning）。
+**让文化消费留下可检索、可理解、可再次回看的个人痕迹。**
 
-### 4. 🗺️ 3D 情绪拓扑与等高线心智地形图系统
-- **多峰复合高斯势能地形算法 (`MindprintTopologyView`)**：\(h(x, y) = \sum A_i \cdot e^{-\frac{(x - x_i)^2 + (y - y_i)^2}{2\sigma^2}}\)，将全量作品的心智五维雷达转化为 26x26 精神海拔起伏地貌。
-- **三大渲染模式**：3D 发光等高线 (`CONTOUR`)、空间立体线框 (`WIREFRAME`)、能量引力热力场 (`HEATMAP`)。
-- **精神海拔等高切片推杆 (Elevation Slicer)**：0m ~ 8848m 实时地貌剖面切片分析。
-- **巅峰水晶方尖碑信标与 1080P Ultra-HD 图谱海报**：高光山峰树立自发光信标，支持从任意作品详情一键「🗺️ 3D 地形」直达聚焦，并一键生成 1080x1440 典藏拓扑图谱海报分享。
+它把作品记录分成五种媒介，并把一次记录延伸成三个层次
 
-### 5. 🪐 跨媒介认知星系与心智星图
-- **认知引力星系 (`CosmicGravityGraphView` & `CosmicGalaxyActivity`)**：音乐/番剧/文学引力星轨弹性力导向图，将零散记录升维为浩瀚心智宇宙。
-- **心智星图 (`MindprintConstellationActivity`)**：以星辰罗盘呼应每一条记录的心智印记，支持星座级聚焦巡游。
+1. 记录作品本身，包含状态、评分、标签、短评和摘录。
+2. 观察自己的偏好，通过多维评分、时间线、星系和地形图回看内容之间的关系。
+3. 把记忆整理成作品海报、年度画册、藏书票和个人展厅。
 
-### 6. 🎴 纪念创享工坊与实体级艺术资产
-- **🛂 精神巡礼护照**：作品盖印集结白金签戳，盖印激荡彩屑微粒礼花（`ConfettiBurstHelper`）与墨迹冲击波。
-- **🎟️ 复古电影透光撕票票根 (`MovieTicketPosterView`)**：电影票打孔 3D 锯齿撕票物理裂变动效，透光纹理致敬实体票根。
-- **🕹️ 游戏白金全息实体卡带**：通关神作自动铸入全息卡带墙，卡扣弹跳触感反馈。
-- **📜 典藏藏书票与生成式工坊 (`ExLibrisStampView` & `ExLibrisStudioActivity`)**：个人专属 Ex-Libris 版画藏书票与 4K 瑞士网格海报生成器，社交分享杀手锏。
-- **🖼️ 金句印记海报与共鸣海报 (`QuotePosterActivity` & `ResonancePosterActivity`)**：一键把作品金句与双生共鸣铸成可分享的艺术海报。
-- **🕰️ 那年今日与时光印记**：时光深处的记忆自动回访，让每一条记录都拥有重见天日的仪式感。
+## 核心能力
 
-### 7. ✨ 动效与微交互大一统体系
-- **极光流光边框环绕 (`BorderBeamFrameLayout`)**：硬件加速角位移插值计算，精准环绕卡片边缘游走发光。
-- **黑客矩阵字符解密过渡 (`ScrambleTextView`)**：动态字符池洗牌递进收敛，带来仪式感爆棚的解密动画。
-- **物理弹簧阻尼数字滚轮 (`RollingNumberTextView`)**：百位/十位/个位独立立柱物理阻尼平滑上滚。
-- **全息流光评分与星级解密 (`HolographicRatingView`)**：彩色全息光晕与星级进度动态解密。
-- **策展级双字族排版与首字下沉 (`DropCapTextView` + `EditorialBadgeView`)**：2.6x 跨行衬线古典大字下沉 + 金曜浮雕衬底 + 等宽极客防伪标徽。
-- **微物理表面质感与光学材质 (`FilmGrainOverlayView` + `PrismaticChromaticView`)**：全局覆盖 3.5% 高频 35mm 感光胶片颗粒，搭配 0.6px~1.2px 青/洋红全息棱镜亚像素色散。
-- **昼夜节律四时环境光 (`CircadianLightingEngine`)**：24 小时晨曦（薄雾青金）、晴午（透白翡绿）、暮霞（落日暮紫）、极夜（曜石星蓝）四时色温演化，动态驱动主页背景流体极光。
+### 五媒介个人藏库
 
-### 8. 📱 桌面微缩视窗小部件 (AppWidget)
-- **📖「在读作品进度」直达卡片 (`CurrentlyReadingWidgetProvider`)**：直观展示在读作品封面、阅读百分比与页码刻度，轻触直达详情。
-- **📜「每日金句/灵感摘录」桌面便签 (`DailyQuoteWidgetProvider`)**：羊皮纸拟真纹理，支持桌面「🔄 换一句」即时换签。
-- **🧠「心智雷达仪表盘」组件 (`MindprintDashboardWidgetProvider`)**：六维心智雷达常驻桌面，精神印记一览无余。
+- 支持书籍、动画、电影、游戏和音乐。
+- 支持在看、看完、想看、暂停和弃看等状态。
+- 支持评分、标签、短评、长评、摘录、角色、章节大纲和阅读记录。
+- 支持拼音首字母搜索、媒介筛选、状态筛选、评分区间和标签筛选。
 
-### 9. 📜 年鉴画册与云端展览社区
-- **年度精神年鉴画册 (`AnnualChronicleStudioActivity`)**：全年记录自动排版成策展级画册，深底恒定配色支持导出长图典藏。
-- **🌐 云端展览社区**：策展人认证 (`CuratorAuthActivity`)、阅痕社区广场互访 (`CommunityActivity`)、展厅画廊与展览详情 (`CommunityGalleryActivity` & `ExhibitionDetailActivity`)、一键策展发布我的展厅 (`PublishExhibitionActivity`)。
-- **🖼️ 封面画廊 (`CoverGalleryActivity`)**：藏库封面艺术墙，封面资产尽收眼底。
+### 快速记录与元数据补全
 
-### 10. 🔐 账号认证正式化与数据主权
-- **手机验证码登录**：阿里云短信 (Dysmsapi) 直连通道 + 60s 倒计时防抖，游客模式无缝降级。
-- **微信登录与分享**：微信开放平台接入，支持微信账号绑定与鉴权。
-- **WebDAV 双向增量同步**：坚果云 / NAS / Nextcloud 12h 静默自动校验，Local-First 数据主权尽在掌握。
-- **🗑️ 清空账号数据**：打字验证「我确定删除账号数据」二次确认，物理清空全部作品与关联维度，方便从零重导。
+- 支持自然语言速记，例如 `读完 三体 9分`。
+- 可从 Bangumi、豆瓣、Steam、Google Books 等来源检索作品信息，具体可用性取决于网络和第三方接口。
+- 可选用兼容 OpenAI Chat Completions 协议的服务补全元数据、角色信息、故事大纲和思考内容。
 
-### 11. 🔥 精选离线榜单货架与极速建库轻量化系统 (P39)
-- **336 部殿堂经典离线货架**：`assets/curated/` 内置清洗后的跨媒介经典数据集——📖 豆瓣读书 Top250 精选、🎬 豆瓣电影 Top250 精选、🌸 Bangumi 经典神作与当季热番、🎮 Steam 百大压倒性好评、💿 滚石 500 经典专辑，零网络依赖秒级响应。
-- **发现页横滑画廊**：进入发现页即见离线热门专题横滑画廊，高清封面与大众客观评分直观呈现。
-- **🤫 批量勾选静音化**：批量选卡时彻底剥离高频马达震动，提供全选 / 全清与已选计数快捷底栏；`insertBatchCurated` 预编译语句 + 单事务批量落库，数十部作品耗时低于 50ms，杜绝 ANR。
-- **触觉滑动手势打分 (`HapticSwipeRatingBar`)**：5 星 10 分制平滑拖拽打分，配机械棘轮微颤反馈。
-- **🔮 美学情绪胶囊 (`VibeChipEngine`)**：五媒介各 5 枚专属情绪胶囊（如书籍 `#醍醐灌顶`、游戏 `#电子阳痿解药`、音乐 `#深夜微醺`），点击即注入并反向推算六维心智雷达权重，免去手动拖拽。
-- **⚡ 一键极速建库闭环**：双阶段流式进度 + 四宫格成果面板（入库总数 / 平均评分 / 主导媒介流派 / 心智骨架画像），点击成果卡平滑切入我的藏库。
+### 心智视图
 
-### 12. 🔐 安全加固与数据真实性 (P38)
-- **WebDAV 凭据加密落盘 (`SecurePrefs`)**：AndroidKeyStore AES-256-GCM 密钥不可导出，旧明文首读自动迁移并抹除，解密失败宁可清条目也不落明文。
-- **验证码防暴力**：`SecureRandom` 取代时间种子随机数，单条验证码最多 5 次错误尝试，超限即作废。
-- **桌面小组件后台化**：两个小组件的查库、会话统计与位图解码全部移交后台单线程，主线程零阻塞。
-- **一句话速记修复**：入库前来源精确 + 同媒介同名双查重，解析取剔除关键词后的整段文本（「读完 Snow Crash 9分」完整入库）。
-- **预置评分差异化**：取消「统一 8.0」机制，全新安装按六维均值 / 5 分制线性散射形成 25 个评分档，老库永不改写。
+- 多维评分与雷达图，用来观察长期偏好。
+- 跨媒介星系，把作品之间的标签、概念和共鸣关系放在同一张图里。
+- 心智拓扑图，把个人记录转成可旋转、可筛选的二维或三维视图。
 
----
+### 回顾与创作
 
-## 📦 数据资产：导入即恢复，一个账号 = 一份存档
+- 黑胶唱机与磁带卡座播放器，支持本地音频、试听源、歌词和传感器交互。
+- 年度画册、金句海报、共鸣海报、电影票根、游戏卡带和藏书票等导出体验。
+- 每日金句、时间线、封面画廊、纪念护照和桌面小组件。
+- 社区展厅用于浏览和发布主题化的作品集合。
 
-- **全量存档合并包 (Sovereign Backup)**：220 部作品全量状态、评分、长短评、阅读起止日期、标签白名单连同角色谱/语录/章节大纲合成一个 JSON，「一个账号 = 一个 JSON」一次导入全部恢复；针对新机预设已有数据与空白新库均做到底层字段全覆盖同步更新，100% 完美复刻历史印记。
-- **富内容 JSON 本地导入**：缺失作品按条目内嵌媒介标记 / 文件名自动建库（动漫/书籍/游戏/影视/音乐），导入一次即作品 + 富内容。
-- **多源资产搬家中心**：0 门槛导入豆瓣书影音 CSV/文本、Bangumi 收藏、Steam 游戏库与杉果热门榜单，并智能生成六维心智模型。
-- **批量精神清单**：内置书籍 / 追番 / 电影 / 游戏四类预设 CSV，支持「一键全量合入」或自选本地 CSV。
-- **全格式导出**：全量 JSON 备份包、Markdown 个人文集（可直接导入 Obsidian / Notion / Logseq）、CSV 通用表格清单。
+### 本地优先的数据管理
 
----
+- 作品与笔记保存在本地 SQLite 数据库。
+- 支持 JSON 完整备份、富内容 JSON 导入、CSV 导入导出和 Markdown 文集导出。
+- 支持回收站、数据库迁移和导入合并，便于换机和恢复。
+- 可选配置 WebDAV，用于在 NAS、坚果云或其他 WebDAV 服务之间同步数据。
 
-## 🛠️ 系统架构与技术拓扑 (System Architecture)
+## 快速开始
 
-```mermaid
-graph LR
-    subgraph Client [终端触达与交互层]
-        UA[Android 策展端 Native]
-        UMP[微信小程序端 Uni-App]
-        UWEB[DeepLink 深链]
-    end
+### 环境要求
 
-    subgraph Presentation [展示与工坊层]
-        QL[极速速记与快速记录]
-        BH[记录台与五媒介藏库]
-        VS[3D 黑胶工坊与年鉴画册]
-        MPU[小程序跨媒介漫游]
-    end
+- Android Studio
+- JDK 21
+- Android SDK 37
+- Android 12 或更高版本的设备或模拟器
 
-    subgraph CoreEngine [核心计算与处理引擎]
-        EP[分词与拼音引擎]
-        ES[心智雷达与概念网]
-        EA[微声学与 PCM 白噪音]
-        EY[WebDAV 同步编排]
-    end
+### 从源码构建
 
-    subgraph Storage [本地持久化 Local-First]
-        SQL[(SQLite 核心单例)]
-        PRF[(用户偏好 SharedPreferences)]
-        CC[(封面缓存与 4K 内存保护)]
-    end
+Windows PowerShell
 
-    subgraph SovereignCloud [云端与数据主权服务]
-        DOUBAN[豆瓣公开源解析]
-        BGM[Bangumi 开源 API]
-        STEAM[Steam / 杉果游戏榜单]
-        AUTH[阿里云短信 / 微信鉴权]
-        WD[(私有 WebDAV / NAS 备份)]
-    end
-
-    Client --> Presentation
-    Presentation --> CoreEngine
-    CoreEngine --> Storage
-    CoreEngine --> SovereignCloud
-    Storage --> SovereignCloud
+```powershell
+git clone https://github.com/liuGuanYi-hub/ReadTrace.git
+cd ReadTrace
+.\gradlew.bat testDebugUnitTest
+.\gradlew.bat lintDebug
+.\gradlew.bat assembleDebug
 ```
 
-### 🏛️ 核心技术矩阵
-- **终端与 UI 架构**：Android Native (Kotlin 100% / API 31+) + 微信小程序端 (Uni-App / Vue 3 / TypeScript) + `readtrace://` DeepLink 深链
-- **3D 渲染与声光系统**：OpenGL ES 3.0/2.0 社区展厅画廊渲染器（`Gallery3DRenderer`） + 纯 PCM 程序化实时双耳空间音频/白噪音合成器 + 物理线性马达触觉矩阵 (`HapticFeedbackEngine`)
-- **智能计算引擎**：自然语言速记分词器 (`NaturalQuickAddParser`) + GB2312 拼音首字母模糊秒搜 (`PinyinSearchHelper`) + 六维心智复合势能拓扑 (`MindprintTopologyView`) + 双链概念网 (`[[Concept]]`)
-- **Local-First 数据主权**：SQLite 单例防误关（多张子表单事务级联物理安全） + WebDAV 双向增量同步（坚果云 / NAS / Nextcloud 12h 静默自动校验）
-- **构建系统**：Android Gradle Plugin + Gradle (compileSdk: 37 / minSdk: 31 / targetSdk: 37)
+macOS 或 Linux
 
----
+```bash
+git clone https://github.com/liuGuanYi-hub/ReadTrace.git
+cd ReadTrace
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleDebug
+```
 
-## 🚀 快速开始与构建
+Debug APK 输出到 `app/build/outputs/apk/debug/app-debug.apk`。
 
-1. 使用 Android Studio 打开项目根目录。
-2. 连接 Android 手机或启动模拟器（推荐 API 31+）。
-3. 终端执行编译打包：
-   ```bash
-   ./gradlew.bat assembleDebug
-   ```
-4. 安装包路径：`app/build/outputs/apk/debug/app-debug.apk`。
+也可以直接前往 [Releases](https://github.com/liuGuanYi-hub/ReadTrace/releases) 下载已发布版本。
 
----
+### 发布构建
 
-## 🗺️ 创意开发路线图全量竣工回顾 (Roadmap)
+Release 构建需要正式签名配置。请参考 [`gradle.properties.example`](gradle.properties.example) 配置用户级 Gradle 属性，并在本地准备 `keystore.properties`。密钥、AccessKey、Cookie 和 API Key 不应写入仓库。
 
-| 优先级 | 核心模块 | 视觉震撼度 | 状态 | 核心价值与交互体验 |
-|:---:|:---|:---:|:---:|:---|
-| **P1** | **💽 3D 黑胶唱机与磁带卡座播放器** | 🌟🌟🌟🌟🌟 | ✅ **已完成** | **补齐播客与声音影视的极致拟真媒介体验**<br>· 3D 唱针 23° 物理落针/抬针与黑胶唱片同心圆各向异性反光<br>· 复古透明磁带 A/B 面翻转与齿轮转动动效<br>· 音轨波形与歌词金句同步流淌 |
-| **P2** | **🎧 触觉马达振动引擎与空间音频联动** | 🌟🌟🌟🌟 | ✅ **已完成** | **赋予每次撕票、盖章灵魂般的触感**<br>· 盖印章时重沉打击感 + 线性马达高频微颤 (`HapticFeedbackEngine`)<br>· 撕开电影票打孔处的清脆齿轮顿挫反馈<br>· 陀螺仪自适应双耳立体空间声场 (`SpatialAudioEngine`) |
-| **P4** | **🗺️ 3D 情绪拓扑与等高线心智地形图** | 🌟🌟🌟🌟 | ✅ **已完成** | **知识库与数据分析维度的降维打击**<br>· 基于多维心智复合高斯势能的 3D 地貌 (`MindprintTopologyView`)<br>· 3D 等高线 / 立体线框网格 / 能量热力图三维渲染<br>· 单指/双指 3D 俯仰旋转、海拔等高切片与巅峰信标聚焦 (`MindprintTopologyActivity`) |
-| **P5** | **✨ 动效与微交互体系 (21st.dev / Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **全面拉齐世界顶尖 Web / App 微交互标准**<br>· `BorderBeam` 极光流光边框环绕脉冲<br>· `RollingNumberTextView` 物理弹簧阻尼数字滚轮<br>· `HolographicRatingView` 评分全息流光与数字解密控件<br>· `ScrambleTextView` 全息黑客字符流光解密过渡<br>· `CulturalPassportView` 盖印激荡微粒彩屑与墨迹冲击波<br>· `MovieTicketPosterView` 电影票打孔撕票物理裂变动效<br>· `SpotlightTiltCardView` 3D 磁吸聚光灯微倾角卡片<br>· `InfiniteMarqueeView` 60fps 丝滑平滑跑马灯流<br>· `ConfettiBurstHelper` 真实重力微粒礼花炸裂引擎 |
-| **P6** | **🏛️ 殿堂级美学与策展体验系统 (Awwwards / Siteinspire)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **世界顶尖美术馆与数字策展级美学大成**<br>· `DropCapTextView` 典藏手稿首字下沉 + `EditorialBadgeView` 极客等宽防伪标签<br>· `FilmGrainOverlayView` 35mm 胶片感光微噪点 + `PrismaticChromaticView` 0.6px 棱镜色散<br>· `CircadianLightingEngine` 24h 昼夜四时自适应自然光色温系统<br>· `HapticTickSlider` 磁吸刻度感物理阻尼推杆 |
-| **P7** | **🔮 空间立体标本盒与折射透镜 (visionOS / Awwwards)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **彻底拉开与所有扁平竞品的距离，带来 visionOS 级空间质感**<br>· 4 层 2.5D 深度视差悬浮立体标本盒 (`DioramaBoxView`)<br>· 真实光学折射率透镜与边缘光线弯曲 (`GlassRefractionOverlay`) |
-| **P8** | **🔊 声光反应式脉冲与 ASMR 拟音 (Landing.love)** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **与 P1 黑胶唱机/夜鹿曲目形成绝妙化合反应，手感天花板**<br>· 网易云级经典大黑胶与顶部 23° 金属机械唱臂精准落针/抬针<br>· 音频低频反应式极光光斑脉冲 + 全场景羊皮纸/火漆印 ASMR 拟音 (`SonicHapticMatrix`) |
-| **P9** | **🪐 跨媒介认知引力星系 (Cosmos.so / Siteinspire)** | 🌟🌟🌟🌟 | ✅ **全量竣工** | **将零散记录升维为浩瀚心智宇宙，极具极客与学者气质**<br>· 音乐/番剧/文学引力星轨弹性力导向图 (`CosmicGravityGraphView` & `CosmicGalaxyActivity`) |
-| **P10** | **📜 典藏藏书票与生成式工坊 (Land-book / One Page Love)** | 🌟🌟🌟🌟 | ✅ **全量竣工** | **裂变与社交分享杀手锏，将数字记录转化为实体级艺术资产**<br>· 个人专属 Ex-Libris 版画藏书票与 4K 瑞士网格海报生成器 (`ExLibrisStampView` & `ExLibrisStudioActivity`) |
-| **P38** | **🔐 数据安全与性能纵深加固** | 🌟🌟🌟 | ✅ **全量竣工** | **凭据加密、防暴力与后台化**<br>· WebDAV 密码 AndroidKeyStore AES-256-GCM 加密落盘 (`SecurePrefs`)，旧明文首读自动迁移并抹除<br>· 验证码 `SecureRandom` 防暴力（单条最多 5 次尝试，超限作废）<br>· 桌面小组件查库、统计与位图解码全面后台单线程化<br>· 剪贴板嗅探 / 获取验证码按钮 / 通行证高光线三处预置缺陷修复 |
-| **P39** | **🔥 精选热门榜单货架与极速建库轻量化** | 🌟🌟🌟🌟🌟 | ✅ **全量竣工** | **冷启动与输入门槛的降维化解**<br>· 336 部跨媒介殿堂经典离线榜单货架 (`assets/curated/`)<br>· 批量勾选静音化 + 单事务批量落库 (`insertBatchCurated`)<br>· 触觉滑动手势打分 (`HapticSwipeRatingBar`)<br>· 美学情绪胶囊与心智雷达动态联动 (`VibeChipEngine`)<br>· 一键极速建库流式进度与四宫格成果面板、藏库直通闭环 |
+```powershell
+.\gradlew.bat assembleRelease
+```
 
----
+缺少正式签名配置时，构建脚本会阻止 Release 任务继续执行。这样可以避免把调试签名包误当成正式版本发布。
 
-## 📄 开源许可证
+## 可选服务配置
 
-本项目基于 [Apache License 2.0](LICENSE) 协议开源。
+阅痕的本地记录、搜索、评分、备份和大部分可视化功能不依赖这些配置。
+
+| 服务 | 配置位置 | 说明 |
+| --- | --- | --- |
+| 微信登录 | 用户级 Gradle 属性中的 `WECHAT_APP_ID` | 未配置时，Debug 构建使用本地沙盒流程 |
+| 阿里云短信 | `ALIYUN_SMS_ACCESS_KEY_ID`、`ALIYUN_SMS_ACCESS_KEY_SECRET`、`ALIYUN_SMS_SIGN_NAME`、`ALIYUN_SMS_TEMPLATE_CODE` | 四项完整配置后启用正式短信通道 |
+| AI 辅助 | App 内设置 | 支持自定义 OpenAI 兼容服务地址和模型，API Key 使用 Android Keystore 加密保存 |
+| WebDAV | App 内同步设置 | 用于可选的远程备份和同步 |
+| 社区内容 | `content-repo/` | 客户端按需读取公开的策展内容源 |
+
+配置模板只包含键名和占位符，详见 [`gradle.properties.example`](gradle.properties.example)。
+
+## 技术架构
+
+阅痕采用 Android 原生实现，核心数据路径保持在本地，网络能力通过独立适配器接入。
+
+```mermaid
+flowchart LR
+    UI[Activities / Fragments / Widgets]
+    CORE[速记解析 / 评分 / 搜索 / 可视化 / 媒体交互]
+    DATA[(SQLite 数据库)]
+    LOCAL[本地资源 / Preferences / Android Keystore]
+    EXT[WebDAV / 作品元数据 / 内容源 / 可选 AI]
+
+    UI --> CORE
+    CORE --> DATA
+    CORE --> LOCAL
+    CORE --> EXT
+```
+
+### 技术选型
+
+| 层次 | 方案 |
+| --- | --- |
+| 平台 | Android Native |
+| 语言 | Kotlin |
+| UI | Android View System、AppCompat、Material Components、ConstraintLayout |
+| 持久化 | SQLite、SharedPreferences、本地 assets |
+| 后台任务 | WorkManager |
+| 动效与交互 | 自定义 View、Canvas、OpenGL ES、陀螺仪、线性马达和音频 API |
+| 测试 | JUnit、Robolectric、Android Instrumentation、Espresso |
+| 自动化 | GitHub Actions，执行单元测试、Lint 和 Debug APK 构建 |
+
+### 主要代码入口
+
+| 目录或文件 | 作用 |
+| --- | --- |
+| `app/src/main/java/com/example/readtrace/ui/fragment/` | 主页、藏库、星系、纪念和个人中心 |
+| `app/src/main/java/com/example/readtrace/data/` | SQLite、数据库迁移、偏好设置和安全存储 |
+| `app/src/main/java/com/example/readtrace/util/` | 速记解析、评分、搜索、外部数据源和媒体能力 |
+| `app/src/main/java/com/example/readtrace/widget/` | 自定义视觉控件和桌面小组件 |
+| `app/src/main/java/com/example/readtrace/sync/` | WebDAV 与跨端数据协议 |
+| `app/src/main/assets/` | 内置内容、封面和本地资源 |
+
+## 仓库结构
+
+```text
+.
+├── app/                  Android 应用
+├── content-repo/         社区策展内容源
+├── mp-research/          微信小程序化调研资料
+├── docs/                 项目文档和验证记录
+├── .github/workflows/    CI 与 Release 工作流
+├── gradle/               Gradle 版本目录
+└── README.md
+```
+
+## 参与开发
+
+欢迎通过 Issue 和 Pull Request 参与。提交功能建议时，尽量说明用户场景、离线行为、数据结构影响和外部服务依赖。
+
+提交 PR 前建议完成以下检查
+
+```text
+testDebugUnitTest
+lintDebug
+assembleDebug
+```
+
+请不要提交以下内容
+
+- API Key、密码、Cookie、AccessKey 或其他凭据
+- `keystore.properties`、签名文件和本地数据库
+- 只适用于个人环境的路径和调试产物
+
+第三方数据源、音频服务和登录服务各自受其服务条款约束。使用相关功能前，请确认自己的使用场景符合对应平台规则。
+
+## 许可证
+
+本项目基于 [Apache License 2.0](LICENSE) 开源。
