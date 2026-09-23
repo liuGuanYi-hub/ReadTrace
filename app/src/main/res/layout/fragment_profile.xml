@@ -182,7 +182,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="❤️ 我的最爱 · 跨媒介心选"
+                android:drawableStart="@drawable/ic_heart_outline"
+                android:drawablePadding="6dp"
+                android:text="我的最爱 · 跨媒介心选"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />

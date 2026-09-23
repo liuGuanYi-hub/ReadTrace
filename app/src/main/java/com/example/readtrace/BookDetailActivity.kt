@@ -1551,19 +1551,24 @@ class BookDetailActivity : AppCompatActivity() {
             holoRating?.performClick()
         }
 
-        val btnToggleFav = findViewById<TextView>(R.id.btnToggleFavorite)
+        val btnToggleFav = findViewById<ImageView>(R.id.btnToggleFavorite)
         val isFav = databaseHelper.isFavorite(book.id)
-        btnToggleFav?.text = if (isFav) "❤️" else "🤍"
+        btnToggleFav?.setImageResource(if (isFav) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline)
         btnToggleFav?.setOnClickListener {
             val currentlyFav = databaseHelper.isFavorite(book.id)
             if (currentlyFav) {
                 databaseHelper.removeFavorite(book.id)
-                btnToggleFav.text = "🤍"
+                btnToggleFav.setImageResource(R.drawable.ic_heart_outline)
                 com.example.readtrace.util.HapticFeedbackEngine.lightClick(this)
                 Toast.makeText(this, "已从【我的最爱】中移除", Toast.LENGTH_SHORT).show()
             } else {
                 databaseHelper.addFavorite(book.id, book.mediaType)
-                btnToggleFav.text = "❤️"
+                btnToggleFav.setImageResource(R.drawable.ic_heart_filled)
+                // 收藏瞬间的一次性回弹：只绑定点击，不做常驻动效
+                btnToggleFav.scaleX = 0.8f
+                btnToggleFav.scaleY = 0.8f
+                btnToggleFav.animate().scaleX(1f).scaleY(1f).setDuration(240)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(2.4f)).start()
                 com.example.readtrace.util.HapticFeedbackEngine.stampImpact(this)
                 Toast.makeText(this, "✨ 已加入【我的最爱 · ${book.mediaType.displayName}】！", Toast.LENGTH_SHORT).show()
             }

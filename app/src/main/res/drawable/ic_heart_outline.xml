@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 单线描边心形：「我的最爱」未收藏态。1.7dp 圆头描边，墨绿单色，日夜模式随 readtrace_accent 适配 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,20.2C12,20.2 4.2,15.3 4.2,9.9C4.2,7.1 6.4,4.9 9.05,4.9C10.35,4.9 11.45,5.45 12,6.35C12.55,5.45 13.65,4.9 14.95,4.9C17.6,4.9 19.8,7.1 19.8,9.9C19.8,15.3 12,20.2 12,20.2Z"
+        android:strokeColor="@color/readtrace_accent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.7" />
+</vector>

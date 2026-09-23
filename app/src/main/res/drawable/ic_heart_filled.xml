@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 雅金实心心形：「我的最爱」已收藏态。与描边态同轮廓，保证切换时不跳形 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/readtrace_gold_accent"
+        android:pathData="M12,20.2C12,20.2 4.2,15.3 4.2,9.9C4.2,7.1 6.4,4.9 9.05,4.9C10.35,4.9 11.45,5.45 12,6.35C12.55,5.45 13.65,4.9 14.95,4.9C17.6,4.9 19.8,7.1 19.8,9.9C19.8,15.3 12,20.2 12,20.2Z" />
+</vector>

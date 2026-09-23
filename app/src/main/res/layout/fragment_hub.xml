@@ -916,7 +916,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="serif"
-                    android:text="💖 我的最爱 · 心选展厅"
+                    android:drawableStart="@drawable/ic_heart_outline"
+                    android:drawablePadding="6dp"
+                    android:text="我的最爱 · 心选展厅"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="14sp"
                     android:textStyle="bold" />
