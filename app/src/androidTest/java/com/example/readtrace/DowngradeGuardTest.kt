@@ -25,13 +25,13 @@ class DowngradeGuardTest {
         helper.writableDatabase.execSQL("PRAGMA user_version = 99")
         helper.forceCloseForTesting()
 
-        // 回退低版本包后重新开库 → 应触发 onDowngrade(99, 15) 而非抛异常
+        // 回退低版本包后重新开库 → 应触发 onDowngrade(99, DATABASE_VERSION) 而非抛异常
         val reopened = BookDatabaseHelper.getInstance(context).writableDatabase
         val version = reopened.rawQuery("PRAGMA user_version", null).use {
             it.moveToFirst()
             it.getInt(0)
         }
-        assertEquals("降级后版本号应回落到当前代码版本", 16, version)
+        assertEquals("降级后版本号应回落到当前代码版本", BookDatabaseHelper.DATABASE_VERSION, version)
 
         val bak = File(
             context.getDatabasePath(BookDatabaseHelper.DATABASE_NAME).parentFile,

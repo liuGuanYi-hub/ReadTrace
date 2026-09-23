@@ -1065,7 +1065,8 @@ assembleDebug + lintDebug 双验证通过
 > **📌 可复用的验证手法（本轮跑通，建议沉淀）**：非 exported 的 Activity 无法 `am start`，但仍可自动化验证——
 > ① `dumpsys activity top` 输出含 View Hierarchy，其中的 `l,t-r,b` 是**相对父容器的布局坐标**（且不含 ScrollView 的 scrollY），按缩进建树累加祖先链即得屏幕绝对坐标（脚本已固化为 `tools/dumpsys_coords.py`，2026-09-18 新增，**当前为工作区文件、尚未纳入版本控制**）；
 > ② 用 `adb shell input tap <x> <y>` 进入目标页；
-> ③ 页面内容用 `uiautomator dump` 读取——**静态页有效**（备份页/时间轴页/年鉴页均成功），主页因常驻自绘动画仍会 `could not get idle state`。
+> ③ 页面内容用 `uiautomator dump` 读取——**静态页有效**（备份页/时间轴页/年鉴页均成功）。
+> ~~主页因常驻自绘动画仍会 `could not get idle state`~~ **2026-09-23 修正**：安静模式（默认开启）把极光/胶片颗粒/跑马灯等常驻重绘变为静态后，主页 gfxinfo 帧数 3 秒零增长、两帧截图 md5 相同；此时 dump 失败只发生在**进入主页后约 2 秒内**（入场动画链：header 进场、胶囊 stagger 渐显、计数 count-up、ScrambleTextView 解密+shimmer），**≥4 秒后稳定成功**（20 秒复测亦成功），藏库/我的/社区/桌面随时可 dump。自动化脚本进主页后等待 ≥4s 再 dump 即可。
 
 **为什么 T0.1 排第一**：改动仅 2 行、可独立验证，但性质是**正在静默破坏用户数据且不可逆**，比性能问题严重一个量级。
 
