@@ -1281,7 +1281,7 @@ class BookDetailActivity : AppCompatActivity() {
                         ElegantConfirmDialog.show(
                             activity = this,
                             title = "🎉 时间轴长图已生成",
-                            message = "全息心路长图已成功保存至系统相册！是否立即分享？",
+                            message = "心路长图已成功保存至系统相册！是否立即分享？",
                             confirmText = "🔗 立即分享",
                             cancelText = "稍后再说",
                             isDanger = false,
@@ -1315,11 +1315,11 @@ class BookDetailActivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, contentUri)
-                putExtra(Intent.EXTRA_SUBJECT, "《${currentBook?.title}》全息心路历程 · 阅痕 ReadTrace")
-                putExtra(Intent.EXTRA_TEXT, "这是我在《${currentBook?.title}》中留下的全息阅读印记与时光时间轴。")
+                putExtra(Intent.EXTRA_SUBJECT, "《${currentBook?.title}》心路历程 · 阅痕 ReadTrace")
+                putExtra(Intent.EXTRA_TEXT, "这是我在《${currentBook?.title}》中留下的阅读印记与时光时间轴。")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(shareIntent, "分享心路全息长图"))
+            startActivity(Intent.createChooser(shareIntent, "分享心路长图"))
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "分享长图失败", Toast.LENGTH_SHORT).show()
@@ -1333,9 +1333,9 @@ class BookDetailActivity : AppCompatActivity() {
             ?: when (book.mediaType) {
                 MediaType.MOVIE -> "光影定格瞬间，回声穿透岁月。在银幕的光斑里，看见未曾经历的人生。"
                 MediaType.ANIME -> "若你跨越次元与时光，我们终将在热血与泪水的彼岸重逢。"
-                MediaType.GAME -> "每个按键的跃动，都是灵魂在异世界的无畏出征。"
+                MediaType.GAME -> "每个按键的跃动，都是奔赴异世界的无畏出征。"
                 MediaType.MUSIC -> "旋律划过耳畔，思维在无垠空间激荡起共鸣的涟漪。"
-                else -> "字句有痕，岁月有温。在文字的世界里，每一次阅读都是灵魂的漫游。"
+                else -> "字句有痕，岁月有温。在文字的世界里，每一次阅读都是一场漫游。"
             }
         val source = if (book.shortComment.isNullOrBlank() && notes.isNotEmpty()) {
             notePositionLabel(notes.first().page, notes.first().chapter, book.mediaType)
@@ -1460,7 +1460,7 @@ class BookDetailActivity : AppCompatActivity() {
             MediaType.GAME -> {
                 headerTitle.text = "游戏详情"
                 headerSubtitle.text = "重温这段通关冒险与高光时刻。"
-                read3DBtn.text = "🕹️ 白金全息实体卡带"
+                read3DBtn.text = "🕹️ 白金典藏实体卡带"
                 read3DBtn.visibility = View.VISIBLE
                 read3DBtn.setOnClickListener {
                     startActivity(GameCartridgePosterActivity.createIntent(this, book.id))
@@ -2278,7 +2278,7 @@ class BookDetailActivity : AppCompatActivity() {
                 textSize = 30f
                 isFakeBoldText = true
             }
-            canvas.drawText("✨ 阅痕 · 灵魂心智全息微卡", 96f, 126f, headerPaint)
+            canvas.drawText("✨ 阅痕 · 心智微卡", 96f, 126f, headerPaint)
 
             val subHeaderPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
                 color = textMutedColor
@@ -2331,7 +2331,7 @@ class BookDetailActivity : AppCompatActivity() {
             // 左下方短评金句
             val quoteContent = book.shortComment?.takeIf { it.isNotBlank() }
                 ?: book.review?.takeIf { it.isNotBlank() }
-                ?: "“每一道心智印记，都是灵魂与文字的永恒交汇。”"
+                ?: "“每一道心智印记，都是与文字的永恒交汇。”"
             val quotePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
                 color = textMutedColor
                 textSize = 26f
@@ -2479,7 +2479,7 @@ class BookDetailActivity : AppCompatActivity() {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "image/png"
                     putExtra(Intent.EXTRA_STREAM, imageUri)
-                    putExtra(Intent.EXTRA_TEXT, "这是我在《阅痕 ReadTrace》为《${book.title}》定制的「${theme.displayName}」灵魂心智全息微卡。")
+                    putExtra(Intent.EXTRA_TEXT, "这是我在《阅痕 ReadTrace》为《${book.title}》定制的「${theme.displayName}」心智微卡。")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 startActivity(Intent.createChooser(shareIntent, "分享「${theme.displayName}」锁屏微卡"))

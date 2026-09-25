@@ -176,7 +176,7 @@
                 android:layout_marginTop="22dp"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="sans"
-                android:text="💬 漫游者共鸣与留言"
+                android:text="💬 共鸣与留言"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />

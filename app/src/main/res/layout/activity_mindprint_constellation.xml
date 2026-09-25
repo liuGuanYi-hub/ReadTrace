@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:fontFamily="sans"
-                android:text="单指拖拽漫游 · 星线串联灵魂共鸣"
+                android:text="单指拖拽漫游 · 星线串联心智关联"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="11.5sp" />
         </LinearLayout>
@@ -234,7 +234,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="📖 探索全息档案 ➔"
+            android:text="📖 查看作品档案 ➔"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold" />

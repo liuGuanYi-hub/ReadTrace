@@ -173,7 +173,7 @@ class ResonancePosterActivity : AppCompatActivity() {
         }
         val catA = bookA.category?.takeIf { it.isNotBlank() } ?: "精神"
         val catB = bookB.category?.takeIf { it.isNotBlank() } ?: "心智"
-        return "$catA × $catB · 灵魂合璧"
+        return "$catA × $catB · 心智合璧"
     }
 
     private fun setupThemeTabs() {
@@ -347,7 +347,7 @@ class ResonancePosterActivity : AppCompatActivity() {
                             type = "image/png"
                             putExtra(Intent.EXTRA_STREAM, uri)
                             putExtra(Intent.EXTRA_SUBJECT, "《阅痕》双生共鸣精神微卡")
-                            putExtra(Intent.EXTRA_TEXT, "✨ 跨媒介灵魂共鸣：$resonanceTrait · $similarity% 契合度")
+                            putExtra(Intent.EXTRA_TEXT, "✨ 跨媒介关联：$resonanceTrait · $similarity% 契合度")
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
                         startActivity(Intent.createChooser(shareIntent, "分享双生共鸣微卡"))

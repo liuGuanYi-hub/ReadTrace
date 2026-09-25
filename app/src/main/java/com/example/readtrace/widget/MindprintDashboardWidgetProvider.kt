@@ -42,7 +42,7 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
         TwinResonancePreset("挪威的森林", "孤独摇滚", "青春迷茫 · 孤独摇滚", 93),
         TwinResonancePreset("老人与海", "强风吹拂", "坚韧意志 · 极限超越", 94),
         TwinResonancePreset("解忧杂货店", "夏目友人帐", "人情温暖 · 羁绊守候", 95),
-        TwinResonancePreset("罪与罚", "灵能百分百", "正义边界 · 灵魂受难", 92),
+        TwinResonancePreset("罪与罚", "灵能百分百", "正义边界 · 受难与救赎", 92),
         TwinResonancePreset("白夜行", "来自深渊", "深渊互持 · 残酷救赎", 94),
         TwinResonancePreset("基督山伯爵", "JOJO", "黄金精神 · 意志传承", 93),
         TwinResonancePreset("边城", "夏日重现", "纯美爱恋 · 故乡清冽", 91),
@@ -83,7 +83,7 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
 
         var singleBook: Book? = null
         var singleMindprint = BookMindprint(bookId = -1)
-        var singleQuote = "“每一道心智印记，都是灵魂与文字的永恒交汇。”"
+        var singleQuote = "“每一道心智印记，都是与文字的永恒交汇。”"
 
         if (isTwinMode) {
             val preset = classicTwinPairs[(rotationSlot - 1) % classicTwinPairs.size]
@@ -160,10 +160,10 @@ class MindprintDashboardWidgetProvider : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widgetDashboardRoot, pendingIntent)
             } else {
-                views.setTextViewText(R.id.widgetDashboardHeaderTitle, "✨ 阅痕 · 全息心智看板")
+                views.setTextViewText(R.id.widgetDashboardHeaderTitle, "✨ 阅痕 · 心智看板")
                 views.setTextViewText(
                     R.id.widgetDashboardBookTitle,
-                    if (singleBook != null) "${singleBook.mediaType.emoji} 《${singleBook.title}》" else "📖 阅痕全息书房",
+                    if (singleBook != null) "${singleBook.mediaType.emoji} 《${singleBook.title}》" else "📖 阅痕书房",
                 )
                 views.setTextViewText(
                     R.id.widgetDashboardBookAuthor,

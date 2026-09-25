@@ -51,7 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="全息通行证预览"
+                android:text="通行证预览"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12sp"
                 android:letterSpacing="0.1" />

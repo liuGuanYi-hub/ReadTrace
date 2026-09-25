@@ -72,7 +72,7 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
     }
 
     private fun exportAndShareScroll() {
-        Toast.makeText(this, "正在离屏渲染 1080P 全息藏书长卷...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "正在离屏渲染 1080P 藏书长卷...", Toast.LENGTH_SHORT).show()
 
         Thread {
             // T4.2：离屏大位图必须无论成功还是失败都回收。放在 runCatching 外，
@@ -100,14 +100,14 @@ class LibraryScrollPreviewActivity : AppCompatActivity() {
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "image/png"
                         putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_SUBJECT, "《阅痕》全息藏书长卷")
+                        putExtra(Intent.EXTRA_SUBJECT, "《阅痕》藏书长卷")
                         putExtra(
                             Intent.EXTRA_TEXT,
-                            "✨ 这是我在《阅痕》生成的「全息藏书长卷」（$filterSummary），共沉淀 ${libraryScrollView.bookList.size} 座精神坐标，收藏即是热爱。",
+                            "✨ 这是我在《阅痕》生成的「藏书长卷」（$filterSummary），共沉淀 ${libraryScrollView.bookList.size} 座精神坐标，收藏即是热爱。",
                         )
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    startActivity(Intent.createChooser(shareIntent, "分享我的「全息藏书长卷」"))
+                    startActivity(Intent.createChooser(shareIntent, "分享我的「藏书长卷」"))
                 }
             }.onFailure {
                 runOnUiThread {

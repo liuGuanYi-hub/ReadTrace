@@ -52,7 +52,7 @@ enum class WidgetCardTheme(
     ),
     CYBER_EMERALD(
         displayName = "🧪 赛博荧光绿",
-        description = "深邃夜蓝 · 极光荧光绿 · 前沿科幻全息感",
+        description = "深邃夜蓝 · 极光荧光绿 · 前沿科幻感",
         bgColor = Color.parseColor("#0B1210"),
         cardBgColor = Color.parseColor("#111D19"),
         strokeColor = Color.parseColor("#4400FF9D"),

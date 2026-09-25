@@ -589,7 +589,7 @@ class MindprintConstellationView @JvmOverloads constructor(
         }
         val trait = when {
             commonTag != null -> "跨媒介共鸣 · $commonTag"
-            similarity >= 93 -> "同频心智 · 灵魂共振"
+            similarity >= 93 -> "同频心智 · 高度契合"
             similarity >= 88 -> "气质相近 · 精神互文"
             else -> "异质共鸣 · 观点交火"
         }

@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="sans"
-                android:text="✨ 阅痕 · 全息心智看板"
+                android:text="✨ 阅痕 · 心智看板"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="12sp"
                 android:textStyle="bold" />

@@ -86,7 +86,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:paddingHorizontal="12dp"
-                    android:text="🌌 全媒介共鸣"
+                    android:text="🌌 全媒介关联"
                     android:textColor="#C8A265"
                     android:textSize="12sp" />
 

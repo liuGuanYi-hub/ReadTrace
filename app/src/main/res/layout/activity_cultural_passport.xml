@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="18dp"
-                android:text="💡 点击任意印章可查看作品全息卡片与六维心智"
+                android:text="💡 点击任意印章可查看作品卡片与六维心智"
                 android:textColor="#A0C4E2"
                 android:textSize="12.5sp" />
         </LinearLayout>

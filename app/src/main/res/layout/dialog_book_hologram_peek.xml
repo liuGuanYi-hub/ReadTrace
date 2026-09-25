@@ -189,7 +189,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="📖 全息档案"
+            android:text="📖 作品档案"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold" />

@@ -7,7 +7,7 @@
     <string name="discover_entry">🌐 从发现页导入热门作品</string>
     <string name="discover_entry_hint">Bangumi 联网搜索 · 一键添加 · 之后再慢慢补感想</string>
     <string name="discover_title">发现</string>
-    <string name="discover_subtitle">热门作品一键添加至纪念，骨架我来填，灵魂你来写。</string>
+    <string name="discover_subtitle">热门作品一键添加至纪念，条目我来填，故事你来写。</string>
     <string name="discover_search_hint">搜索作品名（留空看热门排行）</string>
     <string name="discover_search_button">搜索</string>
     <string name="discover_source_note">书影音来自豆瓣公开页 · 游戏来自 Bangumi · 低频请求已限流</string>

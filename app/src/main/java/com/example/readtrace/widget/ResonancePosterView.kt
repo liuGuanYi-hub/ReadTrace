@@ -140,7 +140,7 @@ class ResonancePosterView @JvmOverloads constructor(
     private var bookB: Book? = null
     private var mindprintB: BookMindprint? = null
     private var similarity: Int = 96
-    private var resonanceTrait: String = "跨媒介共鸣 · 灵魂契合"
+    private var resonanceTrait: String = "跨媒介关联 · 心智契合"
 
     private var cachedCoverA: Bitmap? = null
     private var cachedCoverB: Bitmap? = null
@@ -361,7 +361,7 @@ class ResonancePosterView @JvmOverloads constructor(
         canvas.drawLine(box.left + pad, lineY, box.right - pad, lineY, paint)
 
         // B. 顶部契合度微胶囊（特质文案过长时自动缩字号适配，避免胶囊超宽、文字溢出重叠）
-        val badgeText = "★ $resonanceTrait · $similarity% 灵魂契合 ★"
+        val badgeText = "★ $resonanceTrait · $similarity% 心智契合 ★"
         val badgePad = 44f * scale
         val maxBadgeW = w - pad * 2
         var badgeTextSize = 29f * scale
@@ -609,7 +609,7 @@ class ResonancePosterView @JvmOverloads constructor(
         val quoteY = metaY + 52f * scale
         val rawQuote = book.shortComment.takeUnless { it.isNullOrBlank() }
             ?: book.review.takeUnless { it.isNullOrBlank() }
-            ?: "精神印记，静默于灵魂深处。"
+            ?: "精神印记，静默于心底。"
         val cleanQuote = rawQuote.trim('“', '”', '"', ' ')
         val formattedQuote = "“$cleanQuote”"
 

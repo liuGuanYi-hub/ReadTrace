@@ -25,7 +25,7 @@
                 android:id="@+id/scrollMainTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📜 全息藏书长卷 · 精神藏库"
+                android:text="📜 藏书长卷 · 精神藏库"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="16.5sp"
                 android:textStyle="bold" />

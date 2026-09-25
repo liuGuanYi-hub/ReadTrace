@@ -519,7 +519,7 @@ class HubFragment : Fragment() {
                 MediaType.BOOK -> "📖 回看阅读痕迹"
                 MediaType.ANIME -> "🌸 追番入境签证"
                 MediaType.MOVIE -> "🎟️ 透光电影票根"
-                MediaType.GAME -> "🕹️ 全息白金卡带"
+                MediaType.GAME -> "🕹️ 白金典藏卡带"
                 MediaType.MUSIC -> "🎴 共鸣双生微卡"
             }
 

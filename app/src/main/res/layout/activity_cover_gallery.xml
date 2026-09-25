@@ -200,7 +200,7 @@
                 android:background="@drawable/bg_status_chip_selected"
                 android:gravity="center"
                 android:paddingVertical="13dp"
-                android:text="📖 探索全息档案"
+                android:text="📖 查看作品档案"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />

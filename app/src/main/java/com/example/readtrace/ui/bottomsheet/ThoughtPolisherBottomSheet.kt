@@ -69,7 +69,7 @@ object ThoughtPolisherBottomSheet {
         val btnApplyReplace = view.findViewById<Button>(R.id.btnPolisherApplyReplace)
         val btnApplyAppend = view.findViewById<Button>(R.id.btnPolisherApplyAppend)
 
-        txtSubtitle.text = "《$bookTitle》· 大师文风重塑与灵魂金句提炼"
+        txtSubtitle.text = "《$bookTitle》· 大师文风重塑与金句提炼"
 
         val rawTrimmed = currentDraft.trim()
         if (rawTrimmed.isNotBlank()) {

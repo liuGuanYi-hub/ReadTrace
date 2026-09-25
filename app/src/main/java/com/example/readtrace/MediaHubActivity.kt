@@ -204,7 +204,7 @@ class MediaHubActivity : AppCompatActivity() {
                 hubStatusFinished.text = "白金通关"
                 hubStatusWishlist.text = "想玩"
                 btnHubSpecialFeature.visibility = View.VISIBLE
-                btnHubSpecialFeature.text = "🕹️ 全息卡带"
+                btnHubSpecialFeature.text = "🕹️ 卡带"
                 btnHubSpecialFeature.setOnClickListener {
                     val firstGame = databaseHelper.getBooks().firstOrNull { it.mediaType == MediaType.GAME }
                     if (firstGame != null) {

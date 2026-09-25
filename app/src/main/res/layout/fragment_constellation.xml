@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="sans"
-            android:text="双指缩放/拖拽 · 极光流光脉冲 · 双星灵魂共鸣"
+            android:text="双指缩放/拖拽 · 双星心智关联"
             android:textColor="@color/readtrace_muted"
             android:textSize="12sp" />
 

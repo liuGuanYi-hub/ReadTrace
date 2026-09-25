@@ -66,7 +66,7 @@
                 android:layout_marginTop="6dp"
                 android:fontFamily="sans"
                 android:lineSpacingExtra="3dp"
-                android:text="记录认知心智演化轨迹 · 沉淀灵魂深处的回忆与勋章"
+                android:text="记录心智演化轨迹 · 沉淀回忆与勋章"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
 
@@ -226,7 +226,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="美术馆级年度精神画册：宏观足迹、巅峰海拔雷达与灵魂金句，一键导出印刷级长图"
+                android:text="年度精神画册：足迹、心智雷达与金句，一键导出印刷级长图"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
         </LinearLayout>
@@ -258,7 +258,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans"
-                android:text="漫游探访同频策展人的 3D 虚拟展厅与灵魂长评共鸣"
+                android:text="漫游探访同频策展人的 3D 虚拟展厅与长评"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12.5sp" />
         </LinearLayout>

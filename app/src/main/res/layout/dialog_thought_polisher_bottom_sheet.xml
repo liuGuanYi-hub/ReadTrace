@@ -67,7 +67,7 @@
                 android:layout_marginTop="3dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="大师文风重塑 · 灵魂高光金句提炼"
+                android:text="大师文风重塑 · 金句提炼"
                 android:textColor="@color/readtrace_muted"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -257,7 +257,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="灵魂高光金句 · 适于印制藏书票与票根"
+                        android:text="金句 · 适于印制藏书票与票根"
                         android:textColor="@color/readtrace_muted"
                         android:textSize="10.5sp" />
 

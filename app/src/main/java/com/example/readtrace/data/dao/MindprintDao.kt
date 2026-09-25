@@ -117,7 +117,7 @@ object MindprintDao {
             "emotion" -> Triple("❤️ 细腻共鸣共情家", "在字里行间捕获最真挚的人性温热，以心感应万千生灵的喜怒哀乐。", "情感共鸣")
             "logic" -> Triple("📐 严密理性格局派", "追求严丝合缝的因果规律与宏大世界构建，崇尚清晰有力的理性推演。", "逻辑构架")
             "difficulty" -> Triple("⛰️ 硬核学术攀登者", "敢于直面深奥晦涩的经典大作与思想峻岭，在攀登中享受智识蜕变。", "思想门槛")
-            else -> Triple("🌿 纯粹心灵疗愈者", "在静谧的书海中寻找灵魂的安顿与精神绿洲，温和而坚定地被文字抚慰。", "心灵治愈")
+            else -> Triple("🌿 纯粹心灵疗愈者", "在静谧的书海中寻找安顿与精神绿洲，温和而坚定地被文字抚慰。", "心灵治愈")
         }
 
         return com.example.readtrace.model.ReadingPersona(
@@ -227,7 +227,7 @@ object MindprintDao {
         if (randomCommentBook != null) {
             val quote = randomCommentBook.shortComment?.takeIf { it.isNotBlank() }
                 ?: randomCommentBook.review?.takeIf { it.isNotBlank() }
-                ?: "每一道心智印记，都是灵魂与文字的永恒交汇。"
+                ?: "每一道心智印记，都是与文字的永恒交汇。"
             return randomCommentBook to quote
         }
 

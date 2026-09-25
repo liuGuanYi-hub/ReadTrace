@@ -417,7 +417,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="🕹️ 游戏白金全息卡带"
+                    android:text="🕹️ 游戏白金典藏卡带"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="17.5sp"
                     android:textStyle="bold" />
@@ -471,7 +471,7 @@
                     android:background="@drawable/bg_status_chip"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
-                    android:text="💎 赛博全息材质"
+                    android:text="💎 典藏材质"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -543,7 +543,7 @@
                     android:background="@drawable/bg_status_chip"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
-                    android:text="✨ 96% 思想共鸣"
+                    android:text="✨ 96% 思想契合"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="11sp"
                     android:textStyle="bold" />

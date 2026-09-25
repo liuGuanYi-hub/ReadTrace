@@ -186,7 +186,7 @@ class AnnualChronicleStudioActivity : AppCompatActivity() {
                 // 页 4 · 灵魂金句（首字下沉由 DropCapTextView 承担）
                 val quoteBook = stats.bestWorks.firstOrNull()
                 addPage(
-                    title = "📜 灵魂金句",
+                    title = "📜 金句",
                     body = quoteBook?.let {
                         "「${it.shortComment ?: it.review?.lineSequence()?.firstOrNull() ?: "这一年的沉默也是一种回答。"}」\n\n" +
                             "—— 《${it.title}》 · ${it.rating ?: "-"}/10"

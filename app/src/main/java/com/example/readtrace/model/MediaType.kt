@@ -112,7 +112,7 @@ enum class MediaType(
     }
 
     fun getDefaultQuote(): String = when (this) {
-        BOOK -> "在这个快节奏的世界里，书籍是灵魂的避风港。"
+        BOOK -> "在这个快节奏的世界里，书籍是安静的避风港。"
         ANIME -> "在虚构的光影里，番剧给予我们真实的心动与力量。"
         MOVIE -> "电影发明了以后，人类的生命比起以前至少延长了三倍。"
         GAME -> "游戏是第九艺术，带我们体验未曾设想的人生。"

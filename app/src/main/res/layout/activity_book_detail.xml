@@ -953,7 +953,7 @@
                         style="@style/ReadTraceFieldLabel"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:text="⏳ 作品全息时间轴"
+                        android:text="⏳ 作品时间轴"
                         android:textSize="18sp" />
 
                     <TextView
@@ -1367,7 +1367,7 @@
 
                 <TextView
                     style="@style/ReadTraceFieldLabel"
-                    android:text="🔗 灵犀共鸣 · 心智相似作品"
+                    android:text="🔗 心智相似作品"
                     android:textSize="18sp" />
 
                 <TextView

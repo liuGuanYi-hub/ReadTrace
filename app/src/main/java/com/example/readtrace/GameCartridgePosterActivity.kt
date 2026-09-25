@@ -156,7 +156,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             gameCartridgePosterView.coverFocalX = f.getOrNull(0) ?: 0.5f
             gameCartridgePosterView.coverFocalY = f.getOrNull(1) ?: 0.5f
         }
-        tvCartridgeSummary.text = "🕹️ 《${currentGame!!.title}》· 白金全息通关卡带"
+        tvCartridgeSummary.text = "🕹️ 《${currentGame!!.title}》· 白金典藏通关卡带"
     }
 
     private fun buildThemeChips() {
@@ -188,7 +188,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
 
     private fun exportAndShareCartridge() {
         runCatching {
-            Toast.makeText(this, "正在生成 1080P 全息白金卡带...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "正在生成 1080P 白金典藏卡带...", Toast.LENGTH_SHORT).show()
             val bitmap = gameCartridgePosterView.create1080pPosterBitmap()
             val cacheFile = File(cacheDir, "readtrace_cartridge_${System.currentTimeMillis()}.png")
             FileOutputStream(cacheFile).use { out ->
@@ -199,11 +199,11 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "《阅痕》全息白金卡带")
+                putExtra(Intent.EXTRA_SUBJECT, "《阅痕》白金典藏卡带")
                 putExtra(Intent.EXTRA_TEXT, "🕹️ 《${currentGame?.title}》第九艺术通关纪念 · 阅痕白金典藏卡带")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(shareIntent, "分享全息卡带"))
+            startActivity(Intent.createChooser(shareIntent, "分享卡带"))
         }.onFailure {
             Toast.makeText(this, "导出分享失败: ${it.message}", Toast.LENGTH_SHORT).show()
         }
@@ -236,7 +236,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
 
             fos?.use {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-                Toast.makeText(this, "✨ 已成功保存全息卡带至相册 (Pictures/ReadTrace)", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "✨ 已成功保存卡带至相册 (Pictures/ReadTrace)", Toast.LENGTH_LONG).show()
             } ?: Toast.makeText(this, "无法打开相册写入流", Toast.LENGTH_SHORT).show()
         }.onFailure {
             Toast.makeText(this, "保存相册失败: ${it.message}", Toast.LENGTH_SHORT).show()

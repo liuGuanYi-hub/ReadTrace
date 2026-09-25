@@ -125,7 +125,7 @@
                     android:background="@drawable/bg_input_glass"
                     android:fontFamily="sans"
                     android:gravity="top"
-                    android:hint="写下此展厅的核心思考、策展寄语与共鸣感悟..."
+                    android:hint="写下这个展厅的核心思考与策展寄语..."
                     android:padding="12dp"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="13sp" />
