@@ -39,7 +39,7 @@
 
         <!-- 🗂️ 第一页 · 「清爽记录台」舞台（P35 Phase 1）：
              高度由 HubFragment 在运行时设为首屏可视高度，面板在其中垂直水平居中；
-             跑马灯/策展主位/那年今日/工坊胶囊等全部自然下沉到第二页及以后 -->
+             策展主位/那年今日/工坊胶囊等全部自然下沉到第二页及以后 -->
         <FrameLayout
             android:id="@+id/firstScreenStage"
             android:layout_width="match_parent"
@@ -370,13 +370,6 @@
                 android:textSize="10.5sp" />
             </LinearLayout>
         </FrameLayout>
-
-        <!-- 🌊 0. 【无限流光跑马灯】(60fps Infinite Marquee Stream) — P35 起下沉至第二页 -->
-        <com.example.readtrace.widget.InfiniteMarqueeView
-            android:id="@+id/hubInfiniteMarquee"
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="14dp" />
 
         <!-- 🌟 1. 【今日焦点 · 艺术策展主位】(Hero Curatorial Showcase with Gyroscope & Specular Glare) -->
         <!-- 🌟 1. 【今日焦点 · 建筑学破壁策展主位】(Hero Curatorial Showcase with Overlapping 3D Cover) -->
