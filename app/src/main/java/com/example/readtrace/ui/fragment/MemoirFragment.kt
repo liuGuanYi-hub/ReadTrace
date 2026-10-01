@@ -11,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
-import com.example.readtrace.AnimeTimelineScrollActivity
 import com.example.readtrace.MediaTimelineScrollActivity
 import com.example.readtrace.CoverGalleryActivity
 import com.example.readtrace.CulturalPassportActivity

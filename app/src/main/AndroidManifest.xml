@@ -27,9 +27,6 @@
             android:name=".LibraryScrollPreviewActivity"
             android:exported="false" />
         <activity
-            android:name=".AnimeTimelineScrollActivity"
-            android:exported="false" />
-        <activity
             android:name=".CoverGalleryActivity"
             android:exported="false" />
         <activity
