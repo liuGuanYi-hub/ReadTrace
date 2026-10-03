@@ -2,28 +2,6 @@
 <issues format="6" by="lint 9.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.1)" variant="all" version="9.1.1">
 
     <issue
-        id="ResourceType"
-        message="Expected resource of type style"
-        errorLine1="            setWindowAnimations(R.anim.quick_log_slide_up)"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="73"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="        val monthDayPattern = String.format(&quot;%%-%02d-%02d&quot;, today.monthValue, today.dayOfMonth)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2586"
-            column="31"/>
-    </issue>
-
-    <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
         errorLine1="        val timeStr = String.format(&quot;%02d:%02d&quot;, hour, minute)"
@@ -268,17 +246,6 @@
     <issue
         id="InflateParams"
         message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
-        errorLine1="        val view = LayoutInflater.from(activity).inflate(R.layout.layout_dialog_quick_log, null)"
-        errorLine2="                                                                                           ~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="63"
-            column="92"/>
-    </issue>
-
-    <issue
-        id="InflateParams"
-        message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
         errorLine1="        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_thought_polisher_bottom_sheet, null)"
         errorLine2="                                                                                                        ~~~~">
         <location
@@ -318,17 +285,6 @@
             file="src/main/AndroidManifest.xml"
             line="9"
             column="36"/>
-    </issue>
-
-    <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 9.1.1 is available: 9.4.0"
-        errorLine1="agp = &quot;9.1.1&quot;"
-        errorLine2="      ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="2"
-            column="7"/>
     </issue>
 
     <issue
@@ -461,72 +417,6 @@
             file="src/main/java/com/example/readtrace/BookDetailActivity.kt"
             line="1717"
             column="34"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="                background = activity.getDrawable(R.drawable.bg_quick_status_idle)"
-        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="135"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="                background = activity.getDrawable(R.drawable.bg_quick_status_idle)"
-        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="135"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="            background = context.getDrawable("
-        errorLine2="                         ^">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="267"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="            background = context.getDrawable("
-        errorLine2="                         ^">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="267"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="            background = context.getDrawable(R.drawable.bg_dark_chip_selected)"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="482"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UseCompatLoadingForDrawables"
-        message="Use `AppCompatResources.getDrawable()`"
-        errorLine1="            background = context.getDrawable(R.drawable.bg_dark_chip_selected)"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="482"
-            column="26"/>
     </issue>
 
     <issue
@@ -747,17 +637,6 @@
             file="src/main/java/com/example/readtrace/widget/MindprintTopologyView.kt"
             line="262"
             column="46"/>
-    </issue>
-
-    <issue
-        id="DrawAllocation"
-        message="Avoid object allocations during draw/layout operations (preallocate and reuse instead)"
-        errorLine1="        val bounds = Rect()"
-        errorLine2="                     ~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/RollingNumberTextView.kt"
-            line="112"
-            column="22"/>
     </issue>
 
     <issue
@@ -1455,17 +1334,6 @@
 
     <issue
         id="Overdraw"
-        message="Possible overdraw: Root element paints background `?android:attr/colorBackground` with a theme that also paints a background (inferred theme is `@style/Theme.Readtrace`)"
-        errorLine1="    android:background=&quot;?android:attr/colorBackground&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_anime_timeline_scroll.xml"
-            line="5"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="Overdraw"
         message="Possible overdraw: Root element paints background `#0A0E1A` with a theme that also paints a background (inferred theme is `@style/Theme.Readtrace`)"
         errorLine1="    android:background=&quot;#0A0E1A&quot;>"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -1706,118 +1574,6 @@
             column="5"/>
     </issue>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <issue
         id="UselessParent"
         message="This `LinearLayout` layout or its `LinearLayout` parent is unnecessary"
@@ -1973,39 +1729,6 @@
     </issue>
 
     <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;hint_rating&quot;>1-10，可保留一位小数&lt;/string>"
-        errorLine2="                               ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="85"
-            column="32"/>
-    </issue>
-
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;error_rating&quot;>评分必须为 1-10，最多一位小数&lt;/string>"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="97"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="TypographyEllipsis"
-        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
-        errorLine1="    &lt;string name=&quot;search_hint&quot;>搜索书名、作者...&lt;/string>"
-        errorLine2="                               ~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="214"
-            column="32"/>
-    </issue>
-
-    <issue
         id="IconXmlAndPng"
         message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\mipmap-anydpi\ic_launcher.xml, src\main\res\mipmap-hdpi\ic_launcher.png">
         <location
@@ -2057,27 +1780,6 @@
     </issue>
 
     <issue
-        id="IconLauncherShape"
-        message="Launcher icons should not fill every pixel of their square region; see the design guide for details">
-        <location
-            file="src/main/res/drawable/ic_launcher_foreground_bitmap.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/default_curator_avatar.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/default_curator_avatar.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/ic_launcher_foreground_bitmap.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/ic_launcher_foreground_bitmap.png"/>
-    </issue>
-
-    <issue
         id="ButtonStyle"
         message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
         errorLine1="        &lt;Button"
@@ -2097,17 +1799,6 @@
             file="src/main/res/layout/dialog_thought_polisher_bottom_sheet.xml"
             line="344"
             column="10"/>
-    </issue>
-
-    <issue
-        id="TextFields"
-        message="This text field does not specify an `inputType`"
-        errorLine1="                &lt;EditText"
-        errorLine2="                 ~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="180"
-            column="18"/>
     </issue>
 
     <issue
@@ -2916,17 +2607,6 @@
     <issue
         id="Autofill"
         message="Missing `autofillHints` attribute"
-        errorLine1="                &lt;EditText"
-        errorLine2="                 ~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="180"
-            column="18"/>
-    </issue>
-
-    <issue
-        id="Autofill"
-        message="Missing `autofillHints` attribute"
         errorLine1="            &lt;EditText"
         errorLine2="             ~~~~~~~~">
         <location
@@ -3076,17 +2756,6 @@
             file="src/main/res/layout/fragment_library.xml"
             line="83"
             column="22"/>
-    </issue>
-
-    <issue
-        id="Autofill"
-        message="Missing `autofillHints` attribute"
-        errorLine1="    &lt;EditText"
-        errorLine2="     ~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="45"
-            column="6"/>
     </issue>
 
     <issue
@@ -3318,94 +2987,6 @@
             file="src/main/java/com/example/readtrace/BackupActivity.kt"
             line="207"
             column="39"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="                db.beginTransaction()"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="138"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="                prefs.edit().putInt(KEY_SEED_VERSION, DATABASE_VERSION).apply()"
-        errorLine2="                ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="185"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="567"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2078"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2420"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2470"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2816"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SQLiteDatabase.transaction` instead?"
-        errorLine1="        db.beginTransaction()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/data/BookDatabaseHelper.kt"
-            line="2946"
-            column="9"/>
     </issue>
 
     <issue
@@ -4979,17 +4560,6 @@
             file="src/main/java/com/example/readtrace/widget/CuratorPassCardView.kt"
             line="311"
             column="36"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="                tab.setTextColor(Color.parseColor(&quot;#90FFFFFF&quot;))"
-        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="163"
-            column="34"/>
     </issue>
 
     <issue
@@ -6996,94 +6566,6 @@
 
     <issue
         id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            textPaint.color = Color.parseColor(&quot;#4DEEEA&quot;)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="71"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            textPaint.color = Color.parseColor(&quot;#4DEEEA&quot;)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="71"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            textPaint.color = Color.parseColor(&quot;#144A38&quot;)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="75"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            textPaint.color = Color.parseColor(&quot;#144A38&quot;)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="75"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            badgePaint.color = Color.parseColor(&quot;#E0F2E9&quot;)"
-        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="76"
-            column="32"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            badgePaint.color = Color.parseColor(&quot;#E0F2E9&quot;)"
-        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="76"
-            column="32"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            strokePaint.color = Color.parseColor(&quot;#BCE3D1&quot;)"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="77"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            strokePaint.color = Color.parseColor(&quot;#BCE3D1&quot;)"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="77"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
         message="Use the KTX function `createBitmap` instead?"
         errorLine1="        val bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -7091,204 +6573,6 @@
             file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
             line="118"
             column="22"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        canvas.drawColor(if (dark) Color.parseColor(&quot;#151210&quot;) else Color.parseColor(&quot;#FAF8F3&quot;))"
-        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="250"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        canvas.drawColor(if (dark) Color.parseColor(&quot;#151210&quot;) else Color.parseColor(&quot;#FAF8F3&quot;))"
-        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="250"
-            column="69"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val goldColor = if (dark) Color.parseColor(&quot;#D4AF37&quot;) else Color.parseColor(&quot;#8C6D46&quot;)"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="251"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val goldColor = if (dark) Color.parseColor(&quot;#D4AF37&quot;) else Color.parseColor(&quot;#8C6D46&quot;)"
-        errorLine2="                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="251"
-            column="68"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val primaryText = if (dark) Color.parseColor(&quot;#F5F0E6&quot;) else Color.parseColor(&quot;#2C241E&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="260"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val primaryText = if (dark) Color.parseColor(&quot;#F5F0E6&quot;) else Color.parseColor(&quot;#2C241E&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="260"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val secondaryText = if (dark) Color.parseColor(&quot;#A89F91&quot;) else Color.parseColor(&quot;#7A6E65&quot;)"
-        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="261"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val secondaryText = if (dark) Color.parseColor(&quot;#A89F91&quot;) else Color.parseColor(&quot;#7A6E65&quot;)"
-        errorLine2="                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="261"
-            column="72"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val accentGold = if (dark) Color.parseColor(&quot;#E6C265&quot;) else Color.parseColor(&quot;#996515&quot;)"
-        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="262"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        val accentGold = if (dark) Color.parseColor(&quot;#E6C265&quot;) else Color.parseColor(&quot;#996515&quot;)"
-        errorLine2="                                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="262"
-            column="69"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#221D1A&quot;) else Color.parseColor(&quot;#FFFFFF&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="358"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#221D1A&quot;) else Color.parseColor(&quot;#FFFFFF&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="358"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#221D1A&quot;) else Color.parseColor(&quot;#FFFFFF&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="358"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#221D1A&quot;) else Color.parseColor(&quot;#FFFFFF&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="358"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#3D342E&quot;) else Color.parseColor(&quot;#E8E2D9&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="364"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#3D342E&quot;) else Color.parseColor(&quot;#E8E2D9&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="364"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#3D342E&quot;) else Color.parseColor(&quot;#E8E2D9&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="364"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#3D342E&quot;) else Color.parseColor(&quot;#E8E2D9&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="364"
-            column="70"/>
     </issue>
 
     <issue
@@ -7304,94 +6588,6 @@
 
     <issue
         id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            cardPaint.color = if (dark) Color.parseColor(&quot;#2A2420&quot;) else Color.parseColor(&quot;#EFECE6&quot;)"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="382"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            cardPaint.color = if (dark) Color.parseColor(&quot;#2A2420&quot;) else Color.parseColor(&quot;#EFECE6&quot;)"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="382"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            cardPaint.color = if (dark) Color.parseColor(&quot;#2A2420&quot;) else Color.parseColor(&quot;#EFECE6&quot;)"
-        errorLine2="                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="382"
-            column="74"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            cardPaint.color = if (dark) Color.parseColor(&quot;#2A2420&quot;) else Color.parseColor(&quot;#EFECE6&quot;)"
-        errorLine2="                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="382"
-            column="74"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#443830&quot;) else Color.parseColor(&quot;#DDD4C7&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="396"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#443830&quot;) else Color.parseColor(&quot;#DDD4C7&quot;)"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="396"
-            column="37"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#443830&quot;) else Color.parseColor(&quot;#DDD4C7&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="396"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        cardPaint.color = if (dark) Color.parseColor(&quot;#443830&quot;) else Color.parseColor(&quot;#DDD4C7&quot;)"
-        errorLine2="                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="396"
-            column="70"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
         message="Use the KTX extension function `Canvas.withTranslation` instead?"
         errorLine1="        canvas.save()"
         errorLine2="        ~~~~~~~~~~~~~">
@@ -7399,28 +6595,6 @@
             file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
             line="405"
             column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        sealPaint.color = Color.parseColor(&quot;#C62828&quot;)"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="530"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="        sealPaint.color = Color.parseColor(&quot;#C62828&quot;)"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/LibraryScrollView.kt"
-            line="530"
-            column="27"/>
     </issue>
 
     <issue
@@ -9801,72 +8975,6 @@
 
     <issue
         id="UseKtx"
-        message="Use the KTX extension function `Int.toDrawable` instead?"
-        errorLine1="            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="67"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="                Color.parseColor(if (selected) &quot;#FFFFFF&quot; else &quot;#99FFFFFF&quot;),"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="182"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `ViewGroup.isEmpty` instead?"
-        errorLine1="                if (resultList.childCount == 0) {"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="242"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="                setTextColor(Color.parseColor(&quot;#99FFFFFF&quot;))"
-        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="307"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="                    setTextColor(Color.parseColor(&quot;#CCFFFFFF&quot;))"
-        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="499"
-            column="34"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toColorInt` instead?"
-        errorLine1="            setTextColor(Color.parseColor(&quot;#80FFFFFF&quot;))"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="532"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
         message="Use the KTX extension function `String.toColorInt` instead?"
         errorLine1="                posterCardContainer.setBackgroundColor(Color.parseColor(&quot;#FAF8F5&quot;))"
         errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -10336,17 +9444,6 @@
             file="src/main/java/com/example/readtrace/QuotePosterActivity.kt"
             line="214"
             column="22"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `Int.toDrawable` instead?"
-        errorLine1="            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))"
-        errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/util/RadialQuickActionMenu.kt"
-            line="42"
-            column="35"/>
     </issue>
 
     <issue
@@ -12804,17 +11901,6 @@
 
     <issue
         id="ClickableViewAccessibility"
-        message="Custom view `InfiniteMarqueeView` overrides `onTouchEvent` but not `performClick`"
-        errorLine1="    override fun onTouchEvent(event: MotionEvent): Boolean {"
-        errorLine2="                 ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/widget/InfiniteMarqueeView.kt"
-            line="153"
-            column="18"/>
-    </issue>
-
-    <issue
-        id="ClickableViewAccessibility"
         message="Custom view `MindprintConstellationView` overrides `onTouchEvent` but not `performClick`"
         errorLine1="    override fun onTouchEvent(event: MotionEvent): Boolean {"
         errorLine2="                 ~~~~~~~~~~~~">
@@ -12844,28 +11930,6 @@
             file="src/main/java/com/example/readtrace/widget/MovieTicketPosterView.kt"
             line="692"
             column="18"/>
-    </issue>
-
-    <issue
-        id="ClickableViewAccessibility"
-        message="Custom view ``TextView`` has `setOnTouchListener` called on it but does not override `performClick`"
-        errorLine1="                setOnTouchListener { v, event ->"
-        errorLine2="                ^">
-        <location
-            file="src/main/java/com/example/readtrace/util/RadialQuickActionMenu.kt"
-            line="99"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="ClickableViewAccessibility"
-        message="`onTouch` lambda should call `View#performClick` when a click is detected"
-        errorLine1="                setOnTouchListener { v, event ->"
-        errorLine2="                                   ^">
-        <location
-            file="src/main/java/com/example/readtrace/util/RadialQuickActionMenu.kt"
-            line="99"
-            column="36"/>
     </issue>
 
     <issue
@@ -13783,83 +12847,6 @@
 
     <issue
         id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideContent.text = &quot;支持直接粘贴豆瓣导出的 CSV/文本，或通过「选取文件」载入。自动提取标题、评分、读过日期与短评，并智能转化为六维心智模型。&quot;"
-        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="171"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideTitle.text = &quot;🌸 Bangumi 番组计划导入指南&quot;"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="174"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideContent.text = &quot;支持直接粘贴 Bangumi 收藏 API 返回的 JSON 数据。自动解析动画/漫画、中文译名、原名与在看/补完状态。&quot;"
-        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="175"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideTitle.text = &quot;🎮 Steam 游戏库导入指南&quot;"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="178"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideContent.text = &quot;支持粘贴 Steam GetOwnedGames 接口返回的 JSON。自动将游戏游玩时长换算为在读/通关状态并生成心智模型。&quot;"
-        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="179"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideTitle.text = &quot;📋 Notion / 通用表格导入指南&quot;"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="182"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="                tvGuideContent.text = &quot;支持粘贴任意第三方 CSV 表格，智能探测书名、作者、评分、状态与标签列。&quot;"
-        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/DataMigrationActivity.kt"
-            line="183"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
         errorLine1="        tvSubtitle.text = &quot;《$workTitle》· 4 大维度加权计算 10.0 高精评分&quot;"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -14114,28 +13101,6 @@
     <issue
         id="SetTextI18n"
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="        bookTitleText.text = &quot;《${book.title}》&quot;"
-        errorLine2="                             ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/FlipNotesActivity.kt"
-            line="72"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="            bookRefText.text = &quot;《${book.title}》$authorPart&quot;"
-        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/FlipNotesAdapter.kt"
-            line="68"
-            column="32"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
         errorLine1="        tvCartridgeSummary.text = &quot;🕹️ 《${currentGame!!.title}》· 白金全息通关卡带&quot;"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
@@ -14296,17 +13261,6 @@
             file="src/main/java/com/example/readtrace/ui/fragment/HubFragment.kt"
             line="585"
             column="43"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="String literal in `setText` can not be translated. Use Android resources instead."
-        errorLine1="            text = &quot;选一份预设书单，或从本地 CSV 带回你的记录&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/fragment/HubFragment.kt"
-            line="631"
-            column="21"/>
     </issue>
 
     <issue
@@ -14774,78 +13728,12 @@
     <issue
         id="SetTextI18n"
         message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="                text = &quot;${media.emoji} ${media.displayName}&quot;"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="90"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="        confirmSection.findViewById&lt;TextView>(R.id.quickLogPickedTitle).text = &quot;《${subject.displayTitle}》&quot;"
-        errorLine2="                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="325"
-            column="80"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="                    text = &quot;✍️ 一句话速记《${parsed.title}》&quot;"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="489"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="                    text = &quot;$statusLabel$ratingLabel$tagLabel · 点击直接入库 ➔&quot;"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/ui/QuickLogBottomSheet.kt"
-            line="497"
-            column="28"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
         errorLine1="            posterQuoteSource.text = &quot;— $quoteSource&quot;"
         errorLine2="                                     ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/readtrace/QuotePosterActivity.kt"
             line="127"
             column="38"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="            text = &quot;${book.mediaType.emoji}\n《${book.title.take(8)}》&quot;"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/util/RadialQuickActionMenu.kt"
-            line="54"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="SetTextI18n"
-        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
-        errorLine1="                text = &quot;${action.emoji} ${action.label}&quot;"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/readtrace/util/RadialQuickActionMenu.kt"
-            line="78"
-            column="24"/>
     </issue>
 
     <issue
@@ -15290,39 +14178,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;📜 追番编年史 · 心智画卷&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;📜 追番编年史 · 心智画卷&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_anime_timeline_scroll.xml"
-            line="26"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;全景追番编年史 · 精神坐标&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;全景追番编年史 · 精神坐标&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_anime_timeline_scroll.xml"
-            line="35"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📤 导出分享&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;📤 导出分享&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_anime_timeline_scroll.xml"
-            line="47"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;🏆 策展人年度精神年鉴&quot;, should use `@string` resource"
         errorLine1="            android:text=&quot;🏆 策展人年度精神年鉴&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -15396,39 +14251,6 @@
             file="src/main/res/layout/activity_backup.xml"
             line="234"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🚚 多源资产搬家中心&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🚚 多源资产搬家中心&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_backup.xml"
-            line="281"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;豆瓣 · B站 · Steam&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;豆瓣 · B站 · Steam&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_backup.xml"
-            line="295"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;0 门槛导入豆瓣书影音 CSV/文本、Bangumi 收藏与 Steam 游戏库，并智能生成六维心智模型&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;0 门槛导入豆瓣书影音 CSV/文本、Bangumi 收藏与 Steam 游戏库，并智能生成六维心智模型&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_backup.xml"
-            line="306"
-            column="17"/>
     </issue>
 
     <issue
@@ -15517,17 +14339,6 @@
             file="src/main/res/layout/activity_badges.xml"
             line="87"
             column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🤍&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🤍&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_book_detail.xml"
-            line="87"
-            column="21"/>
     </issue>
 
     <issue
@@ -15737,17 +14548,6 @@
             file="src/main/res/layout/activity_book_detail.xml"
             line="936"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;⏳ 作品全息时间轴&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;⏳ 作品全息时间轴&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_book_detail.xml"
-            line="975"
-            column="25"/>
     </issue>
 
     <issue
@@ -15972,17 +14772,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;🔗 灵犀共鸣 · 心智相似作品&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🔗 灵犀共鸣 · 心智相似作品&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_book_detail.xml"
-            line="1389"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;基于六维认知雷达、媒介分类与作者文化源流智能匹配&quot;, should use `@string` resource"
         errorLine1="                    android:text=&quot;基于六维认知雷达、媒介分类与作者文化源流智能匹配&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -16038,17 +14827,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;漫游他人精神展厅，发现共鸣佳作&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;漫游他人精神展厅，发现共鸣佳作&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_community.xml"
-            line="45"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;🔄&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;🔄&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~">
@@ -16078,17 +14856,6 @@
             file="src/main/res/layout/activity_community.xml"
             line="132"
             column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🏛️ 展览探索与共鸣&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🏛️ 展览探索与共鸣&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_community.xml"
-            line="161"
-            column="21"/>
     </issue>
 
     <issue
@@ -16165,17 +14932,6 @@
         <location
             file="src/main/res/layout/activity_cosmic_galaxy.xml"
             line="60"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🌌 全媒介共鸣&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🌌 全媒介共鸣&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_cosmic_galaxy.xml"
-            line="89"
             column="21"/>
     </issue>
 
@@ -16335,17 +15091,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;📖 探索全息档案&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;📖 探索全息档案&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_cover_gallery.xml"
-            line="203"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;🛂 精神巡礼护照&quot;, should use `@string` resource"
         errorLine1="            android:text=&quot;🛂 精神巡礼护照&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -16390,17 +15135,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;💡 点击任意印章可查看作品全息卡片与六维心智&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;💡 点击任意印章可查看作品全息卡片与六维心智&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_cultural_passport.xml"
-            line="110"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;返回&quot;, should use `@string` resource"
         errorLine1="                    android:contentDescription=&quot;返回&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -16419,17 +15153,6 @@
             file="src/main/res/layout/activity_curator_auth.xml"
             line="43"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;全息通行证预览&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;全息通行证预览&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_curator_auth.xml"
-            line="54"
-            column="17"/>
     </issue>
 
     <issue
@@ -16929,171 +15652,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;🚚 多源资产搬家中心&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🚚 多源资产搬家中心&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="43"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;0 门槛导入豆瓣、Bangumi、Steam 与通用表格数据。&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;0 门槛导入豆瓣、Bangumi、Steam 与通用表格数据。&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="52"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📗 豆瓣&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;📗 豆瓣&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="74"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🌸 Bangumi&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🌸 Bangumi&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="85"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🎮 Steam&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🎮 Steam&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="95"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📋 CSV&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;📋 CSV&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="105"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;💡 豆瓣书影音导入指南&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;💡 豆瓣书影音导入指南&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="124"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;支持直接粘贴豆瓣导出的 CSV 文本，或通过下方「选取文件」导入。将自动识别标题、评分、读过日期与短评，并智能换算为六维心智模型。&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;支持直接粘贴豆瓣导出的 CSV 文本，或通过下方「选取文件」导入。将自动识别标题、评分、读过日期与短评，并智能换算为六维心智模型。&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="135"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📝 粘贴数据文本 / JSON / CSV&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;📝 粘贴数据文本 / JSON / CSV&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="160"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📋 粘贴剪贴板&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;📋 粘贴剪贴板&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="174"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;在此粘贴原始导出文本，或从下方选取本地文件...&quot;, should use `@string` resource"
-        errorLine1="                    android:hint=&quot;在此粘贴原始导出文本，或从下方选取本地文件...&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="187"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📂 从设备选取文件 (.csv / .json / .txt)&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;📂 从设备选取文件 (.csv / .json / .txt)&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="208"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;✨ 已检测到 42 部待导入作品&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;✨ 已检测到 42 部待导入作品&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="232"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;包含书籍 30 部 · 电影 12 部 | 已自动生成六维心智模型&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;包含书籍 30 部 · 电影 12 部 | 已自动生成六维心智模型&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="242"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🚀 一键无损导入藏库&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;🚀 一键无损导入藏库&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_data_migration.xml"
-            line="267"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;✨ 精选高光策展 (Curated Shelves)&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;✨ 精选高光策展 (Curated Shelves)&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -17270,17 +15828,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;💬 漫游者共鸣与留言&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;💬 漫游者共鸣与留言&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_exhibition_detail.xml"
-            line="179"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;写下你的共鸣与感悟...&quot;, should use `@string` resource"
         errorLine1="                    android:hint=&quot;写下你的共鸣与感悟...&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -17299,17 +15846,6 @@
             file="src/main/res/layout/activity_exhibition_detail.xml"
             line="227"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🕹️ 白金全息卡带&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;🕹️ 白金全息卡带&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game_cartridge_poster.xml"
-            line="24"
-            column="13"/>
     </issue>
 
     <issue
@@ -17336,28 +15872,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;🕹️ 全息白金典藏卡带 · 1080P 超清通关纪念&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;🕹️ 全息白金典藏卡带 · 1080P 超清通关纪念&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game_cartridge_poster.xml"
-            line="101"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;💎 典藏全息材质&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;💎 典藏全息材质&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game_cartridge_poster.xml"
-            line="121"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;💾 保存至相册&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;💾 保存至相册&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~">
@@ -17375,17 +15889,6 @@
         <location
             file="src/main/res/layout/activity_game_cartridge_poster.xml"
             line="169"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📜 全息藏书长卷 · 精神藏库&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;📜 全息藏书长卷 · 精神藏库&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_library_scroll_preview.xml"
-            line="28"
             column="17"/>
     </issue>
 
@@ -17787,17 +16290,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;单指拖拽漫游 · 星线串联灵魂共鸣&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;单指拖拽漫游 · 星线串联灵魂共鸣&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_mindprint_constellation.xml"
-            line="58"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;✕&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;✕&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~">
@@ -17827,17 +16319,6 @@
             file="src/main/res/layout/activity_mindprint_constellation.xml"
             line="222"
             column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;📖 探索全息档案 ➔&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;📖 探索全息档案 ➔&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_mindprint_constellation.xml"
-            line="237"
-            column="13"/>
     </issue>
 
     <issue
@@ -18288,17 +16769,6 @@
         <location
             file="src/main/res/layout/activity_publish_exhibition.xml"
             line="114"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;写下此展厅的核心思考、策展寄语与共鸣感悟...&quot;, should use `@string` resource"
-        errorLine1="                    android:hint=&quot;写下此展厅的核心思考、策展寄语与共鸣感悟...&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_publish_exhibition.xml"
-            line="128"
             column="21"/>
     </issue>
 
@@ -19074,17 +17544,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;📖 全息档案&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;📖 全息档案&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/dialog_book_hologram_peek.xml"
-            line="192"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;☁️ 我的歌单&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;☁️ 我的歌单&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~">
@@ -19349,34 +17808,12 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;基于你的阅读偏好与评分共鸣智能推荐&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;基于你的阅读偏好与评分共鸣智能推荐&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/dialog_personalized_discovery_bottom_sheet.xml"
-            line="49"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;🤖 AI 深度探索&quot;, should use `@string` resource"
         errorLine1="            android:text=&quot;🤖 AI 深度探索&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_personalized_discovery_bottom_sheet.xml"
             line="63"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;正在根据你的品味画像探索跨媒介共鸣佳作…&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;正在根据你的品味画像探索跨媒介共鸣佳作…&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/dialog_personalized_discovery_bottom_sheet.xml"
-            line="104"
             column="13"/>
     </issue>
 
@@ -19400,17 +17837,6 @@
             file="src/main/res/layout/dialog_thought_polisher_bottom_sheet.xml"
             line="57"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;大师文风重塑 · 灵魂高光金句提炼&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;大师文风重塑 · 灵魂高光金句提炼&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/dialog_thought_polisher_bottom_sheet.xml"
-            line="70"
-            column="17"/>
     </issue>
 
     <issue
@@ -19488,17 +17914,6 @@
             file="src/main/res/layout/dialog_thought_polisher_bottom_sheet.xml"
             line="245"
             column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;灵魂高光金句 · 适于印制藏书票与票根&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;灵魂高光金句 · 适于印制藏书票与票根&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/dialog_thought_polisher_bottom_sheet.xml"
-            line="260"
-            column="25"/>
     </issue>
 
     <issue
@@ -19822,17 +18237,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;双指缩放/拖拽 · 极光流光脉冲 · 双星灵魂共鸣&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;双指缩放/拖拽 · 极光流光脉冲 · 双星灵魂共鸣&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_constellation.xml"
-            line="74"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;全景星系&quot;, should use `@string` resource"
         errorLine1="                    android:text=&quot;全景星系&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~">
@@ -20108,17 +18512,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;📖 3D 沉浸翻阅&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;📖 3D 沉浸翻阅&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_hub.xml"
-            line="549"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;✦ 检视印记&quot;, should use `@string` resource"
         errorLine1="                        android:text=&quot;✦ 检视印记&quot;"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
@@ -20302,17 +18695,6 @@
             file="src/main/res/layout/fragment_hub.xml"
             line="894"
             column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;💖 我的最爱 · 心选展厅&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;💖 我的最爱 · 心选展厅&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_hub.xml"
-            line="919"
-            column="21"/>
     </issue>
 
     <issue
@@ -20955,17 +19337,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;🕹️ 游戏白金全息卡带&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🕹️ 游戏白金全息卡带&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_memoir.xml"
-            line="420"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;典藏卡带&quot;, should use `@string` resource"
         errorLine1="                    android:text=&quot;典藏卡带&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~">
@@ -20994,17 +19365,6 @@
         <location
             file="src/main/res/layout/fragment_memoir.xml"
             line="462"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;💎 赛博全息材质&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;💎 赛博全息材质&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_memoir.xml"
-            line="474"
             column="21"/>
     </issue>
 
@@ -21039,17 +19399,6 @@
             file="src/main/res/layout/fragment_memoir.xml"
             line="529"
             column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;✨ 96% 思想共鸣&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;✨ 96% 思想共鸣&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_memoir.xml"
-            line="546"
-            column="21"/>
     </issue>
 
     <issue
@@ -21208,17 +19557,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;记录认知心智演化轨迹 · 沉淀灵魂深处的回忆与勋章&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;记录认知心智演化轨迹 · 沉淀灵魂深处的回忆与勋章&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="69"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;☁️ 云端保险库 · 离线优先就绪&quot;, should use `@string` resource"
         errorLine1="                    android:text=&quot;☁️ 云端保险库 · 离线优先就绪&quot;"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -21263,17 +19601,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;❤️ 我的最爱 · 跨媒介心选&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;❤️ 我的最爱 · 跨媒介心选&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="185"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;书籍、番剧、电影、游戏、音乐五大分类心选收藏，支持金标排位与一键导出长图&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;书籍、番剧、电影、游戏、音乐五大分类心选收藏，支持金标排位与一键导出长图&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -21296,34 +19623,12 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;美术馆级年度精神画册：宏观足迹、巅峰海拔雷达与灵魂金句，一键导出印刷级长图&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;美术馆级年度精神画册：宏观足迹、巅峰海拔雷达与灵魂金句，一键导出印刷级长图&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="227"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;🌐 阅痕云端展览广场&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;🌐 阅痕云端展览广场&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/fragment_profile.xml"
             line="249"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;漫游探访同频策展人的 3D 虚拟展厅与灵魂长评共鸣&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;漫游探访同频策展人的 3D 虚拟展厅与灵魂长评共鸣&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="259"
             column="17"/>
     </issue>
 
@@ -21347,39 +19652,6 @@
             file="src/main/res/layout/fragment_profile.xml"
             line="300"
             column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🚚 多源资产搬家中心&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;🚚 多源资产搬家中心&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="327"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;豆瓣 · B站 · Steam&quot;, should use `@string` resource"
-        errorLine1="                    android:text=&quot;豆瓣 · B站 · Steam&quot;"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="340"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;0 门槛一键导入豆瓣书影音、Bangumi 番剧与 Steam 游戏库&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;0 门槛一键导入豆瓣书影音、Bangumi 番剧与 Steam 游戏库&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_profile.xml"
-            line="351"
-            column="17"/>
     </issue>
 
     <issue
@@ -21703,17 +19975,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;✕&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;✕&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_reading_session.xml"
-            line="63"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;📖&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;📖&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~">
@@ -21879,94 +20140,6 @@
 
     <issue
         id="HardcodedText"
-        message="Hardcoded string &quot;一键收录 ➔&quot;, should use `@string` resource"
-        errorLine1="        android:text=&quot;一键收录 ➔&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_clipboard_sniffer.xml"
-            line="31"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;✕&quot;, should use `@string` resource"
-        errorLine1="        android:text=&quot;✕&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_clipboard_sniffer.xml"
-            line="41"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;⚡ 极速速记&quot;, should use `@string` resource"
-        errorLine1="        android:text=&quot;⚡ 极速速记&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="16"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;输入关键词联想公开元数据 · 点状态键 2 秒入库&quot;, should use `@string` resource"
-        errorLine1="        android:text=&quot;输入关键词联想公开元数据 · 点状态键 2 秒入库&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="26"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🔍 搜索书名 / 片名 / 游戏名…&quot;, should use `@string` resource"
-        errorLine1="        android:hint=&quot;🔍 搜索书名 / 片名 / 游戏名…&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="51"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🔮 美学情绪胶囊 · 点击注入初始心智&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;🔮 美学情绪胶囊 · 点击注入初始心智&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="117"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;🛠️ 高级录入 ➔&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;🛠️ 高级录入 ➔&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="166"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;收起&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;收起&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_dialog_quick_log.xml"
-            line="175"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
         message="Hardcoded string &quot;阅痕 ReadTrace v1.0.7&quot;, should use `@string` resource"
         errorLine1="                android:text=&quot;阅痕 ReadTrace v1.0.7&quot;"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
@@ -22128,17 +20301,6 @@
             file="src/main/res/layout/widget_daily_quote_2x2.xml"
             line="112"
             column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;✨ 阅痕 · 全息心智看板&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;✨ 阅痕 · 全息心智看板&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/widget_mindprint_dashboard_4x2.xml"
-            line="31"
-            column="17"/>
     </issue>
 
     <issue
