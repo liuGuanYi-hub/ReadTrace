@@ -51,3 +51,18 @@ docs/改版中截图/
 mp-readtrace/
 cloudfunctions/
 .workbuddy/
+
+# 独立内容仓库（remote: liuGuanYi-hub/readtrace-content）
+# 与 mp-readtrace/ 同理——主仓是代码、本仓是内容；
+# App 经 jsDelivr / raw.githubusercontent 远程拉取（ContentRepoClient），不读本地目录
+content-repo/
+
+# AI 辅助工具的工作目录（非项目资产）
+.workbuddy-ai/
+.zcode/
+
+# 个人材料（本仓库为公开仓库，绝不入库）
+安卓实习生分析/
+
+# 本地数据快照（内容已被 app/src/main/assets/preset_all.json 覆盖，仅作本机留档）
+912.json
