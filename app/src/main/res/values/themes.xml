@@ -3,6 +3,14 @@
     <style name="Base.Theme.Readtrace" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- 共享元素转场前提：不开启时 makeSceneTransitionAnimation 会静默失效，不报任何错。
+             此前 layout 里长期躺着一个没人消费的 transition_book_cover 锚点，
+             缺少这一项正是它一直没生效的原因之一（详见 util/SharedCoverTransition.kt）。 -->
+        <item name="android:windowActivityTransitions">true</item>
+        <!-- 让子 Activity 在共享元素起飞前不被父窗口提前绘制，避免转场起点闪一帧 -->
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
     <style name="Theme.Readtrace" parent="Base.Theme.Readtrace" />

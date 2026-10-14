@@ -448,8 +448,10 @@
                         android:clipChildren="false">
 
                         <!-- 78×117 = 2:3，与作品详情页封面（96×144）同比例。
-                             heroBookCover 是共享元素转场的起点锚点，
-                             比例不一致会让 centerCrop 在飞行途中重新裁剪而"跳一下" -->
+                             比例不一致会让 centerCrop 在飞行途中重新裁剪而"跳一下"。
+                             注意：这里**不写 android:transitionName**——共享元素名字由
+                             发起方在点击时按 bookId 动态设置（见 openDetailWithSharedCover），
+                             写死在布局里会与详情页从 Intent 取到的唯一名字不匹配。 -->
                         <ImageView
                             android:id="@+id/heroBookCover"
                             android:layout_width="78dp"
@@ -457,8 +459,7 @@
                             android:background="@drawable/bg_book_card"
                             android:clipToOutline="true"
                             android:elevation="10dp"
-                            android:scaleType="centerCrop"
-                            android:transitionName="transition_book_cover" />
+                            android:scaleType="centerCrop" />
 
                         <TextView
                             android:id="@+id/heroCoverPlaceholder"

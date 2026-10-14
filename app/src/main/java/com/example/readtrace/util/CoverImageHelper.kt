@@ -296,8 +296,18 @@ object CoverImageHelper {
     /**
      * 加载封面到 ImageView，支持内存 LRU 缓存、下采样防 OOM、异步下载与自动磁盘缓存
      * 主线程零磁盘 I/O，全异步解码与双向 Tag 复用防串图
+     *
+     * @param onSettled 位图已贴到该 ImageView 后回调（命中内存缓存时同步回调，
+     *   走异步解码时在主线程回调）。共享元素转场必须等目标封面真正就位才能放行
+     *   `startPostponedEnterTransition`，否则 Hero 会拖着一个空占位飞过去。
+     *   无论成功还是回退占位图都会回调，调用方不必自己兜底超时。
      */
-    fun loadCover(imageView: ImageView, path: String?, placeholderView: View? = null) {
+    fun loadCover(
+        imageView: ImageView,
+        path: String?,
+        placeholderView: View? = null,
+        onSettled: (() -> Unit)? = null,
+    ) {
         if (path.isNullOrBlank()) {
             if (placeholderView != null) {
                 imageView.visibility = View.GONE
@@ -306,6 +316,7 @@ object CoverImageHelper {
                 imageView.setImageResource(com.example.readtrace.R.drawable.bg_book_placeholder)
                 imageView.visibility = View.VISIBLE
             }
+            onSettled?.invoke()
             return
         }
 
@@ -323,6 +334,7 @@ object CoverImageHelper {
             imageView.alpha = 1f
             imageView.visibility = View.VISIBLE
             placeholderView?.visibility = View.GONE
+            onSettled?.invoke()
             return
         }
 
@@ -382,6 +394,9 @@ object CoverImageHelper {
                         imageView.visibility = View.VISIBLE
                         placeholderView?.visibility = View.GONE
                     }
+                    // 即使 tag 已变（View 被复用）也要回调：调用方等的是"加载已结束"，
+                    // 挂住共享元素转场比多等一帧危险得多
+                    onSettled?.invoke()
                 }
             } else {
                 mainHandler.post {
@@ -394,6 +409,7 @@ object CoverImageHelper {
                             imageView.visibility = View.VISIBLE
                         }
                     }
+                    onSettled?.invoke()
                 }
             }
         }

@@ -101,14 +101,18 @@
                     android:gravity="center_horizontal"
                     android:orientation="vertical">
 
+                    <!-- 96×144 = 2:3，与列表卡片（66×99）和策展位（78×117）同比例，
+                         保证 Hero 飞行途中 centerCrop 不会重新裁剪。
+                         transitionName 不写死在这里：由 BookDetailActivity 从 Intent 取
+                         发起方生成的唯一名字（bookCover_<id>）后动态设置，
+                         写死会与源端名字不匹配而使转场静默失效。 -->
                     <FrameLayout
                         android:id="@+id/detailCoverContainer"
                         android:layout_width="96dp"
                         android:layout_height="144dp"
                         android:background="@drawable/bg_book_placeholder"
                         android:clipToOutline="true"
-                        android:outlineProvider="background"
-                        android:transitionName="transition_book_cover">
+                        android:outlineProvider="background">
 
                         <ImageView
                             android:id="@+id/detailCoverImage"

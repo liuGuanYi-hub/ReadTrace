@@ -755,6 +755,13 @@ class LibraryFragment : Fragment() {
         layoutParams = p
     }
 
+    /**
+     * 带共享元素转场地打开作品详情：藏库封面 → 详情页封面（Hero）。
+     * 实现见 [com.example.readtrace.util.SharedCoverTransition]。
+     */
+    private fun openDetailWithSharedCover(book: Book, sourceCover: View?) {
+        com.example.readtrace.util.SharedCoverTransition.start(requireActivity(), book, sourceCover)
+    }
     /** 尾部静态文案：翻到最后一页才显示「已展示全部 N 部」，并始终保持在容器最后一个子视图 */
     private fun updateEndNote() {
         val ctx = context ?: return
@@ -889,7 +896,7 @@ class LibraryFragment : Fragment() {
             if (isSelectionMode) {
                 toggleBookSelection(book)
             } else {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                openDetailWithSharedCover(book, card.findViewById(R.id.bookCardCoverFrame))
             }
         }
         // P40-P3：长按进入多选并勾选当前项。
@@ -997,7 +1004,7 @@ class LibraryFragment : Fragment() {
             if (isSelectionMode) {
                 toggleBookSelection(book)
             } else {
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                openDetailWithSharedCover(book, card.findViewById(R.id.bookGridCoverFrame))
             }
         }
         // P40-P3：长按进入多选并勾选当前项。

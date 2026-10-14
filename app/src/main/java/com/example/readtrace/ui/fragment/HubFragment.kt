@@ -364,7 +364,7 @@ class HubFragment : Fragment() {
             val book = currentHeroBook
             if (book != null) {
                 when (book.mediaType) {
-                    MediaType.BOOK -> startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                    MediaType.BOOK -> openDetailWithSharedCover(book, heroBookCover)
                     MediaType.ANIME -> startActivity(CulturalPassportActivity.createIntent(requireContext(), MediaType.ANIME))
                     MediaType.MOVIE -> startActivity(MovieTicketPosterActivity.createIntent(requireContext(), book.id))
                     MediaType.GAME -> startActivity(GameCartridgePosterActivity.createIntent(requireContext(), book.id))
@@ -374,10 +374,12 @@ class HubFragment : Fragment() {
                 Toast.makeText(requireContext(), "请先添加或导入藏品", Toast.LENGTH_SHORT).show()
             }
         }
-        // 详情页进出统一使用系统默认左右平滑切换（已移除共享元素转场）
+        // 封面 → 详情的共享元素转场（Hero）：策展位大封面直接飞入详情页封面位。
+        // 历史注记：这里曾有一行「已移除共享元素转场」的注释，当时只留了 layout 锚点却没接线，
+        // 本次把两端的名字动态对齐后重新启用（详见 openDetailWithSharedCover）。
         val openHeroDetail = {
             currentHeroBook?.let { book ->
-                startActivity(BookDetailActivity.createIntent(requireContext(), book.id))
+                openDetailWithSharedCover(book, heroBookCover)
             }
         }
         heroBtnDetail.setOnClickListener { openHeroDetail() }
@@ -914,6 +916,14 @@ class HubFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), "导入失败或未发现有效记录", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * 带共享元素转场地打开作品详情：策展位大封面 → 详情页封面（Hero）。
+     * 实现见 [com.example.readtrace.util.SharedCoverTransition]。
+     */
+    private fun openDetailWithSharedCover(book: com.example.readtrace.model.Book, sourceCover: View?) {
+        com.example.readtrace.util.SharedCoverTransition.start(requireActivity(), book, sourceCover)
     }
 
     override fun onDestroyView() {

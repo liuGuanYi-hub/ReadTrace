@@ -41,6 +41,23 @@ class BookDetailActivity : AppCompatActivity() {
     private var bookId: Long = NO_BOOK_ID
     private var currentBook: Book? = null
 
+    /**
+     * 共享元素转场是否仍被挂起（见 onCreate 里的 postponeEnterTransition）。
+     * 用标志位而不是直接多次调用 `startPostponedEnterTransition()`：
+     * 封面回调与兜底超时可能都会触发，只允许放行一次。
+     */
+    private var sharedCoverAwaitingRelease = false
+
+    /**
+     * 封面就位 / 兜底超时后放行被挂起的共享元素转场。
+     * 幂等：重复调用只有第一次生效。
+     */
+    private fun releaseSharedCoverTransition() {
+        if (!sharedCoverAwaitingRelease) return
+        sharedCoverAwaitingRelease = false
+        startPostponedEnterTransition()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -67,6 +84,23 @@ class BookDetailActivity : AppCompatActivity() {
 
         val coverContainer = findViewById<View>(R.id.detailCoverContainer)
         if (coverContainer != null) {
+            // 共享元素转场的接收端：把发起方传来的唯一名字挂到目标容器上。
+            // 名字不匹配时 Android 找不到共享元素，会静默退化成普通转场——
+            // 所以这里必须与发起方（LibraryFragment.openDetailWithSharedCover）严格一致。
+            val sharedCoverName = intent.getStringExtra(EXTRA_SHARED_COVER_NAME)
+            if (!sharedCoverName.isNullOrBlank()) {
+                coverContainer.transitionName = sharedCoverName
+                // 封面要等后台线程取出 Book 后才真正开始加载（见 loadDetailData → renderBook）。
+                // 不挂住转场的话，Hero 会拖着一个空占位图飞过去，落地后才"啪"地出现封面。
+                // 这里只挂起，放行交给 renderBook 里 loadCover 的 onSettled。
+                // 另配兜底超时：数据异常时不能让用户永远停在"没有详情页"的状态。
+                postponeEnterTransition()
+                sharedCoverAwaitingRelease = true
+                window.decorView.postDelayed({
+                    releaseSharedCoverTransition()
+                }, SHARED_COVER_TIMEOUT_MS)
+            }
+
             val gyroscopeHelper = com.example.readtrace.util.GyroscopeParallaxHelper(this)
             gyroscopeHelper.bind3DParallax(coverContainer, maxRotation = 14f, maxTranslation = 18f)
             gyroscopeHelper.bindLifecycle(lifecycle)
@@ -1361,7 +1395,11 @@ class BookDetailActivity : AppCompatActivity() {
 
     private fun renderBook(book: Book) {
         val coverImage = findViewById<ImageView>(R.id.detailCoverImage)
-        CoverImageHelper.loadCover(coverImage, book.coverUrl)
+        // onSettled 在封面真正贴到 ImageView 之后触发（含占位图回退）。
+        // 共享元素转场正等在这里：封面没就位就放行，Hero 会拖着空占位飞过去。
+        CoverImageHelper.loadCover(coverImage, book.coverUrl, onSettled = {
+            releaseSharedCoverTransition()
+        })
         updateAuroraAmbientGlow(book.coverUrl)
 
         coverImage.setOnClickListener {
@@ -2515,6 +2553,25 @@ class BookDetailActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_BOOK_ID = "com.example.readtrace.extra.BOOK_ID"
+
+        /**
+         * 共享元素转场的封面名字，由发起方（藏库等）按 bookId 生成后经此 extra 传入。
+         *
+         * 为什么用 extra 传而不是两边各自写死常量：列表会被复用，
+         * 若名字写死在 item 布局上，多张卡片会同时占用同名锚点，
+         * Android 只会认先找到的那个，转场就从错误的卡片飞出。
+         * 发起方每次点击生成唯一名字，详情页据此把目标 View 设成同名。
+         */
+        const val EXTRA_SHARED_COVER_NAME = "com.example.readtrace.extra.SHARED_COVER_NAME"
+
+        /**
+         * 共享元素转场的兜底放行超时（ms）。
+         * 正常路径由 renderBook 里 loadCover 的 onSettled 放行；此超时只用于
+         * 数据异常/封面永久不可达时兜底，避免用户被永久卡在"没有详情页"。
+         * 取 600ms：明显长于内存命中与磁盘命中的耗时，又不至于让人感到停顿。
+         */
+        private const val SHARED_COVER_TIMEOUT_MS = 600L
+
         private const val NO_BOOK_ID = -1L
         private const val DESCRIPTION_COLLAPSED_LINES = 3
         private val RATING_FORMAT = DecimalFormat("0.#")
