@@ -130,6 +130,12 @@ class LibraryFragment : Fragment() {
     private var currentPage: Int = 0
     private var currentFilteredBooks: List<Book> = emptyList()
     private var endNoteView: TextView? = null
+    private data class RenderedPageKey(
+        val page: Int,
+        val grid: Boolean,
+        val books: List<Book>,
+    )
+    private var renderedPageKey: RenderedPageKey? = null
 
     // 内存数据缓存与搜索防抖，避免频繁切标签与按键触发 SQLite 全表扫描
     private var cachedAllBooks: List<Book> = emptyList()
@@ -157,6 +163,10 @@ class LibraryFragment : Fragment() {
         isGridView = UserPreferencesManager.isLibraryGridView(requireContext())
 
         initViews(view)
+        // The view hierarchy can be recreated while the Fragment instance survives.
+        // Force the new container to render even if the data page itself is unchanged.
+        renderedPageKey = null
+        endNoteView = null
         setupListeners()
     }
 
@@ -507,34 +517,47 @@ class LibraryFragment : Fragment() {
         if (tagList.isEmpty()) {
             libraryTagScroller.visibility = View.GONE
             selectedTag = null
+            libraryTagGroup.removeAllViews()
             return
         }
 
         libraryTagScroller.visibility = View.VISIBLE
-        libraryTagGroup.removeAllViews()
-
         val ctx = context ?: return
         tagList.forEachIndexed { index, (tag, count) ->
-            val chip = TextView(ctx).apply {
-                val isSelected = selectedTag == tag
-                text = if (isSelected) "✓ $tag ($count)" else "$tag ($count)"
+            val chip = (libraryTagGroup.getChildAt(index) as? TextView) ?: TextView(ctx).apply {
                 textSize = 11.5f
                 gravity = android.view.Gravity.CENTER
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    dpToPx(26),
-                ).apply {
-                    if (index > 0) marginStart = dpToPx(6)
-                }
-                layoutParams = params
                 setPadding(dpToPx(10), 0, dpToPx(10), 0)
-                setBackgroundResource(if (isSelected) R.drawable.bg_tag_outline_chip_selected else R.drawable.bg_tag_outline_chip)
-                setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
                 isClickable = true
                 isFocusable = true
-                setOnClickListener { selectTag(if (selectedTag == tag) null else tag) }
             }
-            libraryTagGroup.addView(chip)
+            val isSelected = selectedTag == tag
+            chip.tag = tag
+            chip.text = if (isSelected) "✓ $tag ($count)" else "$tag ($count)"
+            chip.setBackgroundResource(if (isSelected) R.drawable.bg_tag_outline_chip_selected else R.drawable.bg_tag_outline_chip)
+            chip.setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
+            chip.setOnClickListener {
+                val chipTag = it.tag as? String ?: return@setOnClickListener
+                selectTag(if (selectedTag == chipTag) null else chipTag)
+            }
+
+            val params = chip.layoutParams as? LinearLayout.LayoutParams
+                ?: LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    dpToPx(26),
+                )
+            params.width = LinearLayout.LayoutParams.WRAP_CONTENT
+            params.height = dpToPx(26)
+            params.marginStart = if (index > 0) dpToPx(6) else 0
+            if (chip.parent == null) {
+                libraryTagGroup.addView(chip, params)
+            } else {
+                chip.layoutParams = params
+            }
+        }
+
+        while (libraryTagGroup.childCount > tagList.size) {
+            libraryTagGroup.removeViewAt(libraryTagGroup.childCount - 1)
         }
     }
 
@@ -542,13 +565,12 @@ class LibraryFragment : Fragment() {
         val ctx = context ?: return
         for (i in 0 until libraryTagGroup.childCount) {
             val chip = libraryTagGroup.getChildAt(i) as? TextView ?: continue
-            val fullText = chip.text.toString()
-            val rawTag = fullText.removePrefix("✓ ").substringBeforeLast(" (")
-            val countPart = fullText.substringAfterLast(" (", "")
+            val rawTag = chip.tag as? String ?: continue
+            val count = chip.text.toString().substringAfterLast(" (").removeSuffix(")")
             val isSelected = selectedTag == rawTag
             chip.setBackgroundResource(if (isSelected) R.drawable.bg_tag_outline_chip_selected else R.drawable.bg_tag_outline_chip)
             chip.setTextColor(ContextCompat.getColor(ctx, if (isSelected) R.color.white else R.color.readtrace_ink))
-            chip.text = if (isSelected) "✓ $rawTag ($countPart" else "$rawTag ($countPart"
+            chip.text = if (isSelected) "✓ $rawTag ($count)" else "$rawTag ($count)"
         }
     }
 
@@ -576,6 +598,7 @@ class LibraryFragment : Fragment() {
 
         if (books.isEmpty()) {
             libraryBooksContainer.removeAllViews()
+            renderedPageKey = null
             libraryBooksContainer.visibility = View.GONE
             libraryPagerBar.visibility = View.GONE
             libraryEmptyPanel.clearAnimation()
@@ -604,10 +627,11 @@ class LibraryFragment : Fragment() {
     /** 渲染当前页区间 [currentPage * PAGE_SIZE, +PAGE_SIZE)，页码越界时自动收敛 */
     private fun renderPage() {
         val books = currentFilteredBooks
-        libraryBooksContainer.removeAllViews()
-        endNoteView = null
 
         if (books.isEmpty()) {
+            libraryBooksContainer.removeAllViews()
+            renderedPageKey = null
+            endNoteView = null
             libraryPagerBar.visibility = View.GONE
             return
         }
@@ -616,6 +640,26 @@ class LibraryFragment : Fragment() {
         currentPage = currentPage.coerceIn(0, totalPages - 1)
         val from = currentPage * PAGE_SIZE
         val to = minOf(books.size, from + PAGE_SIZE)
+
+        // Selection comparison may span pages. Keep the full filtered index current even
+        // when this page's visible cards do not need to be recreated.
+        booksById.clear()
+        books.forEach { booksById[it.id] = it }
+
+        val pageKey = RenderedPageKey(
+            page = currentPage,
+            grid = isGridView,
+            books = books.subList(from, to).toList(),
+        )
+        if (pageKey == renderedPageKey) {
+            updateEndNote()
+            updatePager(totalPages)
+            return
+        }
+
+        libraryBooksContainer.removeAllViews()
+        endNoteView = null
+        renderedPageKey = pageKey
 
         renderCardsRange(from, to)
         updateEndNote()
@@ -668,11 +712,6 @@ class LibraryFragment : Fragment() {
     private fun renderCardsRange(from: Int, to: Int) {
         if (from >= to) return
         val books = currentFilteredBooks
-        // P40-P3：重建 id 索引供对比弹窗反查。
-        // 必须用**全量** currentFilteredBooks 而非当前页——藏库分页渲染，
-        // 但多选允许跨页（第一页勾 A、翻页后勾 B），只索引当前页会让 A 查不到。
-        booksById.clear()
-        books.forEach { booksById[it.id] = it }
         if (!isGridView) {
             for (i in from until to) {
                 val card = createBookCard(books[i])
@@ -739,8 +778,12 @@ class LibraryFragment : Fragment() {
         } else {
             note.visibility = View.GONE
         }
-        if (note.parent != null) libraryBooksContainer.removeView(note)
-        libraryBooksContainer.addView(note)
+        if (note.parent == null) {
+            libraryBooksContainer.addView(note)
+        } else if (libraryBooksContainer.indexOfChild(note) != libraryBooksContainer.childCount - 1) {
+            libraryBooksContainer.removeView(note)
+            libraryBooksContainer.addView(note)
+        }
     }
 
     private fun updateScrollTopButton(scrollY: Int) {

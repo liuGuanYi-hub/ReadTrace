@@ -47,6 +47,10 @@ class HubFragment : Fragment() {
     private lateinit var headerPanel: View
     private lateinit var firstScreenStage: View
     private lateinit var hubScroll: android.widget.ScrollView
+    private lateinit var filmGrainOverlayView: com.example.readtrace.widget.FilmGrainOverlayView
+    private var scrollRevealAttachment: com.example.readtrace.util.ScrollReveal.Attachment? = null
+    private var isHubScrolling = false
+    private val scrollIdleRunnable = Runnable { finishHubScroll() }
     private lateinit var arcCountBook: TextView
     private lateinit var arcCountAnime: TextView
     private lateinit var arcCountMovie: TextView
@@ -146,7 +150,7 @@ class HubFragment : Fragment() {
         setupGyroscopeParallax()
 
         // 卡片滚动进场：进入视口渐入上浮
-        com.example.readtrace.util.ScrollReveal.attach(
+        scrollRevealAttachment = com.example.readtrace.util.ScrollReveal.attach(
             view.findViewById(R.id.hubScroll),
             listOf(
                 view.findViewById(R.id.heroCuratorialContainer),
@@ -162,6 +166,7 @@ class HubFragment : Fragment() {
         // 用 doOnLayout 代替 post：Fragment 视图 post 时可能尚未完成首次 layout，
         // 高度读到 0 会让舞台塌陷，第二页内容全部涌上首屏
         hubScroll = view.findViewById(R.id.hubScroll)
+        setupScrollPerformance()
         firstScreenStage.doOnLayout {
             // 舞台高度 = ScrollView 内容区全高（只扣顶部 padding）：
             // 舞台底边贴住屏幕底，滚动位置 0 时第二页内容（Hero 等）完全在屏幕外
@@ -195,7 +200,10 @@ class HubFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        auroraBackgroundView.startAnimation()
+        if (!isHubScrolling) {
+            auroraBackgroundView.startAnimation()
+            filmGrainOverlayView.startGrainAnimation()
+        }
         homeSubtitle.text = com.example.readtrace.util.CircadianLightingEngine.getCircadianSummary()
         updateThemeToggleIcon()
         // 首帧后再执行仪表盘重活，冷启动首帧不被全表查询阻塞（P38-P2）
@@ -207,8 +215,36 @@ class HubFragment : Fragment() {
     }
 
     override fun onPause() {
+        if (::hubScroll.isInitialized) hubScroll.removeCallbacks(scrollIdleRunnable)
+        isHubScrolling = false
+        gyroscopeHelper.stop()
         auroraBackgroundView.stopAnimation()
+        filmGrainOverlayView.stopGrainAnimation()
         super.onPause()
+    }
+
+    private fun setupScrollPerformance() {
+        filmGrainOverlayView = requireView().findViewById(R.id.hubFilmGrainOverlay)
+        hubScroll.setOnScrollChangeListener { _, _, _, _, _ ->
+            if (!isHubScrolling) {
+                isHubScrolling = true
+                auroraBackgroundView.pauseAnimation()
+                filmGrainOverlayView.pauseGrainAnimation()
+                gyroscopeHelper.pause()
+                scrollRevealAttachment?.setEnabled(false)
+            }
+            hubScroll.removeCallbacks(scrollIdleRunnable)
+            hubScroll.postDelayed(scrollIdleRunnable, SCROLL_IDLE_DELAY_MS)
+        }
+    }
+
+    private fun finishHubScroll() {
+        if (!isHubScrolling || !isAdded || view == null) return
+        isHubScrolling = false
+        auroraBackgroundView.resumeAnimation()
+        filmGrainOverlayView.resumeGrainAnimation()
+        gyroscopeHelper.resume()
+        scrollRevealAttachment?.setEnabled(true)
     }
 
     /**
@@ -882,10 +918,14 @@ class HubFragment : Fragment() {
 
     override fun onDestroyView() {
         // 注意：BookDatabaseHelper 为全局单例，此处不可 close()，否则其他页面会拿到已关闭的连接
+        if (::hubScroll.isInitialized) hubScroll.removeCallbacks(scrollIdleRunnable)
+        scrollRevealAttachment?.detach()
+        scrollRevealAttachment = null
         super.onDestroyView()
     }
 
     companion object {
         private val RATING_FORMAT = DecimalFormat("0.#")
+        private const val SCROLL_IDLE_DELAY_MS = 120L
     }
 }

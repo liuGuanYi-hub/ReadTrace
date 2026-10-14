@@ -1,6 +1,7 @@
 package com.example.readtrace.util
 
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
 
@@ -9,10 +10,49 @@ import android.widget.ScrollView
  */
 object ScrollReveal {
 
-    fun attach(scrollView: ScrollView, targets: List<View>) {
-        if (targets.isEmpty()) return
+    class Attachment internal constructor(
+        private val scrollView: ScrollView,
+        private val observer: ViewTreeObserver,
+        private val listener: ViewTreeObserver.OnScrollChangedListener,
+        private val targets: List<View>,
+        private val revealed: MutableSet<View>,
+        private val check: () -> Unit,
+    ) {
+        private var enabled = true
+        private var detached = false
+
+        /** Defer reveal work while a page is actively scrolling. */
+        fun setEnabled(value: Boolean) {
+            if (detached || enabled == value) return
+            enabled = value
+            if (!value) {
+                // Finish only an in-flight reveal; unrevealed cards remain deferred until idle.
+                revealed.forEach { target ->
+                    target.animate().cancel()
+                    target.alpha = 1f
+                    target.translationY = 0f
+                }
+            } else {
+                scrollView.post { check() }
+            }
+        }
+
+        fun detach() {
+            if (detached) return
+            detached = true
+            enabled = false
+            if (observer.isAlive) observer.removeOnScrollChangedListener(listener)
+            targets.forEach { it.animate().cancel() }
+        }
+
+        internal fun isEnabled(): Boolean = enabled && !detached
+    }
+
+    fun attach(scrollView: ScrollView, targets: List<View>): Attachment? {
+        if (targets.isEmpty()) return null
         val revealed = mutableSetOf<View>()
         val density = targets[0].resources.displayMetrics.density
+        lateinit var attachment: Attachment
 
         targets.forEach {
             it.alpha = 0f
@@ -32,6 +72,8 @@ object ScrollReveal {
         }
 
         fun check() {
+            // A pending post can outlive a pause/detach; guard it before touching target views.
+            if (!attachment.isEnabled()) return
             val threshold = scrollView.scrollY + scrollView.height - 60
             var stagger = 0
             targets.filter { it !in revealed }.forEach { v ->
@@ -49,7 +91,11 @@ object ScrollReveal {
             }
         }
 
-        scrollView.viewTreeObserver.addOnScrollChangedListener { check() }
+        val observer = scrollView.viewTreeObserver
+        val listener = ViewTreeObserver.OnScrollChangedListener { check() }
+        attachment = Attachment(scrollView, observer, listener, targets, revealed, ::check)
+        observer.addOnScrollChangedListener(listener)
         scrollView.post { check() }
+        return attachment
     }
 }

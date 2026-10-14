@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Shader
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import com.example.readtrace.util.QuietMode
@@ -35,10 +36,13 @@ class FilmGrainOverlayView @JvmOverloads constructor(
     private var noiseShader: BitmapShader? = null
     private val shaderMatrix = Matrix()
     private var animator: ValueAnimator? = null
+    private var animationPaused = false
+    private var lastFrameUptimeMs = 0L
+    private val frameIntervalMs = 1000L / 12L
 
     /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
     private val quietModeListener: () -> Unit = {
-        if (QuietMode.isQuiet()) stopGrainAnimation() else startGrainAnimation()
+        if (QuietMode.isQuiet()) cancelAnimator() else if (!animationPaused) startGrainAnimation()
     }
 
     init {
@@ -67,12 +71,22 @@ class FilmGrainOverlayView @JvmOverloads constructor(
 
     fun startGrainAnimation() {
         // 安静模式：噪点不再每帧随机位移，颗粒层静止
-        if (QuietMode.isQuiet()) return
-        if (animator?.isRunning == true) return
+        if (QuietMode.isQuiet() || animationPaused) return
+        animator?.let { current ->
+            if (current.isPaused) {
+                current.resume()
+                return
+            }
+            if (current.isRunning) return
+            current.cancel()
+        }
         animator = ValueAnimator.ofInt(0, 100).apply {
             duration = 1000L
             repeatCount = ValueAnimator.INFINITE
             addUpdateListener {
+                val now = SystemClock.uptimeMillis()
+                if (now - lastFrameUptimeMs < frameIntervalMs) return@addUpdateListener
+                lastFrameUptimeMs = now
                 // 每帧轻微随机偏移矩阵模拟真实感光胶片跳动
                 val dx = (Random.nextFloat() * 64f)
                 val dy = (Random.nextFloat() * 64f)
@@ -85,8 +99,31 @@ class FilmGrainOverlayView @JvmOverloads constructor(
     }
 
     fun stopGrainAnimation() {
+        animationPaused = false
+        cancelAnimator()
+        lastFrameUptimeMs = 0L
+    }
+
+    private fun cancelAnimator() {
         animator?.cancel()
         animator = null
+    }
+
+    /** Scroll performance hook. Keeps the current grain position while paused. */
+    fun pauseGrainAnimation() {
+        animationPaused = true
+        animator?.pause()
+    }
+
+    /** Resume the grain animator after scrolling has settled. */
+    fun resumeGrainAnimation() {
+        animationPaused = false
+        if (QuietMode.isQuiet()) return
+        if (animator == null) {
+            startGrainAnimation()
+        } else {
+            animator?.resume()
+        }
     }
 
     override fun onAttachedToWindow() {
@@ -104,7 +141,11 @@ class FilmGrainOverlayView @JvmOverloads constructor(
     /** T2.3：视图不可见时暂停胶片颗粒动画，省电并释放 GPU */
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
-        if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
+        if (visibility == View.VISIBLE) {
+            if (!animationPaused) animator?.resume()
+        } else {
+            animator?.pause()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

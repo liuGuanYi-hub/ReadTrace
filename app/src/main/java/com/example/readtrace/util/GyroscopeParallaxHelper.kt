@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.SystemClock
 import android.view.View
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -22,11 +23,19 @@ class GyroscopeParallaxHelper(context: Context) : SensorEventListener {
         ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
     private var isRunning = false
+    private var isPaused = false
 
     // 平滑低通滤波状态
     private var smoothedPitch = 0f
     private var smoothedRoll = 0f
     private val smoothingFactor = 0.15f // 越小平滑度越高，0.15f 兼顾丝滑与即时响应
+
+    // 传感器通常以 50~100Hz 回调，但页面视差无需跟随每个样本更新。
+    // 限制到 30fps，避免每次回调都触发多个 View 的属性变更和重绘。
+    private val minUpdateIntervalNanos = 1_000_000_000L / 30L
+    private var lastAppliedTimestampNanos = 0L
+    private val rotationMatrix = FloatArray(9)
+    private val orientation = FloatArray(3)
 
     private val parallaxViews = mutableListOf<ParallaxTarget>()
     private val specularViews = mutableListOf<WeakReference<HolographicSpecularOverlayView>>()
@@ -78,18 +87,45 @@ class GyroscopeParallaxHelper(context: Context) : SensorEventListener {
     fun start() {
         if (isRunning || rotationSensor == null || sensorManager == null) return
         isRunning = true
+        isPaused = false
         sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_GAME)
     }
 
     fun stop() {
         if (!isRunning || sensorManager == null) return
         isRunning = false
+        isPaused = false
+        lastAppliedTimestampNanos = 0L
         sensorManager.unregisterListener(this)
         resetViews()
     }
 
+    /** Pause sensor delivery during a scroll without resetting the current parallax pose. */
+    fun pause() {
+        if (!isRunning || isPaused || sensorManager == null) return
+        isPaused = true
+        lastAppliedTimestampNanos = 0L
+        sensorManager.unregisterListener(this)
+    }
+
+    /** Resume sensor delivery after scrolling has settled. */
+    fun resume() {
+        if (!isRunning || !isPaused || rotationSensor == null || sensorManager == null) return
+        isPaused = false
+        lastAppliedTimestampNanos = 0L
+        sensorManager.registerListener(this, rotationSensor, SensorManager.SENSOR_DELAY_GAME)
+    }
+
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null || !isRunning) return
+        if (event == null || !isRunning || isPaused) return
+
+        val timestampNanos = event.timestamp.takeIf { it > 0L } ?: SystemClock.elapsedRealtimeNanos()
+        if (lastAppliedTimestampNanos != 0L &&
+            timestampNanos - lastAppliedTimestampNanos < minUpdateIntervalNanos
+        ) {
+            return
+        }
+        lastAppliedTimestampNanos = timestampNanos
 
         // 部分机型传感器数据异常（如 values 长度不足）会使 getRotationMatrixFromVector 抛出异常，统一兜底避免闪退
         runCatching {
@@ -97,9 +133,7 @@ class GyroscopeParallaxHelper(context: Context) : SensorEventListener {
             var rawRoll = 0f
 
             if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-                val rotationMatrix = FloatArray(9)
                 SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-                val orientation = FloatArray(3)
                 SensorManager.getOrientation(rotationMatrix, orientation)
 
                 // orientation[1] = pitch (x 轴), orientation[2] = roll (y 轴)

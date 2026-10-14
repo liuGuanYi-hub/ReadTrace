@@ -25,10 +25,11 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     private val orbPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var animator: ValueAnimator? = null
     private var time = 0f
+    private var animationPaused = false
 
     /** 安静模式开关变更时立刻重判，否则要退出页面再进来才生效 */
     private val quietModeListener: () -> Unit = {
-        if (QuietMode.isQuiet()) stopAnimation() else startAnimation()
+        if (QuietMode.isQuiet()) cancelAnimator() else if (!animationPaused) startAnimation()
     }
 
     // 默认日间高雅流体极光调色盘 (文艺草木绿、晨曦金曜、薄雾浅蓝、暖粉霞光)
@@ -114,8 +115,15 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
 
     fun startAnimation() {
         // 安静模式：极光停在首帧成为静态渐变，不做 20s 无限流淌
-        if (QuietMode.isQuiet()) return
-        if (animator?.isRunning == true) return
+        if (QuietMode.isQuiet() || animationPaused) return
+        animator?.let { current ->
+            if (current.isPaused) {
+                current.resume()
+                return
+            }
+            if (current.isRunning) return
+            current.cancel()
+        }
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 20000L // 20 秒缓慢周期流淌，极致舒缓优雅
             repeatCount = ValueAnimator.INFINITE
@@ -129,8 +137,30 @@ class AuroraFluidBackgroundView @JvmOverloads constructor(
     }
 
     fun stopAnimation() {
+        animationPaused = false
+        cancelAnimator()
+    }
+
+    private fun cancelAnimator() {
         animator?.cancel()
         animator = null
+    }
+
+    /** Scroll performance hook. Keeps the current frame and resumes without changing the visual state. */
+    fun pauseAnimation() {
+        animationPaused = true
+        animator?.pause()
+    }
+
+    /** Resume the existing animation after scrolling has settled. */
+    fun resumeAnimation() {
+        animationPaused = false
+        if (QuietMode.isQuiet()) return
+        if (animator == null) {
+            startAnimation()
+        } else {
+            animator?.resume()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
