@@ -7,7 +7,6 @@ import android.text.InputType
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.OvershootInterpolator
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -145,22 +144,26 @@ object ElegantFormDialog {
         // 进场动效：容器上浮 + 字段逐个渐入 + 按钮弹入
         container.alpha = 0f
         container.translationY = dp(28).toFloat()
-        container.animate().alpha(1f).translationY(0f).setDuration(300L).start()
+        container.animate().alpha(1f).translationY(0f)
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.ENTER)
+            .start()
         fields.forEachIndexed { index, field ->
             val input = inputs.getValue(field.key)
             input.alpha = 0f
             input.translationY = dp(12).toFloat()
             input.animate().alpha(1f).translationY(0f)
                 .setStartDelay(80L + index * 45L)
-                .setDuration(280L)
+                .setDuration(MotionTokens.Duration.EMPHASIS)
+                .setInterpolator(MotionTokens.Easing.ENTER)
                 .start()
         }
         btnConfirm.scaleX = 0.6f
         btnConfirm.scaleY = 0.6f
         btnConfirm.animate().scaleX(1f).scaleY(1f)
             .setStartDelay(120L)
-            .setDuration(300L)
-            .setInterpolator(OvershootInterpolator(2f))
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.PLAYFUL)
             .start()
 
         btnCancel.setOnClickListener {
@@ -169,9 +172,16 @@ object ElegantFormDialog {
         btnConfirm.setOnClickListener {
             val missing = fields.firstOrNull { it.required && inputs.getValue(it.key).text.toString().trim().isEmpty() }
             if (missing != null) {
+                // 校验失败的「摇头」抖动：三段 50ms 等长位移，
+                // 取 INSTANT 档的一半——比"立刻"还要更快，三段加起来刚好 150ms
                 val input = inputs.getValue(missing.key)
-                input.animate().translationX(-dp(6).toFloat()).setDuration(50)
-                    .withEndAction { input.animate().translationX(dp(6).toFloat()).setDuration(50).withEndAction { input.animate().translationX(0f).setDuration(50).start() }.start() }
+                val shake = MotionTokens.Duration.INSTANT / 2
+                input.animate().translationX(-dp(6).toFloat()).setDuration(shake)
+                    .withEndAction {
+                        input.animate().translationX(dp(6).toFloat()).setDuration(shake)
+                            .withEndAction { input.animate().translationX(0f).setDuration(shake).start() }
+                            .start()
+                    }
                     .start()
                 Toast.makeText(activity, "请填写「${missing.label.substringAfter(" ")}」", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

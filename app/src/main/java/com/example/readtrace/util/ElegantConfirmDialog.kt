@@ -7,7 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.Window
-import android.view.animation.OvershootInterpolator
+
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.readtrace.R
@@ -149,8 +149,8 @@ object ElegantConfirmDialog {
         container.scaleX = 0.92f
         container.scaleY = 0.92f
         container.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setDuration(240L)
-            .setInterpolator(OvershootInterpolator(1.2f))
+            .setDuration(MotionTokens.Duration.STANDARD)
+            .setInterpolator(MotionTokens.Easing.EMPHASIS)
             .start()
 
         dialog.show()

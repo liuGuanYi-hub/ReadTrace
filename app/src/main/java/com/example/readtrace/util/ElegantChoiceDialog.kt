@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.View
-import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -134,7 +133,8 @@ object ElegantChoiceDialog {
             row.translationY = dp(14).toFloat()
             row.animate().alpha(1f).translationY(0f)
                 .setStartDelay(60L + index * 35L)
-                .setDuration(280L)
+                .setDuration(MotionTokens.Duration.EMPHASIS)
+                .setInterpolator(MotionTokens.Easing.ENTER)
                 .start()
 
             row.setOnClickListener {
@@ -149,8 +149,8 @@ object ElegantChoiceDialog {
         container.alpha = 0f
         container.translationY = dp(26).toFloat()
         container.animate().alpha(1f).translationY(0f)
-            .setDuration(280L)
-            .setInterpolator(OvershootInterpolator(1.4f))
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.EMPHASIS)
             .start()
 
         dialog.show()

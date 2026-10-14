@@ -3,11 +3,8 @@ package com.example.readtrace.util
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 
 object ViewAnimationHelper {
-
-    private val pressInterpolator = DecelerateInterpolator(2.0f)
 
     /**
      * 松手复位曲线。
@@ -15,14 +12,16 @@ object ViewAnimationHelper {
      * 原为 `OvershootInterpolator(1.6f)`——松手时先冲过头再弹回，形成「Q 弹」观感。
      * 按「空灵 · 宁静 · 舒服」的气质基线，过冲回弹属于「跳」的一类，
      * 故改为纯减速曲线：按下沉下去，松手平静回到原位，无过冲。
+     *
+     * 现取自 [MotionTokens.Easing.EXIT]（Decelerate 1.8），不再本地手调张力。
      */
-    private val releaseInterpolator = DecelerateInterpolator(1.6f)
+    private val releaseInterpolator = MotionTokens.Easing.EXIT
 
     /**
      * 为 View 注入「轻按下沉 → 平静复位」的触感反馈。
      *
-     * 全仓 73 个调用点共用这一处实现，因此改版只需改这里。
-     * 时长保持不变（按下 120ms / 复位 240ms），仅去掉回弹曲线。
+     * 全仓 73 个调用点共用这一处实现，因此**节奏调整只需改这里**——
+     * 这也是它最先接入 [MotionTokens] 的原因：一次改动即可统一全 App 的按压手感。
      *
      * 注：系统「移除动画」开启时，`ViewPropertyAnimator` 底层的 `ValueAnimator`
      * 会自行把时长压到 0，无需在这里额外判 `QuietMode`。
@@ -35,8 +34,9 @@ object ViewAnimationHelper {
                     v.animate()
                         .scaleX(targetScale)
                         .scaleY(targetScale)
-                        .setDuration(120L)
-                        .setInterpolator(pressInterpolator)
+                        .setDuration(MotionTokens.Duration.INSTANT)
+                        // 按下要"立刻"，用线性+短时长，避免减速曲线把起始段拖软
+                        .setInterpolator(MotionTokens.Easing.LINEAR)
                         // T2.3：动画期间渲染到离屏硬件层，缩放由 GPU 合成，不触发整棵视图树重绘
                         .withLayer()
                         .start()
@@ -45,7 +45,7 @@ object ViewAnimationHelper {
                     v.animate()
                         .scaleX(1.0f)
                         .scaleY(1.0f)
-                        .setDuration(240L)
+                        .setDuration(MotionTokens.Duration.STANDARD)
                         .setInterpolator(releaseInterpolator)
                         .withLayer()
                         .start()
@@ -58,7 +58,12 @@ object ViewAnimationHelper {
     /**
      * 阶梯式自然渐入上升动效 (Apple Staggered Entry)
      */
-    fun staggerFadeIn(view: View, index: Int, baseDelay: Long = 40L, duration: Long = 420L) {
+    fun staggerFadeIn(
+        view: View,
+        index: Int,
+        baseDelay: Long = 40L,
+        duration: Long = MotionTokens.Duration.CINEMATIC,
+    ) {
         view.alpha = 0f
         view.translationY = 28f
         view.animate()
@@ -66,7 +71,7 @@ object ViewAnimationHelper {
             .translationY(0f)
             .setStartDelay(index.coerceAtMost(8) * baseDelay)
             .setDuration(duration)
-            .setInterpolator(DecelerateInterpolator(1.8f))
+            .setInterpolator(MotionTokens.Easing.ENTER)
             .start()
     }
 
@@ -80,13 +85,13 @@ object ViewAnimationHelper {
         view.animate()
             .scaleX(0.97f)
             .scaleY(0.97f)
-            .setDuration(100L)
-            .setInterpolator(pressInterpolator)
+            .setDuration(MotionTokens.Duration.INSTANT)
+            .setInterpolator(MotionTokens.Easing.LINEAR)
             .withEndAction {
                 view.animate()
                     .scaleX(1.0f)
                     .scaleY(1.0f)
-                    .setDuration(220L)
+                    .setDuration(MotionTokens.Duration.QUICK)
                     .setInterpolator(releaseInterpolator)
                     .start()
             }
