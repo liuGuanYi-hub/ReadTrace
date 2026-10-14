@@ -124,6 +124,24 @@ object CoverImageHelper {
         }
     }
 
+    /**
+     * 内存缓存键：**封面路径 + 解码尺寸**。
+     *
+     * 为什么必须带尺寸：本对象的内存 LRU 是**单一实例、全 App 共享键空间**，
+     * 而同一张封面会在差异极大的尺寸下被请求——
+     * 列表/详情走 [loadCover]（300×450），而共鸣海报 1080×1620、
+     * 卡带/票根 720×1080、长卷 200×300。
+     *
+     * 若只用路径作键，先请求的低分辨率结果会命中后请求的高分辨率调用，
+     * 使 `reqWidth/reqHeight` 被静默忽略：海报拿到 300×450 后拉伸到 1080×1620
+     * （放大 3.6 倍）而发虚。加入尺寸维度后各档位互不干扰。
+     *
+     * 可见性为 `internal`（而非 `private`）以便 `CoverImageCacheKeyTest` 直接断言键语义——
+     * 与 [md5KeyOf] 出于同一原因对外暴露的既有做法一致。
+     */
+    internal fun memoryKeyOf(path: String, reqWidth: Int, reqHeight: Int): String =
+        "$path@${reqWidth}x$reqHeight"
+
     private val threadCount = max(4, Runtime.getRuntime().availableProcessors())
     private val imageExecutor = Executors.newFixedThreadPool(threadCount)
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -294,12 +312,15 @@ object CoverImageHelper {
         val trimmed = path.trim()
 
         // 1. 优先从内存 LRU 缓存命中（主线程 0ms 纯内存返回）
-        val cached = memoryCache.get(trimmed)
+        //    键含解码尺寸：本路径固定按 THUMB 档位解码，与 loadCoverBitmap 的高分辨率档位互不串用
+        val thumbKey = memoryKeyOf(trimmed, THUMB_WIDTH, THUMB_HEIGHT)
+        val cached = memoryCache.get(thumbKey)
         if (cached != null && !cached.isRecycled) {
             imageView.tag = trimmed
+            // 内存命中已是即时结果，取消复用 View 上可能残留的动画，避免滚动列表叠加淡入。
+            imageView.animate().cancel()
             imageView.setImageBitmap(cached)
-            imageView.alpha = 0f
-            imageView.animate().alpha(1f).setDuration(180L).start()
+            imageView.alpha = 1f
             imageView.visibility = View.VISIBLE
             placeholderView?.visibility = View.GONE
             return
@@ -352,7 +373,7 @@ object CoverImageHelper {
             }
 
             if (bitmap != null) {
-                memoryCache.put(trimmed, bitmap)
+                memoryCache.put(thumbKey, bitmap)
                 mainHandler.post {
                     if (imageView.tag == trimmed) {
                         imageView.setImageBitmap(bitmap)
@@ -395,7 +416,11 @@ object CoverImageHelper {
             return
         }
 
-        val cached = memoryCache.get(trimmed)
+        // 键含解码尺寸：不同调用方的 reqWidth/reqHeight 差异可达 5 倍
+        // （长卷 200×300 ~ 共鸣海报 1080×1620），不带尺寸会命中错误的档位
+        val cacheKey = memoryKeyOf(trimmed, reqWidth, reqHeight)
+
+        val cached = memoryCache.get(cacheKey)
         if (cached != null && !cached.isRecycled) {
             mainHandler.post { onLoaded(cached) }
             return
@@ -440,7 +465,7 @@ object CoverImageHelper {
             }
 
             if (bitmap != null) {
-                memoryCache.put(trimmed, bitmap)
+                memoryCache.put(cacheKey, bitmap)
             }
             mainHandler.post {
                 onLoaded(bitmap)
