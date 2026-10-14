@@ -17,6 +17,7 @@ import android.view.View
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.QuietMode
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
@@ -175,19 +176,30 @@ class MindprintTopologyView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 安静模式切换时立即重判，与 [MindprintConstellationView] 同构。
+     * 地貌扫描是纯装饰的呼吸动画，停掉不影响任何交互（拖拽/缩放走 onTouchEvent）。
+     */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) stopAnimation() else if (isShown) startAnimation()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        startAnimation()
+        QuietMode.addListener(quietModeListener)
+        if (QuietMode.isQuiet()) stopAnimation() else startAnimation()
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        QuietMode.removeListener(quietModeListener)
         stopAnimation()
     }
 
     /** T2.3：视图不可见时暂停 3D 地貌扫描动画，省电并释放 GPU */
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
+        if (QuietMode.isQuiet()) return
         if (visibility == View.VISIBLE) animator?.resume() else animator?.pause()
     }
 

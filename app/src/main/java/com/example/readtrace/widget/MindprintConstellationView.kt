@@ -24,6 +24,7 @@ import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.model.MediaType
+import com.example.readtrace.util.QuietMode
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -237,12 +238,27 @@ class MindprintConstellationView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 安静模式切换时立即重判：关闭则恢复星海呼吸，打开则停下常驻重绘。
+     * `QuietMode` 的气质基线写明「背景不常驻流动」，本 View 的呼吸/闪烁正属此列。
+     */
+    private val quietModeListener: () -> Unit = {
+        if (QuietMode.isQuiet()) animator.pause() else if (isShown) animator.resume()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        animator.start()
+        QuietMode.addListener(quietModeListener)
+        if (QuietMode.isQuiet()) {
+            // 静态星图：animPhase 停在 0，twinkle/breathe 仍有确定值，画面完整只是不动
+            animator.pause()
+        } else {
+            animator.start()
+        }
     }
 
     override fun onDetachedFromWindow() {
+        QuietMode.removeListener(quietModeListener)
         animator.cancel()
         super.onDetachedFromWindow()
     }
@@ -250,6 +266,7 @@ class MindprintConstellationView @JvmOverloads constructor(
     /** T2.3：视图不可见（页面被遮挡/切走）时暂停星空呼吸动画，省电并释放 GPU；恢复可见时无缝续播 */
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
+        if (QuietMode.isQuiet()) return
         if (visibility == View.VISIBLE) animator.resume() else animator.pause()
     }
 

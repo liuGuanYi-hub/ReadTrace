@@ -76,10 +76,11 @@ class CulturalTreeRingsView @JvmOverloads constructor(
 
         // 中心奇点
         corePaint.shader = null
-        corePaint.color = Color.parseColor("#FFE700")
+        corePaint.color = CORE_COLOR
         canvas.drawCircle(cx, cy, ringGap * 0.5f * revealProgress.coerceAtLeast(0.3f), corePaint)
 
         val maxMinutes = monthlyMinutes.maxOrNull() ?: 0
+        val density = resources.displayMetrics.density
 
         // 由外向内：外环 = 12月，内环 = 1月
         for (monthIndex in 11 downTo 0) {
@@ -89,7 +90,6 @@ class CulturalTreeRingsView @JvmOverloads constructor(
             if (radius <= ringGap * 0.4f) break
 
             // 环带宽度 1.5dp ~ 6dp，随沉浸深度增厚；空月为极细暗环
-            val density = resources.displayMetrics.density
             ringPaint.strokeWidth = (1.5f + intensity * 4.5f) * density * revealProgress
             val alpha = if (minutes > 0) (70 + intensity * 160).toInt() else 34
             ringPaint.color = when (monthIndex % 4) {
@@ -103,5 +103,10 @@ class CulturalTreeRingsView @JvmOverloads constructor(
 
         // 年份角标
         canvas.drawText("M1→M12", cx - textPaint.measureText("M1→M12") / 2f, cy + maxRadius + textPaint.textSize * 0.4f, textPaint)
+    }
+
+    private companion object {
+        /** 中心奇点色，原先在 onDraw 里每帧 parseColor（热路径字符串解析） */
+        val CORE_COLOR = Color.parseColor("#FFE700")
     }
 }

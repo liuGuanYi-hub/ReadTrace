@@ -18,6 +18,7 @@ import android.view.ViewConfiguration
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.QuietMode
 import com.example.readtrace.util.SpatialAudioEngine
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -80,6 +81,14 @@ class CosmicGravityGraphView @JvmOverloads constructor(
 
         /** 渲染天体数的防御性上限，正常数量由调用方控制 */
         const val MAX_RENDER_NODES = 40
+
+        /**
+         * 力导向布局的收敛阈值（每帧位移，单位 px）。
+         * 节点速度模长全部低于该值即判定布局已摆好，可停止 16ms 循环。
+         * 取 0.35f 而不是更小值：亚像素位移肉眼不可见，但让循环早点停，
+         * 避免为了追求"完全静止"而在收敛尾巴上多跑几百帧。
+         */
+        const val SETTLE_SPEED = 0.35f
     }
 
     private val nodes = mutableListOf<CosmicNode>()
@@ -153,7 +162,6 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             invalidate()
             return
         }
-
         val w = if (width > 0) width.toFloat() else 1080f
         val h = if (height > 0) height.toFloat() else 1920f
         val cx = w / 2f
@@ -273,6 +281,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             }
         }
 
+        // 数据重建后节点坐标回到初始圆环排布，必须重新起循环把它们摆开；
+        // 若上一次布局已收敛停机，这里不唤醒就会永远停在初始圆环上
+        if (isWindowVisible && isAttachedToWindow) startSimulation()
         invalidate()
     }
 
@@ -289,18 +300,39 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                 duration = 16L
                 repeatCount = ValueAnimator.INFINITE
                 addUpdateListener {
-                    pulsePhase = (pulsePhase + 0.04f) % (2f * Math.PI.toFloat())
-                    updatePhysicsStep()
+                    if (!QuietMode.isQuiet()) {
+                        pulsePhase = (pulsePhase + 0.04f) % (2f * Math.PI.toFloat())
+                    }
+                    val settled = updatePhysicsStep()
                     updateStardust()
                     invalidate()
+                    // 布局一旦收敛就停机：物理循环的职责是把节点摆开，
+                    // 摆好之后继续以 60fps 跑 O(n²) 斥力计算不再产生任何可见差异。
+                    // 拖拽/抛掷/数据变更会各自重新 startSimulation()。
+                    if (settled && QuietMode.isQuiet()) {
+                        physicsAnimator?.cancel()
+                    }
                 }
             }
         }
         if (physicsAnimator?.isRunning != true) physicsAnimator?.start()
     }
 
+    /**
+     * 安静模式切换时重新判定：
+     * 关闭安静 → 恢复脉冲呼吸并唤醒循环；
+     * 打开安静 → 不打断布局，循环会在下一次收敛自停（见 [startSimulation]）。
+     */
+    private val quietModeListener: () -> Unit = {
+        if (!QuietMode.isQuiet() && isWindowVisible && isAttachedToWindow) {
+            startSimulation()
+        }
+        invalidate()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        QuietMode.addListener(quietModeListener)
         // 动画循环在挂载后才启动，窗口不可见时自动暂停，避免后台空转
         if (isWindowVisible) startSimulation()
     }
@@ -315,10 +347,18 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         }
     }
 
-    private fun updatePhysicsStep() {
+    /**
+     * 推进一帧力导向布局，返回**本次迭代后是否已收敛**。
+     *
+     * 收敛判据：除被拖拽节点外，所有节点的速度模长都低于 [SETTLE_SPEED]。
+     * 有了它，[startSimulation] 才能在布局摆好之后把 16ms 的循环停掉——
+     * 原先该循环无条件永续，在 40 节点上限下每帧要做 O(n²)≈800 次斥力计算，
+     * 而收敛后这些计算对画面不再有任何影响。
+     */
+    private fun updatePhysicsStep(): Boolean {
         val w = width.toFloat()
         val h = height.toFloat()
-        if (w <= 0f || h <= 0f || nodes.isEmpty()) return
+        if (w <= 0f || h <= 0f || nodes.isEmpty()) return true
 
         val cx = w / 2f
         val cy = h / 2f
@@ -376,6 +416,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
         }
 
         // 3. 向心万有引力与边界软碰撞
+        var maxSpeed = 0f
         for (node in nodes) {
             if (node === draggedNode) continue
 
@@ -395,7 +436,13 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             val pad = node.radius + 10f
             node.x = node.x.coerceIn(pad, w - pad)
             node.y = node.y.coerceIn(pad, h - pad)
+
+            val speed = hypot(node.vx, node.vy)
+            if (speed > maxSpeed) maxSpeed = speed
         }
+
+        // 正在拖拽时永远视为未收敛：弹簧会持续被手指重排
+        return draggedNode == null && maxSpeed < SETTLE_SPEED
     }
 
     private fun updateStardust() {
@@ -498,6 +545,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                     node.y = ty
                     touchLastX = tx
                     touchLastY = ty
+                    // 布局可能已收敛停机（见 startSimulation），拖拽必须把循环唤醒，
+                    // 否则手指移动只改坐标、没有物理步进，手一松周围节点不会重新排布
+                    startSimulation()
                     invalidate()
                     return true
                 }
@@ -518,6 +568,9 @@ class CosmicGravityGraphView @JvmOverloads constructor(
                     }
                     draggedNode = null
                     parent?.requestDisallowInterceptTouchEvent(false)
+                    // 抛掷惯性要靠物理步进衰减；循环若已收敛停机，这里必须唤醒，
+                    // 否则节点会停在松手位置，看不出"被抛出后自然滑行"的效果
+                    if (isWindowVisible && isAttachedToWindow) startSimulation()
                     invalidate()
                     return true
                 }
@@ -525,6 +578,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
             MotionEvent.ACTION_CANCEL -> {
                 draggedNode = null
                 parent?.requestDisallowInterceptTouchEvent(false)
+                if (isWindowVisible && isAttachedToWindow) startSimulation()
                 invalidate()
                 return true
             }
@@ -534,6 +588,7 @@ class CosmicGravityGraphView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        QuietMode.removeListener(quietModeListener)
         physicsAnimator?.cancel()
     }
 }

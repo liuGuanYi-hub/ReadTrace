@@ -42,6 +42,45 @@ class CuratorPassCardView @JvmOverloads constructor(
     private val glowPath = Path()
     private val cardCornerRadius = dpToPx(18f)
 
+    /**
+     * onDraw 热路径缓存：解析后的主题色与背景渐变。
+     *
+     * 原先 onDraw 每帧做 3 次 `Color.parseColor`（字符串解析）、
+     * `new LinearGradient` 与 2 个 `new RectF`——卡面还会随全息动效持续重绘，
+     * 这些对象因此每帧都被重新分配一次。主题色只在 [currentAccount] 变化时才会变，
+     * 渐变只额外依赖控件尺寸，因此在 [refreshThemeCache] 里一次性算好后复用。
+     */
+    private var cachedTheme: CuratorCardTheme? = null
+    private var cachedGradient: LinearGradient? = null
+    private var cachedGradientWidth = 0
+    private var cachedGradientHeight = 0
+    private var cachedStartColor = Color.BLACK
+    private var cachedEndColor = Color.BLACK
+    private var cachedAccentColor = Color.BLACK
+
+    /** 顶部高光微弧线用的两个上圆角矩形，改为复用以免每帧新建 */
+    private val arcRightRect = RectF()
+    private val arcLeftRect = RectF()
+
+    private fun refreshThemeCache() {
+        val theme = currentAccount.cardTheme
+        if (theme != cachedTheme) {
+            cachedTheme = theme
+            cachedStartColor = Color.parseColor(theme.surfaceGradientStart)
+            cachedEndColor = Color.parseColor(theme.surfaceGradientEnd)
+            cachedAccentColor = Color.parseColor(theme.accentColorHex)
+            cachedGradient = null
+        }
+        if (cachedGradient == null || cachedGradientWidth != width || cachedGradientHeight != height) {
+            cachedGradientWidth = width
+            cachedGradientHeight = height
+            cachedGradient = LinearGradient(
+                0f, 0f, width.toFloat(), height.toFloat(),
+                cachedStartColor, cachedEndColor, Shader.TileMode.CLAMP,
+            )
+        }
+    }
+
     private val tvHeader: TextView
     private val tvAvatar: TextView
     private val tvNickname: TextView
@@ -260,16 +299,11 @@ class CuratorPassCardView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        refreshThemeCache()
         val theme = currentAccount.cardTheme
-        val startColor = Color.parseColor(theme.surfaceGradientStart)
-        val endColor = Color.parseColor(theme.surfaceGradientEnd)
-        val accentColor = Color.parseColor(theme.accentColorHex)
 
-        // 绘制卡面背景线性渐变
-        cardPaint.shader = LinearGradient(
-            0f, 0f, width.toFloat(), height.toFloat(),
-            startColor, endColor, Shader.TileMode.CLAMP
-        )
+        // 绘制卡面背景线性渐变（渐变与主题色均来自缓存，热路径零解析、零新建）
+        cardPaint.shader = cachedGradient
         canvas.drawRoundRect(cardBounds, cardCornerRadius, cardCornerRadius, cardPaint)
 
         // 绘制边框
@@ -280,22 +314,18 @@ class CuratorPassCardView @JvmOverloads constructor(
         // 不能用 drawRoundRect 画 24dp 高的矩形——它的底边会横穿 18dp 起绘制的标题文字（P38 回归用户反馈）
         // 注意：两个圆角必须用 addArc 各自独立成轮廓；若用 arcTo 顺序拼接，路径会从右上角
         // 自动直线连到左下角起点，在 top+18dp 处产生一条横穿票头文字的多余弦线
-        glowPaint.color = accentColor
+        glowPaint.color = cachedAccentColor
         glowPaint.alpha = 100
         val hlLeft = cardBounds.left + dpToPx(1f)
         val hlTop = cardBounds.top + dpToPx(1f)
         val hlRight = cardBounds.right - dpToPx(1f)
+        arcRightRect.set(hlRight - 2 * cardCornerRadius, hlTop, hlRight, hlTop + 2 * cardCornerRadius)
+        arcLeftRect.set(hlLeft, hlTop, hlLeft + 2 * cardCornerRadius, hlTop + 2 * cardCornerRadius)
         glowPath.rewind()
         glowPath.moveTo(hlLeft + cardCornerRadius, hlTop)
         glowPath.lineTo(hlRight - cardCornerRadius, hlTop)
-        glowPath.addArc(
-            RectF(hlRight - 2 * cardCornerRadius, hlTop, hlRight, hlTop + 2 * cardCornerRadius),
-            -90f, 90f,
-        )
-        glowPath.addArc(
-            RectF(hlLeft, hlTop, hlLeft + 2 * cardCornerRadius, hlTop + 2 * cardCornerRadius),
-            180f, 90f,
-        )
+        glowPath.addArc(arcRightRect, -90f, 90f)
+        glowPath.addArc(arcLeftRect, 180f, 90f)
         canvas.drawPath(glowPath, glowPaint)
 
         super.onDraw(canvas)

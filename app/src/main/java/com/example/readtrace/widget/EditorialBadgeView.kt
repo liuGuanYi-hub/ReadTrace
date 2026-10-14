@@ -92,6 +92,20 @@ class EditorialBadgeView @JvmOverloads constructor(
     private fun updateColors() {
         borderPaint.color = Color.argb(120, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor))
         textPaint.color = accentColor
+        // 底色随日夜模式切换，原先在 onDraw 里每帧读 uiMode + parseColor；
+        // 挪到这里（init / setBadge* / onConfigurationChanged 时执行）即可，
+        // 底色只在配置变化时才需要变，无需每帧重算
+        bgPaint.color = if (isNightMode()) BG_NIGHT else BG_DAY
+    }
+
+    private fun isNightMode(): Boolean =
+        (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        updateColors()
+        invalidate()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -120,9 +134,7 @@ class EditorialBadgeView @JvmOverloads constructor(
         rectF.set(2f, 2f, w - 2f, h - 2f)
 
         // 1. 绘制半透明胶囊底色（日间加深一档，衬托文字对比度）
-        val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        bgPaint.color = if (isDark) Color.parseColor("#1A0A0F1A") else Color.parseColor("#260A0F1A")
+        //    颜色已在 updateColors() 按日夜模式解析好，热路径不再 parseColor
         canvas.drawRoundRect(rectF, r, r, bgPaint)
 
         // 2. 绘制 1px 极客微光虚线边框
@@ -134,5 +146,13 @@ class EditorialBadgeView @JvmOverloads constructor(
         val textX = (w - textPaint.measureText(badgeContent)) / 2f
 
         canvas.drawText(badgeContent, textX, textY, textPaint)
+    }
+
+    private companion object {
+        /** 日间底色：比夜间更深一档，衬托浅色主题下的文字对比度 */
+        val BG_DAY = Color.parseColor("#260A0F1A")
+
+        /** 夜间底色 */
+        val BG_NIGHT = Color.parseColor("#1A0A0F1A")
     }
 }
