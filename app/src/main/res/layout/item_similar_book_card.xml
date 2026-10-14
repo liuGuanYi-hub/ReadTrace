@@ -16,7 +16,7 @@
     <FrameLayout
         android:id="@+id/similarCoverFrame"
         android:layout_width="54dp"
-        android:layout_height="78dp"
+        android:layout_height="81dp"
         android:background="@drawable/bg_book_placeholder"
         android:clipToOutline="true"
         android:elevation="2dp"

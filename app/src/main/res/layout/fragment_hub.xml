@@ -447,10 +447,13 @@
                         android:layout_marginEnd="16dp"
                         android:clipChildren="false">
 
+                        <!-- 78×117 = 2:3，与作品详情页封面（96×144）同比例。
+                             heroBookCover 是共享元素转场的起点锚点，
+                             比例不一致会让 centerCrop 在飞行途中重新裁剪而"跳一下" -->
                         <ImageView
                             android:id="@+id/heroBookCover"
                             android:layout_width="78dp"
-                            android:layout_height="116dp"
+                            android:layout_height="117dp"
                             android:background="@drawable/bg_book_card"
                             android:clipToOutline="true"
                             android:elevation="10dp"
@@ -460,7 +463,7 @@
                         <TextView
                             android:id="@+id/heroCoverPlaceholder"
                             android:layout_width="78dp"
-                            android:layout_height="116dp"
+                            android:layout_height="117dp"
                             android:background="@drawable/bg_book_card"
                             android:elevation="10dp"
                             android:gravity="center"
@@ -1167,7 +1170,7 @@
                     <ImageView
                         android:id="@+id/memoryBookCover"
                         android:layout_width="60dp"
-                        android:layout_height="88dp"
+                        android:layout_height="90dp"
                         android:background="@drawable/bg_book_card"
                         android:clipToOutline="true"
                         android:elevation="6dp"
@@ -1176,7 +1179,7 @@
                     <TextView
                         android:id="@+id/memoryCoverPlaceholder"
                         android:layout_width="60dp"
-                        android:layout_height="88dp"
+                        android:layout_height="90dp"
                         android:background="@drawable/bg_book_card"
                         android:elevation="6dp"
                         android:gravity="center"

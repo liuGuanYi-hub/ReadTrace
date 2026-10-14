@@ -13,10 +13,12 @@
     android:orientation="horizontal"
     android:padding="14dp">
 
+    <!-- 66×99 = 2:3。与作品详情页封面（96×144）同比例，供共享元素转场使用；
+         若与详情页比例不一致，centerCrop 会在转场飞行途中重新裁剪导致画面跳动 -->
     <FrameLayout
         android:id="@+id/bookCardCoverFrame"
         android:layout_width="66dp"
-        android:layout_height="94dp"
+        android:layout_height="99dp"
         android:background="@drawable/bg_book_placeholder"
         android:clipToOutline="true"
         android:elevation="2dp"

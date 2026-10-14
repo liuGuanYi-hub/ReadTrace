@@ -57,7 +57,7 @@
         <ImageView
             android:id="@+id/favCover"
             android:layout_width="60dp"
-            android:layout_height="84dp"
+            android:layout_height="90dp"
             android:background="#1A888888"
             android:scaleType="centerCrop"
             tools:src="@drawable/ic_launcher_foreground" />

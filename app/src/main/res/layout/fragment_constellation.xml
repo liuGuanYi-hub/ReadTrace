@@ -172,7 +172,7 @@
         <ImageView
             android:id="@+id/nodeCoverImage"
             android:layout_width="38dp"
-            android:layout_height="56dp"
+            android:layout_height="57dp"
             android:scaleType="centerCrop" />
 
         <LinearLayout
