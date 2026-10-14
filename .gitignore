@@ -66,3 +66,9 @@ content-repo/
 
 # 本地数据快照（内容已被 app/src/main/assets/preset_all.json 覆盖，仅作本机留档）
 912.json
+
+# DSH 沙箱的文件权限诊断产物（含 ACL 备份与还原脚本，仅本机排障用）
+.acl-recovery/
+
+# 工作区内的 Gradle 用户目录（避免构建缓存写入 C 盘）
+.gradle-user-home/
