@@ -10,6 +10,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -170,8 +171,8 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
                 .scaleX(1f)
                 .scaleY(1f)
                 .translationY(0f)
-                .setDuration(240L)
-                .setInterpolator(OvershootInterpolator(1.2f))
+                .setDuration(MotionTokens.Duration.STANDARD)
+                .setInterpolator(MotionTokens.Easing.EMPHASIS)
                 .start()
         }
     }

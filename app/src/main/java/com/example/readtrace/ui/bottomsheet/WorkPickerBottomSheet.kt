@@ -2,7 +2,6 @@ package com.example.readtrace.ui.bottomsheet
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.animation.OvershootInterpolator
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -21,6 +20,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -277,8 +277,9 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
                         badgeSelected.scaleY = 0.2f
                         badgeSelected.animate()
                             .scaleX(1f).scaleY(1f)
-                            .setDuration(260L)
-                            .setInterpolator(OvershootInterpolator(2.2f))
+                            .setDuration(MotionTokens.Duration.EMPHASIS)
+                            // 勾选徽标的"弹入"是刻意的惊喜点，用 PLAYFUL 档
+                            .setInterpolator(MotionTokens.Easing.PLAYFUL)
                             .start()
                     }
                     ringUnselected.visibility = View.GONE

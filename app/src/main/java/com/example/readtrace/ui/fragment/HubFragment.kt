@@ -22,6 +22,7 @@ import com.example.readtrace.MovieTicketPosterActivity
 import com.example.readtrace.R
 import com.example.readtrace.ResonancePosterActivity
 import com.example.readtrace.TrashActivity
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.VinylCassettePlayerActivity
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
@@ -183,8 +184,8 @@ class HubFragment : Fragment() {
             .scaleX(1f)
             .scaleY(1f)
             .setStartDelay(80L)
-            .setDuration(420L)
-            .setInterpolator(android.view.animation.DecelerateInterpolator(1.6f))
+            .setDuration(MotionTokens.Duration.CINEMATIC)
+            .setInterpolator(MotionTokens.Easing.ENTER)
             .start()
     }
 
@@ -766,7 +767,8 @@ class HubFragment : Fragment() {
                 translationY = dp(10).toFloat()
                 animate().alpha(1f).translationY(0f)
                     .setStartDelay(80L + index * 45L)
-                    .setDuration(280L)
+                    .setDuration(MotionTokens.Duration.EMPHASIS)
+                    .setInterpolator(MotionTokens.Easing.ENTER)
                     .start()
             }
             ViewAnimationHelper.attachSpringTouch(row)
@@ -807,7 +809,10 @@ class HubFragment : Fragment() {
         }
         // 进场：容器上浮渐入
         container.translationY = dp(24).toFloat()
-        container.animate().translationY(0f).setDuration(300L).start()
+        container.animate().translationY(0f)
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.ENTER)
+            .start()
         importDialog.show()
     }
 

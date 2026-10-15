@@ -390,7 +390,10 @@ object CoverImageHelper {
                     if (imageView.tag == trimmed) {
                         imageView.setImageBitmap(bitmap)
                         imageView.alpha = 0f
-                        imageView.animate().alpha(1f).setDuration(180L).start()
+                        // 封面淡入：QUICK 档，快到来不及察觉占位图被替换
+                        imageView.animate().alpha(1f)
+                            .setDuration(MotionTokens.Duration.QUICK)
+                            .start()
                         imageView.visibility = View.VISIBLE
                         placeholderView?.visibility = View.GONE
                     }

@@ -82,8 +82,9 @@ object EdgeSwipeDismissHelper {
                             )
                         } else {
                             // 弹性回位
-                            root.animate().translationX(0f).alpha(1f).setDuration(180L)
-                                .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                            root.animate().translationX(0f).alpha(1f)
+                                .setDuration(MotionTokens.Duration.QUICK)
+                                .setInterpolator(MotionTokens.Easing.EMPHASIS)
                                 .start()
                         }
                     }

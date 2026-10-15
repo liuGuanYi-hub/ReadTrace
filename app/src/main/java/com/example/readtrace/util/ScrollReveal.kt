@@ -2,7 +2,6 @@ package com.example.readtrace.util
 
 import android.view.View
 import android.view.ViewTreeObserver
-import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
 
 /**
@@ -83,8 +82,8 @@ object ScrollReveal {
                         .alpha(1f)
                         .translationY(0f)
                         .setStartDelay(stagger * 50L)
-                        .setDuration(420L)
-                        .setInterpolator(DecelerateInterpolator())
+                        .setDuration(MotionTokens.Duration.CINEMATIC)
+                        .setInterpolator(MotionTokens.Easing.ENTER)
                         .start()
                     stagger++
                 }

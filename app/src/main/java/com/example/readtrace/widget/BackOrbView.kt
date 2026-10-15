@@ -20,6 +20,7 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 墨色烟玻璃悬浮返回钮。
@@ -217,7 +218,8 @@ class BackOrbView @JvmOverloads constructor(
         if (strokeCurrent == targetStroke && translationZ == targetZ) return
         strokeCurrent = targetStroke
         animate().translationZ(targetZ)
-            .setDuration(200L)
+            .setDuration(MotionTokens.Duration.STANDARD)
+            .setInterpolator(MotionTokens.Easing.ENTER)
             .start()
         invalidate()
     }
@@ -233,9 +235,10 @@ class BackOrbView @JvmOverloads constructor(
             .translationX(0f)
             .scaleX(1f)
             .scaleY(1f)
-            .setDuration(520L)
+            .setDuration(MotionTokens.Duration.CINEMATIC)
             .setStartDelay(80L)
-            .setInterpolator(OvershootInterpolator(1.7f))
+            // 原为 Overshoot(1.7)，注释自述是「轻微过冲」——归入 EMPHASIS(1.2) 更贴合其本意
+            .setInterpolator(MotionTokens.Easing.EMPHASIS)
             .start()
     }
 

@@ -11,7 +11,6 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
@@ -32,6 +31,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.ElegantChoiceDialog
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 import java.text.DecimalFormat
@@ -604,7 +604,10 @@ class LibraryFragment : Fragment() {
             libraryEmptyPanel.clearAnimation()
             libraryEmptyPanel.visibility = View.VISIBLE
             libraryEmptyPanel.alpha = 0f
-            libraryEmptyPanel.animate().alpha(1f).setDuration(200).start()
+            libraryEmptyPanel.animate().alpha(1f)
+            .setDuration(MotionTokens.Duration.STANDARD)
+            .setInterpolator(MotionTokens.Easing.ENTER)
+            .start()
             return
         }
 
@@ -810,8 +813,8 @@ class LibraryFragment : Fragment() {
                     .scaleX(1f)
                     .scaleY(1f)
                     .translationY(0f)
-                    .setDuration(220L)
-                    .setInterpolator(DecelerateInterpolator(1.8f))
+                    .setDuration(MotionTokens.Duration.STANDARD)
+                    .setInterpolator(MotionTokens.Easing.ENTER)
                     .start()
             } else {
                 btnLibraryScrollTop.animate()
@@ -819,8 +822,8 @@ class LibraryFragment : Fragment() {
                     .scaleX(0.85f)
                     .scaleY(0.85f)
                     .translationY(dpToPx(10).toFloat())
-                    .setDuration(180L)
-                    .setInterpolator(DecelerateInterpolator(1.5f))
+                    .setDuration(MotionTokens.Duration.QUICK)
+                    .setInterpolator(MotionTokens.Easing.EXIT)
                     .withEndAction {
                         if (!isScrollTopVisible) {
                             btnLibraryScrollTop.visibility = View.GONE

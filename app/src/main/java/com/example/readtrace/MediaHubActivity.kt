@@ -29,6 +29,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.MindprintRadarView
 import com.example.readtrace.util.FloatingBack
@@ -410,7 +411,10 @@ class MediaHubActivity : AppCompatActivity() {
             hubEmptyPanel.clearAnimation()
             hubEmptyPanel.visibility = View.VISIBLE
             hubEmptyPanel.alpha = 0f
-            hubEmptyPanel.animate().alpha(1f).setDuration(200).start()
+            hubEmptyPanel.animate().alpha(1f)
+                .setDuration(MotionTokens.Duration.STANDARD)
+                .setInterpolator(MotionTokens.Easing.ENTER)
+                .start()
             return
         }
 

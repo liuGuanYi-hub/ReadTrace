@@ -10,11 +10,10 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import kotlin.math.abs
 
 /**
@@ -177,8 +176,9 @@ class SwipeableActionLayout @JvmOverloads constructor(
         foreground.animate().cancel()
         foreground.animate()
             .translationX(0f)
-            .setDuration(240L)
-            .setInterpolator(OvershootInterpolator(1.2f))
+            .setDuration(MotionTokens.Duration.STANDARD)
+            // 未达阈值的回弹：轻微过冲，让"没滑够、自己弹回来"有物理感
+            .setInterpolator(MotionTokens.Easing.EMPHASIS)
             .withEndAction {
                 bgIndicatorLayout.visibility = View.INVISIBLE
             }
@@ -191,8 +191,8 @@ class SwipeableActionLayout @JvmOverloads constructor(
         foreground.animate()
             .translationX(targetX)
             .alpha(0f)
-            .setDuration(200L)
-            .setInterpolator(DecelerateInterpolator(1.5f))
+            .setDuration(MotionTokens.Duration.STANDARD)
+            .setInterpolator(MotionTokens.Easing.EXIT)
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     onEnd()

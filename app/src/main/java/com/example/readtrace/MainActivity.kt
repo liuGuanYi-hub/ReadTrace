@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +17,7 @@ import com.example.readtrace.ui.fragment.HubFragment
 import com.example.readtrace.ui.fragment.LibraryFragment
 import com.example.readtrace.ui.fragment.MemoirFragment
 import com.example.readtrace.ui.fragment.ProfileFragment
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.FluidSpotlightNavBar
 
@@ -159,8 +159,9 @@ class MainActivity : AppCompatActivity() {
             if (animate) {
                 navIndicator.animate()
                     .translationX(targetX)
-                    .setDuration(300L)
-                    .setInterpolator(OvershootInterpolator(1.1f))
+                    .setDuration(MotionTokens.Duration.EMPHASIS)
+                    // 指示胶囊吸附：一点克制的过冲让"吸附"有手感
+                    .setInterpolator(MotionTokens.Easing.EMPHASIS)
                     .start()
             } else {
                 navIndicator.translationX = targetX
@@ -208,8 +209,8 @@ class MainActivity : AppCompatActivity() {
             v.animate()
                 .alpha(1f)
                 .translationY(0f)
-                .setDuration(220L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .setDuration(MotionTokens.Duration.STANDARD)
+                .setInterpolator(MotionTokens.Easing.ENTER)
                 .start()
         }
     }

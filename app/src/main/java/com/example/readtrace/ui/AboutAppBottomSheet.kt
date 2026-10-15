@@ -16,6 +16,7 @@ import com.example.readtrace.R
 import com.example.readtrace.model.ChangelogRepository
 import com.example.readtrace.util.CrashReporter
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 
 /**
@@ -68,9 +69,13 @@ object AboutAppBottomSheet {
             HapticFeedbackEngine.lightClick(context)
             ivLogo.animate()
                 .scaleX(1.18f).scaleY(1.18f)
-                .setDuration(120)
+                .setDuration(MotionTokens.Duration.INSTANT)
                 .withEndAction {
-                    ivLogo.animate().scaleX(1.0f).scaleY(1.0f).setDuration(180).start()
+                    // 回弹收尾：EMPHASIS(过冲 1.2) 给一点点"活气"而不轻浮
+                    ivLogo.animate().scaleX(1.0f).scaleY(1.0f)
+                        .setDuration(MotionTokens.Duration.QUICK)
+                        .setInterpolator(MotionTokens.Easing.EMPHASIS)
+                        .start()
                 }.start()
         }
 

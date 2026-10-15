@@ -16,7 +16,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
-import android.view.animation.OvershootInterpolator
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin

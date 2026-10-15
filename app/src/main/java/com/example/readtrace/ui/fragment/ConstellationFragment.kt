@@ -18,6 +18,7 @@ import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.widget.ConstellationFilter
 import com.example.readtrace.widget.MindprintConstellationView
@@ -153,7 +154,10 @@ class ConstellationFragment : Fragment() {
 
         constellationNodeCard.visibility = View.VISIBLE
         constellationNodeCard.alpha = 0f
-        constellationNodeCard.animate().alpha(1f).setDuration(180).start()
+        constellationNodeCard.animate().alpha(1f)
+            .setDuration(MotionTokens.Duration.QUICK)
+            .setInterpolator(MotionTokens.Easing.ENTER)
+            .start()
     }
 
     override fun onDestroyView() {

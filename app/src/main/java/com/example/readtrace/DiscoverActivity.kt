@@ -31,6 +31,7 @@ import com.example.readtrace.util.CoverImageHelper
 import com.example.readtrace.util.DoubanClient
 import com.example.readtrace.util.FloatingBack
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.NeteaseClient
 import com.example.readtrace.util.RankRepository
 import com.example.readtrace.util.SteamClient
@@ -698,7 +699,10 @@ class DiscoverActivity : AppCompatActivity() {
                 layoutSuccess.visibility = View.VISIBLE
                 layoutSuccess.alpha = 0f
                 layoutSuccess.translationY = 24f
-                layoutSuccess.animate().alpha(1f).translationY(0f).setDuration(350L).start()
+                layoutSuccess.animate().alpha(1f).translationY(0f)
+                    .setDuration(MotionTokens.Duration.EMPHASIS)
+                    .setInterpolator(MotionTokens.Easing.ENTER)
+                    .start()
 
                 HapticFeedbackEngine.stampImpact(this@DiscoverActivity)
 

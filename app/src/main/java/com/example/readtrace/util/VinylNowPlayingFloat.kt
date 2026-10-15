@@ -41,13 +41,19 @@ object VinylNowPlayingFloat {
             setPadding((16 * dp).toInt(), (9 * dp).toInt(), (16 * dp).toInt(), (9 * dp).toInt())
             elevation = 12 * dp
             alpha = 0f
-            animate().alpha(1f).setStartDelay(200).setDuration(250).start()
+            animate().alpha(1f)
+                .setStartDelay(200)
+                .setDuration(MotionTokens.Duration.STANDARD)
+                .setInterpolator(MotionTokens.Easing.ENTER)
+                .start()
         }
         capsule.setOnClickListener { view ->
             view.isEnabled = false
-            view.animate().alpha(0f).setDuration(120).withEndAction {
-                activity.startActivity(Intent(activity, VinylCassettePlayerActivity::class.java))
-            }.start()
+            view.animate().alpha(0f)
+                .setDuration(MotionTokens.Duration.INSTANT)
+                .withEndAction {
+                    activity.startActivity(Intent(activity, VinylCassettePlayerActivity::class.java))
+                }.start()
         }
         content.addView(
             capsule,

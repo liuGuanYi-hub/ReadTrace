@@ -24,6 +24,7 @@ import com.example.readtrace.model.MediaType
 import com.example.readtrace.model.Note
 import com.example.readtrace.model.NoteType
 import com.example.readtrace.util.CoverImageHelper
+import com.example.readtrace.util.MotionTokens
 import com.example.readtrace.util.ViewAnimationHelper
 import com.example.readtrace.util.ElegantChoiceDialog
 import com.example.readtrace.util.ElegantConfirmDialog
@@ -794,7 +795,10 @@ class BookDetailActivity : AppCompatActivity() {
 
         container.alpha = 0f
         container.translationY = px(28).toFloat()
-        container.animate().alpha(1f).translationY(0f).setDuration(300L).start()
+        container.animate().alpha(1f).translationY(0f)
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.ENTER)
+            .start()
 
         btnSave.setOnClickListener {
             fun scoreOf(row: Row): Double = 1.0 + row.seek.progress / 10.0
@@ -1605,8 +1609,11 @@ class BookDetailActivity : AppCompatActivity() {
                 // 收藏瞬间的一次性回弹：只绑定点击，不做常驻动效
                 btnToggleFav.scaleX = 0.8f
                 btnToggleFav.scaleY = 0.8f
-                btnToggleFav.animate().scaleX(1f).scaleY(1f).setDuration(240)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(2.4f)).start()
+                btnToggleFav.animate().scaleX(1f).scaleY(1f)
+                    .setDuration(MotionTokens.Duration.STANDARD)
+                    // 「已加入我的最爱」是庆祝性反馈，用 PLAYFUL 档弹入
+                    .setInterpolator(MotionTokens.Easing.PLAYFUL)
+                    .start()
                 com.example.readtrace.util.HapticFeedbackEngine.stampImpact(this)
                 Toast.makeText(this, "✨ 已加入【我的最爱 · ${book.mediaType.displayName}】！", Toast.LENGTH_SHORT).show()
             }
@@ -2540,8 +2547,9 @@ class BookDetailActivity : AppCompatActivity() {
             auroraGlowView.alpha = 0f
             auroraGlowView.animate()
                 .alpha(0.85f)
-                .setDuration(400L)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                // 极光辉光属于氛围铺陈，用最长档让它"渗"出来而不是"跳"出来
+                .setDuration(MotionTokens.Duration.CINEMATIC)
+                .setInterpolator(MotionTokens.Easing.ENTER)
                 .start()
         }
     }

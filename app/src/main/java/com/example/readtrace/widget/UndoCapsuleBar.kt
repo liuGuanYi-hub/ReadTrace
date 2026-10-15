@@ -12,7 +12,6 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -20,6 +19,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 4 秒先锋撤销微胶囊 (4-Second Undo Capsule Bar)
@@ -143,8 +143,8 @@ class UndoCapsuleBar @JvmOverloads constructor(
         animate()
             .alpha(1f)
             .translationY(0f)
-            .setDuration(260L)
-            .setInterpolator(DecelerateInterpolator(1.8f))
+            .setDuration(MotionTokens.Duration.EMPHASIS)
+            .setInterpolator(MotionTokens.Easing.ENTER)
             .start()
 
         // 进度条倒计时动画
@@ -172,8 +172,8 @@ class UndoCapsuleBar @JvmOverloads constructor(
         animate()
             .alpha(0f)
             .translationY(dpToPx(25).toFloat())
-            .setDuration(200L)
-            .setInterpolator(DecelerateInterpolator())
+            .setDuration(MotionTokens.Duration.STANDARD)
+            .setInterpolator(MotionTokens.Easing.EXIT)
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     visibility = View.GONE

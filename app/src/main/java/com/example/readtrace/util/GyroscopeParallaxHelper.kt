@@ -201,7 +201,8 @@ class GyroscopeParallaxHelper(context: Context) : SensorEventListener {
                 .rotationY(0f)
                 .translationX(0f)
                 .translationY(0f)
-                .setDuration(300L)
+                .setDuration(MotionTokens.Duration.EMPHASIS)
+                .setInterpolator(MotionTokens.Easing.EXIT)
                 .start()
         }
     }

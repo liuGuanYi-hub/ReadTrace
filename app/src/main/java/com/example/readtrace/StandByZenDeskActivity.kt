@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.example.readtrace.util.MotionTokens
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -67,10 +68,15 @@ class StandByZenDeskActivity : AppCompatActivity() {
 
         if (now.minute != lastMinute) {
             lastMinute = now.minute
-            // 翻页动效：分钟变化时轻微上翻渐入
-            clockText.animate().translationY(-14f).alpha(0.2f).setDuration(90L).withEndAction {
-                clockText.animate().translationY(0f).alpha(1f).setDuration(150L).start()
-            }.start()
+            // 翻页动效：分钟变化时轻微上翻渐入（两段都比"标准"更快，用 INSTANT 与 QUICK）
+            clockText.animate().translationY(-14f).alpha(0.2f)
+                .setDuration(MotionTokens.Duration.INSTANT)
+                .withEndAction {
+                    clockText.animate().translationY(0f).alpha(1f)
+                        .setDuration(MotionTokens.Duration.QUICK)
+                        .setInterpolator(MotionTokens.Easing.ENTER)
+                        .start()
+                }.start()
             findViewById<TextView>(R.id.standbyDate).text =
                 LocalDate.now().format(DateTimeFormatter.ofPattern("M月d日 EEEE"))
 
