@@ -10,7 +10,6 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +17,7 @@ import com.example.readtrace.MainActivity
 import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.QuietMode
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🏛️ 极简画刊 · 人文微缩呼吸启动揭幕系统 (Editorial Magazine Splash Overlay)
@@ -183,26 +183,26 @@ object EditorialSplashOverlay {
 
         // 1. 核心字标动态舒展展开动画（letterSpacing 0.15f -> 0.42f）
         val letterSpacingAnim = ValueAnimator.ofFloat(0.15f, 0.42f).apply {
-            duration = 850L
-            interpolator = DecelerateInterpolator(1.4f)
+            duration = MotionTokens.Duration.CELEBRATION
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener {
                 val value = it.animatedValue as Float
                 title.letterSpacing = value
             }
         }
         val titleAlphaAnim = ObjectAnimator.ofFloat(title, View.ALPHA, 0f, 1f).apply {
-            duration = 600L
+            duration = MotionTokens.Duration.SEQUENCE
         }
         val titleTransAnim = ObjectAnimator.ofFloat(title, View.TRANSLATION_Y, -14f, 0f).apply {
-            duration = 600L
-            interpolator = DecelerateInterpolator()
+            duration = MotionTokens.Duration.SEQUENCE
+            interpolator = MotionTokens.Easing.ENTER
         }
 
         // 2. 黄金比例细线宽度延展（0dp -> 44dp）
         val dividerAnim = ValueAnimator.ofInt(0, targetDividerWidth).apply {
-            duration = 550L
+            duration = MotionTokens.Duration.SEQUENCE
             startDelay = 220L
-            interpolator = DecelerateInterpolator()
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener {
                 val lp = divider.layoutParams
                 lp.width = it.animatedValue as Int
@@ -212,16 +212,18 @@ object EditorialSplashOverlay {
 
         // 3. 人文名家金句上浮渐显
         val quoteAlphaAnim = ObjectAnimator.ofFloat(quoteContainer, View.ALPHA, 0f, 1f).apply {
-            duration = 650L
+            duration = MotionTokens.Duration.SEQUENCE
             startDelay = 320L
         }
         val quoteTransAnim = ObjectAnimator.ofFloat(quoteContainer, View.TRANSLATION_Y, 26f, 0f).apply {
-            duration = 650L
+            duration = MotionTokens.Duration.SEQUENCE
             startDelay = 320L
-            interpolator = DecelerateInterpolator()
+            interpolator = MotionTokens.Easing.ENTER
         }
 
         // 4. Ken Burns 卡片慢镜头级微推进（1.000 -> 1.035）
+        //    这两个 1400ms 是等速运镜的位移量，不是"手感时长"，故不入档位
+        //    （理由见 MotionTokens「不归本层管」一节：LinearInterpolator 的等速运动）
         val kenBurnsX = ObjectAnimator.ofFloat(card, View.SCALE_X, 1.0f, 1.035f).apply {
             duration = 1400L
             interpolator = LinearInterpolator()
@@ -233,7 +235,7 @@ object EditorialSplashOverlay {
 
         // 5. 底部跳过指引微显
         val skipAnim = ObjectAnimator.ofFloat(skipHint, View.ALPHA, 0f, 0.38f).apply {
-            duration = 400L
+            duration = MotionTokens.Duration.CINEMATIC
             startDelay = 500L
         }
 

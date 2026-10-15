@@ -8,8 +8,8 @@ import android.graphics.Matrix
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🔮 4 层 2.5D 空间立体标本盒 (Spatial Diorama Box Container)
@@ -106,8 +106,8 @@ class DioramaBoxView @JvmOverloads constructor(
         val startY = currentTiltY
 
         resetAnimator = ValueAnimator.ofFloat(1f, 0f).apply {
-            duration = 500L
-            interpolator = OvershootInterpolator(1.3f)
+            duration = MotionTokens.Duration.CINEMATIC
+            interpolator = MotionTokens.Easing.EMPHASIS
             addUpdateListener { anim ->
                 val f = anim.animatedValue as Float
                 currentTiltX = startX * f

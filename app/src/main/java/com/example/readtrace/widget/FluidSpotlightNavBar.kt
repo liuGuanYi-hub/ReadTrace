@@ -6,7 +6,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import com.example.readtrace.util.HapticFeedbackEngine
@@ -188,8 +187,8 @@ class FluidSpotlightNavBar @JvmOverloads constructor(
 
         snapAnimator?.cancel()
         snapAnimator = ValueAnimator.ofFloat(startX, targetCenterX).apply {
-            duration = 260L
-            interpolator = OvershootInterpolator(1.1f)
+            duration = MotionTokens.Duration.EMPHASIS
+            interpolator = MotionTokens.Easing.EMPHASIS
             addUpdateListener { anim ->
                 spotlightX = anim.animatedValue as Float
                 applyProximityDistortion(spotlightX)

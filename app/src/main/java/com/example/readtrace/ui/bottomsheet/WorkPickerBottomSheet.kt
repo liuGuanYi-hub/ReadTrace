@@ -119,7 +119,8 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
             view.findViewById<View>(R.id.scrollWorkPickerMediaTabs),
             view.findViewById<View>(R.id.pickerListBlock),
         ).forEachIndexed { index, block ->
-            ViewAnimationHelper.staggerFadeIn(block, index, baseDelay = 60L, duration = 360L)
+            ViewAnimationHelper.staggerFadeIn(block, index, baseDelay = 60L,
+                duration = MotionTokens.Duration.EMPHASIS)
         }
     }
 
@@ -218,7 +219,8 @@ class WorkPickerBottomSheet : BottomSheetDialogFragment() {
         override fun onBindViewHolder(holder: WorkViewHolder, position: Int) {
             val book = items[position]
             holder.bind(book, book.id == selectedId)
-            ViewAnimationHelper.staggerFadeIn(holder.itemView, position, baseDelay = 25L, duration = 300L)
+            ViewAnimationHelper.staggerFadeIn(holder.itemView, position, baseDelay = 25L,
+                duration = MotionTokens.Duration.EMPHASIS)
         }
 
         override fun getItemCount(): Int = items.size

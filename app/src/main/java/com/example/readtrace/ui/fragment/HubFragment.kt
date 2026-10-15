@@ -535,8 +535,8 @@ class HubFragment : Fragment() {
         }
         lastStatValues[slot] = target
         android.animation.ValueAnimator.ofInt(0, target).apply {
-            duration = 550L
-            interpolator = android.view.animation.DecelerateInterpolator()
+            duration = MotionTokens.Duration.SEQUENCE
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener { view.text = (it.animatedValue as Int).toString() }
             start()
         }

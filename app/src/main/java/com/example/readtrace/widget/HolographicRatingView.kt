@@ -14,11 +14,11 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🌟 作品全息流光评分与星级解密控件 (HolographicRatingView)
@@ -104,8 +104,8 @@ class HolographicRatingView @JvmOverloads constructor(
         // 1. 数值滚动动画
         currentDisplayScore = 0.0
         scoreAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 900L
-            interpolator = DecelerateInterpolator(1.3f)
+            duration = MotionTokens.Duration.CELEBRATION
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener { va ->
                 val p = va.animatedValue as Float
                 currentDisplayScore = targetScore * p

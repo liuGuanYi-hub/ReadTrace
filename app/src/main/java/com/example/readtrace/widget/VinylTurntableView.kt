@@ -14,10 +14,10 @@ import android.graphics.Shader
 import android.graphics.SweepGradient
 import android.util.AttributeSet
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 💽 3D 拟真黑胶唱机自定义渲染视图 (VinylTurntableView)
@@ -131,8 +131,8 @@ class VinylTurntableView @JvmOverloads constructor(
         val endDrop = if (isPlaying) 1f else 0f
 
         tonearmAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 900L
-            interpolator = AccelerateDecelerateInterpolator()
+            duration = MotionTokens.Duration.CELEBRATION
+            interpolator = MotionTokens.Easing.STANDARD
             addUpdateListener { anim ->
                 val f = anim.animatedValue as Float
                 tonearmAngle = startAngle + (endAngle - startAngle) * f

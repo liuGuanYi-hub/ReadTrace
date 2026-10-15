@@ -15,13 +15,13 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.MediaType
 import com.example.readtrace.util.CoverImageHelper
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🛂 精神宇宙巡礼护照视图 (CulturalPassportView)
@@ -161,8 +161,8 @@ class CulturalPassportView @JvmOverloads constructor(
 
         impactAnimator?.cancel()
         impactAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 550L
-            interpolator = DecelerateInterpolator(1.2f)
+            duration = MotionTokens.Duration.SEQUENCE
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener { va ->
                 impactProgress = va.animatedValue as Float
                 sparks.forEach { it.update(0.016f) }

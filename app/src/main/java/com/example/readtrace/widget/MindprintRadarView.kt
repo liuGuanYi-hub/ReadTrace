@@ -9,12 +9,12 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import com.example.readtrace.model.BookMindprint
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import com.example.readtrace.util.MotionTokens
 
 class MindprintRadarView @JvmOverloads constructor(
     context: Context,
@@ -185,8 +185,8 @@ class MindprintRadarView @JvmOverloads constructor(
         if (animate) {
             animator?.cancel()
             animator = ValueAnimator.ofFloat(0.1f, 1.0f).apply {
-                duration = 650
-                interpolator = DecelerateInterpolator()
+                duration = MotionTokens.Duration.SEQUENCE
+                interpolator = MotionTokens.Easing.ENTER
                 addUpdateListener {
                     animProgress = it.animatedValue as Float
                     invalidate()

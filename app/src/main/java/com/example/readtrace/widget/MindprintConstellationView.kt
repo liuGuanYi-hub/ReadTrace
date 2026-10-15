@@ -18,7 +18,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
@@ -30,6 +29,7 @@ import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
+import com.example.readtrace.util.MotionTokens
 
 sealed class ConstellationFilter {
     object ALL : ConstellationFilter()
@@ -300,8 +300,8 @@ class MindprintConstellationView @JvmOverloads constructor(
         val destY = -targetWorldY * scaleFactor
 
         val anim = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 450L
-            interpolator = DecelerateInterpolator()
+            duration = MotionTokens.Duration.CINEMATIC
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener {
                 val f = it.animatedValue as Float
                 offsetX = startX + (destX - startX) * f

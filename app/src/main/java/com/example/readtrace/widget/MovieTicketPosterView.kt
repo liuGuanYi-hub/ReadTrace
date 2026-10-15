@@ -19,8 +19,6 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookMindprint
 import java.text.SimpleDateFormat
@@ -29,6 +27,7 @@ import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🎟️ 竖向复古电影票根海报视图 (MovieTicketPosterView)
@@ -189,8 +188,11 @@ class MovieTicketPosterView @JvmOverloads constructor(
 
         tearAnimator?.cancel()
         tearAnimator = ValueAnimator.ofFloat(tearProgress, target).apply {
-            duration = if (isTorn) 520L else 380L
-            interpolator = if (isTorn) OvershootInterpolator(1.15f) else DecelerateInterpolator(1.2f)
+            // 撕开更慢（SEQUENCE），合回归到最近的 CINEMATIC；两分支曲线分别是克制过冲与进场
+            duration =
+                if (isTorn) MotionTokens.Duration.SEQUENCE else MotionTokens.Duration.CINEMATIC
+            interpolator =
+                if (isTorn) MotionTokens.Easing.EMPHASIS else MotionTokens.Easing.ENTER
             addUpdateListener { va ->
                 tearProgress = va.animatedValue as Float
                 fissionSparks.forEach { it.update(0.016f) }

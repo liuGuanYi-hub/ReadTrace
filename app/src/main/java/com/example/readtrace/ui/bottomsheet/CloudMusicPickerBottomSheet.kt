@@ -12,6 +12,7 @@ import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.ViewAnimationHelper
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.example.readtrace.util.MotionTokens
 
 /**
  * ☁️ 网易云音乐选择底板
@@ -78,7 +79,8 @@ class CloudMusicPickerBottomSheet : BottomSheetDialogFragment() {
         listOf(
             view.findViewById<View>(R.id.cloudMusicPickerRoot),
         ).forEachIndexed { index, block ->
-            ViewAnimationHelper.staggerFadeIn(block, index, baseDelay = 40L, duration = 320L)
+            ViewAnimationHelper.staggerFadeIn(block, index, baseDelay = 40L,
+                duration = MotionTokens.Duration.EMPHASIS)
         }
     }
 
@@ -114,7 +116,8 @@ class CloudMusicPickerBottomSheet : BottomSheetDialogFragment() {
 
         override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
             holder.bind(items[position])
-            ViewAnimationHelper.staggerFadeIn(holder.itemView, position, baseDelay = 20L, duration = 260L)
+            ViewAnimationHelper.staggerFadeIn(holder.itemView, position, baseDelay = 20L,
+                duration = MotionTokens.Duration.EMPHASIS)
         }
 
         override fun getItemCount(): Int = items.size

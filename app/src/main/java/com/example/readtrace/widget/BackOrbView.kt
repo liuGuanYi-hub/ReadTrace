@@ -16,8 +16,6 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewOutlineProvider
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import com.example.readtrace.R
 import com.example.readtrace.util.HapticFeedbackEngine
 import com.example.readtrace.util.MotionTokens
@@ -235,7 +233,7 @@ class BackOrbView @JvmOverloads constructor(
             .translationX(0f)
             .scaleX(1f)
             .scaleY(1f)
-            .setDuration(MotionTokens.Duration.CINEMATIC)
+            .setDuration(MotionTokens.Duration.SEQUENCE)
             .setStartDelay(80L)
             // 原为 Overshoot(1.7)，注释自述是「轻微过冲」——归入 EMPHASIS(1.2) 更贴合其本意
             .setInterpolator(MotionTokens.Easing.EMPHASIS)
@@ -244,17 +242,19 @@ class BackOrbView @JvmOverloads constructor(
 
     private fun playPressDown() {
         cancel(pullAnimator)
-        pullAnimator = animateFloat(from = arrowPullPx, to = dpf(3.2f), duration = 140L,
-            interpolator = DecelerateInterpolator(1.6f)) { arrowPullPx = it }
-        playScaleTo(0.87f, 150L)
+        pullAnimator = animateFloat(from = arrowPullPx, to = dpf(3.2f),
+            duration = MotionTokens.Duration.INSTANT,
+            interpolator = MotionTokens.Easing.ENTER) { arrowPullPx = it }
+        playScaleTo(0.87f, MotionTokens.Duration.QUICK)
         startTrail()
     }
 
     private fun playRelease() {
         cancel(pullAnimator)
-        pullAnimator = animateFloat(from = arrowPullPx, to = 0f, duration = 420L,
-            interpolator = OvershootInterpolator(2.4f)) { arrowPullPx = it }
-        playScaleTo(1f, 320L)
+        pullAnimator = animateFloat(from = arrowPullPx, to = 0f,
+            duration = MotionTokens.Duration.CINEMATIC,
+            interpolator = MotionTokens.Easing.PLAYFUL) { arrowPullPx = it }
+        playScaleTo(1f, MotionTokens.Duration.EMPHASIS)
     }
 
     private fun playScaleTo(target: Float, duration: Long) {
@@ -262,7 +262,7 @@ class BackOrbView @JvmOverloads constructor(
         scaleAnimator = ValueAnimator.ofFloat(pressScale, target).apply {
             this.duration = duration
             this.interpolator =
-                if (target < pressScale) DecelerateInterpolator(1.8f) else OvershootInterpolator(2.2f)
+                if (target < pressScale) MotionTokens.Easing.EXIT else MotionTokens.Easing.PLAYFUL
             addUpdateListener {
                 pressScale = it.animatedValue as Float
                 invalidate()
@@ -275,8 +275,8 @@ class BackOrbView @JvmOverloads constructor(
         cancel(trailAnimator)
         trailPhase = 0f
         trailAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 380L
-            interpolator = DecelerateInterpolator(1.2f)
+            duration = MotionTokens.Duration.CINEMATIC
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener {
                 trailPhase = it.animatedFraction
                 invalidate()
@@ -288,7 +288,9 @@ class BackOrbView @JvmOverloads constructor(
     private fun playPulse() {
         cancel(pulseAnimator)
         pulseAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 340L
+            duration = MotionTokens.Duration.EMPHASIS
+            // 原本无插值器，即系统默认的 AccelerateDecelerate；显式写成 STANDARD 档，行为不变
+            interpolator = MotionTokens.Easing.STANDARD
             addUpdateListener {
                 pulsePhase = it.animatedFraction
                 invalidate()

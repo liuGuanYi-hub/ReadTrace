@@ -8,11 +8,11 @@ import android.graphics.LinearGradient
 import android.graphics.Matrix
 import android.graphics.Shader
 import android.util.AttributeSet
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import androidx.appcompat.widget.AppCompatTextView
 import kotlin.math.sin
 import kotlin.random.Random
+import com.example.readtrace.util.MotionTokens
 
 /**
  * ✨ 全息字符流光解密过渡文本框 (ScrambleTextView)
@@ -54,7 +54,7 @@ class ScrambleTextView @JvmOverloads constructor(
         }
     }
 
-    fun setScrambleText(newText: CharSequence, duration: Long = 480L) {
+    fun setScrambleText(newText: CharSequence, duration: Long = MotionTokens.Duration.CINEMATIC) {
         val target = newText.toString()
         if (target == targetString && text == target) return
 
@@ -62,7 +62,7 @@ class ScrambleTextView @JvmOverloads constructor(
         triggerScramble(duration)
     }
 
-    fun triggerScramble(duration: Long = 480L) {
+    fun triggerScramble(duration: Long = MotionTokens.Duration.CINEMATIC) {
         animator?.cancel()
         // XML 直接配置文本时 targetString 未初始化（如主页标题），懒取当前文本作为
         // 解密目标；否则点击会走 length==0 分支把 text 清空，标题凭空消失。
@@ -77,7 +77,7 @@ class ScrambleTextView @JvmOverloads constructor(
 
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             this.duration = duration
-            interpolator = DecelerateInterpolator(1.1f)
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener { va ->
                 val progress = va.animatedValue as Float
                 val settledCharsCount = (progress * length).toInt()
@@ -109,6 +109,8 @@ class ScrambleTextView @JvmOverloads constructor(
         if (!enableShimmer) return
         shimmerAnimator?.cancel()
         shimmerAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            // 900ms 是"高光扫过文字一遍"的等速运镜量（LinearInterpolator），不是手感时长，
+            // 因此不入 MotionTokens 档位——理由见 MotionTokens「不归本层管」一节
             duration = 900L
             interpolator = LinearInterpolator()
             addUpdateListener { va ->

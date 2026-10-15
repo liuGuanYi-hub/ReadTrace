@@ -8,6 +8,7 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.min
+import com.example.readtrace.util.MotionTokens
 
 /**
  * 🌲 个人文化宇宙年轮图谱 (CulturalTreeRingsView)
@@ -48,8 +49,8 @@ class CulturalTreeRingsView @JvmOverloads constructor(
     private fun animateReveal() {
         revealAnimator?.cancel()
         revealAnimator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 650L
-            interpolator = android.view.animation.DecelerateInterpolator()
+            duration = MotionTokens.Duration.SEQUENCE
+            interpolator = MotionTokens.Easing.ENTER
             addUpdateListener { animator ->
                 revealProgress = (animator.animatedValue as? Float) ?: 0f
                 invalidate()
