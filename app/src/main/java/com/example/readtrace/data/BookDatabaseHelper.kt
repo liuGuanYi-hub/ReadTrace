@@ -463,8 +463,15 @@ class BookDatabaseHelper private constructor(val context: Context) :
          * 该 UPDATE 的 WHERE 精确匹配旧预设原文，用户手改过的值不会被覆盖。
          * 同时因播种版本号与本值绑死，本次升版会额外触发一次重播种（单事务包裹，
          * 写入安全约束同 v17：不改写评分、封面仅在为空时写入）。
+         *
+         * v19（2026-11-15）：无表结构变更。新增 `oldVersion < 19` 数据迁移，把用户实际读完的
+         * 预置书《雪国》《春雪》补回藏库并标记为已读——预置书目统一以 wishlist 播种，
+         * 而这两本需要出现在「已读」列表；历史库也曾因播种链版本错位从未落库。
+         * 迁移只做「标题精确匹配 + wishlist 推进为 finished + 补读完日期」，
+         * 评分/笔记/角色谱/大纲零触碰；播种链中 `seedCuratedBookCovers` 之后同样追加一次
+         * 幂等修正，覆盖全新安装路径。两个 rating 分支（`< 15` / `== 0`）均不命中。
          */
-        const val DATABASE_VERSION = 18
+        const val DATABASE_VERSION = 19
 
         @Volatile
         private var instance: BookDatabaseHelper? = null

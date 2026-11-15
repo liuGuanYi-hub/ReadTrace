@@ -89,6 +89,8 @@ object PresetSeedManager {
                     seedUserMusicList(db)
                     populatePresetRichContent(context, db, onBooksChanged)
                     seedCuratedBookCovers(db)
+                    // 上一步把所有预置书按 wishlist 落库，这里把用户已读完的那几本推进为已读
+                    ensureFinishedReadBooks(db)
                     migrateCoversToLanKeys(context, db)
                     // v15: 音乐、影视、游戏三类作品从历史 5 分制迁移为 7.0 ~ 8.0 离散分布（覆盖所有存量数据库）
                     if (previousSeedVersion < 15) {
@@ -627,6 +629,130 @@ object PresetSeedManager {
                     }
                     db.insert(TABLE_BOOKS, null, cv)
                 }
+            }
+        }
+    }
+
+    /** 单条「已读完」预置书目的落库规格 */
+    private data class FinishedPresetBook(
+        val title: String,
+        val author: String,
+        val category: String,
+        val coverUrl: String,
+        val shortComment: String,
+        val rating: Double,
+        val tags: List<String>,
+        val finishDate: String,
+    )
+
+    /**
+     * 用户确认真实读完的预置书目。与 assets/preset_all.json 中同名条目保持同步：
+     * 状态为 finished，评分沿用六维均值散射后的数值，读完日期为记录日。
+     */
+    private val finishedReadPresets = listOf(
+        FinishedPresetBook(
+            title = "雪国",
+            author = "川端康成",
+            category = "新感觉派",
+            coverUrl = "covers/bgm_366887_6e7e8.jpg",
+            shortComment = "穿过县界长长的隧道，便是雪国。夜空下一片白茫茫，驹子与岛村徒劳而纯粹的凄美物语。",
+            rating = 7.4,
+            tags = listOf("新感觉派", "文学名著", "经典"),
+            finishDate = "2026-11-15",
+        ),
+        FinishedPresetBook(
+            title = "春雪",
+            author = "三岛由纪夫",
+            category = "丰饶之海",
+            coverUrl = "covers/douban_s4418737.jpg",
+            shortComment = "清显与聪子之间凄美禁忌的恋情，大正时代绚烂优雅又易碎的贵族挽歌。",
+            rating = 7.8,
+            tags = listOf("丰饶之海", "文学名著", "经典"),
+            finishDate = "2026-11-15",
+        ),
+    )
+
+    /** 标题精确命中时读出的现有行快照 */
+    private data class ExistingPresetRow(
+        val id: Long,
+        val status: String,
+        val deleted: Boolean,
+        val finishDate: String?,
+    )
+
+    /**
+     * 预置作品「已读完」状态修正：确保用户确实读完的预置书存在于藏库且处于已读态。
+     *
+     * 预置书目一律以 wishlist 播种（见 [seedCuratedBookCovers]），而 [finishedReadPresets]
+     * 里是用户实际读完的作品，需要落在「已读」列表；此外历史库曾因播种链版本错位从未落库
+     * （用户反馈「App 里根本没有」），此处一并补插，软删条目就地恢复，不新增重复行。
+     *
+     * 幂等且零覆盖：只按标题精确匹配，避免 LIKE 误中同类标题（如「雪国列车」）；
+     * 已处于在读/已读且日期完整的作品直接跳过；评分、笔记、角色谱、章节大纲一律不触碰。
+     */
+    internal fun ensureFinishedReadBooks(db: SQLiteDatabase) {
+        runCatching {
+            val now = currentTimestamp()
+            finishedReadPresets.forEach { preset ->
+                val existing = db.query(
+                    TABLE_BOOKS,
+                    arrayOf(COLUMN_ID, COLUMN_STATUS, COLUMN_IS_DELETED, COLUMN_FINISH_DATE),
+                    "$COLUMN_TITLE = ? AND $COLUMN_MEDIA_TYPE = 'book'",
+                    arrayOf(preset.title),
+                    null,
+                    null,
+                    null,
+                ).use { c ->
+                    if (c.moveToFirst()) {
+                        ExistingPresetRow(
+                            id = c.getLong(0),
+                            status = c.getString(1) ?: "wishlist",
+                            deleted = c.getInt(2) != 0,
+                            finishDate = c.getString(3),
+                        )
+                    } else {
+                        null
+                    }
+                }
+
+                if (existing == null) {
+                    val cv = ContentValues().apply {
+                        put(COLUMN_TITLE, preset.title)
+                        put(COLUMN_AUTHOR, preset.author)
+                        put(COLUMN_CATEGORY, preset.category)
+                        put(COLUMN_STATUS, "finished")
+                        put(COLUMN_MEDIA_TYPE, "book")
+                        put(COLUMN_SHORT_COMMENT, preset.shortComment)
+                        put(COLUMN_REVIEW, "经典文学名著 · 收录于《阅痕》书单")
+                        put(COLUMN_RATING, preset.rating)
+                        put(COLUMN_TAGS, JSONArray(preset.tags).toString())
+                        put(COLUMN_COVER_URL, preset.coverUrl)
+                        put(COLUMN_START_DATE, "")
+                        put(COLUMN_FINISH_DATE, preset.finishDate)
+                        put(COLUMN_CREATED_AT, now)
+                        put(COLUMN_UPDATED_AT, now)
+                        put(COLUMN_IS_DELETED, 0)
+                    }
+                    db.insert(TABLE_BOOKS, null, cv)
+                    return@forEach
+                }
+
+                val alreadySettled = !existing.deleted &&
+                    existing.status != "wishlist" &&
+                    !existing.finishDate.isNullOrBlank()
+                if (alreadySettled) return@forEach
+
+                val cv = ContentValues().apply {
+                    if (existing.deleted) {
+                        put(COLUMN_IS_DELETED, 0)
+                        putNull(COLUMN_DELETED_AT)
+                    }
+                    // 只把「想读」推进为「已读」；阅读中/搁置等用户自定状态保持原样
+                    if (existing.status == "wishlist") put(COLUMN_STATUS, "finished")
+                    if (existing.finishDate.isNullOrBlank()) put(COLUMN_FINISH_DATE, preset.finishDate)
+                    put(COLUMN_UPDATED_AT, now)
+                }
+                db.update(TABLE_BOOKS, cv, "$COLUMN_ID = ?", arrayOf(existing.id.toString()))
             }
         }
     }

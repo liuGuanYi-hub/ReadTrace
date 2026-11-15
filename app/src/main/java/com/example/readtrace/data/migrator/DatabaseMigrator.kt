@@ -194,6 +194,14 @@ object DatabaseMigrator {
                 }
             }
         }
+        if (oldVersion < 19) {
+            // v19：把用户实际读完的预置作品（《雪国》《春雪》）补回藏库并标记为已读。
+            // 背景：预置书目统一以 wishlist 播种，这两本需要出现在「已读」列表；
+            // 且历史库曾因播种链版本错位从未落库（用户反馈「App 里根本没有」）。
+            // 逻辑本身幂等且零覆盖：标题精确匹配、只把 wishlist 推进为 finished，
+            // 已存在且日期完整的作品、以及用户自定的评分/笔记/角色谱全部不动。
+            PresetSeedManager.ensureFinishedReadBooks(database)
+        }
     }
 
     /** 高频查询性能索引（幂等，onCreate 与 v16 升级共用） */
