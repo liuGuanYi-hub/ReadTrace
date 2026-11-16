@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="serif"
-                android:text="🌌 阅痕 · 心智认知星系"
+                android:text="阅痕 · 心智认知星系"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16.5sp"
                 android:textStyle="bold" />
@@ -206,7 +206,7 @@
                 android:background="@drawable/bg_pill_button"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
-                android:text="🚀 漫游聚焦"
+                android:text="漫游聚焦"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -219,7 +219,7 @@
                 android:background="@drawable/bg_pill_button"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
-                android:text="🎨 双生微卡"
+                android:text="双生微卡"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -234,7 +234,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="📖 查看作品档案 ➔"
+            android:text="查看作品档案"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold" />

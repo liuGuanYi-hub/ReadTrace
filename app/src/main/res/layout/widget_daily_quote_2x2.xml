@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="sans"
-            android:text="✨ 阅痕 · 灵感便签"
+            android:text="阅痕 · 灵感便签"
             android:textColor="@color/readtrace_accent"
             android:textSize="11.5sp"
             android:textStyle="bold" />
@@ -44,7 +44,7 @@
             android:paddingTop="1.5dp"
             android:paddingEnd="6dp"
             android:paddingBottom="1.5dp"
-            android:text="🔄 换一句"
+            android:text="换一句"
             android:textColor="@color/readtrace_accent"
             android:textSize="10sp"
             android:textStyle="bold" />
@@ -109,7 +109,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="查看印记 ➔"
+            android:text="查看印记"
             android:textColor="@color/readtrace_muted"
             android:textSize="10sp" />
     </LinearLayout>

@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:fontFamily="sans"
-            android:text="🔮 心智雷达叠合对比"
+            android:text="心智雷达叠合对比"
             android:textColor="@color/readtrace_ink"
             android:textSize="18sp"
             android:textStyle="bold" />

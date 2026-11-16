@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans"
             android:lineSpacingExtra="3dp"
-            android:text="✦ 离线优先：端侧 SQLite，数据永不上传中心服务器\n✦ 云端自持：支持坚果云 / WebDAV 增量同步\n✦ 拟真声学：微声学音效引擎 · 空间音频黑胶卡座\n✦ 数据致敬：Bangumi 番组计划 · 豆瓣公开页 · 网易云音乐"
+            android:text="离线优先：端侧 SQLite，数据永不上传中心服务器\n 云端自持：支持坚果云 / WebDAV 增量同步\n 拟真声学：微声学音效引擎 · 空间音频黑胶卡座\n 数据致敬：Bangumi 番组计划 · 豆瓣公开页 · 网易云音乐"
             android:textColor="@color/readtrace_muted"
             android:textSize="11.5sp" />
     </LinearLayout>
@@ -113,7 +113,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="📜 版本纪要"
+            android:text="版本纪要"
             android:textColor="@color/readtrace_ink"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -128,7 +128,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="✨ 新版特性"
+            android:text="新版特性"
             android:textColor="@color/readtrace_ink"
             android:textSize="13sp"
             android:textStyle="bold" />

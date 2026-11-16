@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 我的：底部导航线性图标，24dp viewBox，1.8dp 描边圆头收尾，与纸张质感的细线语言一致 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,4.6 A3.4,3.4 0 1,1 11.99,4.6"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M4.8,20.2 C4.8,16.4 8,14.2 12,14.2 C16,14.2 19.2,16.4 19.2,20.2"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+</vector>

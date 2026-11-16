@@ -4,15 +4,15 @@
     <string name="add_book_title">添加书籍</string>
     <string name="add_book_subtitle">留下一本书，也留下一段当时的自己。</string>
     <!-- 发现页（外部导入） -->
-    <string name="discover_entry">🌐 从发现页导入热门作品</string>
+    <string name="discover_entry">从发现页导入热门作品</string>
     <string name="discover_entry_hint">Bangumi 联网搜索 · 一键添加 · 之后再慢慢补感想</string>
     <string name="discover_title">发现</string>
     <string name="discover_subtitle">热门作品一键添加至纪念，条目我来填，故事你来写。</string>
     <string name="discover_search_hint">搜索作品名（留空看热门排行）</string>
     <string name="discover_search_button">搜索</string>
     <string name="discover_source_note">书影音来自豆瓣公开页 · 游戏来自 Bangumi · 低频请求已限流</string>
-    <string name="discover_empty">没有找到相关作品\n换个关键词，或切换媒介分类再试试\n🔄 点击此处重试</string>
-    <string name="discover_empty_network_error">网络加载失败\n请检查网络连接后重试\n🔄 点击此处重试</string>
+    <string name="discover_empty">没有找到相关作品\n换个关键词，或切换媒介分类再试试\n点击此处重试</string>
+    <string name="discover_empty_network_error">网络加载失败\n请检查网络连接后重试\n点击此处重试</string>
     <string name="discover_cover_desc">作品封面</string>
     <string name="discover_owned_badge">已收藏</string>
     <string name="discover_preview_title">条目预览</string>
@@ -26,10 +26,10 @@
     <string name="discover_status_label">标记状态（添加后可随时修改）</string>
     <string name="discover_add_button">添加至纪念</string>
     <string name="discover_already_owned">已在藏库</string>
-    <string name="discover_duplicate_hint">💡 藏库中可能已存在《%1$s》，若不是同一作品可放心继续添加。</string>
-    <string name="discover_import_success">已添加至纪念，去详情页补上你的感想吧 ✍️</string>
-    <string name="discover_mode_rank">🔥 热门榜单</string>
-    <string name="discover_mode_search">🔍 搜索：%1$s</string>
+    <string name="discover_duplicate_hint">藏库中可能已存在《%1$s》，若不是同一作品可放心继续添加。</string>
+    <string name="discover_import_success">已添加至纪念，去详情页补上你的感想吧</string>
+    <string name="discover_mode_rank">热门榜单</string>
+    <string name="discover_mode_search">搜索：%1$s</string>
     <string name="discover_batch_button">批量纪念</string>
     <string name="discover_batch_hint">点选看过的作品，长按卡片也可进入批量模式</string>
     <string name="discover_batch_confirm">纪念已看的 %1$d 部</string>
@@ -151,23 +151,23 @@
     <string name="badges_activity_subtitle">每一次阅读与记录，都是时光的加冕</string>
     <string name="badge_status_unlocked">已解锁</string>
     <string name="badge_status_locked">未解锁</string>
-    <string name="media_type_book">书籍 📖</string>
-    <string name="media_type_anime">番剧 🌸</string>
-    <string name="media_type_movie">影视 🎬</string>
-    <string name="media_type_game">游戏 🎮</string>
-    <string name="media_type_music">音乐 💿</string>
+    <string name="media_type_book">书籍</string>
+    <string name="media_type_anime">番剧</string>
+    <string name="media_type_movie">影视</string>
+    <string name="media_type_game">游戏</string>
+    <string name="media_type_music">音乐</string>
     <string name="field_media_type">作品载体类型</string>
     <string name="backup_activity_title">数据备份与导出</string>
     <string name="backup_activity_subtitle">数据安全至上，让个人精神财富随身带走</string>
     <string name="backup_section_export">全量导出与跨平台文集</string>
-    <string name="backup_json_title">📦 全量 JSON 备份包 (.json)</string>
+    <string name="backup_json_title">全量 JSON 备份包 (.json)</string>
     <string name="backup_json_desc">完整打包所有作品、评分、标签、评论及全部关联笔记，支持跨设备一键迁移无损复原</string>
-    <string name="backup_md_title">📝 Markdown 个人文集 (.md)</string>
+    <string name="backup_md_title">Markdown 个人文集 (.md)</string>
     <string name="backup_md_desc">导出排版极其精美的 Markdown 笔记，可直接导入 Obsidian / Notion / Logseq</string>
-    <string name="backup_csv_title">📊 CSV 表格清单 (.csv)</string>
+    <string name="backup_csv_title">CSV 表格清单 (.csv)</string>
     <string name="backup_csv_desc">导出通用表格数据，兼容 Excel、Numbers 与数据透视分析</string>
     <string name="backup_section_import">数据恢复与迁移导入</string>
-    <string name="backup_import_btn">📥 选择 JSON 备份文件恢复</string>
+    <string name="backup_import_btn">选择 JSON 备份文件恢复</string>
     <string name="backup_import_hint">支持导入由本应用导出的标准 JSON 备份包，自动查重并安全合入</string>
     <string name="backup_export_success">导出成功！</string>
     <string name="backup_export_failed">导出失败，请重试</string>
@@ -175,7 +175,7 @@
     <string name="backup_import_empty">备份文件中没有可导入的数据</string>
     <string name="backup_import_failed">导入解析失败，请确认文件格式是否正确</string>
     <string name="backup_stat_summary_format">当前本地共存储 %1$d 部作品 · %2$d 条随想痕迹</string>
-    <string name="action_3d_read">📖 3D 沉浸阅览</string>
+    <string name="action_3d_read">3D 沉浸阅览</string>
 
     <!-- 桌面小组件 (AppWidgets) -->
     <string name="widget_daily_quote_name">阅痕 · 每日金句便签</string>

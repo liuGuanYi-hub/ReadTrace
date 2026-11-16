@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="👤 精神档案与通行证"
+                    android:text="精神档案与通行证"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -53,7 +53,7 @@
                     android:gravity="center"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
-                    android:text="✦ 策展人入驻"
+                    android:text="策展人入驻"
                     android:textColor="@color/white"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -96,7 +96,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="☁️ 云端保险库 · 离线优先就绪"
+                    android:text="云端保险库 · 离线优先就绪"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12sp" />
 
@@ -104,7 +104,7 @@
                     android:id="@+id/btnProfileSyncNow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔄 立即同步"
+                    android:text="立即同步"
                     android:textColor="@color/readtrace_accent"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -126,7 +126,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🧠 年度认知心智画像"
+                android:text="年度认知心智画像"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16.5sp"
                 android:textStyle="bold" />
@@ -162,7 +162,7 @@
         <TextView
             style="@style/ReadTraceFieldLabel"
             android:layout_marginTop="20dp"
-            android:text="🏛️ 虚拟空间与展览广场"
+            android:text="虚拟空间与展览广场"
             android:textSize="16.5sp" />
 
         <!-- ❤️ 我的最爱 (P28) -->
@@ -216,7 +216,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🏆 策展人年度精神年鉴"
+                android:text="策展人年度精神年鉴"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -248,7 +248,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🌐 阅痕云端展览广场"
+                android:text="阅痕云端展览广场"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -280,7 +280,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🏅 精神阅痕成就勋章"
+                android:text="精神阅痕成就勋章"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -299,7 +299,7 @@
         <TextView
             style="@style/ReadTraceFieldLabel"
             android:layout_marginTop="20dp"
-            android:text="⚙️ 系统管理与备份恢复"
+            android:text="系统管理与备份恢复"
             android:textSize="16.5sp" />
 
 
@@ -363,7 +363,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="📦 数据备份与多格式导出"
+                android:text="数据备份与多格式导出"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -395,7 +395,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🗑️ 回收站与归档恢复"
+                android:text="回收站与归档恢复"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -434,7 +434,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="📜 版本演进纪要"
+                    android:text="版本演进纪要"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -541,7 +541,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:fontFamily="sans"
-                    android:text="🏷️ 点击查看关于详情与设计理念 ❯"
+                    android:text="点击查看关于详情与设计理念"
                     android:textColor="@color/readtrace_accent"
                     android:textSize="11.5sp" />
             </LinearLayout>

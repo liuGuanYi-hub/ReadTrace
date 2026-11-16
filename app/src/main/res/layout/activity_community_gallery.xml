@@ -64,7 +64,7 @@
             android:gravity="center"
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
-            android:text="🌌 换氛围"
+            android:text="换氛围"
             android:textColor="@color/white"
             android:textSize="12sp" />
     </LinearLayout>
@@ -168,7 +168,7 @@
                 android:focusable="true"
                 android:fontFamily="sans"
                 android:gravity="center"
-                android:text="✦ 收入我的书架"
+                android:text="收入我的书架"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
@@ -184,7 +184,7 @@
                 android:focusable="true"
                 android:fontFamily="sans"
                 android:gravity="center"
-                android:text="📖 3D 试读"
+                android:text="3D 试读"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="13sp"
                 android:textStyle="bold" />

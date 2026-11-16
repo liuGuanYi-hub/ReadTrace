@@ -1557,7 +1557,7 @@ class BookDetailActivity : AppCompatActivity() {
             "NO." + (1000 + (book.id % 9000)),
             book.mediaType.name
         )
-        findViewById<TextView>(R.id.detailMediaBadge).text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
+        findViewById<TextView>(R.id.detailMediaBadge).text = book.mediaType.displayName
         val titleScrambleView = findViewById<com.example.readtrace.widget.ScrambleTextView>(R.id.detailBookTitle)
         if (titleScrambleView != null) {
             titleScrambleView.setScrambleText(book.title)
@@ -1789,7 +1789,7 @@ class BookDetailActivity : AppCompatActivity() {
             choices = candidates.map {
                 com.example.readtrace.util.ElegantChoiceDialog.Choice(
                     label = "《${it.title}》",
-                    subtitle = "${it.mediaType.emoji} ${it.mediaType.displayName}",
+                    subtitle = it.mediaType.displayName,
                     leadingEmoji = "🧪",
                 )
             },
@@ -1829,7 +1829,7 @@ class BookDetailActivity : AppCompatActivity() {
             choices = relatedBooks.map {
                 com.example.readtrace.util.ElegantChoiceDialog.Choice(
                     label = "《${it.title}》",
-                    subtitle = "${it.mediaType.emoji} ${it.mediaType.displayName}" +
+                    subtitle = it.mediaType.displayName +
                         (it.rating?.let { r -> " · ⭐$r" } ?: ""),
                     leadingEmoji = it.mediaType.emoji,
                 )

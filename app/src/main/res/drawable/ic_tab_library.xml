@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 藏库：底部导航线性图标，24dp viewBox，1.8dp 描边圆头收尾，与纸张质感的细线语言一致 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M5.2,6.6 L8.2,6.6 L8.2,20"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M10.2,4.4 L13.2,4.4 L13.2,20"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M15.2,8.2 L18.2,8.2 L18.2,20"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M3.6,20.4 L19.4,20.4"
+        android:strokeColor="#1A1C19"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+</vector>

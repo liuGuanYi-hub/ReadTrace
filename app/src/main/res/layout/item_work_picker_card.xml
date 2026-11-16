@@ -111,7 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="★ 9.2"
+                android:text="9.2"
                 android:textColor="@color/picker_item_stroke_selected"
                 android:textSize="12sp"
                 android:textStyle="bold" />

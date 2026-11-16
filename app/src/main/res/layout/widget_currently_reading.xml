@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="sans"
-                android:text="📖 阅痕 · 灵感伴读"
+                android:text="阅痕 · 灵感伴读"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -124,7 +124,7 @@
                 android:layout_height="26dp"
                 android:background="@drawable/bg_primary_button"
                 android:gravity="center"
-                android:text="📖 沉浸品读 ➔"
+                android:text="沉浸品读"
                 android:textColor="@color/white"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />

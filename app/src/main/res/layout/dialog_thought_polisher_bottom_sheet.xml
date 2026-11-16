@@ -41,7 +41,7 @@
                     android:id="@+id/txtPolisherTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="✨ 文心雕龙 · 读后感工坊"
+                    android:text="文心雕龙 · 读后感工坊"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -54,7 +54,7 @@
                     android:background="@drawable/bg_gold_badge"
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
-                    android:text="✦ AI 实时深度润色"
+                    android:text="AI 实时深度润色"
                     android:textColor="#92400E"
                     android:textSize="10.5sp"
                     android:textStyle="bold" />
@@ -109,7 +109,7 @@
                 android:background="@drawable/bg_chip_picker_selected"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="🌿 典雅哲思"
+                android:text="典雅哲思"
                 android:textColor="@color/chip_selected_text"
                 android:textSize="12.5sp"
                 android:textStyle="bold" />
@@ -122,7 +122,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="⚡ 犀利艺评"
+                android:text="犀利艺评"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12.5sp" />
 
@@ -134,7 +134,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="🕊️ 私享手记"
+                android:text="私享手记"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12.5sp" />
         </LinearLayout>
@@ -167,7 +167,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="📝 用户原稿速记"
+                    android:text="用户原稿速记"
                     android:textColor="@color/readtrace_muted"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -202,7 +202,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
-                        android:text="✦ 大师润色正文"
+                        android:text="大师润色正文"
                         android:textColor="@color/readtrace_accent"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -298,7 +298,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="🎨 生成金句海报"
+                    android:text="生成金句海报"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -313,7 +313,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="📜 刻印藏书票"
+                    android:text="刻印藏书票"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="12.5sp"
                     android:textStyle="bold" />
@@ -336,7 +336,7 @@
             android:layout_height="48dp"
             android:layout_weight="1.2"
             android:background="@drawable/bg_primary_button"
-            android:text="✓ 采纳并替换"
+            android:text="采纳并替换"
             android:textColor="@android:color/white"
             android:textSize="14sp"
             android:textStyle="bold" />

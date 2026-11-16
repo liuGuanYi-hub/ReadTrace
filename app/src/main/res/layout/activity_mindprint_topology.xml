@@ -38,7 +38,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="serif"
-                    android:text="🗺️ 3D 情绪等高线地形图"
+                    android:text="3D 情绪等高线地形图"
                     android:textColor="#FFFFFF"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -69,7 +69,7 @@
                     android:background="@drawable/bg_pill_button"
                     android:gravity="center"
                     android:paddingHorizontal="10dp"
-                    android:text="🌌 3D 等高线"
+                    android:text="3D 等高线"
                     android:textColor="#FFE700"
                     android:textSize="11sp"
                     android:textStyle="bold" />
@@ -105,7 +105,7 @@
                 android:id="@+id/tvSliceLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏔️ 精神海拔切片: 0m"
+                android:text="精神海拔切片: 0m"
                 android:textColor="#D5DFEE"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -123,7 +123,7 @@
                 android:background="@drawable/bg_pill_button"
                 android:gravity="center"
                 android:paddingHorizontal="8dp"
-                android:text="🎯 复位"
+                android:text="复位"
                 android:textColor="#4DEEEA"
                 android:textSize="10sp" />
         </LinearLayout>

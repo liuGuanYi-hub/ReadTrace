@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="🎮 选择要生成卡带的游戏"
+                android:text="选择要生成卡带的游戏"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -148,7 +148,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="📚 书籍"
+                android:text="书籍"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
@@ -160,7 +160,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="🌸 番剧"
+                android:text="番剧"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
@@ -172,7 +172,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="🎬 电影"
+                android:text="电影"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
@@ -184,7 +184,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="🎮 游戏"
+                android:text="游戏"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
 
@@ -196,7 +196,7 @@
                 android:background="@drawable/bg_chip_picker_idle"
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="7dp"
-                android:text="💿 音乐"
+                android:text="音乐"
                 android:textColor="@color/chip_idle_text"
                 android:textSize="12sp" />
         </LinearLayout>

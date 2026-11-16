@@ -75,7 +75,7 @@
             android:layout_weight="1"
             android:background="@drawable/bg_secondary_button"
             android:gravity="center"
-            android:text="📜 查看全部历史"
+            android:text="查看全部历史"
             android:textColor="@color/readtrace_ink"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -87,7 +87,7 @@
             android:layout_weight="1"
             android:background="@drawable/bg_primary_button"
             android:gravity="center"
-            android:text="✦ 即刻探索"
+            android:text="即刻探索"
             android:textColor="@color/white"
             android:textSize="13.5sp"
             android:textStyle="bold" />

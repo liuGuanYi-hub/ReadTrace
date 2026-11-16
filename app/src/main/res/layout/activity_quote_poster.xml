@@ -24,7 +24,7 @@
             android:layout_marginStart="48dp"
             android:layout_weight="1"
             android:fontFamily="sans"
-            android:text="🎨 金句印记海报"
+            android:text="金句印记海报"
             android:textColor="@color/readtrace_ink"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -40,7 +40,7 @@
             android:gravity="center"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:text="🔗 分享"
+            android:text="分享"
             android:textColor="@color/readtrace_ink"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -57,7 +57,7 @@
             android:gravity="center"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:text="💾 保存相册"
+            android:text="保存相册"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -85,7 +85,7 @@
             android:focusable="true"
             android:fontFamily="sans"
             android:gravity="center"
-            android:text="📜 宣纸"
+            android:text="宣纸"
             android:textColor="@color/white"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -102,7 +102,7 @@
             android:focusable="true"
             android:fontFamily="sans"
             android:gravity="center"
-            android:text="🌌 星夜"
+            android:text="星夜"
             android:textColor="@color/readtrace_ink"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -119,7 +119,7 @@
             android:focusable="true"
             android:fontFamily="sans"
             android:gravity="center"
-            android:text="🍵 水绿"
+            android:text="水绿"
             android:textColor="@color/readtrace_ink"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -135,7 +135,7 @@
             android:focusable="true"
             android:fontFamily="sans"
             android:gravity="center"
-            android:text="🖤 暗黑"
+            android:text="暗黑"
             android:textColor="@color/readtrace_ink"
             android:textSize="12sp"
             android:textStyle="bold" />

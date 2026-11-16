@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="✨ 精选高光策展 (Curated Shelves)"
+                android:text="精选高光策展 (Curated Shelves)"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp"
                 android:textStyle="bold" />

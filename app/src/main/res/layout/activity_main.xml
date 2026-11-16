@@ -61,12 +61,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+<ImageView
                 android:id="@+id/tabHubIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🏛️"
-                android:textSize="18sp" />
+                android:layout_width="21dp"
+                android:layout_height="21dp"
+                android:contentDescription="展馆"
+                android:src="@drawable/ic_tab_hub" />
 
             <TextView
                 android:id="@+id/tabHubLabel"
@@ -91,12 +91,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+<ImageView
                 android:id="@+id/tabLibraryIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📚"
-                android:textSize="18sp" />
+                android:layout_width="21dp"
+                android:layout_height="21dp"
+                android:contentDescription="藏库"
+                android:src="@drawable/ic_tab_library" />
 
             <TextView
                 android:id="@+id/tabLibraryLabel"
@@ -120,12 +120,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+<ImageView
                 android:id="@+id/tabGalaxyIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🌌"
-                android:textSize="18sp" />
+                android:layout_width="21dp"
+                android:layout_height="21dp"
+                android:contentDescription="星系"
+                android:src="@drawable/ic_tab_galaxy" />
 
             <TextView
                 android:id="@+id/tabGalaxyLabel"
@@ -149,12 +149,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+<ImageView
                 android:id="@+id/tabMemoirIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🎟️"
-                android:textSize="18sp" />
+                android:layout_width="21dp"
+                android:layout_height="21dp"
+                android:contentDescription="纪念"
+                android:src="@drawable/ic_tab_memoir" />
 
             <TextView
                 android:id="@+id/tabMemoirLabel"
@@ -178,12 +178,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
+<ImageView
                 android:id="@+id/tabProfileIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="👤"
-                android:textSize="18sp" />
+                android:layout_width="21dp"
+                android:layout_height="21dp"
+                android:contentDescription="我的"
+                android:src="@drawable/ic_tab_profile" />
 
             <TextView
                 android:id="@+id/tabProfileLabel"

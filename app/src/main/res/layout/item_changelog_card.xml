@@ -67,7 +67,7 @@
                 android:paddingTop="2dp"
                 android:paddingEnd="6dp"
                 android:paddingBottom="2dp"
-                android:text="LATEST ✦ 最新"
+                android:text="LATEST 最新"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
@@ -92,7 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="🌌 顶级开源交互与底层加固"
+            android:text="顶级开源交互与底层加固"
             android:textColor="@color/readtrace_accent"
             android:textSize="13.5sp"
             android:textStyle="bold" />

@@ -272,7 +272,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🛡️ WebDAV 数据主权同步"
+                android:text="WebDAV 数据主权同步"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -336,7 +336,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="📊 导入 CSV 表格清单 (.csv)"
+                android:text="导入 CSV 表格清单 (.csv)"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -355,7 +355,7 @@
         <TextView
             style="@style/ReadTraceFieldLabel"
             android:layout_marginTop="28dp"
-            android:text="⚠️ 危险区"
+            android:text="危险区"
             android:textSize="16sp"
             android:textColor="#C62828" />
 
@@ -376,7 +376,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans"
-                android:text="🗑️ 清空账号数据"
+                android:text="清空账号数据"
                 android:textColor="#C62828"
                 android:textSize="16sp"
                 android:textStyle="bold" />

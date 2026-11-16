@@ -112,7 +112,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-medium"
-        android:text="🕸️ 六维心智认知雷达"
+        android:text="六维心智认知雷达"
         android:textColor="@color/readtrace_ink"
         android:textSize="14sp"
         android:textStyle="bold" />
@@ -174,7 +174,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="🎨 金句海报"
+            android:text="金句海报"
             android:textColor="@color/readtrace_ink"
             android:textSize="12.5sp"
             android:textStyle="bold" />
@@ -189,7 +189,7 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="📖 作品档案"
+            android:text="作品档案"
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold" />

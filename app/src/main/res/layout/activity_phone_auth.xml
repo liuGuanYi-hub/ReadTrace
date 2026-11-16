@@ -40,7 +40,7 @@
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="📱 手机号快捷登录"
+                    android:text="手机号快捷登录"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -219,7 +219,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="✦ 验证并激活通行证"
+                    android:text="验证并激活通行证"
                     android:textColor="@color/white"
                     android:textSize="14.5sp"
                     android:textStyle="bold"
@@ -248,7 +248,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🛡️ 隐私承诺"
+                    android:text="隐私承诺"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="13sp"
                     android:textStyle="bold" />

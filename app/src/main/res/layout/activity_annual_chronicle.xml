@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="48dp"
             android:layout_weight="1"
-            android:text="🏆 策展人年度精神年鉴"
+            android:text="策展人年度精神年鉴"
             android:textColor="@color/readtrace_ink"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -43,7 +43,7 @@
             android:background="@drawable/bg_secondary_button"
             android:paddingHorizontal="14dp"
             android:paddingVertical="8dp"
-            android:text="⬇️ 4K 长图"
+            android:text="4K 长图"
             android:textColor="@color/readtrace_ink"
             android:textSize="13sp" />
     </LinearLayout>

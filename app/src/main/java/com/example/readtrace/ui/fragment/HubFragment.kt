@@ -671,7 +671,7 @@ class HubFragment : Fragment() {
 
         val isYearsAgo = memoryReason.contains("年前")
         memoryTitle.text = if (isYearsAgo) "🕰️ 那年今日 · 时光印记" else "🕰️ 时光深处的印记"
-        memoryMediaBadge.text = "${memoryBook.mediaType.emoji} ${memoryBook.mediaType.displayName}"
+        memoryMediaBadge.text = memoryBook.mediaType.displayName
 
         memoryBookTitle.text = "《${memoryBook.title}》"
 

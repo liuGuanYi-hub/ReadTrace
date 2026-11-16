@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="✨ 精神品味探索"
+                android:text="精神品味探索"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -60,7 +60,7 @@
             android:background="@drawable/bg_dark_chip_selected"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:text="🤖 AI 深度探索"
+            android:text="AI 深度探索"
             android:textColor="@android:color/white"
             android:textSize="12sp"
             android:textStyle="bold" />

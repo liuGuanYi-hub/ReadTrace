@@ -40,7 +40,7 @@
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="✦ 档案与通行证定制"
+                    android:text="档案与通行证定制"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -236,7 +236,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="🚪 退出登录（恢复自由漫游模式）"
+                    android:text="退出登录（恢复自由漫游模式）"
                     android:textColor="@color/white"
                     android:textSize="13.5sp"
                     android:textStyle="bold" />

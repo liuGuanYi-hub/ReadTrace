@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="🤖 AI 角色与故事大纲"
+                android:text="AI 角色与故事大纲"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -60,7 +60,7 @@
             android:background="@drawable/bg_dark_chip"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
-            android:text="⚙️ API 设置"
+            android:text="API 设置"
             android:textColor="@color/readtrace_ink"
             android:textSize="12sp" />
     </RelativeLayout>
@@ -116,7 +116,7 @@
                 android:background="@drawable/bg_dark_chip_selected"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
-                android:text="✦ 离线经典知识库"
+                android:text="离线经典知识库"
                 android:textColor="@android:color/white"
                 android:textSize="11sp" />
 
@@ -125,7 +125,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:text="💡 核心主旨与背景"
+                android:text="核心主旨与背景"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -146,7 +146,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="🎭 核心人物角色表"
+                android:text="核心人物角色表"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -163,7 +163,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="📖 故事分幕与核心大纲"
+                android:text="故事分幕与核心大纲"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -190,7 +190,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_dark_chip"
                     android:gravity="center"
-                    android:text="📥 填入作品简介"
+                    android:text="填入作品简介"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -203,7 +203,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_dark_chip_selected"
                     android:gravity="center"
-                    android:text="📝 存为大纲笔记"
+                    android:text="存为大纲笔记"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"
                     android:textStyle="bold" />

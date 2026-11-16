@@ -711,7 +711,7 @@ class DiscoverActivity : AppCompatActivity() {
                 dialog.findViewById<TextView>(R.id.importStatRating).text =
                     String.format(java.util.Locale.getDefault(), "%.1f / 10.0", avgRating)
                 dialog.findViewById<TextView>(R.id.importStatMediaType).text =
-                    "${selectedMediaType.emoji} ${selectedMediaType.displayName} ($importedCount 部)"
+                    "${selectedMediaType.displayName} ($importedCount 部)"
                 dialog.findViewById<TextView>(R.id.importStatTags).text = topTags
 
                 dialog.findViewById<View>(R.id.btnGoToLibrary).setOnClickListener {

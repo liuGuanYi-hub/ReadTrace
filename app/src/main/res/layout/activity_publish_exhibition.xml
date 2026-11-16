@@ -185,7 +185,7 @@
                 android:focusable="true"
                 android:fontFamily="sans"
                 android:gravity="center"
-                android:text="🚀 立即发布至阅痕广场"
+                android:text="立即发布至阅痕广场"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold" />

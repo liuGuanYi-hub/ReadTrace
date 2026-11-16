@@ -3,6 +3,7 @@ package com.example.readtrace.model
 enum class MediaType(
     val databaseValue: String,
     val displayName: String,
+    /** 媒介徽章字符：曾经是 emoji，v1.0.14 起改为单字，避免每张卡片都出现彩色图标 */
     val emoji: String,
     val creatorLabel: String,
     val creatorHint: String,
@@ -16,7 +17,7 @@ enum class MediaType(
     BOOK(
         databaseValue = "book",
         displayName = "书籍",
-        emoji = "📖",
+        emoji = "书",
         creatorLabel = "作者 / 译者",
         creatorHint = "例如：村上春树、加缪",
         progressLabel = "页码 / 章节",
@@ -29,7 +30,7 @@ enum class MediaType(
     ANIME(
         databaseValue = "anime",
         displayName = "番剧",
-        emoji = "🌸",
+        emoji = "番",
         creatorLabel = "监督 / 制作社 / 声优",
         creatorHint = "例如：庵野秀明、京阿尼、Ufotable、MAPPA",
         progressLabel = "话数 / 季度",
@@ -42,7 +43,7 @@ enum class MediaType(
     MOVIE(
         databaseValue = "movie",
         displayName = "影视",
-        emoji = "🎬",
+        emoji = "影",
         creatorLabel = "导演 / 主演",
         creatorHint = "例如：克里斯托弗·诺兰、宫崎骏",
         progressLabel = "季集 / 时长",
@@ -55,7 +56,7 @@ enum class MediaType(
     GAME(
         databaseValue = "game",
         displayName = "游戏",
-        emoji = "🎮",
+        emoji = "游",
         creatorLabel = "制作人 / 开发商",
         creatorHint = "例如：宫崎英高、任天堂",
         progressLabel = "游玩进度 / 成就",
@@ -68,7 +69,7 @@ enum class MediaType(
     MUSIC(
         databaseValue = "music",
         displayName = "音乐",
-        emoji = "💿",
+        emoji = "音",
         creatorLabel = "歌手 / 乐队 / 厂牌",
         creatorHint = "例如：ヨルシカ、ずっと真夜中でいいのに。",
         progressLabel = "曲目 / 专辑",

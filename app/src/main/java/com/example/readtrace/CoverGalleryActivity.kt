@@ -254,7 +254,7 @@ class CoverGalleryActivity : AppCompatActivity() {
             private val galleryCardContainer: FrameLayout = itemView.findViewById(R.id.galleryCardContainer)
 
             fun bind(book: Book, onItemClick: (Book) -> Unit) {
-                galleryMediaBadge.text = "${book.mediaType.emoji} ${book.mediaType.displayName}"
+                galleryMediaBadge.text = book.mediaType.displayName
                 galleryBookTitle.text = book.title
 
                 val author = book.author.takeUnless { it.isNullOrBlank() } ?: "未知作者"

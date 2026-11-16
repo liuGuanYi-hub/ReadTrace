@@ -27,7 +27,7 @@
             android:id="@+id/txtScoringTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📐 多维加权微评分工坊"
+            android:text="多维加权微评分工坊"
             android:textColor="@color/readtrace_ink"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -87,7 +87,7 @@
             android:background="@drawable/bg_dark_chip_selected"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
-            android:text="✦ 扎实良作 · 亮点鲜明，值得品味与重温"
+            android:text="扎实良作 · 亮点鲜明，值得品味与重温"
             android:textColor="@android:color/white"
             android:textSize="11.5sp" />
     </LinearLayout>
@@ -151,7 +151,7 @@
         android:layout_marginBottom="24dp"
         android:background="@drawable/bg_dark_chip_selected"
         android:gravity="center"
-        android:text="✓ 确认微评分"
+        android:text="确认微评分"
         android:textColor="@android:color/white"
         android:textSize="15sp"
         android:textStyle="bold" />

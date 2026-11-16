@@ -307,7 +307,7 @@
                         android:focusable="true"
                         android:gravity="center"
                         android:paddingHorizontal="12dp"
-                        android:text="✨ AI 智能一键补齐"
+                        android:text="AI 智能一键补齐"
                         android:textColor="@android:color/white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -399,7 +399,7 @@
                             style="@style/ReadTraceStatusChip"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="🌟 想读" />
+                            android:text="想读" />
 
                         <TextView
                             android:id="@+id/chipStatusReading"
@@ -408,7 +408,7 @@
                             android:background="@drawable/bg_status_chip_selected"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="📖 在读"
+                            android:text="在读"
                             android:textColor="@color/white" />
 
                         <TextView
@@ -417,7 +417,7 @@
                             android:layout_marginStart="10dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="✅ 已读" />
+                            android:text="已读" />
 
                         <TextView
                             android:id="@+id/chipStatusPaused"
@@ -433,7 +433,7 @@
                             android:layout_marginStart="10dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="✖️ 弃读" />
+                            android:text="弃读" />
                     </LinearLayout>
                 </HorizontalScrollView>
 
@@ -459,7 +459,7 @@
                         android:background="@drawable/bg_dark_chip_selected"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="📐 多维细分"
+                        android:text="多维细分"
                         android:textColor="@android:color/white"
                         android:textSize="11.5sp"
                         android:textStyle="bold" />
@@ -607,7 +607,7 @@
                         android:focusable="true"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="5dp"
-                        android:text="✨ 文心雕龙"
+                        android:text="文心雕龙"
                         android:textColor="#92400E"
                         android:textSize="12sp"
                         android:textStyle="bold" />

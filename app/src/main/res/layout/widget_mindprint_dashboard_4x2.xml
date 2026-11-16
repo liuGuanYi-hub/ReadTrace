@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="sans"
-                android:text="✨ 阅痕 · 心智看板"
+                android:text="阅痕 · 心智看板"
                 android:textColor="@color/readtrace_accent"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -110,7 +110,7 @@
                 android:paddingTop="2dp"
                 android:paddingEnd="6dp"
                 android:paddingBottom="2dp"
-                android:text="🌌 星系"
+                android:text="星系"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />
@@ -125,7 +125,7 @@
                 android:paddingTop="2dp"
                 android:paddingEnd="6dp"
                 android:paddingBottom="2dp"
-                android:text="🎨 双生"
+                android:text="双生"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="10.5sp"
                 android:textStyle="bold" />

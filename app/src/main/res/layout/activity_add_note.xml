@@ -103,7 +103,7 @@
                             android:background="@drawable/bg_status_chip_selected"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="💭 随想 / 思考"
+                            android:text="随想 / 思考"
                             android:textColor="@color/white" />
 
                         <TextView
@@ -112,7 +112,7 @@
                             android:layout_marginStart="10dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="🌟 原文摘录 / 经典台词" />
+                            android:text="原文摘录 / 经典台词" />
                     </LinearLayout>
                 </HorizontalScrollView>
 

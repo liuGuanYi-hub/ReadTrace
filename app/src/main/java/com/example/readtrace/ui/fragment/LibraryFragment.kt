@@ -1282,7 +1282,7 @@ class LibraryFragment : Fragment() {
     /** 当前筛选条件的可读摘要，展示于长卷副标题与分享文案 */
     private fun buildFilterSummary(): String {
         val parts = mutableListOf<String>()
-        parts += selectedMediaType?.let { "${it.emoji} ${it.displayName}" } ?: "五媒介全景"
+        parts += selectedMediaType?.let { it.displayName } ?: "五媒介全景"
         selectedStatus?.let { parts += it.getDisplayName(selectedMediaType ?: MediaType.BOOK) }
         selectedRatingRange?.let { parts += "评分 ${it.label}" }
         selectedTag?.let { parts += "「$it」" }

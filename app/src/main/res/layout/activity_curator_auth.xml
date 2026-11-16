@@ -40,7 +40,7 @@
                     android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:fontFamily="sans"
-                    android:text="✦ 策展人入驻"
+                    android:text="策展人入驻"
                     android:textColor="@color/readtrace_ink"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -373,7 +373,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="✦ 正式领取策展人通行证"
+                    android:text="正式领取策展人通行证"
                     android:textColor="@color/white"
                     android:textSize="14.5sp"
                     android:textStyle="bold" />

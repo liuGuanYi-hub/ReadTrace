@@ -272,7 +272,7 @@
                             android:focusable="true"
                             android:fontFamily="sans"
                             android:gravity="center"
-                            android:text="🎨 金句印记海报"
+                            android:text="金句印记海报"
                             android:textColor="@color/white"
                             android:textSize="12.5sp"
                             android:textStyle="bold" />
@@ -288,7 +288,7 @@
                             android:focusable="true"
                             android:fontFamily="serif"
                             android:gravity="center"
-                            android:text="📜 刻印专属藏书票"
+                            android:text="刻印专属藏书票"
                             android:textColor="@color/readtrace_ink"
                             android:textSize="12.5sp"
                             android:textStyle="bold" />
@@ -319,7 +319,7 @@
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
-                        android:text="✨ 概览与雷达"
+                        android:text="概览与雷达"
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -351,7 +351,7 @@
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
-                        android:text="👥 角色与大纲"
+                        android:text="角色与大纲"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -367,7 +367,7 @@
                         android:gravity="center"
                         android:paddingStart="12dp"
                         android:paddingEnd="12dp"
-                        android:text="💬 痕迹与摘录"
+                        android:text="痕迹与摘录"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -431,7 +431,7 @@
                         android:background="@drawable/bg_dark_chip_selected"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="🤖 AI 角色大纲"
+                        android:text="AI 角色大纲"
                         android:textColor="@android:color/white"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -589,7 +589,7 @@
                         android:focusable="true"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="5dp"
-                        android:text="✨ 文心雕龙"
+                        android:text="文心雕龙"
                         android:textColor="#92400E"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -729,7 +729,7 @@
                 <TextView
                     android:id="@+id/detailCollectionTitle"
                     style="@style/ReadTraceFieldLabel"
-                    android:text="💰 实体馆藏与藏本印记"
+                    android:text="实体馆藏与藏本印记"
                     android:textSize="18sp" />
 
                 <LinearLayout
@@ -831,7 +831,7 @@
                         style="@style/ReadTraceFieldLabel"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:text="👥 人物角色谱"
+                        android:text="人物角色谱"
                         android:textSize="18sp" />
 
                     <TextView
@@ -894,7 +894,7 @@
                         style="@style/ReadTraceFieldLabel"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:text="🗺️ 章节大纲与脑图"
+                        android:text="章节大纲与脑图"
                         android:textSize="18sp" />
 
                     <TextView
@@ -1001,7 +1001,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="💬摘录"
+                        android:text="摘录"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="11sp" />
 
@@ -1016,7 +1016,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="🖼️ 导出长图"
+                        android:text="导出长图"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -1058,7 +1058,7 @@
                         style="@style/ReadTraceFieldLabel"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:text="🕸️ 六维心智雷达"
+                        android:text="六维心智雷达"
                         android:textSize="18sp" />
 
                     <TextView
@@ -1073,7 +1073,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="🌌 星系定位"
+                        android:text="星系定位"
                         android:textColor="#4DEEEA"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -1090,7 +1090,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="📱 微卡"
+                        android:text="微卡"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -1107,7 +1107,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="🔍 对比"
+                        android:text="对比"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -1123,7 +1123,7 @@
                         android:gravity="center"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
-                        android:text="✏️ 评分"
+                        android:text="评分"
                         android:textColor="@color/readtrace_ink"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -1168,7 +1168,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="🧠 思想深度" />
+                                android:text="思想深度" />
 
                             <TextView
                                 android:id="@+id/detailScoreDepth"
@@ -1185,7 +1185,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="🖋️ 文笔意境" />
+                                android:text="文笔意境" />
 
                             <TextView
                                 android:id="@+id/detailScoreArtistry"
@@ -1210,7 +1210,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="❤️ 情感共鸣" />
+                                android:text="情感共鸣" />
 
                             <TextView
                                 android:id="@+id/detailScoreEmotion"
@@ -1227,7 +1227,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="📐 逻辑构架" />
+                                android:text="逻辑构架" />
 
                             <TextView
                                 android:id="@+id/detailScoreLogic"
@@ -1252,7 +1252,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="⛰️ 阅读门槛" />
+                                android:text="阅读门槛" />
 
                             <TextView
                                 android:id="@+id/detailScoreDifficulty"
@@ -1269,7 +1269,7 @@
 
                             <TextView
                                 style="@style/ReadTraceDetailLabel"
-                                android:text="🌿 心灵治愈" />
+                                android:text="心灵治愈" />
 
                             <TextView
                                 android:id="@+id/detailScoreHealing"
@@ -1291,7 +1291,7 @@
                         style="@style/ReadTraceDetailLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🔮 美学情绪胶囊 · 点击动态注入雷达"
+                        android:text="美学情绪胶囊 · 点击动态注入雷达"
                         android:textColor="@color/readtrace_accent"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
@@ -1323,7 +1323,7 @@
                         style="@style/ReadTraceFieldLabel"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:text="🗺️ 空间叙事足迹"
+                        android:text="空间叙事足迹"
                         android:textSize="18sp" />
 
                     <TextView
@@ -1371,7 +1371,7 @@
 
                 <TextView
                     style="@style/ReadTraceFieldLabel"
-                    android:text="🔗 心智相似作品"
+                    android:text="心智相似作品"
                     android:textSize="18sp" />
 
                 <TextView
