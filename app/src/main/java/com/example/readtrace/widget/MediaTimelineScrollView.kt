@@ -499,21 +499,21 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         val wishlistCount = bookList.count { it.status == BookStatus.WISHLIST }
 
         val statText = when (media) {
-            MediaType.BOOK -> "📚 读完 $finishedCount 本   ·   📖 在读 $readingCount 本   ·   🌟 想读 $wishlistCount 本"
-            MediaType.MOVIE -> "🎬 已看 $finishedCount 部   ·   🍿 在看 $readingCount 部   ·   🌟 想看 $wishlistCount 部"
-            MediaType.GAME -> "🎮 白金 $finishedCount 款   ·   🕹️ 游玩 $readingCount 款   ·   🌟 想玩 $wishlistCount 款"
-            MediaType.MUSIC -> "💿 听完 $finishedCount 首   ·   🎧 在听 $readingCount 首   ·   🌟 想听 $wishlistCount 首"
+            MediaType.BOOK -> "读完 $finishedCount 本 · 在读 $readingCount 本 · 想读 $wishlistCount 本"
+            MediaType.MOVIE -> "已看 $finishedCount 部 · 在看 $readingCount 部 · 想看 $wishlistCount 部"
+            MediaType.GAME -> "白金 $finishedCount 款 · 游玩 $readingCount 款 · 想玩 $wishlistCount 款"
+            MediaType.MUSIC -> "听完 $finishedCount 首 · 在听 $readingCount 首 · 想听 $wishlistCount 首"
             MediaType.ANIME -> if (readingCount > 0) {
-                "🌸 补完 $finishedCount 部   ·   📖 在追 $readingCount 部   ·   🌟 想追 $wishlistCount 部"
+                "补完 $finishedCount 部 · 在追 $readingCount 部 · 想追 $wishlistCount 部"
             } else {
-                "🌸 补完 $finishedCount 部   ·   🌟 想追 $wishlistCount 部   ·   💮 精神印记共鸣"
+                "补完 $finishedCount 部 · 想追 $wishlistCount 部 · 精神印记共鸣"
             }
             null -> {
                 val bCount = bookList.count { it.mediaType == MediaType.BOOK }
                 val aCount = bookList.count { it.mediaType == MediaType.ANIME }
                 val mCount = bookList.count { it.mediaType == MediaType.MOVIE }
                 val gCount = bookList.count { it.mediaType == MediaType.GAME }
-                "✨ 全量典藏 ${bookList.size} 部   ·   📚 $bCount   🌸 $aCount   🎬 $mCount   🎮 $gCount"
+                "全量典藏 ${bookList.size} 部 · $bCount $aCount $mCount $gCount"
             }
         }
         drawCapsuleBadge(canvas, canvasWidth / 2f, 205f, statText, accentGold, dark)
@@ -627,36 +627,36 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
                 val (badgeText, badgeColor) = when (book.status) {
                     BookStatus.FINISHED -> {
                         val ratingStr = book.rating?.let { "★ ${it / 2.0}" } ?: when (book.mediaType) {
-                            MediaType.BOOK -> "📚 已读"
-                            MediaType.MOVIE -> "🎬 已看"
-                            MediaType.GAME -> "🏆 白金"
-                            MediaType.ANIME -> "🌸 补完"
-                            MediaType.MUSIC -> "💿 听完"
+                            MediaType.BOOK -> "已读"
+                            MediaType.MOVIE -> "已看"
+                            MediaType.GAME -> "白金"
+                            MediaType.ANIME -> "补完"
+                            MediaType.MUSIC -> "听完"
                         }
                         ratingStr to highlightColor
                     }
                     BookStatus.READING -> {
                         val ongoingText = when (book.mediaType) {
-                            MediaType.BOOK -> "📖 在读"
-                            MediaType.MOVIE -> "🍿 在看"
-                            MediaType.GAME -> "🕹️ 游玩中"
-                            MediaType.ANIME -> "📖 追番中"
-                            MediaType.MUSIC -> "🎧 在听"
+                            MediaType.BOOK -> "在读"
+                            MediaType.MOVIE -> "在看"
+                            MediaType.GAME -> "游玩中"
+                            MediaType.ANIME -> "追番中"
+                            MediaType.MUSIC -> "在听"
                         }
                         ongoingText to (if (dark) Color.parseColor("#81C784") else Color.parseColor("#3A6348"))
                     }
                     BookStatus.WISHLIST -> {
                         val wishText = when (book.mediaType) {
-                            MediaType.BOOK -> "🌟 想读"
-                            MediaType.MOVIE -> "🌟 想看"
-                            MediaType.GAME -> "🌟 想玩"
-                            MediaType.ANIME -> "🌟 想追"
-                            MediaType.MUSIC -> "🌟 想听"
+                            MediaType.BOOK -> "想读"
+                            MediaType.MOVIE -> "想看"
+                            MediaType.GAME -> "想玩"
+                            MediaType.ANIME -> "想追"
+                            MediaType.MUSIC -> "想听"
                         }
                         wishText to accentGold
                     }
-                    BookStatus.PAUSED -> "⏸️ 搁置" to secondaryText
-                    BookStatus.DROPPED -> "✖️ 弃置" to secondaryText
+                    BookStatus.PAUSED -> "搁置" to secondaryText
+                    BookStatus.DROPPED -> "弃置" to secondaryText
                 }
                 drawSmallTag(canvas, cardRight - 55f, cardTop + CARD_PAD_Y + 12f, badgeText, badgeColor, dark)
 
