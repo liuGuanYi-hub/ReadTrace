@@ -115,7 +115,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
 
         com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
             fragmentManager = supportFragmentManager,
-            title = "🎮 选择要生成卡带的游戏",
+            title = "选择要生成卡带的游戏",
             works = games,
             selectedWorkId = gameId,
             onSelected = { selected ->
@@ -156,7 +156,7 @@ class GameCartridgePosterActivity : AppCompatActivity() {
             gameCartridgePosterView.coverFocalX = f.getOrNull(0) ?: 0.5f
             gameCartridgePosterView.coverFocalY = f.getOrNull(1) ?: 0.5f
         }
-        tvCartridgeSummary.text = "🕹️ 《${currentGame!!.title}》· 白金典藏通关卡带"
+        tvCartridgeSummary.text = "《${currentGame!!.title}》· 白金典藏通关卡带"
     }
 
     private fun buildThemeChips() {

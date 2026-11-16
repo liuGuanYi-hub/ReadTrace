@@ -88,7 +88,7 @@ class ExLibrisStudioActivity : AppCompatActivity() {
             }
             com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
                 fragmentManager = supportFragmentManager,
-                title = "📜 选择要定制藏书票的作品",
+                title = "选择要定制藏书票的作品",
                 works = allBooks,
                 selectedWorkId = currentBook?.id,
                 onSelected = { book ->

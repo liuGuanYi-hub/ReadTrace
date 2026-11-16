@@ -27,7 +27,7 @@
                 android:id="@+id/scrollMainTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📜 全景编年史 · 心智画卷"
+                android:text="全景编年史 · 心智画卷"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="16.5sp"
                 android:textStyle="bold" />
@@ -48,7 +48,7 @@
             android:background="@drawable/bg_status_chip_selected"
             android:gravity="center"
             android:paddingHorizontal="14dp"
-            android:text="📤 导出分享"
+            android:text="导出分享"
             android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -81,7 +81,7 @@
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_chip"
                 android:paddingHorizontal="12dp"
-                android:text="📚 书籍"
+                android:text="书籍"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp" />
 
@@ -93,7 +93,7 @@
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_chip"
                 android:paddingHorizontal="12dp"
-                android:text="🌸 番剧"
+                android:text="番剧"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp" />
 
@@ -105,7 +105,7 @@
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_chip"
                 android:paddingHorizontal="12dp"
-                android:text="🎬 影视"
+                android:text="影视"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp" />
 
@@ -117,7 +117,7 @@
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_chip"
                 android:paddingHorizontal="12dp"
-                android:text="🎮 游戏"
+                android:text="游戏"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp" />
 
@@ -129,7 +129,7 @@
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_status_chip"
                 android:paddingHorizontal="12dp"
-                android:text="💿 音乐"
+                android:text="音乐"
                 android:textColor="@color/readtrace_ink"
                 android:textSize="12sp" />
         </LinearLayout>

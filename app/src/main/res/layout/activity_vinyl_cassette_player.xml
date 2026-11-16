@@ -44,7 +44,7 @@
                     android:ellipsize="end"
                     android:fontFamily="serif"
                     android:maxLines="1"
-                    android:text="💽 拟真黑胶唱机"
+                    android:text="拟真黑胶唱机"
                     android:textColor="@color/player_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -69,7 +69,7 @@
                 android:background="@drawable/bg_player_chip"
                 android:gravity="center"
                 android:paddingHorizontal="10dp"
-                android:text="🎵 歌单"
+                android:text="歌单"
                 android:textColor="@color/player_text_primary"
                 android:textSize="11.5sp"
                 android:textStyle="bold" />
@@ -81,7 +81,7 @@
                 android:background="@drawable/bg_player_chip"
                 android:gravity="center"
                 android:paddingHorizontal="10dp"
-                android:text="📼 磁带"
+                android:text="磁带"
                 android:textColor="#4DEEEA"
                 android:textSize="11.5sp"
                 android:textStyle="bold" />
@@ -148,7 +148,7 @@
                     android:focusable="true"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="4dp"
-                    android:text="📜 点词即播 · 点击此处返回唱机"
+                    android:text="点词即播 · 点击此处返回唱机"
                     android:textColor="@color/player_text_muted"
                     android:textSize="11sp" />
             </FrameLayout>
@@ -305,7 +305,7 @@
                     android:background="@drawable/bg_player_chip"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
-                    android:text="☁️ 我的歌单"
+                    android:text="我的歌单"
                     android:textColor="#4DEEEA"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -318,7 +318,7 @@
                     android:background="@drawable/bg_player_chip"
                     android:gravity="center"
                     android:paddingHorizontal="16dp"
-                    android:text="🔍 去网易云搜索"
+                    android:text="去网易云搜索"
                     android:textColor="#4DEEEA"
                     android:textSize="12sp"
                     android:textStyle="bold" />

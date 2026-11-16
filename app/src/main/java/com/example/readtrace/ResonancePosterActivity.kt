@@ -103,7 +103,7 @@ class ResonancePosterActivity : AppCompatActivity() {
 
         com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
             fragmentManager = supportFragmentManager,
-            title = "✨ 选择第 1 部共鸣作品 (Work A)",
+            title = "选择第 1 部共鸣作品",
             works = allWorks,
             selectedWorkId = bookAId,
             onSelected = { workA ->
@@ -117,7 +117,7 @@ class ResonancePosterActivity : AppCompatActivity() {
 
         com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
             fragmentManager = supportFragmentManager,
-            title = "✨ 选择第 2 部共鸣作品 (Work B)",
+            title = "选择第 2 部共鸣作品",
             works = availableWorksB,
             selectedWorkId = bookBId,
             onSelected = { workB ->

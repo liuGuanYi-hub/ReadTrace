@@ -142,11 +142,11 @@ open class MediaTimelineScrollActivity : AppCompatActivity() {
 
                 // 更新顶部标题
                 scrollMainTitle.text = when (requestedType) {
-                    MediaType.BOOK -> "📜 阅历编年史 · 文学画卷"
-                    MediaType.ANIME -> "📜 追番编年史 · 心智画卷"
-                    MediaType.MOVIE -> "📜 光影编年史 · 影画长卷"
-                    MediaType.GAME -> "📜 游戏编年史 · 征程画卷"
-                    MediaType.MUSIC -> "📜 乐音编年史 · 旋律画卷"
+                    MediaType.BOOK -> "阅历编年史 · 文学画卷"
+                    MediaType.ANIME -> "追番编年史 · 心智画卷"
+                    MediaType.MOVIE -> "光影编年史 · 影画长卷"
+                    MediaType.GAME -> "游戏编年史 · 征程画卷"
+                    MediaType.MUSIC -> "乐音编年史 · 旋律画卷"
                 }
 
                 // 计算年份跨度

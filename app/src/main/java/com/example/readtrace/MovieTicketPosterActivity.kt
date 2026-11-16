@@ -94,11 +94,11 @@ class MovieTicketPosterActivity : AppCompatActivity() {
             if (isTorn) {
                 HapticFeedbackEngine.ticketTearRipped(this)
                 SpatialAudioEngine.playTicketTear()
-                btnToggleTicketTear.text = "✨ 磁吸复原票根"
+                btnToggleTicketTear.text = "磁吸复原票根"
             } else {
                 HapticFeedbackEngine.cartridgeSnap(this)
                 SpatialAudioEngine.playCartridgeSnap()
-                btnToggleTicketTear.text = "🎟️ 模拟撕票入场"
+                btnToggleTicketTear.text = "模拟撕票入场"
             }
         }
 
@@ -120,7 +120,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
 
         com.example.readtrace.ui.bottomsheet.WorkPickerBottomSheet.show(
             fragmentManager = supportFragmentManager,
-            title = "🎬 选择要生成票根的电影",
+            title = "选择要生成票根的电影",
             works = movies,
             selectedWorkId = movieId,
             onSelected = { selected ->
@@ -155,7 +155,7 @@ class MovieTicketPosterActivity : AppCompatActivity() {
 
         currentMindprint = databaseHelper.getMindprint(movieId)
         movieTicketPosterView.setData(currentMovie!!, currentMindprint, movieTicketPosterView.getTheme())
-        tvTicketSummary.text = "🎬 《${currentMovie!!.title}》· 电影透光票根"
+        tvTicketSummary.text = "《${currentMovie!!.title}》· 电影透光票根"
     }
 
     private fun buildThemeChips() {

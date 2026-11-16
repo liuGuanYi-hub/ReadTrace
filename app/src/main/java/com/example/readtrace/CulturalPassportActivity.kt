@@ -107,8 +107,8 @@ class CulturalPassportActivity : AppCompatActivity() {
         val animeCount = allBooks.count { it.mediaType == MediaType.ANIME }
         val gameCount = allBooks.count { it.mediaType == MediaType.GAME }
 
-        tabPassportAnime.text = "🌸 追番入境签证 ($animeCount 部)"
-        tabPassportGame.text = "🎮 游戏通关签证 ($gameCount 款)"
+            tabPassportAnime.text = "追番入境签证 ($animeCount 部)"
+            tabPassportGame.text = "游戏通关签证 ($gameCount 款)"
 
         passportScrollView.post {
             passportScrollView.fullScroll(android.widget.ScrollView.FOCUS_UP)

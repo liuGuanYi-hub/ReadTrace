@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="🛂 精神巡礼护照"
+            android:text="精神巡礼护照"
             android:textColor="#E0A96D"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -33,7 +33,7 @@
             android:background="@drawable/bg_status_chip_selected"
             android:paddingHorizontal="14dp"
             android:paddingVertical="7dp"
-            android:text="📤 导出长图"
+            android:text="导出长图"
             android:textColor="#FFFFFF"
             android:textSize="13.5sp"
             android:textStyle="bold" />
@@ -57,7 +57,7 @@
             android:background="@drawable/bg_status_chip_selected"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="🌸 追番入境签证 (71部)"
+            android:text="追番入境签证 (71部)"
             android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -71,7 +71,7 @@
             android:background="@drawable/bg_dark_chip"
             android:gravity="center"
             android:paddingVertical="8dp"
-            android:text="🎮 游戏通关签证 (50+款)"
+            android:text="游戏通关签证 (50+款)"
             android:textColor="#E0D8C8"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="18dp"
-                android:text="💡 点击任意印章可查看作品卡片与六维心智"
+                android:text="点击任意印章可查看作品卡片与六维心智"
                 android:textColor="#A0C4E2"
                 android:textSize="12.5sp" />
         </LinearLayout>

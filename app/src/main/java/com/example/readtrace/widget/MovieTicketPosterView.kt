@@ -75,7 +75,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
         val borderGlowColor: Int,
     ) {
         NOIR_CINEMA(
-            "🎞️ 经典胶片",
+            "经典胶片",
             intArrayOf(Color.parseColor("#121113"), Color.parseColor("#1E1B18"), Color.parseColor("#0D0D0E")),
             Color.parseColor("#211F24"),
             Color.parseColor("#F5EFE6"),
@@ -87,7 +87,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
             Color.parseColor("#40D4AF37"),
         ),
         VINTAGE_KRAFT(
-            "📜 复古羊皮",
+            "复古羊皮",
             intArrayOf(Color.parseColor("#F5EBE1"), Color.parseColor("#EBDCC9"), Color.parseColor("#E0CDB8")),
             Color.parseColor("#FAF3EB"),
             Color.parseColor("#2C221E"),
@@ -99,7 +99,7 @@ class MovieTicketPosterView @JvmOverloads constructor(
             Color.parseColor("#33A64B2A"),
         ),
         SUNSET_SCREEN(
-            "🌅 落日放映",
+            "落日放映",
             intArrayOf(Color.parseColor("#1F1118"), Color.parseColor("#38192A"), Color.parseColor("#1A1423")),
             Color.parseColor("#2E1929"),
             Color.parseColor("#FFF0F5"),

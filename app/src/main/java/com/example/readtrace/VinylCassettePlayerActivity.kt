@@ -356,7 +356,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         if (playlist.isEmpty()) return
         val track = playlist[currentIndex]
 
-        tvPlayerTitle.text = if (isCassetteMode) "📼 80s 复古磁带卡座" else "💽 拟真黑胶唱机"
+        tvPlayerTitle.text = if (isCassetteMode) "80s 复古磁带卡座" else "拟真黑胶唱机"
         tvPlayerSubtitle.text = "《${track.title}》· Hi-Res 模拟声场"
 
         tvQuoteLyrics.text = if (!track.shortComment.isNullOrBlank()) {
@@ -1082,13 +1082,13 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
         player.setOnInfoListener { _, what, _ ->
             when (what) {
-                MediaPlayer.MEDIA_INFO_BUFFERING_START -> tvPlayPauseLabel.text = "⏳ 缓冲中..."
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> tvPlayPauseLabel.text = "缓冲中..."
                 MediaPlayer.MEDIA_INFO_BUFFERING_END -> if (isPlaying) tvPlayPauseLabel.text = "⏸ 暂停聆听"
             }
             false
         }
         player.setOnBufferingUpdateListener { _, percent ->
-            if (isPreparing) tvPlayPauseLabel.text = "⏳ 缓冲中 $percent%"
+            if (isPreparing) tvPlayPauseLabel.text = "缓冲中 $percent%"
         }
         player.setOnErrorListener { _, what, extra ->
             if (seq != cloudOpSeq || playSeq != playbackSeq || mediaPlayer !== player) return@setOnErrorListener true
@@ -1098,7 +1098,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         }
         mediaPlayer = player
         player.prepareAsync()
-        tvPlayPauseLabel.text = "⏳ 缓冲中..."
+        tvPlayPauseLabel.text = "缓冲中..."
         // 曲目标题已在 playCloudTrack 统一联动，此处不再覆盖，避免顶栏副标题被歌单名顶掉
     }
 
@@ -1272,7 +1272,7 @@ class VinylCassettePlayerActivity : AppCompatActivity(), SensorEventListener {
         handler.removeCallbacks(prepareTimeoutRunnable)
         handler.postDelayed(prepareTimeoutRunnable, PREPARE_TIMEOUT_MS)
         player.prepareAsync()
-        tvPlayPauseLabel.text = "⏳ 缓冲中..."
+        tvPlayPauseLabel.text = "缓冲中..."
 
         isPlaying = true
         // 取曲/缓冲中也视为「播放会话中」，其他页面的悬浮胶囊即时可见可跳回
