@@ -7,26 +7,32 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_readtrace_home">
 
-    <!-- Fragment 主内容容器 -->
+    <!--
+      Fragment 主内容容器。
+      底部停在导航栏上方而不是屏幕底：这样各页面里固定在底部的元素（藏库的分页栏等）
+      天然避开导航栏，不需要各自推算导航栏高度。
+    -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavBarShell"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 底部悬浮毛玻璃导航栏 (Floating M3/iOS Pill Nav Bar + 鸿蒙流光寻迹) -->
+    <!--
+      底部导航栏（贴底通栏）。
+      原来是悬浮胶囊：左右下各留 16dp，内容一滚到底就从缝隙里透出来。
+      现在宽度铺满、无外边距，底部 inset 由 MainActivity 按系统栏高度补足；
+      内部 Tab 区固定 64dp，导航栏总高 = 64dp + 系统手势条高度。
+    -->
     <com.example.readtrace.widget.FluidSpotlightNavBar
         android:id="@+id/bottomNavBarShell"
         android:layout_width="0dp"
-        android:layout_height="64dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/bg_bottom_nav_bar"
-        android:elevation="14dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_bottom_nav_bar_solid"
+        android:elevation="6dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -35,7 +41,8 @@
         <View
             android:id="@+id/navIndicator"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="54dp"
+            android:layout_gravity="center_vertical"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
             android:background="@drawable/bg_nav_tab_active" />
@@ -43,7 +50,7 @@
         <LinearLayout
             android:id="@+id/bottomNavBar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="64dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="6dp"

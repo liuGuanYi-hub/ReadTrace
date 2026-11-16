@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  底部导航栏 · 贴底通栏底。
+  原来用 bg_bottom_nav_bar（95% 白 + 26dp 圆角 + 描边 + 左右下各 16dp 外边距），
+  是一条悬浮胶囊：内容滚到底部时会从左右缝和下方 16dp 的空隙里透出来，看起来像"没贴住"。
+  这里改为通栏不透明：无圆角、无描边、纸张色铺满，靠顶部 1dp 极淡分隔线与内容分层。
+  圆角与描边的视觉任务改由内部的选中指示胶囊承担。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#EAE5DC" />
+        </shape>
+    </item>
+    <item android:top="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FBFAF6" />
+        </shape>
+    </item>
+</layer-list>

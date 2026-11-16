@@ -605,11 +605,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="✨"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -669,11 +664,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📻"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -701,11 +691,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🎴"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -733,11 +718,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📜"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -765,11 +745,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🌌"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"

@@ -48,6 +48,9 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainRoot)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
+            // 底部导航改为贴底通栏后，手势条高度由导航栏自己让出来，
+            // 否则最下面一截导航会被系统手势区压住
+            findViewById<View>(R.id.bottomNavBarShell)?.setPadding(0, 0, 0, systemBars.bottom)
             insets
         }
 
