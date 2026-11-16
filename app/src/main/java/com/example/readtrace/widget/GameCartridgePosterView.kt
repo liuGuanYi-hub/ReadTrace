@@ -45,10 +45,12 @@ class GameCartridgePosterView @JvmOverloads constructor(
         val radarColor: Int,
     ) {
         PLATINUM_HOLO(
-            "💎 耀世白金",
+            "耀世白金",
             intArrayOf(Color.parseColor("#0B0E14"), Color.parseColor("#141B26"), Color.parseColor("#0A0D12")),
             Color.parseColor("#85B8E2"),
-            intArrayOf(Color.parseColor("#7EE8FA"), Color.parseColor("#EECDA3"), Color.parseColor("#ECA0FF"), Color.parseColor("#80D0C7")),
+            // 原为青/米金/紫/青绿四色虹彩，放在深色卡面上过于跳脱；改为银白低饱和渐变，
+            // 保留金属质感但不再抢封面
+            intArrayOf(Color.parseColor("#DCE4EE"), Color.parseColor("#AFC0D2"), Color.parseColor("#E7EDF4")),
             Color.parseColor("#101722"),
             Color.parseColor("#F0F6FC"),
             Color.parseColor("#8B949E"),
@@ -56,7 +58,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
             Color.parseColor("#58A6FF"),
         ),
         CYBER_NEON(
-            "⚡ 赛博霓虹",
+            "赛博霓虹",
             intArrayOf(Color.parseColor("#080B10"), Color.parseColor("#0F1A24"), Color.parseColor("#150A21")),
             Color.parseColor("#00F5D4"),
             intArrayOf(Color.parseColor("#00F5D4"), Color.parseColor("#7B2CBF"), Color.parseColor("#F72585")),
@@ -67,7 +69,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
             Color.parseColor("#F72585"),
         ),
         DARK_ASH(
-            "🔥 暗黑魂系",
+            "暗黑魂系",
             intArrayOf(Color.parseColor("#121110"), Color.parseColor("#1C1510"), Color.parseColor("#0D0B0A")),
             Color.parseColor("#D47A37"),
             intArrayOf(Color.parseColor("#E65100"), Color.parseColor("#FFB74D"), Color.parseColor("#BF360C")),
@@ -78,7 +80,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
             Color.parseColor("#E76F51"),
         ),
         RETRO_FAMICOM(
-            "🎮 红白经典",
+            "红白经典",
             intArrayOf(Color.parseColor("#F5EBE1"), Color.parseColor("#EBDCC9"), Color.parseColor("#E0CDB8")),
             Color.parseColor("#A61B24"),
             intArrayOf(Color.parseColor("#A61B24"), Color.parseColor("#D4AF37"), Color.parseColor("#2E4053")),
@@ -330,7 +332,7 @@ class GameCartridgePosterView @JvmOverloads constructor(
         val maxBadgeTextW = badgeW - badgePadX * 2.2f
 
         // 行1: 🏆 白金通关认证
-        val titleBadge = "🏆 白金通关认证"
+        val titleBadge = "白金通关认证"
         textPaint.color = currentTheme.trophyColor
         textPaint.textSize = (infoRowH * 0.22f).coerceAtLeast(10f)
         textPaint.isFakeBoldText = true
