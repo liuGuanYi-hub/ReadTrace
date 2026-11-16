@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  纪念工坊 · 纸张卡片底。
+  取代旧版「纯白 + 0.8dp 描边」的玻璃面板：描边是传统卡片列表最主要的视觉噪音来源，
+  这里改用极浅的纵向渐变模拟纸张受光，靠 elevation 阴影与背景色差分层，
+  边界不再靠线条勾勒。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="270"
+        android:endColor="#F6F2E9"
+        android:startColor="#FDFCF8" />
+    <corners android:radius="20dp" />
+</shape>

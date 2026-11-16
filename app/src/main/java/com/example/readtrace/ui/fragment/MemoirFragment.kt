@@ -154,22 +154,24 @@ class MemoirFragment : Fragment() {
         val (titleStr, subtitleStr, spanBadgeStr) = if (minYear != null && maxYear != null) {
             val span = maxYear - minYear + 1
             val yearRange = if (minYear == maxYear) "$minYear" else "$minYear-$maxYear"
+            // 卡片标题不再带 emoji：层级由版面里的序号与字重承担，emoji 只会让字形随系统漂移。
+            // 年份并入副标题，底部角标只留数量——两枚徽章并排会把 172dp 的卡片撑到换行。
             Triple(
-                "📜 全景编年画卷 ($yearRange)",
-                "纵览 $span 年时光史 · 书籍/影视/游戏/番剧 · 1080P 超清全景长图导出",
-                "⏳ $yearRange · ${span}年",
+                "全景编年画卷",
+                "纵览 $span 年 · $yearRange",
+                "",
             )
         } else {
             Triple(
-                "📜 全景编年画卷",
-                "纵览全景精神史 · 书籍/影视/游戏/番剧 · 1080P 超清全景长图导出",
-                "⏳ 跨越编年时光",
+                "全景编年画卷",
+                "纵览全景精神史 · 书籍 / 影视 / 游戏 / 番剧",
+                "",
             )
         }
 
         root.findViewById<TextView>(R.id.animeTimelineTitle)?.text = titleStr
         root.findViewById<TextView>(R.id.animeTimelineSubtitle)?.text = subtitleStr
-        root.findViewById<TextView>(R.id.animeTimelineCountBadge)?.text = "✨ ${allBooks.size} 部典藏"
+        root.findViewById<TextView>(R.id.animeTimelineCountBadge)?.text = "${allBooks.size} 部典藏"
         root.findViewById<TextView>(R.id.animeTimelineSpanBadge)?.text = spanBadgeStr
     }
 

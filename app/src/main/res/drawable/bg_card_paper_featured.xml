@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  纪念工坊 · 主推卡片（护照）底。
+  比次级卡深一档羊皮纸色 + 更大的圆角，用于在 bento 网格里制造「一大配六小」的节奏，
+  让首屏不再是一列等宽等高、视觉权重相同的卡片。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="315"
+        android:endColor="#E9E3D4"
+        android:startColor="#F4F0E5" />
+    <corners android:radius="26dp" />
+</shape>
