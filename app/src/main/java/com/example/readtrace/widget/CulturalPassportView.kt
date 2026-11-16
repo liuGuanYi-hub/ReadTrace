@@ -12,6 +12,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -73,7 +74,8 @@ class CulturalPassportView @JvmOverloads constructor(
     var onStampClickListener: ((item: Book, screenX: Float, screenY: Float) -> Unit)? = null
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    // 用 TextPaint 而非 Paint：TextUtils.ellipsize 需要 TextPaint 才能按宽度截断书名
+    private val textPaint = android.text.TextPaint(Paint.ANTI_ALIAS_FLAG)
     private val shockwavePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val sparkPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
@@ -373,12 +375,14 @@ class CulturalPassportView @JvmOverloads constructor(
         paint.pathEffect = null
 
         // 2. 顶部印泥标志 (Header Seal)
+        // 原来带 emoji（🌸 IMMIGRATION / 🎮 PLATINUM），每张卡重复一遍，纯粹是视觉噪音；
+        // 现在缩成低对比的小字，让位给封面与书名
         val isGame = item.mediaType == MediaType.GAME
-        textPaint.color = color
+        textPaint.color = Color.argb(120, Color.red(color), Color.green(color), Color.blue(color))
         textPaint.textAlign = Paint.Align.CENTER
-        textPaint.textSize = cellW * 0.10f
+        textPaint.textSize = cellW * 0.078f
         textPaint.isFakeBoldText = true
-        val topBadge = if (isGame) "🎮 PLATINUM" else "🌸 IMMIGRATION"
+        val topBadge = if (isGame) "PLATINUM" else "IMMIGRATION"
         canvas.drawText(topBadge, cx, cardRect.top + cellW * 0.15f, textPaint)
 
         // 3. 上方真实封面微缩海报 (Cover Artwork Thumbnail - 核心满足用户诉求)
@@ -420,7 +424,8 @@ class CulturalPassportView @JvmOverloads constructor(
 
             textPaint.textSize = coverH * 0.32f
             textPaint.color = color
-            canvas.drawText(if (isGame) "🎮" else "🌸", coverRect.centerX(), coverRect.centerY() + coverH * 0.10f, textPaint)
+            // 无封面时用书名首字兜底，替代原来的 emoji 占位
+            canvas.drawText(item.title.take(1), coverRect.centerX(), coverRect.centerY() + coverH * 0.10f, textPaint)
         }
 
         // 封面边缘微光边框与右下角戳印徽章
@@ -431,10 +436,25 @@ class CulturalPassportView @JvmOverloads constructor(
 
         // 4. 下方文字：作品标题 (Title Below Cover)
         val titleY = coverRect.bottom + cellW * 0.14f
-        val cleanTitle = if (item.title.length > 6) item.title.substring(0, 5) + "…" else item.title
         textPaint.color = color
-        textPaint.textSize = (cellW * 0.12f).coerceAtLeast(10f)
         textPaint.isFakeBoldText = true
+        // 字号自适应：卡片宽度固定，字号固定时只能放下 7 个字，
+        // 「进击的巨人 最终季」这类长标题永远被截成「进击的巨人 第…」，分不清是哪一季。
+        // 这里让长标题自动缩小字号，短标题保持大字，优先保证完整性。
+        val titleMaxWidth = cellW * 0.88f
+        var titleSize = cellW * 0.12f
+        val minTitleSize = cellW * 0.075f
+        textPaint.textSize = titleSize
+        while (titleSize > minTitleSize && textPaint.measureText(item.title) > titleMaxWidth) {
+            titleSize -= 0.5f
+            textPaint.textSize = titleSize
+        }
+        val cleanTitle = TextUtils.ellipsize(
+            item.title,
+            textPaint,
+            titleMaxWidth,
+            TextUtils.TruncateAt.END,
+        ).toString()
         canvas.drawText(cleanTitle, cx, titleY, textPaint)
 
         // 5. 最底部：年份与审核通过签注 (Year & Approval Date)
@@ -442,13 +462,15 @@ class CulturalPassportView @JvmOverloads constructor(
         val year = item.tags.mapNotNull { yearRegex.find(it)?.groupValues?.get(1) }.firstOrNull()
             ?: yearRegex.find(item.startDate.orEmpty())?.groupValues?.get(1)
             ?: yearRegex.find(item.finishDate.orEmpty())?.groupValues?.get(1)
-            ?: "年代"
         val dateY = titleY + cellW * 0.11f
         textPaint.color = Color.argb(200, Color.red(color), Color.green(color), Color.blue(color))
         textPaint.textSize = cellW * 0.088f
         textPaint.isFakeBoldText = false
-        val approvalText = if (isGame) "$year · 100% CLEAR" else "$year · APPROVED"
-        canvas.drawText(approvalText, cx, dateY, textPaint)
+        // 没有年份就不画这一行，避免出现无意义的「年代 · APPROVED」
+        if (year != null) {
+            val approvalText = if (isGame) "$year · 100% CLEAR" else "$year · APPROVED"
+            canvas.drawText(approvalText, cx, dateY, textPaint)
+        }
 
         canvas.restore()
     }
