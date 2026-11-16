@@ -9,6 +9,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import com.example.readtrace.R
 import com.example.readtrace.model.Book
 import com.example.readtrace.model.BookStatus
 import com.example.readtrace.model.MediaType
@@ -389,7 +390,7 @@ open class MediaTimelineScrollView @JvmOverloads constructor(
         val media = currentMediaType
 
         // 1. 绘制宣纸 / 和纸质感基底
-        val bgColor = if (dark) Color.parseColor("#151210") else Color.parseColor("#FAF8F3")
+        val bgColor = androidx.core.content.ContextCompat.getColor(context, R.color.readtrace_background)
         canvas.drawColor(bgColor)
 
         // 绘制宣纸微边框与典雅双重金线

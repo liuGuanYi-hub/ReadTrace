@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
+    android:background="@color/readtrace_background"
     android:orientation="vertical">
 
     <!-- 顶部操作导航栏（整体下移给悬浮返回键让位，避免与标题/按钮挤在一起） -->
