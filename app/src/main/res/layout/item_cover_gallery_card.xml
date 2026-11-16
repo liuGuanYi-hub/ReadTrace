@@ -63,7 +63,7 @@
             android:textColor="#FFFFFF"
             android:textSize="11.5sp"
             android:textStyle="bold"
-            tools:text="🌸 番剧" />
+            tools:text="番剧" />
     </FrameLayout>
 
     <!-- 底部作品信息与高光金句 -->

@@ -28,7 +28,7 @@
         android:paddingStart="16dp"
         android:paddingTop="18dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="96dp"
+        android:paddingBottom="28dp"
         android:scrollbars="none">
 
         <LinearLayout
@@ -113,17 +113,16 @@
                     android:textSize="30sp"
                     android:textStyle="bold" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/themeToggleButton"
                     android:layout_width="38dp"
                     android:layout_height="38dp"
                     android:background="@drawable/bg_secondary_button"
                     android:clickable="true"
+                    android:contentDescription="切换日夜主题"
                     android:focusable="true"
-                    android:gravity="center"
-                    android:text="☀️"
-                    android:textColor="@color/readtrace_ink"
-                    android:textSize="15sp" />
+                    android:padding="8dp"
+                    android:src="@drawable/ic_theme_sun" />
             </LinearLayout>
 
             <TextView
@@ -632,11 +631,6 @@
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="⏳"
-                        android:textSize="15sp" />
 
                     <TextView
                         android:layout_width="wrap_content"

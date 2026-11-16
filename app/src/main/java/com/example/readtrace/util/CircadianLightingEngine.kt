@@ -76,6 +76,7 @@ object CircadianLightingEngine {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val minute = Calendar.getInstance().get(Calendar.MINUTE)
         val timeStr = String.format("%02d:%02d", hour, minute)
-        return "${phase.emoji} ${phase.displayName} · $timeStr 四时自然光感校准"
+        // 副标题只留文字：四时时相靠名称与时间区分，图标交给界面层按需渲染
+        return "${phase.displayName} · $timeStr 四时自然光感校准"
     }
 }

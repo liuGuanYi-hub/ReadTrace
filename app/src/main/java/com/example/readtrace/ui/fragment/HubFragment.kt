@@ -61,7 +61,7 @@ class HubFragment : Fragment() {
     private lateinit var favStripContainer: android.widget.LinearLayout
     private lateinit var btnFavSeeAll: View
     private lateinit var homeSubtitle: TextView
-    private lateinit var themeToggleButton: TextView
+    private lateinit var themeToggleButton: android.widget.ImageView
     private lateinit var addBtn: TextView
     private lateinit var importPresetBtn: TextView
     private lateinit var backupBtn: TextView
@@ -438,7 +438,10 @@ class HubFragment : Fragment() {
     private fun updateThemeToggleIcon() {
         val ctx = context ?: return
         val isDark = ThemeHelper.isDarkMode(ctx)
-        themeToggleButton.text = if (isDark) "🌙" else "☀️"
+        // 太阳 / 月牙改为矢量图标，不再用 emoji 字符——emoji 的字形随系统版本和厂商字体漂移
+        themeToggleButton.setImageResource(
+            if (isDark) R.drawable.ic_theme_moon else R.drawable.ic_theme_sun,
+        )
         if (::auroraBackgroundView.isInitialized) {
             auroraBackgroundView.updateThemePalette(isDark)
         }
@@ -555,11 +558,11 @@ class HubFragment : Fragment() {
                 ?: run { heroBookTitle.text = "《${featuredBook.title}》" }
             heroBookAuthor.text = featuredBook.author?.ifBlank { "未知作者" } ?: "未知作者"
             heroBtnRead.text = when (featuredBook.mediaType) {
-                MediaType.BOOK -> "📖 回看阅读痕迹"
-                MediaType.ANIME -> "🌸 追番入境签证"
-                MediaType.MOVIE -> "🎟️ 透光电影票根"
-                MediaType.GAME -> "🕹️ 白金典藏卡带"
-                MediaType.MUSIC -> "🎴 共鸣双生微卡"
+                MediaType.BOOK -> "回看阅读痕迹"
+                MediaType.ANIME -> "追番入境签证"
+                MediaType.MOVIE -> "透光电影票根"
+                MediaType.GAME -> "白金典藏卡带"
+                MediaType.MUSIC -> "共鸣双生微卡"
             }
 
             val rating = featuredBook.rating

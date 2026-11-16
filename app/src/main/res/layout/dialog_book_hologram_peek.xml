@@ -138,7 +138,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:text="⏱️ 最近专注打卡"
+            android:text="最近专注打卡"
             android:textColor="@color/readtrace_accent"
             android:textSize="12sp"
             android:textStyle="bold" />

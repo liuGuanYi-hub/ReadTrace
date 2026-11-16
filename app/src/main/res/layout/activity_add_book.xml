@@ -425,7 +425,7 @@
                             android:layout_marginStart="10dp"
                             android:clickable="true"
                             android:focusable="true"
-                            android:text="⏸️ 暂停" />
+                            android:text="暂停" />
 
                         <TextView
                             android:id="@+id/chipStatusDropped"

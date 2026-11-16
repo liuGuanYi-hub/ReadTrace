@@ -54,7 +54,7 @@
             android:alpha="0.9"
             android:paddingHorizontal="4dp"
             android:paddingVertical="1dp"
-            android:text="🎮"
+            android:text="游"
             android:textSize="10sp" />
     </FrameLayout>
 

@@ -27,7 +27,7 @@
     android:paddingStart="20dp"
     android:paddingTop="26dp"
     android:paddingEnd="20dp"
-    android:paddingBottom="96dp">
+    android:paddingBottom="28dp">
 
     <LinearLayout
         android:id="@+id/memoirContent"

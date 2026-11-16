@@ -40,8 +40,12 @@
             android:paddingTop="2dp"
             android:paddingEnd="6dp"
             android:paddingBottom="2dp"
-            android:text="📖"
-            android:textSize="11sp" />
+            android:fontFamily="sans"
+            android:includeFontPadding="false"
+            android:text="书"
+            android:textColor="@color/readtrace_muted"
+            android:textSize="10sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/bookGridStatusPill"

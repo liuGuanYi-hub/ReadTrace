@@ -10,7 +10,7 @@
     android:paddingStart="18dp"
     android:paddingTop="20dp"
     android:paddingEnd="18dp"
-    android:paddingBottom="96dp">
+    android:paddingBottom="28dp">
 
     <LinearLayout
         android:id="@+id/profileContent"
