@@ -9,6 +9,13 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
+# WorkManager 的 Room 生成类在 AGP 9 full-mode R8 下会丢失无参构造函数，
+# 启动即崩：NoSuchMethodException: androidx.work.impl.WorkDatabase_Impl.<init> []
+# 崩溃点在 androidx.startup.InitializationProvider → WorkManagerInitializer，
+# 属于「应用还没进入任何 Activity 就挂掉」，必须显式保留。
+# room-runtime 自带的 consumer rules 在此裁剪模式下未能覆盖 work 的生成类，故此处补一条。
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+
 # 微信 OpenSDK 为运行时反射软接入（WeChatAuthManager 通过 Class.forName 查找，
 # 当前未编入 classpath，找不到时静默降级游客模式）。R8 对缺失类告警需要压制；
 # 若未来以 compileOnly / libs jar 形式引入，请同时解开下方 keep 规则：
