@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/studioRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1A140D"
     android:orientation="vertical">
 
-    <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏：左侧留给悬浮返回键，标题单行省略，右侧最多一个纯文字动作 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,41 +26,52 @@
             android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="serif"
-                android:text="📜 典藏藏书票工坊"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:text="藏书票工坊"
                 android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:fontFamily="monospace"
-                android:text="典藏手作纪念票根 · 复古纸艺"
-                android:textColor="#88FFFFFF"
-                android:textSize="11sp" />
+                android:layout_marginTop="3dp"
+                android:ellipsize="end"
+                android:fontFamily="sans"
+                android:letterSpacing="0.14"
+                android:maxLines="1"
+                android:text="EX LIBRIS"
+                android:textColor="#5CFFFFFF"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/btnSwitchExLibrisBook"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_dark_chip"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="7dp"
-            android:text="📚 切换藏书"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans"
+            android:paddingStart="8dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="6dp"
+            android:text="切换"
+            android:textColor="#C9FFE6AA"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <com.example.readtrace.widget.EditorialBadgeView
             android:id="@+id/studioBadge"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp" />
     </LinearLayout>
 
     <ScrollView
@@ -96,11 +111,12 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:fontFamily="serif"
-                android:text="🎨 典藏版画色系"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
+                android:layout_marginTop="22dp"
+                android:fontFamily="sans"
+                android:letterSpacing="0.18"
+                android:text="版画色系"
+                android:textColor="#8CFFE6AA"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -118,7 +134,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="📜 羊皮纸"
+                    android:text="羊皮纸"
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -133,7 +149,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="🌌 子夜"
+                    android:text="子夜"
                     android:textColor="#4DEEEA"
                     android:textSize="12sp" />
 
@@ -147,7 +163,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="🏛️ 木刻"
+                    android:text="木刻"
                     android:textColor="#EAE2D5"
                     android:textSize="12sp" />
 
@@ -158,10 +174,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:fontFamily="serif"
-                android:text="✍️ 藏票金句印记"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
+                android:fontFamily="sans"
+                android:letterSpacing="0.18"
+                android:text="金句印记"
+                android:textColor="#8CFFE6AA"
+                android:textSize="10sp"
                 android:textStyle="bold" />
 
             <EditText
@@ -176,15 +193,22 @@
                 android:textColorHint="#88FFFFFF"
                 android:textSize="13.5sp" />
 
-            <!-- 导出分享大按钮 -->
-            <Button
+            <!--
+              导出按钮：原来用 <Button> + android:background，
+              Material Components 的 Button 默认走 colorPrimary 填充，background 被忽略，
+              实际渲染成主题紫而不是设计里的墨绿。改用 TextView 承载点击，颜色才受控。
+            -->
+            <TextView
                 android:id="@+id/btnExportExLibrisPoster"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/bg_primary_button"
-                android:fontFamily="serif"
-                android:text="🎴 导出高清藏书票海报"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans"
+                android:gravity="center"
+                android:text="导出高清藏书票海报"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />

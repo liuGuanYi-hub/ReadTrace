@@ -8,13 +8,18 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.example.readtrace.data.BookDatabaseHelper
 import com.example.readtrace.model.Book
 import com.example.readtrace.util.CoverImageHelper
@@ -43,7 +48,21 @@ class ExLibrisStudioActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
         setContentView(R.layout.activity_ex_libris_studio)
+
+        // 系统栏避让：本页此前完全没有处理 insets，顶栏直接压在状态栏下面，
+        // 标题会和时间、信号图标叠在一起。与其他纪念模块页面统一交给根布局处理。
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.studioRoot)) { view, insets ->
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         databaseHelper = BookDatabaseHelper.getInstance(this)
         initViews()
@@ -114,7 +133,7 @@ class ExLibrisStudioActivity : AppCompatActivity() {
         })
 
         // 4K 海报导出与分享
-        findViewById<Button>(R.id.btnExportExLibrisPoster).setOnClickListener {
+        findViewById<View>(R.id.btnExportExLibrisPoster)?.setOnClickListener {
             exportAndSharePoster()
         }
     }
